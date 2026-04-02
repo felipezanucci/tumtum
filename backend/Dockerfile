@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install system deps for Pillow
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libjpeg62-turbo-dev libfreetype6-dev && \
+    libjpeg62-turbo-dev libfreetype6-dev fonts-dejavu-core && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

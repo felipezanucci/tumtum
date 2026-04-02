@@ -67,7 +67,7 @@ async def create_card(
     hr_data = [{"time": d.time, "bpm": d.bpm} for d in data_result.scalars().all()]
 
     # Generate card image
-    peak_bpm = peak.bpm if peak else (session.max_bpm or 0)
+    peak_bpm = peak.bpm if peak else (session.max_bpm or 100)
     event_name = "Evento"
     event_date = session.start_time.strftime("%d/%m/%Y")
 
@@ -80,17 +80,22 @@ async def create_card(
             event_name = event.name
             event_date = event.date.strftime("%d/%m/%Y")
 
-    image_bytes = generate_solo_card(
-        user_name=user.name,
-        event_name=event_name,
-        event_date=event_date,
-        peak_bpm=peak_bpm,
-        avg_bpm=session.avg_bpm or 0,
-        max_bpm=session.max_bpm or 0,
-        matched_label=matched_label,
-        hr_data=hr_data,
-        format=body.format,
-    )
+    try:
+        image_bytes = generate_solo_card(
+            user_name=user.name,
+            event_name=event_name,
+            event_date=event_date,
+            peak_bpm=peak_bpm,
+            avg_bpm=session.avg_bpm or 0,
+            max_bpm=session.max_bpm or 0,
+            matched_label=matched_label,
+            hr_data=hr_data,
+            format=body.format,
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar card: {str(e)}")
 
     # In production: upload to R2/S3 and store URL
     # For MVP: store as data URL placeholder, serve via /api/cards/{id}/image
