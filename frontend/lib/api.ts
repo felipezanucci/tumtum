@@ -1,0 +1,161 @@
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+class ApiError extends Error {
+  constructor(
+    public status: number,
+    public detail: string,
+  ) {
+    super(detail)
+    this.name = 'ApiError'
+  }
+}
+
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  })
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({ detail: 'Erro desconhecido' }))
+    throw new ApiError(response.status, body.detail || 'Erro desconhecido')
+  }
+
+  if (response.status === 204) return undefined as T
+  return response.json()
+}
+
+// --- Auth ---
+
+export interface TokenResponse {
+  access_token: string
+  token_type: string
+}
+
+export interface UserResponse {
+  id: string
+  email: string
+  name: string
+  avatar_url: string | null
+  auth_provider: string
+  created_at: string
+}
+
+export const auth = {
+  register: (email: string, name: string, password: string) =>
+    request<TokenResponse>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, name, password }),
+    }),
+
+  login: (email: string, password: string) =>
+    request<TokenResponse>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+
+  me: () => request<UserResponse>('/api/auth/me'),
+}
+
+// --- Health ---
+
+export interface WearableConnection {
+  id: string
+  provider: string
+  status: string
+  last_sync_at: string | null
+  created_at: string
+}
+
+export interface HRDataPoint {
+  time: string
+  bpm: number
+  rr_interval_ms: number | null
+  motion_level: number | null
+  source: string | null
+}
+
+export interface HRSession {
+  id: string
+  user_id: string
+  event_id: string | null
+  start_time: string
+  end_time: string
+  avg_bpm: number | null
+  max_bpm: number | null
+  min_bpm: number | null
+  data_quality_score: number | null
+  source_device: string | null
+  created_at: string
+}
+
+export interface HRSessionDetail extends HRSession {
+  data_points: HRDataPoint[]
+}
+
+export interface SyncStatus {
+  connection_id: string
+  status: string
+  records_synced: number
+  last_sync_at: string | null
+}
+
+export const health = {
+  connectWearable: (provider: string, accessToken: string, refreshToken?: string) =>
+    request<WearableConnection>('/api/health/wearables', {
+      method: 'POST',
+      body: JSON.stringify({
+        provider,
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      }),
+    }),
+
+  listWearables: () => request<WearableConnection[]>('/api/health/wearables'),
+
+  disconnectWearable: (connectionId: string) =>
+    request<void>(`/api/health/wearables/${connectionId}`, { method: 'DELETE' }),
+
+  createSession: (data: {
+    start_time: string
+    end_time: string
+    source_device?: string
+    event_id?: string
+    data_points: Array<{
+      time: string
+      bpm: number
+      rr_interval_ms?: number
+      motion_level?: number
+      source?: string
+    }>
+  }) =>
+    request<HRSession>('/api/health/sessions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  listSessions: () => request<HRSession[]>('/api/health/sessions'),
+
+  getSession: (sessionId: string) =>
+    request<HRSessionDetail>(`/api/health/sessions/${sessionId}`),
+
+  triggerSync: (connectionId: string, startTime: string, endTime: string) =>
+    request<SyncStatus>('/api/health/sync', {
+      method: 'POST',
+      body: JSON.stringify({
+        connection_id: connectionId,
+        start_time: startTime,
+        end_time: endTime,
+      }),
+    }),
+}
