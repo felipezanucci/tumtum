@@ -23,16 +23,26 @@ if settings.sentry_dsn:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Run migrations on startup
-    from alembic.config import Config
-    from alembic import command
-    alembic_cfg = Config("alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", settings.database_url)
+    # Run migrations on startup using SQLAlchemy directly
+    from sqlalchemy import text
+    from app.core.database import engine, Base
+
+    # Import all models so they register with Base.metadata
+    from app.models.user import User  # noqa: F401
+    from app.models.wearable_connection import WearableConnection  # noqa: F401
+    from app.models.event import Event  # noqa: F401
+    from app.models.event_timeline import EventTimeline  # noqa: F401
+    from app.models.hr_session import HRSession  # noqa: F401
+    from app.models.hr_data import HRData  # noqa: F401
+    from app.models.peak import Peak  # noqa: F401
+    from app.models.card import Card, Share  # noqa: F401
+
     try:
-        command.upgrade(alembic_cfg, "head")
-        print("Database migrations applied successfully")
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print("Database tables created successfully")
     except Exception as e:
-        print(f"Migration warning: {e}")
+        print(f"Database setup warning: {e}")
     yield
 
 
