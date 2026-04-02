@@ -19,10 +19,10 @@ class CardResponse(BaseModel):
     image_url: str | None
     video_url: str | None
     status: str
-    metadata: dict | None = None
+    metadata_: dict | None = Field(None, alias="metadata_")
     created_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class ShareRequest(BaseModel):
