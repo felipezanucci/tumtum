@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useEventStore } from '@/lib/stores/useEventStore'
 import { HRCurve, PeakMarker, TimelineBar } from '@/components/hr'
@@ -8,6 +8,14 @@ import { Loading } from '@/components/ui'
 import { Nav } from '@/components/layout'
 
 export default function ExperiencePage() {
+  return (
+    <Suspense fallback={<><Nav /><main className="flex min-h-screen items-center justify-center bg-tumtum-dark"><Loading size="lg" /></main></>}>
+      <ExperienceContent />
+    </Suspense>
+  )
+}
+
+function ExperienceContent() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('session')
 

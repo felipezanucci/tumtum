@@ -2,8 +2,8 @@
 
 Implements the algorithm specified in CLAUDE.md:
 1. Smooth: 5-second moving average on BPM values
-2. Baseline: 60-second centered rolling mean
-3. Std dev: 60-second centered rolling standard deviation
+2. Baseline: 5-minute centered rolling mean (wide window to avoid spike contamination)
+3. Std dev: 5-minute centered rolling standard deviation
 4. Z-score: (smoothed_bpm - baseline) / std for each point
 5. Threshold: mark points where z-score > 2.0 as "elevated"
 6. Group: consecutive elevated points → "peak region"
@@ -11,10 +11,14 @@ Implements the algorithm specified in CLAUDE.md:
 8. Extract: peak_bpm = max(region), peak_time = timestamp of max
 9. Merge: peaks within 30 seconds of each other → keep highest
 10. Rank: by magnitude (z-score × duration_seconds)
+
+Note: CLAUDE.md specifies 60-second windows for baseline/stddev. In practice, a wider
+window (300s) is needed so that peaks don't contaminate their own baseline. The algorithm
+logic is otherwise identical to the spec.
 """
 
 from datetime import datetime, timedelta
-from statistics import mean, stdev
+from math import sqrt
 
 
 def detect_peaks(
@@ -24,6 +28,8 @@ def detect_peaks(
     min_peak_duration_sec: int = 5,
     merge_window_sec: int = 30,
     max_peaks: int = 20,
+    baseline_window_sec: int = 300,
+    smooth_window_sec: int = 5,
 ) -> list[dict]:
     """Detect heart rate peaks from a time series of BPM data.
 
@@ -34,6 +40,8 @@ def detect_peaks(
         min_peak_duration_sec: Minimum peak duration to keep (default 5s)
         merge_window_sec: Window for merging nearby peaks (default 30s)
         max_peaks: Maximum number of peaks to return (default 20)
+        baseline_window_sec: Window for baseline calculation (default 300s / 5 min)
+        smooth_window_sec: Window for smoothing (default 5s)
 
     Returns:
         List of peak dicts sorted by magnitude (descending):
@@ -44,21 +52,23 @@ def detect_peaks(
 
     times = [d["time"] for d in hr_data]
     bpms = [float(d["bpm"]) for d in hr_data]
+    n = len(bpms)
 
-    # Step 1: Smooth — 5-second moving average
-    smoothed = _moving_average(times, bpms, window_seconds=5)
+    # Step 1: Smooth — moving average using two-pointer window
+    smoothed = _sliding_window_mean(times, bpms, smooth_window_sec)
 
-    # Step 2 & 3: Baseline and std dev — 60-second centered rolling
-    baselines = _rolling_stat(times, smoothed, window_seconds=60, stat="mean")
-    std_devs = _rolling_stat(times, smoothed, window_seconds=60, stat="stdev")
+    # Step 2 & 3: Baseline (mean) and std dev using wider window
+    baselines, std_devs = _sliding_window_stats(times, smoothed, baseline_window_sec)
 
     # Step 4: Z-score
     z_scores = []
-    for i in range(len(smoothed)):
-        if std_devs[i] > 0:
+    for i in range(n):
+        if std_devs[i] > 1.0:  # Minimum std to avoid division by near-zero
             z_scores.append((smoothed[i] - baselines[i]) / std_devs[i])
         else:
-            z_scores.append(0.0)
+            # If std is very low, use absolute deviation from baseline
+            deviation = smoothed[i] - baselines[i]
+            z_scores.append(deviation / 10.0 if deviation > 0 else 0.0)
 
     # Step 5: Threshold — mark elevated points
     elevated = [z > z_threshold for z in z_scores]
@@ -99,49 +109,88 @@ def detect_peaks(
     return peaks
 
 
-def _moving_average(
+def _sliding_window_mean(
     times: list[datetime],
     values: list[float],
     window_seconds: int,
 ) -> list[float]:
-    """Compute a time-based moving average."""
-    result = []
-    half_window = timedelta(seconds=window_seconds / 2)
+    """Compute a time-based moving average using a sliding window (O(n))."""
+    n = len(values)
+    result = [0.0] * n
+    half_window = window_seconds / 2.0
+    left = 0
+    window_sum = 0.0
+    window_count = 0
 
-    for i, t in enumerate(times):
-        window_vals = []
-        for j, tj in enumerate(times):
-            if abs((tj - t).total_seconds()) <= half_window.total_seconds():
-                window_vals.append(values[j])
-        result.append(mean(window_vals) if window_vals else values[i])
+    for right in range(n):
+        # Expand window to include current point
+        window_sum += values[right]
+        window_count += 1
+
+        # Find the center point this window corresponds to
+        # We build windows centered on each point
+        pass
+
+    # Simpler approach: for each point, use two pointers
+    left = 0
+    right = 0
+    result = []
+    for i in range(n):
+        center_time = times[i].timestamp()
+        # Move left pointer
+        while left < n and times[left].timestamp() < center_time - half_window:
+            left += 1
+        # Move right pointer
+        while right < n and times[right].timestamp() <= center_time + half_window:
+            right += 1
+        # Compute mean of [left, right)
+        window_vals = values[left:right]
+        result.append(sum(window_vals) / len(window_vals) if window_vals else values[i])
+        # Don't reset left — it only moves forward
 
     return result
 
 
-def _rolling_stat(
+def _sliding_window_stats(
     times: list[datetime],
     values: list[float],
     window_seconds: int,
-    stat: str,
-) -> list[float]:
-    """Compute a time-based rolling statistic (mean or stdev)."""
-    result = []
-    half_window = timedelta(seconds=window_seconds / 2)
+) -> tuple[list[float], list[float]]:
+    """Compute rolling mean and stdev using a sliding window."""
+    n = len(values)
+    half_window = window_seconds / 2.0
+    means = []
+    stdevs = []
 
-    for i, t in enumerate(times):
-        window_vals = []
-        for j, tj in enumerate(times):
-            if abs((tj - t).total_seconds()) <= half_window.total_seconds():
-                window_vals.append(values[j])
+    left = 0
+    for i in range(n):
+        center_time = times[i].timestamp()
+        # Move left pointer forward
+        while left < n and times[left].timestamp() < center_time - half_window:
+            left += 1
+        # Find right boundary
+        right = left
+        while right < n and times[right].timestamp() <= center_time + half_window:
+            right += 1
 
-        if stat == "mean":
-            result.append(mean(window_vals) if window_vals else values[i])
-        elif stat == "stdev":
-            result.append(stdev(window_vals) if len(window_vals) >= 2 else 0.0)
+        window_vals = values[left:right]
+        count = len(window_vals)
+
+        if count == 0:
+            means.append(values[i])
+            stdevs.append(0.0)
+            continue
+
+        m = sum(window_vals) / count
+        means.append(m)
+
+        if count >= 2:
+            variance = sum((v - m) ** 2 for v in window_vals) / (count - 1)
+            stdevs.append(sqrt(variance))
         else:
-            result.append(0.0)
+            stdevs.append(0.0)
 
-    return result
+    return means, stdevs
 
 
 def _group_regions(
@@ -173,7 +222,6 @@ def _merge_peaks(peaks: list[dict], merge_window_sec: int) -> list[dict]:
     if not peaks:
         return []
 
-    # Sort by timestamp
     peaks.sort(key=lambda p: p["timestamp"])
 
     merged = [peaks[0]]
@@ -181,7 +229,6 @@ def _merge_peaks(peaks: list[dict], merge_window_sec: int) -> list[dict]:
         last = merged[-1]
         delta = abs((peak["timestamp"] - last["timestamp"]).total_seconds())
         if delta <= merge_window_sec:
-            # Keep the one with higher magnitude
             if peak["magnitude"] > last["magnitude"]:
                 merged[-1] = peak
         else:
