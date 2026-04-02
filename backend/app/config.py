@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     setlist_fm_api_key: str = ""
     api_football_key: str = ""
+    sentry_dsn: str = ""
+    environment: str = "development"
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
