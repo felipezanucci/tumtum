@@ -103,8 +103,15 @@ def upgrade() -> None:
     )
     op.create_index("ix_hr_data_session_id", "hr_data", ["session_id"])
 
-    # Convert hr_data to TimescaleDB hypertable (1-day chunks)
-    op.execute("SELECT create_hypertable('hr_data', 'time', chunk_time_interval => INTERVAL '1 day')")
+    # Convert hr_data to TimescaleDB hypertable (1-day chunks) if available
+    op.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'timescaledb') THEN
+                PERFORM create_hypertable('hr_data', 'time', chunk_time_interval => INTERVAL '1 day');
+            END IF;
+        END $$;
+    """)
 
 
 def downgrade() -> None:
