@@ -5,6 +5,7 @@ from app.api.auth import router as auth_router
 from app.api.health import router as health_router
 from app.api.events import router as events_router
 from app.api.experience import router as experience_router
+from app.api.cards import router as cards_router
 
 app = FastAPI(title="Tumtum API", version="0.1.0")
 
@@ -20,6 +21,7 @@ app.include_router(auth_router)
 app.include_router(health_router)
 app.include_router(events_router)
 app.include_router(experience_router)
+app.include_router(cards_router)
 
 
 @app.get("/")

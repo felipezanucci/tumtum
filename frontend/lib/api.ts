@@ -280,3 +280,53 @@ export const experience = {
   get: (sessionId: string) =>
     request<ExperienceData>(`/api/experience/${sessionId}`),
 }
+
+// --- Cards ---
+
+export interface CardData {
+  id: string
+  user_id: string
+  session_id: string
+  peak_id: string | null
+  card_type: string
+  image_url: string | null
+  video_url: string | null
+  status: string
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface ShareData {
+  id: string
+  card_id: string
+  platform: string
+  shared_at: string
+}
+
+export const cards = {
+  create: (data: {
+    session_id: string
+    peak_id?: string
+    card_type?: string
+    format?: string
+  }) =>
+    request<CardData>('/api/cards', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  list: () => request<CardData[]>('/api/cards'),
+
+  get: (cardId: string) => request<CardData>(`/api/cards/${cardId}`),
+
+  getImageUrl: (cardId: string) => `${API_BASE}/api/cards/${cardId}/image`,
+
+  delete: (cardId: string) =>
+    request<void>(`/api/cards/${cardId}`, { method: 'DELETE' }),
+
+  trackShare: (cardId: string, platform: string) =>
+    request<ShareData>(`/api/cards/${cardId}/share`, {
+      method: 'POST',
+      body: JSON.stringify({ platform }),
+    }),
+}
