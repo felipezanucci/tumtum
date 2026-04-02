@@ -159,3 +159,124 @@ export const health = {
       }),
     }),
 }
+
+// --- Events ---
+
+export interface TumtumEvent {
+  id: string
+  name: string
+  subtitle: string | null
+  venue: string | null
+  city: string | null
+  country: string | null
+  date: string
+  start_time: string | null
+  end_time: string | null
+  event_type: string
+  external_id: string | null
+  cover_image_url: string | null
+  created_at: string
+}
+
+export interface TimelineEntry {
+  id: string
+  event_id: string
+  timestamp: string
+  label: string
+  entry_type: string
+  metadata: Record<string, unknown> | null
+}
+
+export interface EventDetail extends TumtumEvent {
+  timeline: TimelineEntry[]
+}
+
+export interface Peak {
+  id: string
+  session_id: string
+  timestamp: string
+  bpm: number
+  duration_seconds: number
+  magnitude: number
+  timeline_entry_id: string | null
+  rank: number | null
+  matched_label: string | null
+}
+
+export interface ExperienceData {
+  session: {
+    id: string
+    event_id: string | null
+    start_time: string
+    end_time: string
+    avg_bpm: number | null
+    max_bpm: number | null
+    min_bpm: number | null
+    data_quality_score: number | null
+    source_device: string | null
+  }
+  peaks: Peak[]
+  timeline: TimelineEntry[]
+}
+
+export const events = {
+  create: (data: {
+    name: string
+    event_type: string
+    date: string
+    subtitle?: string
+    venue?: string
+    city?: string
+    country?: string
+    start_time?: string
+    end_time?: string
+    cover_image_url?: string
+  }) =>
+    request<TumtumEvent>('/api/events', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  list: (params?: {
+    q?: string
+    event_type?: string
+    city?: string
+    date_from?: string
+    date_to?: string
+  }) => {
+    const searchParams = new URLSearchParams()
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) searchParams.set(key, value)
+      })
+    }
+    const qs = searchParams.toString()
+    return request<TumtumEvent[]>(`/api/events${qs ? `?${qs}` : ''}`)
+  },
+
+  get: (eventId: string) => request<EventDetail>(`/api/events/${eventId}`),
+
+  addTimelineEntry: (eventId: string, data: {
+    timestamp: string
+    label: string
+    entry_type: string
+    metadata?: Record<string, unknown>
+  }) =>
+    request<TimelineEntry>(`/api/events/${eventId}/timeline`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getTimeline: (eventId: string) =>
+    request<TimelineEntry[]>(`/api/events/${eventId}/timeline`),
+}
+
+// --- Experience ---
+
+export const experience = {
+  analyze: (sessionId: string) =>
+    request<Peak[]>(`/api/experience/${sessionId}/analyze`, { method: 'POST' }),
+
+  get: (sessionId: string) =>
+    request<ExperienceData>(`/api/experience/${sessionId}`),
+}
