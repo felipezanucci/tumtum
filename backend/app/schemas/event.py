@@ -85,12 +85,6 @@ class PeakResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class ExperienceResponse(BaseModel):
-    session: "HRSessionSummary"
-    peaks: list[PeakResponse]
-    timeline: list[TimelineEntryResponse]
-
-
 class HRSessionSummary(BaseModel):
     id: uuid.UUID
     event_id: uuid.UUID | None
@@ -103,3 +97,9 @@ class HRSessionSummary(BaseModel):
     source_device: str | None
 
     model_config = {"from_attributes": True}
+
+
+class ExperienceResponse(BaseModel):
+    session: HRSessionSummary
+    peaks: list[PeakResponse]
+    timeline: list[TimelineEntryResponse]
