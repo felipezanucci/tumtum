@@ -330,3 +330,40 @@ export const cards = {
       body: JSON.stringify({ platform }),
     }),
 }
+
+// --- Users ---
+
+export interface UserProfile {
+  id: string
+  email: string
+  name: string
+  avatar_url: string | null
+  auth_provider: string
+  created_at: string
+  total_sessions: number
+  total_events: number
+  total_cards: number
+  highest_bpm: number | null
+}
+
+export interface PublicProfile {
+  name: string
+  avatar_url: string | null
+  created_at: string
+  total_sessions: number
+  total_events: number
+  total_cards: number
+}
+
+export const users = {
+  getProfile: () => request<UserProfile>('/api/users/me'),
+
+  updateProfile: (data: { name?: string; avatar_url?: string }) =>
+    request<UserProfile>('/api/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  getPublicProfile: (userId: string) =>
+    request<PublicProfile>(`/api/users/${userId}`),
+}
