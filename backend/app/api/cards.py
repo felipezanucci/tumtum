@@ -108,8 +108,12 @@ async def create_card(
         metadata_={
             "format": body.format,
             "peak_bpm": peak_bpm,
+            "avg_bpm": session.avg_bpm or 0,
+            "max_bpm": session.max_bpm or 0,
             "event_name": event_name,
+            "event_date": event_date,
             "matched_label": matched_label,
+            "user_name": user.name,
             "image_size": len(image_bytes),
         },
     )
@@ -155,12 +159,34 @@ async def get_card(
 
 
 @router.get("/{card_id}/image")
-async def get_card_image(card_id: uuid.UUID):
-    """Serve the card image from Redis cache."""
-    from app.core.redis import redis_client
-    image_bytes = await redis_client.get(f"card:image:{card_id}")
-    if not image_bytes:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Imagem não encontrada ou expirada")
+async def get_card_image(card_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    """Serve the card image. Tries Redis cache first, regenerates if needed."""
+    # Try Redis cache first
+    try:
+        from app.core.redis import redis_client
+        image_bytes = await redis_client.get(f"card:image:{card_id}")
+        if image_bytes:
+            return Response(content=image_bytes, media_type="image/png")
+    except Exception:
+        pass
+
+    # Regenerate the image from card metadata
+    result = await db.execute(select(Card).where(Card.id == card_id))
+    card = result.scalar_one_or_none()
+    if not card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Card não encontrado")
+
+    meta = card.metadata_ or {}
+    image_bytes = generate_solo_card(
+        user_name=meta.get("user_name", "User"),
+        event_name=meta.get("event_name", "Evento"),
+        event_date=meta.get("event_date", ""),
+        peak_bpm=meta.get("peak_bpm", 100),
+        avg_bpm=meta.get("avg_bpm", 80),
+        max_bpm=meta.get("max_bpm", 100),
+        matched_label=meta.get("matched_label"),
+        format=meta.get("format", "story"),
+    )
     return Response(content=image_bytes, media_type="image/png")
 
 
