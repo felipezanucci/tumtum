@@ -60,15 +60,21 @@ def detect_peaks(
     # Step 2 & 3: Baseline (mean) and std dev using wider window
     baselines, std_devs = _sliding_window_stats(times, smoothed, baseline_window_sec)
 
-    # Step 4: Z-score
+    # Step 4: Elevation score
+    # Use a hybrid approach: z-score when std is meaningful,
+    # but also detect absolute BPM jumps (>30 BPM above baseline)
+    # to catch spikes that inflate their own std within the window.
     z_scores = []
     for i in range(n):
-        if std_devs[i] > 1.0:  # Minimum std to avoid division by near-zero
-            z_scores.append((smoothed[i] - baselines[i]) / std_devs[i])
+        deviation = smoothed[i] - baselines[i]
+        if std_devs[i] > 1.0:
+            z = deviation / std_devs[i]
         else:
-            # If std is very low, use absolute deviation from baseline
-            deviation = smoothed[i] - baselines[i]
-            z_scores.append(deviation / 10.0 if deviation > 0 else 0.0)
+            z = deviation / 10.0 if deviation > 0 else 0.0
+        # Boost: absolute deviation above 30 BPM is always significant
+        if deviation > 30:
+            z = max(z, deviation / 15.0)
+        z_scores.append(z)
 
     # Step 5: Threshold — mark elevated points
     elevated = [z > z_threshold for z in z_scores]

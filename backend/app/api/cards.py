@@ -112,11 +112,13 @@ async def create_card(
     await db.flush()
 
     # Store image bytes in Redis for serving (MVP approach)
-    from app.core.redis import redis_client
-    await redis_client.set(f"card:image:{card.id}", image_bytes, ex=86400 * 7)  # 7 days TTL
-
-    card.image_url = f"/api/cards/{card.id}/image"
-    await db.flush()
+    try:
+        from app.core.redis import redis_client
+        await redis_client.set(f"card:image:{card.id}", image_bytes, ex=86400 * 7)  # 7 days TTL
+        card.image_url = f"/api/cards/{card.id}/image"
+        await db.flush()
+    except Exception as e:
+        print(f"Redis cache warning (card image): {e}")
 
     return card
 
