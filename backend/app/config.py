@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     setlist_fm_api_key: str = ""
     api_football_key: str = ""
+    anthropic_api_key: str = ""
     sentry_dsn: str = ""
     environment: str = "development"
 
