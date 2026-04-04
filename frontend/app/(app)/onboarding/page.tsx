@@ -4,14 +4,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useHRStore } from '@/lib/stores/useHRStore'
 import { Button, Card } from '@/components/ui'
+import { Watch, Smartphone, Activity, Heart, HeartPulse, Sparkles } from 'lucide-react'
 
 type Step = 'welcome' | 'wearable' | 'ready'
 
 const wearableOptions = [
-  { id: 'apple_health', name: 'Apple Watch', icon: '⌚', description: 'Via Apple HealthKit' },
-  { id: 'google_fit', name: 'Wear OS / Android', icon: '📱', description: 'Via Google Health Connect' },
-  { id: 'garmin', name: 'Garmin', icon: '🏃', description: 'Em breve' },
-  { id: 'fitbit', name: 'Fitbit', icon: '💪', description: 'Em breve' },
+  { id: 'apple_health', name: 'Apple Watch', icon: <Watch className="w-6 h-6 text-tumtum-red" />, description: 'Via Apple HealthKit' },
+  { id: 'google_fit', name: 'Wear OS / Android', icon: <Smartphone className="w-6 h-6 text-tumtum-red" />, description: 'Via Google Health Connect' },
+  { id: 'garmin', name: 'Garmin', icon: <Activity className="w-6 h-6 text-tumtum-red" />, description: 'Em breve' },
+  { id: 'fitbit', name: 'Fitbit', icon: <Heart className="w-6 h-6 text-tumtum-red" />, description: 'Em breve' },
 ]
 
 export default function OnboardingPage() {
@@ -43,7 +44,7 @@ export default function OnboardingPage() {
         {/* Step: Welcome */}
         {step === 'welcome' && (
           <div className="text-center">
-            <div className="mb-6 text-6xl">❤️</div>
+            <div className="mb-6 flex justify-center"><HeartPulse className="w-16 h-16 text-tumtum-red" /></div>
             <h1 className="text-3xl font-bold text-tumtum-text-primary">
               Bem-vindo ao Tumtum
             </h1>
@@ -85,7 +86,7 @@ export default function OnboardingPage() {
                         : 'border-tumtum-border hover:border-tumtum-text-muted'
                     }`}
                   >
-                    <span className="text-2xl">{option.icon}</span>
+                    <span className="flex items-center justify-center">{option.icon}</span>
                     <div>
                       <p className="font-medium text-tumtum-text-primary">{option.name}</p>
                       <p className="text-xs text-tumtum-text-muted">{option.description}</p>
@@ -114,7 +115,7 @@ export default function OnboardingPage() {
         {/* Step: Ready */}
         {step === 'ready' && (
           <div className="text-center">
-            <div className="mb-6 text-6xl">🎉</div>
+            <div className="mb-6 flex justify-center"><Sparkles className="w-16 h-16 text-tumtum-red" /></div>
             <h2 className="text-2xl font-bold text-tumtum-text-primary">Tudo pronto!</h2>
             <p className="mt-3 text-tumtum-text-muted">
               Agora é só ir a um evento e depois voltar aqui para ver como seu coração reagiu.
