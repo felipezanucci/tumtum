@@ -1,0 +1,78 @@
+{
+  "study_year": 2024,
+  "study_year_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024",
+  "sports": [
+    {
+      "sport_name": "Futebol",
+      "sport_name_citation": "https://www.cnnbrasil.com.br/esportes/futebol/jovens-estao-acompanhando-menos-futebol-pesquisa-responde/",
+      "consumption_frequency": "Semanal (pelo menos um jogo para 47% dos brasileiros)",
+      "consumption_frequency_citation": "https://www.uol.com.br/esporte/ultimas-noticias/agencia/2025/11/14/tv-aberta-supera-bem-o-streaming-na-preferencia-dos-brasileiros-fas-de-futebol-diz-pesquisa.htm",
+      "engagement_habits": "Alta presença física em estádios; acompanhamento via redes sociais e interesse em ligas como Kings League",
+      "engagement_habits_citation": "https://www.iboperepucom.com/br/noticias/genz-e-maioria-entre-os-fas-de-kings-league-no-brasil/"
+    },
+    {
+      "sport_name": "Vôlei",
+      "sport_name_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024",
+      "consumption_frequency": "Ocasional/Semanal",
+      "consumption_frequency_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024",
+      "engagement_habits": "Interesse em grandes competições como as Olimpíadas e a Liga das Nações",
+      "engagement_habits_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024"
+    },
+    {
+      "sport_name": "Atletismo",
+      "sport_name_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024",
+      "consumption_frequency": "Pelo menos duas vezes por semana (73% da Gen Z pratica treinos regulares)",
+      "consumption_frequency_citation": "https://www.fitnessbrasil.com.br/newsfitbr/geracao-z-puxa-o-mercado-fitness-e-redefine-habitos-em-2025-aponta-relatorio-strava/",
+      "average_spending": 132.11,
+      "average_spending_citation": "https://valorinveste.globo.com/objetivo/organize-as-contas/noticia/2024/03/24/quais-as-academias-mais-baratas-do-pais-e-as-mais-caras-confira.ghtml",
+      "engagement_habits": "Busca por bem-estar, uso de tecnologia (wearables) e compartilhamento de performance em redes sociais",
+      "engagement_habits_citation": "https://www.suacorrida.com.br/relatorio-do-strava-revela-geracao-z-movimenta-o-mundo-e-o-brasil-lidera-em-ritmo-e-engajamento/"
+    },
+    {
+      "sport_name": "Ginástica",
+      "sport_name_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024",
+      "consumption_frequency": "Sazonal/Olimpíada",
+      "consumption_frequency_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024",
+      "engagement_habits": "Foco em ginástica artística e rítmica durante eventos globais",
+      "engagement_habits_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024"
+    },
+    {
+      "sport_name": "Esportes Aquáticos",
+      "sport_name_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024",
+      "consumption_frequency": "Frequência moderada",
+      "consumption_frequency_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024",
+      "engagement_habits": "Natação e esportes náuticos seguidos principalmente em contexto competitivo",
+      "engagement_habits_citation": "https://www.ipsos.com/pt-br/jogos-de-paris-2024"
+    }
+  ],
+  "entertainment": {
+    "preferred_platforms": [
+      {
+        "value": "YouTube",
+        "value_citation": "https://portal.clientesa.com.br/habitos-e-comportamentos-que-moldam-o-perfil-da-geracao-z/"
+      },
+      {
+        "value": "Instagram",
+        "value_citation": "https://portal.clientesa.com.br/habitos-e-comportamentos-que-moldam-o-perfil-da-geracao-z/"
+      },
+      {
+        "value": "TikTok",
+        "value_citation": "https://portal.clientesa.com.br/habitos-e-comportamentos-que-moldam-o-perfil-da-geracao-z/"
+      },
+      {
+        "value": "Spotify",
+        "value_citation": "https://consumidormoderno.com.br/entretenimento-geracao-z/"
+      },
+      {
+        "value": "Netflix",
+        "value_citation": "https://consumidormoderno.com.br/entretenimento-geracao-z/"
+      }
+    ],
+    "consumption_frequency": "Diário (38% do tempo acordado dedicado ao consumo digital)",
+    "consumption_frequency_citation": "https://brazileconomy.com.br/opiniao/2025/09/como-o-consumo-digital-esta-transformando-o-entretenimento-esportivo-no-brasil/",
+    "average_spending": 242,
+    "average_spending_citation": "https://www.elo.com.br/imprensa/habitos-consumo-2T23/",
+    "engagement_habits": "Forte foco em Games (48% do gasto discricionário) e consumo de lives/vídeos curtos",
+    "engagement_habits_citation": "https://gente.globo.com/a-geracao-z-e-a-quebra-do-funil-de-marketing/"
+  }
+}
