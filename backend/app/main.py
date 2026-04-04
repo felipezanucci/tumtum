@@ -10,6 +10,7 @@ from app.api.events import router as events_router
 from app.api.experience import router as experience_router
 from app.api.cards import router as cards_router
 from app.api.users import router as users_router
+from app.api.agents import router as agents_router
 
 # Sentry error tracking
 if settings.sentry_dsn:
@@ -66,6 +67,7 @@ app.include_router(events_router)
 app.include_router(experience_router)
 app.include_router(cards_router)
 app.include_router(users_router)
+app.include_router(agents_router)
 
 
 @app.get("/")
