@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TUMTUM - Brand Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --dark:#08080C;--surface:#111118;--border:#1A1A24;
+  --text:#F0F0F5;--muted:#6B6B80;
+  --red-a:#FF2D55;--red-b:#EF4444;--red-c:#FF3B30;
+  --cyan:#00D2FF;--violet:#A855F7;
+}
+body{background:var(--dark);color:var(--text);font-family:'Inter',system-ui,sans-serif;line-height:1.6}
+.sticky-header{position:sticky;top:0;z-index:100;background:rgba(8,8,12,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:16px 32px;font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--muted)}
+section{padding:80px 32px;max-width:1200px;margin:0 auto}
+h2{font-size:36px;font-weight:700;margin-bottom:12px;color:var(--text)}
+.subtitle{color:var(--muted);margin-bottom:48px;font-size:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.grid-3x4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:900px){.grid-3,.grid-4,.grid-3x4{grid-template-columns:1fr}}
+
+/* Color swatches */
+.color-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center}
+.swatch{width:100px;height:100px;border-radius:50%;margin:0 auto 20px;animation:pulse 2s ease-in-out infinite}
+.swatch-a{background:var(--red-a);box-shadow:0 0 40px var(--red-a),0 0 80px rgba(255,45,85,.3)}
+.swatch-b{background:var(--red-b);box-shadow:0 0 40px var(--red-b),0 0 80px rgba(239,68,68,.3)}
+.swatch-c{background:var(--red-c);box-shadow:0 0 40px var(--red-c),0 0 80px rgba(255,59,48,.3)}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
+.hex{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted);margin-bottom:8px}
+.color-name{font-size:13px;color:var(--muted);margin-top:4px}
+.color-label{font-size:20px;font-weight:700;letter-spacing:6px;text-transform:uppercase;margin:12px 0}
+
+/* Mini cards */
+.mini-card{background:var(--dark);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:20px;position:relative;overflow:hidden}
+.mini-card .bpm{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:700}
+.mini-card .bpm-label{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.mini-card .event{font-size:11px;color:var(--muted);margin-top:8px}
+.mini-card svg{width:100%;height:40px;margin-top:12px}
+
+/* Font section */
+.font-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px}
+.font-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.font-title{font-size:40px;letter-spacing:6px;text-transform:uppercase;line-height:1.1}
+.font-sub{font-family:'Inter',sans-serif;font-size:14px;color:var(--muted);margin-top:12px;font-style:italic}
+.font-bpm{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;margin-top:8px}
+
+/* Casing grid */
+.casing-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.casing-item .name{font-size:28px;letter-spacing:4px;line-height:1.2}
+.casing-item .meta{font-size:10px;color:var(--muted);margin-top:6px;letter-spacing:1px;text-transform:uppercase}
+
+/* Share cards */
+.cards-row{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:32px}
+@media(max-width:900px){.cards-row{grid-template-columns:1fr}}
+.share-card{width:100%;aspect-ratio:9/16;border-radius:20px;position:relative;overflow:hidden;background:var(--dark);border:1px solid var(--border)}
+
+/* Card A - The Pulse Strip */
+.card-a{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:32px}
+.card-a .event-info{text-align:center;margin-bottom:24px;z-index:2;position:relative}
+.card-a .event-name{font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase}
+.card-a .event-date{font-size:11px;color:var(--muted);margin-top:4px}
+.card-a .pulse-container{width:100%;height:80px;position:relative;z-index:2}
+.card-a .pulse-line{position:absolute;inset:0}
+.card-a .stats{text-align:center;margin-top:24px;z-index:2;position:relative}
+.card-a .stats .bpm-big{font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:700;color:var(--red-a);text-shadow:0 0 40px rgba(255,45,85,.5)}
+.card-a .stats .bpm-unit{font-size:14px;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
+.card-a .stats .copy{font-size:12px;color:var(--muted);margin-top:12px;font-style:italic}
+.card-a .card-footer{position:absolute;bottom:24px;width:100%;text-align:center}
+.card-a .card-footer .logo{font-size:12px;letter-spacing:5px;text-transform:uppercase;color:var(--red-a)}
+.card-a .glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(255,45,85,.15),transparent 70%);pointer-events:none}
+
+/* Card B - The Heartbeat Frame */
+.card-b{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:32px}
+.card-b::before{content:'';position:absolute;inset:3px;border-radius:18px;border:2px solid var(--red-a);opacity:.6;animation:frame-pulse 2s ease-in-out infinite}
+.card-b::after{content:'';position:absolute;inset:3px;border-radius:18px;border:2px solid var(--red-a);opacity:.3;animation:frame-pulse 2s ease-in-out infinite .5s}
+@keyframes frame-pulse{0%,100%{opacity:.3;box-shadow:inset 0 0 20px rgba(255,45,85,.1)}50%{opacity:.7;box-shadow:inset 0 0 40px rgba(255,45,85,.2)}}
+.card-b .sync{font-size:11px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;z-index:2;position:relative}
+.card-b .bpm-huge{font-family:'JetBrains Mono',monospace;font-size:72px;font-weight:700;color:var(--text);z-index:2;position:relative;text-shadow:0 0 60px rgba(255,45,85,.3)}
+.card-b .bpm-tag{font-size:16px;color:var(--red-a);letter-spacing:4px;z-index:2;position:relative}
+.card-b .moment{font-size:13px;color:var(--muted);margin-top:16px;text-align:center;z-index:2;position:relative}
+.card-b .card-footer{position:absolute;bottom:24px;width:100%;text-align:center;z-index:2}
+.card-b .card-footer .logo{font-size:12px;letter-spacing:5px;text-transform:uppercase;color:var(--red-a)}
+.card-b .glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;height:300px;background:radial-gradient(circle,rgba(255,45,85,.1),transparent 70%);pointer-events:none}
+
+/* Card C - The Peak Moment */
+.card-c{padding:32px;display:flex;flex-direction:column;justify-content:flex-end}
+.card-c .peak-glow{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(255,45,85,.25),rgba(168,85,247,.1) 50%,transparent 70%);pointer-events:none;animation:peak-breathe 3s ease-in-out infinite}
+@keyframes peak-breathe{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.8}50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}}
+.card-c .peak-bpm{position:absolute;top:28%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:2}
+.card-c .peak-bpm .number{font-family:'JetBrains Mono',monospace;font-size:64px;font-weight:700;color:var(--red-a);text-shadow:0 0 40px rgba(255,45,85,.5)}
+.card-c .peak-bpm .unit{font-size:14px;color:var(--muted);letter-spacing:3px}
+.card-c .peak-dot{position:absolute;top:26%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;background:var(--red-a);border-radius:50%;box-shadow:0 0 20px var(--red-a),0 0 40px rgba(255,45,85,.5);animation:dot-pulse 1.5s ease-in-out infinite;z-index:3}
+@keyframes dot-pulse{0%,100%{box-shadow:0 0 20px var(--red-a),0 0 40px rgba(255,45,85,.3)}50%{box-shadow:0 0 30px var(--red-a),0 0 60px rgba(255,45,85,.5)}}
+.card-c .peak-svg{position:absolute;bottom:30%;left:0;width:100%;height:100px}
+.card-c .moment-label{font-size:13px;color:var(--text);font-weight:600;z-index:2;position:relative}
+.card-c .moment-copy{font-size:12px;color:var(--muted);margin-top:8px;z-index:2;position:relative;font-style:italic}
+.card-c .card-footer{margin-top:auto;text-align:center;z-index:2;position:relative}
+.card-c .card-footer .logo{font-size:12px;letter-spacing:5px;text-transform:uppercase;color:var(--red-a)}
+.card-c .card-footer .tagline{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* Pulse Line trademark */
+.pulse-section{margin-top:32px}
+.pulse-demo{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:24px}
+.pulse-demo-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.pulse-svg{width:100%;height:60px}
+.pulse-svg path{stroke:var(--red-a);stroke-width:2;fill:none;filter:drop-shadow(0 0 6px rgba(255,45,85,.5))}
+.pulse-svg-fill path{stroke:var(--red-a);stroke-width:2;fill:url(#pulseGrad)}
+@keyframes dash{to{stroke-dashoffset:0}}
+.pulse-animate path{stroke-dasharray:1000;stroke-dashoffset:1000;animation:dash 3s ease-in-out forwards}
+
+/* Logo with pulse integration */
+.logo-pulse{display:flex;align-items:center;justify-content:center;gap:0;font-size:48px;letter-spacing:6px;text-transform:uppercase;font-weight:700}
+.logo-pulse svg{width:80px;height:48px;margin:0 -4px}
+.logo-pulse svg path{stroke:var(--red-a);stroke-width:3;fill:none;filter:drop-shadow(0 0 8px rgba(255,45,85,.6))}
+
+/* Loading pulse */
+.loading-pulse{display:flex;justify-content:center;align-items:center;height:60px}
+.loading-pulse svg{width:200px;height:40px}
+.loading-pulse svg path{stroke:var(--red-a);stroke-width:2;fill:none;stroke-dasharray:400;stroke-dashoffset:400;animation:dash 1.5s ease-in-out infinite;filter:drop-shadow(0 0 4px rgba(255,45,85,.4))}
+
+/* Background pattern */
+.pattern-demo{background:var(--surface);border-radius:16px;padding:48px;position:relative;overflow:hidden;text-align:center}
+.pattern-demo .pattern-bg{position:absolute;inset:0;opacity:.06}
+.pattern-demo .pattern-bg svg{width:100%;height:100%}
+.pattern-demo .content{position:relative;z-index:2}
+
+/* Taglines */
+.tagline-list{display:grid;gap:16px}
+.tagline-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 32px;display:flex;align-items:center;gap:20px;transition:border-color .2s}
+.tagline-item:hover{border-color:var(--red-a)}
+.tagline-num{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted);min-width:28px}
+.tagline-text{font-size:20px;font-weight:500}
+.tagline-item.featured{border-color:var(--red-a);background:linear-gradient(135deg,rgba(255,45,85,.05),rgba(168,85,247,.05))}
+.tagline-item.featured .tagline-text{color:var(--red-a)}
+.tag{font-size:10px;background:var(--red-a);color:white;padding:2px 8px;border-radius:4px;margin-left:12px;letter-spacing:1px;text-transform:uppercase}
+
+/* Divider */
+.divider{border:none;border-top:1px solid var(--border);margin:80px 0}
+
+/* Recommendation badge */
+.rec{display:inline-block;font-size:11px;background:var(--red-a);color:white;padding:4px 12px;border-radius:20px;margin-bottom:16px;letter-spacing:1px;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<div class="sticky-header">Tumtum &mdash; Brand Showcase</div>
+
+<!-- ==================== SECTION 1: COLORS ==================== -->
+<section>
+  <h2>1. Vermelho Primario</h2>
+  <p class="subtitle">Tres opcoes de vermelho. Qual pulsa mais forte no escuro?</p>
+
+  <div class="grid-3">
+    <!-- Option A -->
+    <div class="color-card">
+      <div class="rec">Recomendado</div>
+      <div class="swatch swatch-a"></div>
+      <div class="hex">#FF2D55</div>
+      <div class="color-label" style="color:#FF2D55">TUMTUM</div>
+      <div class="color-name">Apple Pulse</div>
+      <div class="mini-card">
+        <div class="bpm" style="color:#FF2D55">158</div>
+        <div class="bpm-label">BPM</div>
+        <svg viewBox="0 0 200 40"><path d="M0,30 Q20,30 30,25 T50,20 T65,30 T75,10 T85,35 T100,20 T120,28 T140,15 T155,32 T170,22 T200,28" stroke="#FF2D55" stroke-width="2" fill="none" filter="url(#glowA)"/><defs><filter id="glowA"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
+        <div class="event">Coldplay - Music of the Spheres Tour</div>
+      </div>
+    </div>
+
+    <!-- Option B -->
+    <div class="color-card">
+      <div class="swatch swatch-b"></div>
+      <div class="hex">#EF4444</div>
+      <div class="color-label" style="color:#EF4444">TUMTUM</div>
+      <div class="color-name">Tailwind Red</div>
+      <div class="mini-card">
+        <div class="bpm" style="color:#EF4444">158</div>
+        <div class="bpm-label">BPM</div>
+        <svg viewBox="0 0 200 40"><path d="M0,30 Q20,30 30,25 T50,20 T65,30 T75,10 T85,35 T100,20 T120,28 T140,15 T155,32 T170,22 T200,28" stroke="#EF4444" stroke-width="2" fill="none" filter="url(#glowB)"/><defs><filter id="glowB"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
+        <div class="event">Coldplay - Music of the Spheres Tour</div>
+      </div>
+    </div>
+
+    <!-- Option C -->
+    <div class="color-card">
+      <div class="swatch swatch-c"></div>
+      <div class="hex">#FF3B30</div>
+      <div class="color-label" style="color:#FF3B30">TUMTUM</div>
+      <div class="color-name">iOS Red</div>
+      <div class="mini-card">
+        <div class="bpm" style="color:#FF3B30">158</div>
+        <div class="bpm-label">BPM</div>
+        <svg viewBox="0 0 200 40"><path d="M0,30 Q20,30 30,25 T50,20 T65,30 T75,10 T85,35 T100,20 T120,28 T140,15 T155,32 T170,22 T200,28" stroke="#FF3B30" stroke-width="2" fill="none" filter="url(#glowC)"/><defs><filter id="glowC"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
+        <div class="event">Coldplay - Music of the Spheres Tour</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ==================== SECTION 2: FONTS ==================== -->
+<section>
+  <h2>2. Tipografia</h2>
+  <p class="subtitle">Quatro opcoes de fonte para o logo. Todas em uppercase com tracking largo.</p>
+
+  <div class="grid-4">
+    <div class="font-card">
+      <div class="font-label">Georgia (atual)</div>
+      <div class="font-title" style="font-family:Georgia,serif;font-weight:bold;color:#FF2D55">TUMTUM</div>
+      <div class="font-sub">Cada batida conta uma historia.</div>
+      <div class="font-bpm" style="color:#FF2D55">158</div>
+    </div>
+    <div class="font-card">
+      <div class="rec">Recomendado</div>
+      <div class="font-label">Instrument Serif</div>
+      <div class="font-title" style="font-family:'Instrument Serif',serif;font-weight:400;color:#FF2D55">TUMTUM</div>
+      <div class="font-sub">Cada batida conta uma historia.</div>
+      <div class="font-bpm" style="color:#FF2D55">158</div>
+    </div>
+    <div class="font-card">
+      <div class="font-label">Playfair Display</div>
+      <div class="font-title" style="font-family:'Playfair Display',serif;font-weight:900;color:#FF2D55">TUMTUM</div>
+      <div class="font-sub">Cada batida conta uma historia.</div>
+      <div class="font-bpm" style="color:#FF2D55">158</div>
+    </div>
+    <div class="font-card">
+      <div class="font-label">DM Serif Display</div>
+      <div class="font-title" style="font-family:'DM Serif Display',serif;font-weight:400;color:#FF2D55">TUMTUM</div>
+      <div class="font-sub">Cada batida conta uma historia.</div>
+      <div class="font-bpm" style="color:#FF2D55">158</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ==================== SECTION 3: CASING ==================== -->
+<section>
+  <h2>3. Casing do Logo</h2>
+  <p class="subtitle">TUMTUM vs TumTum vs tumtum em cada fonte.</p>
+
+  <div class="grid-3x4">
+    <div class="casing-item"><div class="name" style="font-family:Georgia,serif;font-weight:bold;color:#FF2D55;text-transform:uppercase">TUMTUM</div><div class="meta">Georgia / UPPERCASE</div></div>
+    <div class="casing-item"><div class="name" style="font-family:Georgia,serif;font-weight:bold;color:#FF2D55;text-transform:none">TumTum</div><div class="meta">Georgia / CamelCase</div></div>
+    <div class="casing-item"><div class="name" style="font-family:Georgia,serif;font-weight:bold;color:#FF2D55;text-transform:lowercase">tumtum</div><div class="meta">Georgia / lowercase</div></div>
+    <div class="casing-item" style="border-color:var(--red-a)"><div class="name" style="font-family:'Instrument Serif',serif;color:#FF2D55;text-transform:uppercase">TUMTUM</div><div class="meta">Instrument / UPPERCASE</div></div>
+    <div class="casing-item"><div class="name" style="font-family:'Instrument Serif',serif;color:#FF2D55;text-transform:none">TumTum</div><div class="meta">Instrument / CamelCase</div></div>
+    <div class="casing-item"><div class="name" style="font-family:'Instrument Serif',serif;color:#FF2D55;text-transform:lowercase">tumtum</div><div class="meta">Instrument / lowercase</div></div>
+    <div class="casing-item"><div class="name" style="font-family:'Playfair Display',serif;font-weight:900;color:#FF2D55;text-transform:uppercase">TUMTUM</div><div class="meta">Playfair / UPPERCASE</div></div>
+    <div class="casing-item"><div class="name" style="font-family:'Playfair Display',serif;font-weight:900;color:#FF2D55;text-transform:none">TumTum</div><div class="meta">Playfair / CamelCase</div></div>
+    <div class="casing-item"><div class="name" style="font-family:'Playfair Display',serif;font-weight:900;color:#FF2D55;text-transform:lowercase">tumtum</div><div class="meta">Playfair / lowercase</div></div>
+    <div class="casing-item"><div class="name" style="font-family:'DM Serif Display',serif;color:#FF2D55;text-transform:uppercase">TUMTUM</div><div class="meta">DM Serif / UPPERCASE</div></div>
+    <div class="casing-item"><div class="name" style="font-family:'DM Serif Display',serif;color:#FF2D55;text-transform:none">TumTum</div><div class="meta">DM Serif / CamelCase</div></div>
+    <div class="casing-item"><div class="name" style="font-family:'DM Serif Display',serif;color:#FF2D55;text-transform:lowercase">tumtum</div><div class="meta">DM Serif / lowercase</div></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ==================== SECTION 4: SHARE CARDS ==================== -->
+<section>
+  <h2>4. Nova Linguagem Visual: Share Cards</h2>
+  <p class="subtitle">O elemento trademark da Tumtum: <strong style="color:var(--red-a)">The Pulse Line</strong> &mdash; uma linha de batimento estilizada que se torna o swoosh da Tumtum.</p>
+
+  <div class="cards-row">
+
+    <!-- Card A: The Pulse Strip -->
+    <div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;letter-spacing:2px;text-transform:uppercase">A &mdash; The Pulse Strip</div>
+      <div class="share-card card-a">
+        <div class="glow"></div>
+        <div class="event-info">
+          <div class="event-name">Coldplay</div>
+          <div class="event-date">Music of the Spheres &bull; Sao Paulo &bull; 15 Mar 2026</div>
+        </div>
+
+        <svg class="pulse-container" viewBox="0 0 360 80" preserveAspectRatio="none" style="width:100%;height:80px">
+          <defs>
+            <linearGradient id="stripGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#FF2D55" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#FF2D55" stop-opacity="0"/>
+            </linearGradient>
+            <filter id="stripGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M0,50 Q30,50 45,45 T80,40 T110,50 T130,20 T145,60 T160,35 T190,48 T220,30 T250,55 T270,15 T285,58 T310,40 T340,48 T360,42" stroke="#FF2D55" stroke-width="2.5" fill="none" filter="url(#stripGlow)"/>
+          <path d="M0,50 Q30,50 45,45 T80,40 T110,50 T130,20 T145,60 T160,35 T190,48 T220,30 T250,55 T270,15 T285,58 T310,40 T340,48 T360,42 L360,80 L0,80 Z" fill="url(#stripGrad)"/>
+        </svg>
+
+        <div class="stats">
+          <div class="bpm-big">158</div>
+          <div class="bpm-unit">BPM</div>
+          <div class="copy">"E voce achava que tava de boa."</div>
+        </div>
+        <div class="card-footer">
+          <div class="logo" style="font-family:'Instrument Serif',serif">TUMTUM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card B: The Heartbeat Frame -->
+    <div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;letter-spacing:2px;text-transform:uppercase">B &mdash; The Heartbeat Frame</div>
+      <div class="share-card card-b">
+        <div class="glow"></div>
+        <div class="sync">87% em sincronia</div>
+        <div class="bpm-huge">158</div>
+        <div class="bpm-tag">BPM</div>
+        <div class="moment">
+          A Sky Full of Stars &bull; Coldplay<br>
+          <span style="font-size:11px;color:var(--muted);font-style:italic">"Seu coracao nao mente."</span>
+        </div>
+        <div class="card-footer">
+          <div class="logo" style="font-family:'Instrument Serif',serif">TUMTUM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card C: The Peak Moment -->
+    <div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;letter-spacing:2px;text-transform:uppercase">C &mdash; The Peak Moment</div>
+      <div class="share-card card-c">
+        <div class="peak-glow"></div>
+        <div class="peak-dot"></div>
+        <div class="peak-bpm">
+          <div class="number">158</div>
+          <div class="unit">BPM</div>
+        </div>
+
+        <svg class="peak-svg" viewBox="0 0 360 100" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="peakGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#FF2D55" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#FF2D55" stop-opacity="0"/>
+            </linearGradient>
+            <filter id="peakGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M0,80 Q40,78 60,75 T100,70 T130,80 T150,60 T170,40 T180,15 T190,45 T210,65 T240,72 T280,80 T320,75 T360,78" stroke="#FF2D55" stroke-width="2" fill="none" filter="url(#peakGlow)"/>
+          <path d="M0,80 Q40,78 60,75 T100,70 T130,80 T150,60 T170,40 T180,15 T190,45 T210,65 T240,72 T280,80 T320,75 T360,78 L360,100 L0,100 Z" fill="url(#peakGrad)"/>
+        </svg>
+
+        <div class="moment-label">A Sky Full of Stars &mdash; Coldplay</div>
+        <div class="moment-copy">"Meu coracao a 158 BPM quando tocou A Sky Full of Stars."</div>
+        <div style="height:24px"></div>
+        <div class="card-footer" style="position:relative">
+          <div class="logo" style="font-family:'Instrument Serif',serif">TUMTUM</div>
+          <div class="tagline">Cada batida conta uma historia.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ==================== SECTION 5: THE PULSE LINE ==================== -->
+<section>
+  <h2>5. The Pulse Line &mdash; Marca Registrada</h2>
+  <p class="subtitle">A linha de pulso estilizada como elemento de identidade. O swoosh da Tumtum.</p>
+
+  <div class="pulse-demo">
+    <div class="pulse-demo-label">Divisor / Header</div>
+    <svg class="pulse-svg" viewBox="0 0 800 60" preserveAspectRatio="none">
+      <defs><filter id="plGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <path d="M0,40 Q80,40 120,38 T200,35 T260,40 T300,25 T320,10 T340,45 T380,30 T440,38 T520,32 T580,40 T650,36 T720,38 T800,37" stroke="#FF2D55" stroke-width="2" fill="none" filter="url(#plGlow)"/>
+    </svg>
+  </div>
+
+  <div class="pulse-demo">
+    <div class="pulse-demo-label">Integrado ao Wordmark</div>
+    <div class="logo-pulse" style="font-family:'Instrument Serif',serif;color:#FF2D55">
+      TUM
+      <svg viewBox="0 0 80 48">
+        <defs><filter id="wGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+        <path d="M0,30 Q10,30 15,28 T25,24 T32,30 T38,12 T44,35 T52,22 T60,28 T70,26 T80,28" stroke="#FF2D55" stroke-width="3" fill="none" filter="url(#wGlow)"/>
+      </svg>
+      TUM
+    </div>
+  </div>
+
+  <div class="pulse-demo">
+    <div class="pulse-demo-label">Animacao de Loading</div>
+    <div class="loading-pulse">
+      <svg viewBox="0 0 200 40">
+        <defs><filter id="lGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+        <path d="M0,25 L40,25 L50,25 L55,20 L60,30 L65,10 L70,35 L75,20 L80,25 L90,25 L200,25" stroke="#FF2D55" stroke-width="2" fill="none" filter="url(#lGlow)" stroke-dasharray="400" stroke-dashoffset="400" style="animation:dash 1.8s ease-in-out infinite"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="pulse-demo">
+    <div class="pulse-demo-label">Background Pattern (opacidade baixa)</div>
+    <div class="pattern-demo">
+      <div class="pattern-bg">
+        <svg viewBox="0 0 400 200" preserveAspectRatio="none" width="100%" height="100%">
+          <path d="M0,100 L60,100 L70,95 L75,105 L80,85 L85,115 L90,70 L95,120 L100,95 L110,100 L200,100" stroke="#FF2D55" stroke-width="1.5" fill="none" transform="translate(0,-40)"/>
+          <path d="M0,100 L60,100 L70,95 L75,105 L80,85 L85,115 L90,70 L95,120 L100,95 L110,100 L200,100" stroke="#FF2D55" stroke-width="1.5" fill="none" transform="translate(180,0)"/>
+          <path d="M0,100 L60,100 L70,95 L75,105 L80,85 L85,115 L90,70 L95,120 L100,95 L110,100 L200,100" stroke="#FF2D55" stroke-width="1.5" fill="none" transform="translate(60,40)"/>
+          <path d="M0,100 L60,100 L70,95 L75,105 L80,85 L85,115 L90,70 L95,120 L100,95 L110,100 L200,100" stroke="#FF2D55" stroke-width="1.5" fill="none" transform="translate(240,-40)"/>
+        </svg>
+      </div>
+      <div class="content">
+        <div style="font-family:'Instrument Serif',serif;font-size:48px;letter-spacing:6px;text-transform:uppercase;color:#FF2D55;font-weight:400">TUMTUM</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:8px">Cada batida conta uma historia.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ==================== SECTION 6: TAGLINES ==================== -->
+<section>
+  <h2>6. Taglines</h2>
+  <p class="subtitle">Opcoes de tagline. As marcadas sao as recomendadas.</p>
+
+  <div class="tagline-list">
+    <div class="tagline-item featured">
+      <div class="tagline-num">01</div>
+      <div class="tagline-text">Cada batida conta uma historia.<span class="tag">Recomendada</span></div>
+    </div>
+    <div class="tagline-item featured">
+      <div class="tagline-num">02</div>
+      <div class="tagline-text">Seu coracao nao mente.<span class="tag">Recomendada</span></div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">03</div>
+      <div class="tagline-text">Seu coracao estava la.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">04</div>
+      <div class="tagline-text">A prova que voce sentiu.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">05</div>
+      <div class="tagline-text">O show nao acaba quando a luz acende.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">06</div>
+      <div class="tagline-text">Nao foi so um show. Seu coracao sabe.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">07</div>
+      <div class="tagline-text">158 BPM. E voce achava que tava de boa.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">08</div>
+      <div class="tagline-text">Seu coracao entrega tudo.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">09</div>
+      <div class="tagline-text">Bateu forte? A gente sabe.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">10</div>
+      <div class="tagline-text">O setlist do seu coracao.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">11</div>
+      <div class="tagline-text">Voce nao foi num show. Voce viveu a 158 BPM.</div>
+    </div>
+    <div class="tagline-item">
+      <div class="tagline-num">12</div>
+      <div class="tagline-text">Chorou no show? A gente nao conta. Mas seu coracao ja contou.</div>
+    </div>
+  </div>
+</section>
+
+<div style="height:80px"></div>
+
+</body>
+</html>

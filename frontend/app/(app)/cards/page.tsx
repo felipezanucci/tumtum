@@ -5,6 +5,7 @@ import { cards, type CardData } from '@/lib/api'
 import { Button, Card, Loading, Badge } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { nativeShare, canNativeShare, getShareUrl, copyToClipboard, downloadImage } from '@/lib/utils/share'
+import { ImageIcon } from 'lucide-react'
 
 const platformLabels: Record<string, string> = {
   instagram: 'Instagram',
@@ -85,7 +86,7 @@ export default function CardsPage() {
             <Loading size="lg" className="py-20" />
           ) : cardList.length === 0 ? (
             <div className="py-20 text-center">
-              <div className="mb-4 text-5xl">🃏</div>
+              <div className="mb-4 flex justify-center"><ImageIcon className="w-12 h-12 text-tumtum-text-muted" /></div>
               <p className="text-lg text-tumtum-text-muted">Você ainda não criou nenhum card</p>
               <p className="mt-1 text-sm text-tumtum-text-muted">
                 Vá para a aba Experiência e gere um card de um evento.

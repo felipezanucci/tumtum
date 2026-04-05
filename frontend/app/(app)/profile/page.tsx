@@ -7,6 +7,7 @@ import { useHRStore } from '@/lib/stores/useHRStore'
 import { users, cards, type UserProfile, type CardData } from '@/lib/api'
 import { Avatar, Button, Card, Input, Loading, Badge } from '@/components/ui'
 import { Nav } from '@/components/layout'
+import { ImageIcon } from 'lucide-react'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -174,7 +175,7 @@ export default function ProfilePage() {
                       />
                     ) : (
                       <div className="flex aspect-[9/16] items-center justify-center bg-tumtum-surface text-tumtum-text-muted">
-                        🃏
+                        <ImageIcon className="w-8 h-8" />
                       </div>
                     )}
                   </div>
