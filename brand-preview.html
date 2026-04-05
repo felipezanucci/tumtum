@@ -4,39 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tumtum — Nova Paleta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Honk&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: system-ui, -apple-system, sans-serif; color: #1A1A2E; background: #FFFFFF; padding: 32px; max-width: 900px; margin: 0 auto; }
   h1 { font-family: Georgia, serif; font-size: 28px; margin-bottom: 8px; }
 
-  /* New brand logo style — blocky 3D (pure text-shadow, no webkit) */
+  /* Brand logo — Honk font from Google Fonts */
   .brand-logo {
-    font-family: 'Arial Black', 'Impact', sans-serif;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #E50914;
-    text-shadow:
-      /* red outline */
-      -1px -1px 0 #CC0000, 1px -1px 0 #CC0000, -1px 1px 0 #CC0000, 1px 1px 0 #CC0000,
-      /* 3D depth */
-      2px 2px 0 #990000,
-      3px 3px 0 #880000,
-      4px 4px 0 #770000,
-      5px 5px 0 #660000,
-      6px 6px 0 #550000,
-      /* subtle shadow */
-      7px 7px 4px rgba(0,0,0,0.15);
+    font-family: 'Honk', system-ui;
+    font-size: 48px;
+    letter-spacing: 3px;
     line-height: 1;
+    color: #E50914;
   }
-  .brand-logo-sm {
-    font-size: 18px;
-    text-shadow:
-      -1px -1px 0 #CC0000, 1px -1px 0 #CC0000, -1px 1px 0 #CC0000, 1px 1px 0 #CC0000,
-      1px 1px 0 #990000, 2px 2px 0 #880000, 3px 3px 0 #770000,
-      4px 4px 2px rgba(0,0,0,0.1);
-  }
-  .brand-logo-lg { font-size: 42px; }
+  .brand-logo-sm { font-size: 24px; letter-spacing: 2px; }
+  .brand-logo-lg { font-size: 56px; }
   h2 { font-size: 18px; margin: 40px 0 16px; color: #6B7280; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; }
 
   /* Swatches */
@@ -59,7 +44,7 @@
 
   /* Peak card (share card mockup) */
   .peak-card { background: #FFFFFF; border-radius: 20px; padding: 28px 24px; max-width: 280px; border: 1px solid #E5E7EB; text-align: center; box-shadow: 0 4px 24px rgba(229,9,20,0.08); }
-  .peak-card .logo { margin-bottom: 20px; }
+  .peak-card .logo { margin-bottom: 20px; font-family: 'Honk', system-ui; font-size: 28px; color: #E50914; letter-spacing: 2px; }
   .peak-card .event-name { font-size: 13px; color: #6B7280; margin-bottom: 4px; }
   .peak-card .bpm-value { font-size: 64px; font-weight: 800; color: #E50914; line-height: 1; }
   .peak-card .bpm-label { font-size: 13px; color: #6B7280; margin-bottom: 16px; }
@@ -123,17 +108,17 @@
 <!-- LOGO VARIANTS -->
 <h2>Marca</h2>
 <div style="display:flex; gap:32px; align-items:center; flex-wrap:wrap;">
-  <div style="background:#FFFFFF; padding:24px 32px; border-radius:16px; border:1px solid #E5E7EB;">
+  <div style="background:#FFFFFF; padding:24px 32px; border-radius:16px; border:1px solid #E5E7EB; text-align:center;">
     <div class="brand-logo brand-logo-lg">TUMTUM</div>
-    <div style="font-size:11px; color:#6B7280; margin-top:8px; text-align:center;">Fundo branco (padrao)</div>
+    <div style="font-size:11px; color:#6B7280; margin-top:8px;">Fundo branco (padrao)</div>
   </div>
-  <div style="background:#1A1A2E; padding:24px 32px; border-radius:16px;">
+  <div style="background:#1A1A2E; padding:24px 32px; border-radius:16px; text-align:center;">
     <div class="brand-logo brand-logo-lg">TUMTUM</div>
-    <div style="font-size:11px; color:#6B7280; margin-top:8px; text-align:center;">Fundo escuro</div>
+    <div style="font-size:11px; color:#6B7280; margin-top:8px;">Fundo escuro</div>
   </div>
-  <div style="background:#E50914; padding:24px 32px; border-radius:16px;">
-    <div class="brand-logo brand-logo-lg" style="color:#FFFFFF; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #990000, 3px 3px 0 #880000, 4px 4px 0 #770000, 5px 5px 0 #660000, 6px 6px 0 #550000, 7px 7px 4px rgba(0,0,0,0.2);">TUMTUM</div>
-    <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:8px; text-align:center;">Fundo vermelho</div>
+  <div style="background:#E50914; padding:24px 32px; border-radius:16px; text-align:center;">
+    <div class="brand-logo brand-logo-lg" style="color:#FFFFFF;">TUMTUM</div>
+    <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:8px;">Fundo vermelho</div>
   </div>
 </div>
 
@@ -173,7 +158,7 @@
 <h2>Share Card (Solo)</h2>
 <div class="cards-row">
   <div class="peak-card">
-    <div class="logo brand-logo brand-logo-sm">TUMTUM</div>
+    <div class="logo">TUMTUM</div>
     <div class="event-name">Coldplay — Music of the Spheres</div>
     <div class="event-name" style="margin-bottom:16px">Allianz Parque, SP</div>
     <div class="bpm-value">182</div>
