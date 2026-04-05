@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tumtum — Nova Paleta</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; color: #1A1A2E; background: #FFFFFF; padding: 32px; max-width: 900px; margin: 0 auto; }
+  h1 { font-family: Georgia, serif; font-size: 28px; margin-bottom: 8px; }
+  h2 { font-size: 18px; margin: 40px 0 16px; color: #6B7280; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; }
+
+  /* Swatches */
+  .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+  .swatch { width: 120px; }
+  .swatch-color { width: 120px; height: 80px; border-radius: 12px; border: 1px solid #E5E7EB; }
+  .swatch-label { font-size: 13px; font-weight: 600; margin-top: 6px; }
+  .swatch-hex { font-size: 11px; color: #6B7280; }
+
+  /* Cards */
+  .cards-row { display: flex; gap: 20px; flex-wrap: wrap; }
+
+  /* Notification card */
+  .notif-card { background: #FFF5F5; border-radius: 16px; padding: 20px; max-width: 360px; border: 1px solid #E5E7EB; }
+  .notif-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .notif-dot { width: 10px; height: 10px; border-radius: 50%; background: #00E676; flex-shrink: 0; }
+  .notif-title { font-weight: 700; font-size: 14px; }
+  .notif-body { font-size: 14px; color: #6B7280; line-height: 1.5; }
+  .notif-body b { color: #E50914; }
+
+  /* Peak card (share card mockup) */
+  .peak-card { background: #FFFFFF; border-radius: 20px; padding: 28px 24px; max-width: 280px; border: 1px solid #E5E7EB; text-align: center; box-shadow: 0 4px 24px rgba(229,9,20,0.08); }
+  .peak-card .logo { font-family: Georgia, serif; font-weight: 700; color: #E50914; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 20px; }
+  .peak-card .event-name { font-size: 13px; color: #6B7280; margin-bottom: 4px; }
+  .peak-card .bpm-value { font-size: 64px; font-weight: 800; color: #E50914; line-height: 1; }
+  .peak-card .bpm-label { font-size: 13px; color: #6B7280; margin-bottom: 16px; }
+  .peak-card .matched-song { background: #FFF5F5; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #1A1A2E; font-weight: 600; }
+  .peak-card .stats { display: flex; justify-content: center; gap: 24px; margin-top: 16px; }
+  .peak-card .stat-val { font-size: 20px; font-weight: 700; }
+  .peak-card .stat-lbl { font-size: 11px; color: #6B7280; }
+
+  /* Badge */
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+  .badge-red { background: #FFF5F5; color: #E50914; }
+  .badge-green { background: #E8FFF3; color: #00C853; }
+  .badge-yellow { background: #FFFDE7; color: #F9A825; }
+  .badge-cyan { background: #E0F7FA; color: #00B8D4; }
+
+  /* Buttons */
+  .buttons { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .btn { padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; }
+  .btn-primary { background: #E50914; color: white; }
+  .btn-secondary { background: #FFF5F5; color: #E50914; }
+  .btn-ghost { background: transparent; color: #6B7280; border: 1px solid #E5E7EB; }
+  .btn-green { background: #00E676; color: #1A1A2E; }
+
+  /* Toast */
+  .toast { background: #1A1A2E; color: white; padding: 14px 20px; border-radius: 12px; font-size: 14px; max-width: 360px; display: flex; align-items: center; gap: 10px; }
+  .toast-icon { font-size: 18px; }
+
+  /* HR Curve mockup */
+  .hr-section { background: #FFF5F5; border-radius: 16px; padding: 24px; max-width: 500px; }
+  .hr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .hr-title { font-weight: 700; font-size: 16px; }
+  .hr-live { background: #00E676; color: #1A1A2E; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .hr-curve { width: 100%; height: 120px; position: relative; }
+  .hr-curve svg { width: 100%; height: 100%; }
+  .hr-labels { display: flex; justify-content: space-between; font-size: 11px; color: #6B7280; margin-top: 8px; }
+  .hr-peak-marker { position: absolute; top: 8px; left: 62%; background: #E50914; color: white; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+
+  /* Comparison */
+  .comparison { background: white; border: 1px solid #E5E7EB; border-radius: 16px; padding: 20px; max-width: 360px; }
+  .comparison-header { text-align: center; margin-bottom: 16px; }
+  .comparison-pct { font-size: 48px; font-weight: 800; color: #00D2FF; }
+  .comparison-label { font-size: 13px; color: #6B7280; }
+  .comparison-row { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid #E5E7EB; }
+  .comparison-row .name { font-weight: 600; font-size: 14px; }
+  .comparison-row .val { font-weight: 700; font-size: 14px; }
+  .val-red { color: #E50914; }
+  .val-cyan { color: #00D2FF; }
+
+  /* Voice section */
+  .voice-examples { display: flex; flex-direction: column; gap: 12px; max-width: 400px; }
+  .voice-bubble { background: #FFF5F5; border-radius: 16px; padding: 14px 18px; font-size: 14px; line-height: 1.5; border-left: 3px solid #E50914; }
+  .voice-context { font-size: 11px; color: #6B7280; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<h1>Tumtum — Nova Identidade Visual</h1>
+<p style="color:#6B7280; margin-bottom: 8px;">Preview da paleta e componentes aplicados</p>
+
+<!-- CORES -->
+<h2>Paleta de Cores</h2>
+<div class="swatches">
+  <div class="swatch"><div class="swatch-color" style="background:#E50914"></div><div class="swatch-label">Tumtum Red</div><div class="swatch-hex">#E50914</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#990000"></div><div class="swatch-label">Red Dark</div><div class="swatch-hex">#990000</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#FF6B6B"></div><div class="swatch-label">Red Light</div><div class="swatch-hex">#FF6B6B</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#00E676"></div><div class="swatch-label">Pulse Green</div><div class="swatch-hex">#00E676</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#FFD600"></div><div class="swatch-label">Energy Yellow</div><div class="swatch-hex">#FFD600</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#00D2FF"></div><div class="swatch-label">Artist Cyan</div><div class="swatch-hex">#00D2FF</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#FFF5F5; border-color:#E5E7EB"></div><div class="swatch-label">Surface</div><div class="swatch-hex">#FFF5F5</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#1A1A2E"></div><div class="swatch-label">Text Primary</div><div class="swatch-hex">#1A1A2E</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#6B7280"></div><div class="swatch-label">Text Muted</div><div class="swatch-hex">#6B7280</div></div>
+</div>
+
+<!-- BOTOES -->
+<h2>Botoes</h2>
+<div class="buttons">
+  <button class="btn btn-primary">Compartilhar</button>
+  <button class="btn btn-secondary">Ver Detalhes</button>
+  <button class="btn btn-green">Ao Vivo</button>
+  <button class="btn btn-ghost">Cancelar</button>
+</div>
+
+<!-- BADGES -->
+<h2>Badges</h2>
+<div class="badges">
+  <span class="badge badge-red">180 BPM</span>
+  <span class="badge badge-green">Conectado</span>
+  <span class="badge badge-yellow">Top 5%</span>
+  <span class="badge badge-cyan">92% sync</span>
+</div>
+
+<!-- SHARE CARD -->
+<h2>Share Card (Solo)</h2>
+<div class="cards-row">
+  <div class="peak-card">
+    <div class="logo">TUMTUM</div>
+    <div class="event-name">Coldplay — Music of the Spheres</div>
+    <div class="event-name" style="margin-bottom:16px">Allianz Parque, SP</div>
+    <div class="bpm-value">182</div>
+    <div class="bpm-label">BPM no pico</div>
+    <div class="matched-song">A Sky Full of Stars</div>
+    <div class="stats">
+      <div><div class="stat-val">145</div><div class="stat-lbl">Media</div></div>
+      <div><div class="stat-val">62</div><div class="stat-lbl">Minimo</div></div>
+      <div><div class="stat-val">2h14</div><div class="stat-lbl">Duracao</div></div>
+    </div>
+  </div>
+
+  <!-- Comparison card -->
+  <div class="comparison">
+    <div class="comparison-header">
+      <div class="comparison-pct">87%</div>
+      <div class="comparison-label">em sync com Chris Martin</div>
+    </div>
+    <div class="comparison-row">
+      <span class="name">Voce</span>
+      <span class="val val-red">182 BPM</span>
+    </div>
+    <div class="comparison-row">
+      <span class="name">Chris Martin</span>
+      <span class="val val-cyan">176 BPM</span>
+    </div>
+    <div class="comparison-row">
+      <span class="name">Momento</span>
+      <span class="val" style="font-size:13px">A Sky Full of Stars</span>
+    </div>
+  </div>
+</div>
+
+<!-- HR CURVE -->
+<h2>Curva de Batimentos</h2>
+<div class="hr-section">
+  <div class="hr-header">
+    <span class="hr-title">Coldplay — Allianz Parque</span>
+    <span class="hr-live">AO VIVO</span>
+  </div>
+  <div class="hr-curve">
+    <svg viewBox="0 0 450 120" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="hrGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#E50914" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#E50914" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,100 Q30,90 60,85 T120,70 T180,60 T220,40 T260,15 T300,35 T340,50 T380,55 T420,65 T450,70" fill="none" stroke="#E50914" stroke-width="2.5"/>
+      <path d="M0,100 Q30,90 60,85 T120,70 T180,60 T220,40 T260,15 T300,35 T340,50 T380,55 T420,65 T450,70 L450,120 L0,120 Z" fill="url(#hrGrad)"/>
+      <!-- song markers -->
+      <line x1="120" y1="0" x2="120" y2="120" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="220" y1="0" x2="220" y2="120" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="340" y1="0" x2="340" y2="120" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4"/>
+    </svg>
+    <div class="hr-peak-marker">182 BPM</div>
+  </div>
+  <div class="hr-labels">
+    <span>Yellow</span>
+    <span>Fix You</span>
+    <span>Sky Full of Stars</span>
+    <span>Viva la Vida</span>
+  </div>
+</div>
+
+<!-- NOTIFICACAO -->
+<h2>Notificacoes / Humor Acido</h2>
+<div class="cards-row">
+  <div class="notif-card">
+    <div class="notif-header">
+      <div class="notif-dot"></div>
+      <div class="notif-title">Pico detectado!</div>
+    </div>
+    <div class="notif-body">Seu coracao chegou a <b>182 BPM</b> durante A Sky Full of Stars. Calma, voce tem plano de saude?</div>
+  </div>
+  <div class="notif-card">
+    <div class="notif-header">
+      <div class="notif-dot" style="background:#FFD600"></div>
+      <div class="notif-title">Conquista desbloqueada</div>
+    </div>
+    <div class="notif-body">Top 5% de BPM nesse show. Voce tava na grade ou dentro do palco?</div>
+  </div>
+</div>
+
+<!-- TOM DE VOZ -->
+<h2>Tom de Voz</h2>
+<div class="voice-examples">
+  <div class="voice-bubble">
+    <div class="voice-context">BPM baixo no show</div>
+    Voce foi no show ou no dentista?
+  </div>
+  <div class="voice-bubble">
+    <div class="voice-context">Compartilhamento</div>
+    Mostra pro mundo que voce tem coracao (literalmente)
+  </div>
+  <div class="voice-bubble">
+    <div class="voice-context">Sem dados do wearable</div>
+    Seu relogio tirou uma soneca. A gente entende.
+  </div>
+  <div class="voice-bubble">
+    <div class="voice-context">Sync 90%+ com artista</div>
+    Voces sao praticamente a mesma pessoa.
+  </div>
+</div>
+
+<!-- TOAST -->
+<h2 style="margin-top:40px">Toast</h2>
+<div class="toast">
+  <span class="toast-icon" style="color:#00E676">&#9679;</span>
+  Apple Watch conectado. Bora sentir o show.
+</div>
+
+<div style="height:60px"></div>
+</body>
+</html>
