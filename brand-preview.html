@@ -9,22 +9,33 @@
   body { font-family: system-ui, -apple-system, sans-serif; color: #1A1A2E; background: #FFFFFF; padding: 32px; max-width: 900px; margin: 0 auto; }
   h1 { font-family: Georgia, serif; font-size: 28px; margin-bottom: 8px; }
 
-  /* New brand logo style — blocky 3D */
+  /* New brand logo style — blocky 3D (pure text-shadow, no webkit) */
   .brand-logo {
     font-family: 'Arial Black', 'Impact', sans-serif;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #FFFFFF;
-    -webkit-text-stroke: 1.5px #E50914;
+    color: #E50914;
     text-shadow:
-      2px 2px 0 #E50914,
-      3px 3px 0 #990000,
-      4px 4px 0 #990000,
-      5px 5px 0 #660000;
+      /* red outline */
+      -1px -1px 0 #CC0000, 1px -1px 0 #CC0000, -1px 1px 0 #CC0000, 1px 1px 0 #CC0000,
+      /* 3D depth */
+      2px 2px 0 #990000,
+      3px 3px 0 #880000,
+      4px 4px 0 #770000,
+      5px 5px 0 #660000,
+      6px 6px 0 #550000,
+      /* subtle shadow */
+      7px 7px 4px rgba(0,0,0,0.15);
     line-height: 1;
   }
-  .brand-logo-sm { font-size: 18px; -webkit-text-stroke: 1px #E50914; text-shadow: 1px 1px 0 #E50914, 2px 2px 0 #990000, 3px 3px 0 #660000; }
+  .brand-logo-sm {
+    font-size: 18px;
+    text-shadow:
+      -1px -1px 0 #CC0000, 1px -1px 0 #CC0000, -1px 1px 0 #CC0000, 1px 1px 0 #CC0000,
+      1px 1px 0 #990000, 2px 2px 0 #880000, 3px 3px 0 #770000,
+      4px 4px 2px rgba(0,0,0,0.1);
+  }
   .brand-logo-lg { font-size: 42px; }
   h2 { font-size: 18px; margin: 40px 0 16px; color: #6B7280; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; }
 
@@ -121,7 +132,7 @@
     <div style="font-size:11px; color:#6B7280; margin-top:8px; text-align:center;">Fundo escuro</div>
   </div>
   <div style="background:#E50914; padding:24px 32px; border-radius:16px;">
-    <div class="brand-logo brand-logo-lg" style="color:#FFFFFF; -webkit-text-stroke-color:#FFFFFF; text-shadow: 2px 2px 0 #990000, 3px 3px 0 #660000, 4px 4px 0 #440000, 5px 5px 0 #330000;">TUMTUM</div>
+    <div class="brand-logo brand-logo-lg" style="color:#FFFFFF; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #990000, 3px 3px 0 #880000, 4px 4px 0 #770000, 5px 5px 0 #660000, 6px 6px 0 #550000, 7px 7px 4px rgba(0,0,0,0.2);">TUMTUM</div>
     <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:8px; text-align:center;">Fundo vermelho</div>
   </div>
 </div>
