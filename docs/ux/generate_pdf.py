@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Generate a dark-themed PDF from the Tumtum UX app-structure.md and user-flow-diagram.md files.
+Generate a print-friendly (white background) PDF from the Tumtum UX
+app-structure.md and user-flow-diagram.md files.
 Uses fpdf2 library with Courier for ASCII wireframes.
 """
 
@@ -8,14 +9,18 @@ import os
 import re
 from fpdf import FPDF
 
-# Brand colors (RGB)
-BG_COLOR = (8, 8, 12)         # #08080C
-TEXT_COLOR = (240, 240, 245)   # #F0F0F5
-ACCENT_COLOR = (192, 57, 43)  # #C0392B
-ACCENT2_COLOR = (231, 76, 60) # #E74C3C
-MUTED_COLOR = (107, 107, 128) # #6B6B80
-SURFACE_COLOR = (17, 17, 24)  # #111118
-CODE_TEXT = (160, 160, 176)    # lighter for code
+# Brand colors (RGB) — print-friendly palette
+BG_COLOR = (255, 255, 255)       # white
+TEXT_COLOR = (30, 30, 35)        # near-black
+ACCENT_COLOR = (192, 57, 43)    # #C0392B Tumtum red
+ACCENT2_COLOR = (180, 50, 40)   # darker red for sub-headers
+MUTED_COLOR = (120, 120, 135)   # gray for secondary text
+SURFACE_COLOR = (245, 245, 248) # light gray for code blocks
+CODE_TEXT = (40, 40, 50)        # dark text on light surface
+TABLE_HEADER_BG = (235, 235, 240)
+TABLE_ROW_EVEN = (250, 250, 252)
+TABLE_ROW_ODD = (255, 255, 255)
+BORDER_COLOR = (210, 210, 218)
 
 
 class TumtumPDF(FPDF):
@@ -33,11 +38,9 @@ class TumtumPDF(FPDF):
             self.set_text_color(*MUTED_COLOR)
             self.cell(0, 10, f"TUMTUM  |  UX App Structure  |  Pag. {self.page_no()}", align="C")
 
-    def add_dark_page(self):
-        """Add a new page with dark background."""
+    def add_white_page(self):
+        """Add a new page with white background."""
         self.add_page()
-        self.set_fill_color(*BG_COLOR)
-        self.rect(0, 0, 210, 297, "F")
 
 
 def clean_text(text):
@@ -62,14 +65,12 @@ def clean_text(text):
     for emoji, replacement in replacements.items():
         text = text.replace(emoji, replacement)
 
-    # Handle box-drawing characters -> ASCII equivalents
     box_map = {
         "\u2500": "-", "\u2502": "|", "\u250c": "+", "\u2510": "+",
         "\u2514": "+", "\u2518": "+", "\u251c": "+", "\u2524": "+",
         "\u252c": "+", "\u2534": "+", "\u253c": "+",
         "\u2550": "=", "\u2551": "|", "\u2554": "+", "\u2557": "+",
         "\u255a": "+", "\u255d": "+",
-        "\u2500": "-",
     }
 
     result = []
@@ -105,8 +106,8 @@ def clean_text(text):
 
 
 def render_title_page(pdf):
-    """Render the cover page."""
-    pdf.add_dark_page()
+    """Render the cover page — white, clean, print-ready."""
+    pdf.add_white_page()
 
     # Top red line
     pdf.set_fill_color(*ACCENT_COLOR)
@@ -115,13 +116,13 @@ def render_title_page(pdf):
     # Title
     pdf.set_y(65)
     pdf.set_font("Helvetica", "B", 42)
-    pdf.set_text_color(*TEXT_COLOR)
+    pdf.set_text_color(*ACCENT_COLOR)
     pdf.cell(0, 18, "TUMTUM", align="C", new_x="LMARGIN", new_y="NEXT")
 
     # Subtitle
     pdf.set_y(95)
     pdf.set_font("Helvetica", "", 20)
-    pdf.set_text_color(*ACCENT_COLOR)
+    pdf.set_text_color(*TEXT_COLOR)
     pdf.cell(0, 10, "UX App Structure", align="C", new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_y(112)
@@ -161,7 +162,7 @@ def render_title_page(pdf):
 
 
 def render_section_header(pdf, title):
-    """Render a major section header in red with accent bar."""
+    """Render a major section header with red accent bar."""
     pdf.set_font("Helvetica", "B", 16)
     pdf.set_text_color(*ACCENT_COLOR)
 
@@ -205,8 +206,7 @@ def render_bold_text(pdf, text):
 
 
 def render_wireframe(pdf, code_lines):
-    """Render ASCII wireframe in monospace font on a dark surface."""
-    # Strip empty leading/trailing
+    """Render ASCII wireframe in monospace font on a light gray surface."""
     while code_lines and not code_lines[0].strip():
         code_lines.pop(0)
     while code_lines and not code_lines[-1].strip():
@@ -220,17 +220,21 @@ def render_wireframe(pdf, code_lines):
     available = 297 - pdf.get_y() - 24
 
     if block_h > available:
-        pdf.add_dark_page()
+        pdf.add_white_page()
 
     y_start = pdf.get_y()
 
-    # Surface background
+    # Light gray surface background
     pdf.set_fill_color(*SURFACE_COLOR)
     pdf.rect(14, y_start, 182, block_h, "F")
 
-    # Left accent bar
-    pdf.set_fill_color(50, 50, 65)
+    # Left red accent bar
+    pdf.set_fill_color(*ACCENT_COLOR)
     pdf.rect(14, y_start, 2, block_h, "F")
+
+    # Light border
+    pdf.set_draw_color(*BORDER_COLOR)
+    pdf.rect(14, y_start, 182, block_h, "D")
 
     pdf.set_y(y_start + 4)
     pdf.set_font("Courier", "", 7)
@@ -238,7 +242,6 @@ def render_wireframe(pdf, code_lines):
 
     for line in code_lines:
         cleaned = clean_text(line)
-        # Truncate very long lines
         if len(cleaned) > 110:
             cleaned = cleaned[:110]
         pdf.set_x(19)
@@ -249,7 +252,7 @@ def render_wireframe(pdf, code_lines):
 
 
 def render_table(pdf, table_lines):
-    """Render a markdown table with styled rows."""
+    """Render a markdown table with styled rows for print."""
     data = []
     for line in table_lines:
         line = line.strip()
@@ -279,12 +282,12 @@ def render_table(pdf, table_lines):
     row_h = 5.5
     needed = (len(rows) + 2) * row_h + 10
     if needed > (297 - pdf.get_y() - 24):
-        pdf.add_dark_page()
+        pdf.add_white_page()
 
     x0 = 17
 
-    # Header
-    pdf.set_fill_color(30, 30, 42)
+    # Header row
+    pdf.set_fill_color(*TABLE_HEADER_BG)
     pdf.set_font("Helvetica", "B", 8)
     pdf.set_text_color(*TEXT_COLOR)
     pdf.set_x(x0)
@@ -299,14 +302,14 @@ def render_table(pdf, table_lines):
     pdf.line(x0, y, x0 + sum(col_w[:ncols]), y)
     pdf.ln(1)
 
-    # Rows
+    # Data rows
     pdf.set_font("Helvetica", "", 8)
     for idx, row in enumerate(rows):
         if idx % 2 == 0:
-            pdf.set_fill_color(14, 14, 20)
+            pdf.set_fill_color(*TABLE_ROW_EVEN)
         else:
-            pdf.set_fill_color(22, 22, 32)
-        pdf.set_text_color(200, 200, 210)
+            pdf.set_fill_color(*TABLE_ROW_ODD)
+        pdf.set_text_color(50, 50, 60)
         pdf.set_x(x0)
         for i, cell in enumerate(row):
             w = col_w[i] if i < len(col_w) else 30
@@ -324,7 +327,7 @@ def render_bullet_list(pdf, items):
         if not text:
             continue
         if pdf.get_y() > 272:
-            pdf.add_dark_page()
+            pdf.add_white_page()
         pdf.set_x(20)
         pdf.set_text_color(*ACCENT_COLOR)
         pdf.cell(5, 5, ">")
@@ -339,20 +342,18 @@ def render_numbered_list(pdf, items):
     pdf.set_text_color(*TEXT_COLOR)
     for item in items:
         if pdf.get_y() > 272:
-            pdf.add_dark_page()
+            pdf.add_white_page()
         pdf.set_x(20)
         pdf.multi_cell(0, 5, clean_text(item), new_x="LMARGIN", new_y="NEXT")
     pdf.ln(2)
 
 
-# Patterns for sections that should start on a new page
 NEW_PAGE_PATTERNS = [
     "mapa geral", "fluxo 1", "fluxo 2", "fluxo 3", "fluxo 4",
     "fluxo 5", "fluxo 6", "fluxo 7", "fluxo 8", "fluxo 9",
     "fluxo auth", "navegacao global", "principios de ux",
     "mapa de estados e transicoes", "inventario completo",
     "proximos passos",
-    # user-flow-diagram
     "fluxo geral", "fluxo detalhado", "navegacao por tab",
     "mapa de estados da tela", "fluxo de permissoes",
     "inventario de telas",
@@ -387,14 +388,14 @@ def render_section_content(pdf, content):
                 code_lines.append(lines[i])
                 i += 1
             if i < len(lines):
-                i += 1  # skip closing ```
+                i += 1
             render_wireframe(pdf, code_lines)
             continue
 
         # Sub-header
         if stripped.startswith("### "):
             if pdf.get_y() > 255:
-                pdf.add_dark_page()
+                pdf.add_white_page()
             render_sub_header(pdf, stripped[4:])
             i += 1
             continue
@@ -429,7 +430,7 @@ def render_section_content(pdf, content):
         # Bold standalone
         if stripped.startswith("**") and stripped.endswith("**"):
             if pdf.get_y() > 272:
-                pdf.add_dark_page()
+                pdf.add_white_page()
             render_bold_text(pdf, stripped.strip("* "))
             i += 1
             continue
@@ -439,7 +440,7 @@ def render_section_content(pdf, content):
             text = stripped.lstrip("> ").strip()
             if text:
                 if pdf.get_y() > 272:
-                    pdf.add_dark_page()
+                    pdf.add_white_page()
                 y = pdf.get_y()
                 pdf.set_fill_color(*ACCENT_COLOR)
                 pdf.rect(17, y, 1.5, 6, "F")
@@ -454,7 +455,7 @@ def render_section_content(pdf, content):
         # Horizontal rule
         if stripped == "---":
             y = pdf.get_y()
-            pdf.set_draw_color(40, 40, 55)
+            pdf.set_draw_color(*BORDER_COLOR)
             pdf.line(15, y + 2, 195, y + 2)
             pdf.ln(6)
             i += 1
@@ -468,10 +469,8 @@ def render_section_content(pdf, content):
         # Regular text
         if stripped:
             if pdf.get_y() > 272:
-                pdf.add_dark_page()
-            # Check for inline bold
+                pdf.add_white_page()
             if "**" in stripped:
-                # Render with bold parts
                 cleaned = clean_text(stripped.replace("**", ""))
                 render_text_line(pdf, cleaned)
             else:
@@ -503,14 +502,14 @@ def parse_sections(filepath):
 
 def render_divider_page(pdf, title, subtitle, note=""):
     """Render a section divider page."""
-    pdf.add_dark_page()
+    pdf.add_white_page()
 
     pdf.set_fill_color(*ACCENT_COLOR)
     pdf.rect(20, 80, 170, 2, "F")
 
     pdf.set_y(95)
     pdf.set_font("Helvetica", "B", 24)
-    pdf.set_text_color(*TEXT_COLOR)
+    pdf.set_text_color(*ACCENT_COLOR)
     pdf.cell(0, 12, clean_text(title), align="C", new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_y(115)
@@ -533,14 +532,10 @@ def main():
     pdf = TumtumPDF()
     pdf.set_margin(15)
 
-    # ============================================================
     # Title page
-    # ============================================================
     render_title_page(pdf)
 
-    # ============================================================
     # Part 1: app-structure.md
-    # ============================================================
     sections = parse_sections("/home/user/tumtum/docs/ux/app-structure.md")
 
     for section in sections:
@@ -550,24 +545,21 @@ def main():
         if not title and not content.strip():
             continue
 
-        # Skip pure index section
         if title.lower().startswith("indice"):
             continue
 
         if title and should_new_page(title):
-            pdf.add_dark_page()
+            pdf.add_white_page()
             render_section_header(pdf, title)
         elif title:
             if pdf.get_y() > 235:
-                pdf.add_dark_page()
+                pdf.add_white_page()
             render_section_header(pdf, title)
 
         if content.strip():
             render_section_content(pdf, content)
 
-    # ============================================================
-    # Divider for user-flow-diagram.md
-    # ============================================================
+    # Divider
     render_divider_page(
         pdf,
         "Diagramas de Fluxo UX",
@@ -575,9 +567,7 @@ def main():
         "(Mermaid diagrams rendered as text descriptions)"
     )
 
-    # ============================================================
     # Part 2: user-flow-diagram.md
-    # ============================================================
     sections2 = parse_sections("/home/user/tumtum/docs/ux/user-flow-diagram.md")
 
     for section in sections2:
@@ -588,19 +578,17 @@ def main():
             continue
 
         if title and should_new_page(title):
-            pdf.add_dark_page()
+            pdf.add_white_page()
             render_section_header(pdf, title)
         elif title:
             if pdf.get_y() > 235:
-                pdf.add_dark_page()
+                pdf.add_white_page()
             render_section_header(pdf, title)
 
         if content.strip():
             render_section_content(pdf, content)
 
-    # ============================================================
     # Save
-    # ============================================================
     output_path = "/home/user/tumtum/docs/ux/tumtum-ux-structure.pdf"
     pdf.output(output_path)
 
