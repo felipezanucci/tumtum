@@ -65,20 +65,68 @@ Dominar cada pino antes de avançar. Resistir a tentação de ir para tudo ao me
 
 **Veredicto**: Futebol é o beachhead ideal. A frequência semanal cria hábito, e o programa de Sócio Torcedor oferece um canal de distribuição direto e segmentado.
 
+### Panorama: as maiores torcidas do Brasil
+
+Antes de escolher o canal, é fundamental entender o tamanho de cada torcida. Dados baseados nas pesquisas Datafolha (2023):
+
+| # | Clube | Torcedores (milhões) | % dos torcedores de futebol |
+|---|-------|---------------------|----------------------------|
+| 1 | **Flamengo** | ~42-45M | ~28-30% |
+| 2 | **Corinthians** | ~30-33M | ~20-22% |
+| 3 | **São Paulo** | ~16-18M | ~11-12% |
+| 4 | **Palmeiras** | ~12-14M | ~8-9% |
+| 5 | **Vasco da Gama** | ~10-12M | ~7-8% |
+| 6 | **Grêmio** | ~8-9M | ~5-6% |
+| 7 | **Cruzeiro** | ~7-8M | ~5% |
+| 8 | **Internacional** | ~6-7M | ~4% |
+| 9 | **Atlético Mineiro** | ~5-6M | ~3-4% |
+| 10 | **Santos** | ~4-5M | ~3% |
+| 11 | **Botafogo** | ~3-4M | ~2-3% |
+| 12 | **Fluminense** | ~3-4M | ~2% |
+| 13 | **Bahia** | ~3-4M | ~2% |
+| 14 | **Sport Recife** | ~2-3M | ~1-2% |
+| 15 | **Vitória** | ~1.5-2M | ~1% |
+
+> Flamengo + Corinthians = ~50% de todos os torcedores de futebol do Brasil.
+
 ### O canal: Sócio Torcedor
 
-Números dos maiores programas (estimativas 2024-2025):
+O Sócio Torcedor é o subconjunto **ultra-engajado** da torcida: são os que pagam mensalidade por amor ao clube. Ranking completo dos maiores programas (2023-2024):
 
-| Clube | Membros ativos | Cidade-base |
-|-------|---------------|-------------|
-| Flamengo | ~160-180K | Rio de Janeiro |
-| Palmeiras (Avanti) | ~130-150K | São Paulo |
-| Corinthians (Fiel Torcedor) | ~100-120K | São Paulo |
-| São Paulo FC | ~80-100K | São Paulo |
-| Grêmio | ~60-80K | Porto Alegre |
-| Atlético-MG | ~50-70K | Belo Horizonte |
+| # | Clube | Programa | Sócios ativos (aprox.) | Cidade-base |
+|---|-------|----------|----------------------|-------------|
+| 1 | **Flamengo** | Nação Rubro-Negra | ~160-180K | Rio de Janeiro |
+| 2 | **Palmeiras** | Avanti Palestra | ~130-150K | São Paulo |
+| 3 | **Corinthians** | Fiel Torcedor | ~100-130K | São Paulo |
+| 4 | **Internacional** | Sou Inter / Camisa 12 | ~100-120K | Porto Alegre |
+| 5 | **Grêmio** | Grêmio Sócio | ~90-110K | Porto Alegre |
+| 6 | **Athletico-PR** | Sócio Furacão | ~50-70K | Curitiba |
+| 7 | **Atlético-MG** | Galo na Veia | ~50-65K | Belo Horizonte |
+| 8 | **São Paulo** | Sócio Torcedor SPFC | ~50-60K | São Paulo |
+| 9 | **Cruzeiro** | Sócio 5 Estrelas | ~45-60K | Belo Horizonte |
+| 10 | **Bahia** | Esquadrão+ | ~40-55K | Salvador |
+| 11 | **Fortaleza** | Sócio Fortaleza | ~40-50K | Fortaleza |
+| 12 | **Vasco** | Sócio Gigante | ~35-50K | Rio de Janeiro |
+| 13 | **Botafogo** | Camisa 7 | ~30-45K | Rio de Janeiro |
+| 14 | **Fluminense** | Sócio Futebol | ~25-35K | Rio de Janeiro |
+| 15 | **Santos** | Sócio Rei | ~20-30K | Santos |
+
+**Total estimado de sócios ativos no Brasil: ~1 milhão+**
 
 **Perfil do Sócio Torcedor**: predominantemente masculino (75-80%), 25-45 anos, classe B/C, urbano. Já paga R$20-100/mês pelo clube — demonstra disposição para gastar com a paixão.
+
+### Análise: taxa de conversão torcedor → sócio
+
+| Clube | Torcedores | Sócios | Taxa de conversão |
+|-------|-----------|--------|-------------------|
+| Flamengo | ~42M | ~170K | **0.4%** |
+| Corinthians | ~30M | ~115K | **0.4%** |
+| Palmeiras | ~13M | ~140K | **1.1%** |
+| Internacional | ~6.5M | ~110K | **1.7%** |
+| Grêmio | ~8.5M | ~100K | **1.2%** |
+| Athletico-PR | ~2M | ~60K | **3.0%** |
+
+**Insight para TumTum**: a taxa de conversão é baixíssima (0.4-3%). Isso significa que quem É sócio é um fã **extremamente engajado** — exatamente o perfil de early adopter que adota novidades e compartilha. A dupla gaúcha (Inter/Grêmio) tem cultura de associativismo excepcional e merece atenção como mercados secundários.
 
 ### Clube-alvo para piloto
 
@@ -90,6 +138,9 @@ Motivos:
 - Arenas modernas (Allianz Parque / Neo Química Arena) com boa infraestrutura digital
 - Rivalidade intensa = mais emoção = melhores cards
 - Você está em SP (facilita operação presencial no estádio)
+- Palmeiras tem a melhor taxa de conversão entre os grandes de SP (1.1%), indicando torcida mais engajada proporcionalmente
+
+**Alternativa forte**: Internacional ou Grêmio — menos sócios em termos absolutos, mas cultura de associativismo muito superior (1.2-1.7%). Se houver dificuldade em fechar com clubes de SP, a dupla gaúcha pode ser um beachhead alternativo poderoso.
 
 **Meta do Pino 1**: fechar parceria-piloto com UM clube para testar em 3-5 jogos consecutivos.
 
@@ -576,14 +627,24 @@ Para ter significância estatística e convicção:
 
 **Trigger**: Phase 0 validada (métricas Go atingidas)
 
+Priorização baseada em volume de sócios, taxa de engajamento e potencial de rivalidade:
+
+| Onda | Clubes | Sócios combinados | Justificativa |
+|------|--------|-------------------|---------------|
+| 2A (imediata) | Flamengo + o rival de SP que não foi piloto | ~260-310K | Flamengo = maior torcida do Brasil; rival de SP habilita derby |
+| 2B | Internacional + Grêmio | ~190-230K | Cultura de associativismo excepcional (taxa 1.2-1.7%), Gre-Nal é um dos maiores clássicos |
+| 2C | Atlético-MG + Cruzeiro | ~95-125K | Clássico mineiro, mercado de BH ainda inexplorado |
+
 | Ação | Meta |
 |------|------|
-| Expandir para 3-5 grandes clubes (Flamengo, Corinthians, São Paulo, Grêmio, Atlético-MG) | 10.000 usuários |
+| Expandir para 5-7 grandes clubes nas ondas acima | 10.000 usuários |
 | Iniciar monetização freemium | Primeiras receitas |
 | Card de "derby" — comparação coletiva entre torcidas rivais | Viral amplificado |
 
 **Card de derby** é um acelerador viral poderoso:
 > "Torcida do Palmeiras: 142bpm médio no gol. Torcida do Corinthians: 138bpm. Quem sofreu mais?"
+
+**Meta ambiciosa**: se TumTum capturar 1% dos ~1 milhão de sócios ativos no Brasil = **10.000 usuários** apenas via canal Sócio Torcedor, sem contar crescimento orgânico via viral loop.
 
 ### Pino 3: Shows e festivais
 
@@ -616,14 +677,16 @@ Isso é a visão de longo prazo. Mas **não é para agora**. Phase 0 é sobre pr
 |------|-----------|
 | **Produto** | App que captura batimentos cardíacos durante eventos ao vivo e gera cards/vídeos compartilháveis |
 | **Hipótese** | Pessoas querem ver e compartilhar como seu corpo reagiu emocionalmente a momentos ao vivo |
-| **Beachhead** | Futebol em São Paulo, via programa de Sócio Torcedor de 1 grande clube |
+| **Mercado total** | ~150M+ torcedores de futebol no Brasil; ~1M+ de sócios torcedores pagantes ativos |
+| **Beachhead** | Futebol em São Paulo — Palmeiras (130-150K sócios) ou Corinthians (100-130K sócios) |
 | **Early adopter** | Homem, 25-45, Sócio Torcedor, usa smartband/smartwatch, posta sobre jogos nas redes |
-| **Canal primário** | Parceria com clube (distribuição direta) + viral loop via cards compartilhados |
+| **Canal primário** | Parceria com clube (distribuição direta para 100K+ sócios) + viral loop via cards |
 | **Monetização Phase 0** | Grátis (validação) |
 | **Monetização Phase 1+** | Freemium (card básico grátis, vídeo premium pago) + assinatura R$14,90/mês |
 | **Meta de validação** | 500 signups, 200 cards compartilhados, share rate ≥10%, retention D30 ≥30% |
 | **Timeline** | 2 meses dev → 1 mês piloto → 2 meses beta → 1 mês análise = ~6 meses |
 | **Investimento** | Zero (orgânico, sem mídia paga, Claude como dev co-pilot) |
-| **Maior risco** | Penetração de wearables (mitigação: foco classe B+, parceria com fabricantes) |
+| **Expansão (Pino 2)** | 5-7 clubes grandes — Flamengo (42-45M torcedores), dupla gaúcha (190-230K sócios combinados), clássico mineiro |
+| **Maior risco** | Penetração de wearables (8-12% no BR; mitigação: foco classe B+, parceria com fabricantes) |
 | **Referências** | Spotify Wrapped (modelo viral), Socios.com (distribuição via clubes), Strava (comunidade) |
 
