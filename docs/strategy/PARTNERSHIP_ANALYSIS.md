@@ -397,29 +397,41 @@ Plataformas que criam experiências interativas para torcedores. TumTum pode se 
 
 | Marca | Market Share BR | Programa de dev | API | Viabilidade de parceria |
 |-------|----------------|-----------------|-----|------------------------|
-| **Xiaomi** | ~30-35% | Mi Fitness SDK (limitado) | Via Google Health Connect | **Baixa** — foco em hardware barato, pouco investimento em ecossistema |
-| **Samsung** | ~20-25% | Samsung Health SDK + Health Connect | Madura | **Média** — programa de dev ativo, poderia co-promover |
-| **Apple** | ~15-18% | HealthKit (excelente) | Madura | **Média-Alta** — melhor ecossistema, mas difícil acesso para startup pequena |
-| **Garmin** | ~3-5% | Connect IQ SDK | Boa | **Média** — comunidade dev ativa, público fitness-oriented |
-| **Fitbit/Google** | ~2-3% | Health Connect | Madura | **Baixa** — marca em declínio, absorvida pelo Google |
+| **Xiaomi** | ~30-35% | Nenhum programa público; SDKs não-oficiais no GitHub | Via Google Health Connect (parcial) | **Baixa** — sem ecossistema de dev; não investir esforço aqui |
+| **Samsung** | ~20-25% | Samsung Health Partner App Program (formal, burocrático). SDK Android depreciado Jul/2025 — migrar para Health Data SDK | Madura via Health Connect | **Média** — usar via Health Connect; parceria direta é burocrática |
+| **Apple** | ~15-18% | HealthKit (excelente, gratuito, bem documentado). Badge "Works with Apple Health" disponível para marketing | Madura (on-device only, sem REST API) | **Média-Alta** — melhor ecossistema; requer camada nativa iOS |
+| **Garmin** | ~3-5% | Connect IQ SDK (gratuito) + Health API (server-to-server, requer aprovação) + Companion SDK (comercial, streaming em tempo real) | Boa | **Média** — ecossistema sólido; público fitness-oriented |
+| **Fitbit/Google** | ~2-3% | Fitbit Web API (REST, dados históricos) convergindo para Health Connect | Madura | **Baixa** — usar via Health Connect; API standalone como fallback |
 
-**Recomendação**: Não buscar parceria formal com fabricantes no Phase 0. Apenas integrar via APIs públicas (Google Health Connect + Apple HealthKit). No Phase 1, se TumTum provar tração, abordar **Samsung** para co-marketing ("Seu Galaxy Watch + TumTum = experiência completa no estádio").
+**Insight técnico crítico**: Google Health Connect **sozinho** cobre Galaxy Watch, Fitbit, Pixel Watch e a maioria dos wearables Android em **uma única integração**. Combinado com Apple HealthKit, TumTum alcança a vasta maioria dos usuários de smartwatch **sem precisar de parceria individual com fabricantes no Phase 0**.
+
+**Ranking de prioridade de integração**:
+1. **Google Health Connect** — gratuito, aberto, cobre ~60% do mercado BR (Sprint 1)
+2. **Apple HealthKit** — gratuito, maduro, essencial para iOS (Sprint 1)
+3. **Garmin Health API** — nicho mas leal; integrar no Sprint 2-3
+4. **Samsung** — coberto via Health Connect; parceria formal apenas post-MVP
+5. **Fitbit** — coberto via Health Connect
+6. **Xiaomi** — sem ecossistema; se o usuário tiver Health Connect no Android, cobertura parcial automática
 
 **Oportunidade futura**: Bundle com Xiaomi Mi Band — "Mi Band + TumTum grátis por 3 meses" (R$150-250 pelo hardware + app gratuito). Resolve o problema de penetração de wearables.
 
 ### 7.2 Plataformas de Ticketing
 
-| Plataforma | Foco | Presença no futebol BR |
-|-----------|------|----------------------|
-| **Sympla** | Eventos em geral | Baixa em futebol (mais shows/tech) |
-| **Eventim** | Grandes eventos e shows | Média |
-| **Ingresso Rápido** | Futebol e grandes venues | **Alta** — vende ingressos de clubes |
-| **Ticket360** | Futebol | **Alta** — parceria com vários clubes da Série A |
-| **Mbilhete** | Futebol (Palmeiras, outros) | **Alta** — sistema de ingresso de clubes |
+| Plataforma | Foco | Presença no futebol BR | API disponível? |
+|-----------|------|----------------------|-----------------|
+| **Sympla** ★ | Maior plataforma de eventos do Brasil (shows, tech, festivais) | Baixa em futebol | **Sim** — Partners API + API geral documentada |
+| **Eventim** | Grandes shows e turnês internacionais (CTS Eventim) | Média | Sim — Tixx-Connect REST API + Affiliates Network |
+| **Ingresso Rápido** | Futebol e grandes venues | **Alta** — vende ingressos de clubes | Não encontrada |
+| **Ticket360** | Futebol | **Alta** — parceria com vários clubes da Série A | Não encontrada |
+| **Mbilhete** | Futebol (Palmeiras, outros) | **Alta** — sistema de ingresso de clubes | Não encontrada |
+
+**Destaque: Sympla** — Tem API documentada (developers.sympla.com.br) para acessar dados de eventos, ingressos e participantes. Já integra com 57+ ferramentas via Pluga. Parceria recente com Mastercard e Yuno mostra abertura para tech partnerships. A integração mais viável: TumTum puxa dados de eventos do Sympla para popular automaticamente o catálogo de eventos (em vez de um bundle comercial complexo).
 
 **Oportunidade**: "Adicione a experiência TumTum ao seu ingresso por +R$9,90" no checkout da compra do bilhete. Modelo de distribuição poderoso se integrado ao fluxo de compra.
 
 **Viabilidade Phase 0**: Baixa (precisa de tração para negociar). **Phase 1+**: Alta — modelo de monetização e distribuição integrado.
+
+**Abordagem recomendada**: (1) Sympla primeiro — API existente, brasileira, inovação-friendly. (2) Eventim segundo — para grandes turnês e shows internacionais. Começar com integração leve (puxar catálogo de eventos) antes de negociar bundle comercial.
 
 ### 7.3 Mídia Esportiva
 
@@ -428,12 +440,37 @@ Plataformas que criam experiências interativas para torcedores. TumTum pode se 
 | **Globo/GE** | Maior broadcaster esportivo do Brasil | Dados de emoção da torcida como conteúdo para transmissão — "O batimentômetro do Brasileirão" |
 | **ESPN Brasil** | Conteúdo esportivo, análise | Quadro semanal: "Momentos que mais aceleraram o coração dos torcedores" |
 | **DAZN** | Streaming do Brasileirão | Second-screen: curva de HR ao vivo sobreposta na transmissão (via Deltatre) |
-| **CazéTV** | Streaming independente, público jovem | Conteúdo viral: "Casimiro reage aos batimentos dos torcedores" — encaixe perfeito com o tom do canal |
+| **CazéTV** ★ | Streaming independente via LiveMode. **38% dos fãs de esportes 18-24 assistem CazéTV**. Direitos de streaming da Copa 2026. Distribui via YouTube, Amazon Prime, Disney+, Samsung TV Plus, Mercado Play | Conteúdo viral: "Casimiro reage aos batimentos dos torcedores" — encaixe perfeito com o modelo de interatividade e participação |
 | **TNT Sports** | Champions League, conteúdo europeu | Expansão futura para mercado de shows/Champions |
 
-**Parceria mais promissora**: **CazéTV**. Tom informal, público jovem e digital-first, formato perfeito para conteúdo de TumTum. Imagine Casimiro reagindo ao vivo aos dados de batimento da torcida. Viralização quase garantida.
+**Parceria mais promissora**: **CazéTV / LiveMode**. Dados confirmam o fit:
+- 38% dos fãs de esportes entre 18-24 anos assistem CazéTV
+- O canal é baseado em **interatividade e participação** — "a nova geração quer assistir E participar"
+- Tem direitos de streaming da **Copa do Mundo 2026**
+- Distribui via YouTube, Amazon Prime, Disney+, Samsung TV Plus e Mercado Play
+- O caminho para contato é via **LiveMode** (parent company/agência de marketing esportivo)
 
-**Ação concreta**: Enviar demo/protótipo dos cards para produção da CazéTV. Mesmo uma menção orgânica já valeria milhares de signups.
+Imagine: overlay ao vivo mostrando "Chat, o batimento coletivo da torcida acabou de bater 142 BPM nesse gol!" — é exatamente o tipo de second-screen engagement que CazéTV pioneirou.
+
+**Ação concreta**: Enviar demo/protótipo dos cards para produção da CazéTV via LiveMode. Mesmo uma menção orgânica já valeria milhares de signups.
+
+### 7.4 Redes Sociais — Oportunidades de distribuição
+
+| Plataforma | Dados relevantes | Oportunidade para TumTum |
+|-----------|------------------|--------------------------|
+| **Instagram** | 140M de usuários no Brasil. Ads agora rodam majoritariamente em Reels. API de sharing suporta post direto para Stories | Destino natural dos share cards. Formato 9:16. Não precisa de parceria formal — apenas otimizar compartilhamento |
+| **TikTok** ★ | **Primeiro "Preferred Platform" oficial da FIFA** até 2026. Creators têm acesso a conteúdo dos bastidores e arquivo. Brasil incluído no Creator Rewards Program | Share cards (vídeo curto de HR + momento) são tailor-made para TikTok. Copa 2026 = momento massivo de conteúdo. Posicionar TumTum como "creator tool" |
+| **Kwai** ★★ | Investiu **R$7 bilhões no Brasil**. Paga 400K creators. Marketplace criativo com 5K+ creators. Direitos de streaming de futebol ao vivo. **Estratégia 2026: "emotional marketing"** como ponto de entrada de marca | **Oportunidade subestimada**. A estratégia de "emotional marketing" da Kwai é quase idêntica à tese do TumTum. Pitch: TumTum como ferramenta nativa para creators esportivos da Kwai |
+| **WhatsApp** | Dominante no Brasil para comunicação pessoal | Preview rico (Open Graph) do card compartilhado + link. "Meu coração foi a 162bpm no gol. E o seu?" |
+
+**Destaque: Kwai** — O achado mais surpreendente desta análise. Kwai investiu R$7B no Brasil, tem direitos de streaming de futebol, e sua estratégia para 2026 é literalmente **"emotional marketing"** — integrar conteúdo de Copa do Mundo e Carnaval com engajamento emocional. Isso é a tese do TumTum traduzida em estratégia corporativa de uma big tech. O fit é quase perfeito.
+
+**Abordagem recomendada**:
+1. **Instagram** — sem parceria necessária; otimizar formato dos cards (Sprint 1)
+2. **TikTok** — buscar programa de creator tool / effects, especialmente em torno da Copa 2026 (Sprint 4-5)
+3. **Kwai** — abordar o time Brasil diretamente; Kwai's 2026 Overseas Commercialization Conference é um alvo (Sprint 5)
+
+
 
 ---
 
@@ -461,9 +498,12 @@ Cada parceiro avaliado em 3 dimensões (1-5):
 | Parceiro | Tipo | Impacto | Viabilidade | Ação agora |
 |----------|------|---------|-------------|------------|
 | **Samba Digital** | Distribuição | ★★★★☆ | ★★★★☆ | Mapear contatos; abordar quando tiver dados reais de engajamento |
-| **CazéTV** | PR / Amplificação | ★★★★★ | ★★★☆☆ | Preparar demo visual impressionante; enviar quando o produto funcionar |
+| **CazéTV / LiveMode** | PR / Amplificação | ★★★★★ | ★★★☆☆ | Preparar demo visual impressionante; contatar via LiveMode |
 | **Footstats / Stats Perform** | Dados | ★★★★☆ | ★★★★☆ | Contatar para entender pricing e disponibilidade |
 | **WSC Sports** | Vídeo | ★★★★★ | ★★★☆☆ | Mapear programa de parcerias; preparar proposta de pilot |
+| **Sympla** | Dados de eventos + Distrib. | ★★★★☆ | ★★★★☆ | Integrar API para catálogo de eventos (Shows/Pino 3) |
+| **TikTok** | Creator tool (Copa 2026) | ★★★★★ | ★★★☆☆ | Mapear programa de effects/creator tools |
+| **Kwai Brasil** ★ | Distribuição + Co-marketing | ★★★★☆ | ★★★★☆ | Fit estratégico excepcional ("emotional marketing"); abordar time BR |
 | **Samsung Brasil** | Co-marketing | ★★★☆☆ | ★★★☆☆ | Abordar programa de desenvolvedores Samsung Health |
 
 ### Tier 3 — Horizonte Phase 2+ (12-24 meses)
@@ -524,10 +564,11 @@ Cada parceiro avaliado em 3 dimensões (1-5):
 PHASE 0 (Meses 1-3)          PHASE 1 (Meses 4-8)          PHASE 2 (Meses 9-18)
 ─────────────────────         ──────────────────────        ─────────────────────
 ✦ ArenaHub (conector)         ✦ Samba Digital (distrib.)    ✦ Sportradar (dados)
-✦ API-Football (dados)        ✦ CazéTV (PR viral)          ✦ WSC Sports (vídeo)
+✦ API-Football (dados)        ✦ CazéTV/LiveMode (PR viral)  ✦ WSC Sports (vídeo)
 ✦ Health Connect (wearable)   ✦ Footstats (dados BR)       ✦ DAZN/Deltatre (stream)
-✦ HealthKit (wearable)        ✦ Samsung (co-marketing)     ✦ Ticketing (checkout)
-✦ 1 CLUBE DIRETO              ✦ 3-5 CLUBES                 ✦ Globo/ESPN (mídia)
+✦ HealthKit (wearable)        ✦ Kwai Brasil (emotional mkt) ✦ Ticketing/Sympla
+✦ 1 CLUBE DIRETO              ✦ TikTok (Copa 2026)         ✦ Globo/ESPN (mídia)
+                              ✦ 3-5 CLUBES                 ✦ Samsung (co-marketing)
 ```
 
 ### As 3 parcerias que mudam tudo
@@ -545,10 +586,11 @@ Se TumTum conseguir fechar **apenas 3 parcerias**, devem ser estas:
 | Pergunta | Resposta |
 |----------|---------|
 | TumTum deve fazer parceria com Chiliz? | **Não agora.** Riscos reputacionais e financeiros superam benefícios. |
-| Existem parceiros melhores que Chiliz? | **Sim.** WSC Sports, Samba Digital, ArenaHub e clubes diretamente são caminhos superiores. |
+| Existem parceiros melhores que Chiliz? | **Sim.** WSC Sports, Samba Digital, ArenaHub, Kwai e clubes diretamente são caminhos superiores. |
 | Qual a posição do TumTum no ecossistema? | **Camada biométrica única** — complementar a todos, concorrente de ninguém. |
 | Quantas parcerias buscar no Phase 0? | **Apenas 2**: ArenaHub (conector) + 1 clube (distribuição). Foco no produto. |
-| Qual a parceria que mais aceleraria o crescimento? | **CazéTV** (alcance) ou **WSC Sports** (qualidade do card). Mas ambas exigem produto funcionando. |
+| Qual a parceria que mais aceleraria o crescimento? | **CazéTV** (alcance), **WSC Sports** (qualidade do card) ou **Kwai** (budget + fit estratégico). Todas exigem produto funcionando. |
+| Achado mais surpreendente da análise? | **Kwai Brasil** — investiu R$7B no Brasil, estratégia 2026 é literalmente "emotional marketing", tem direitos de streaming de futebol. Fit quase perfeito com TumTum. |
 | Maior erro a evitar? | Distrair-se com parcerias antes de ter um MVP funcionando. **Produto primeiro, parcerias depois.** |
 
 
