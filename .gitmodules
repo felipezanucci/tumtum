@@ -1,0 +1,3 @@
+[submodule ".agents/startup-skill"]
+	path = .agents/startup-skill
+	url = https://github.com/ferdinandobons/startup-skill.git
