@@ -21,7 +21,7 @@ export default function EventDetailPage() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-white">
           <Loading size="lg" />
         </main>
       </>
@@ -32,7 +32,7 @@ export default function EventDetailPage() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-white">
           <p className="text-tumtum-text-muted">Evento não encontrado.</p>
         </main>
       </>
@@ -50,7 +50,7 @@ export default function EventDetailPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-white">
         <div className="mx-auto max-w-4xl px-4 py-8">
           {/* Cover */}
           {event.cover_image_url && (

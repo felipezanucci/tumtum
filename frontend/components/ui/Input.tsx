@@ -28,7 +28,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             w-full rounded-lg border bg-tumtum-surface px-4 py-2.5
             text-tumtum-text-primary placeholder:text-tumtum-text-muted
             transition-colors duration-150
-            focus:outline-none focus:ring-2 focus:ring-tumtum-red focus:ring-offset-1 focus:ring-offset-tumtum-dark
+            focus:outline-none focus:ring-2 focus:ring-tumtum-red focus:ring-offset-1 focus:ring-offset-white
             ${error ? 'border-red-500' : 'border-tumtum-border hover:border-tumtum-text-muted'}
             ${className}
           `}

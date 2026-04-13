@@ -2,19 +2,16 @@ import Link from 'next/link'
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-tumtum-dark">
+    <main className="min-h-screen bg-white">
       {/* Hero */}
       <section className="relative flex min-h-screen flex-col items-center justify-center px-4 text-center">
         {/* Background glow */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-1/2 top-1/3 h-96 w-96 -translate-x-1/2 rounded-full bg-tumtum-red/10 blur-[120px]" />
+          <div className="absolute left-1/2 top-1/3 h-96 w-96 -translate-x-1/2 rounded-full bg-tumtum-red/5 blur-[120px]" />
         </div>
 
         <div className="relative z-10">
-          <h1
-            className="text-5xl font-bold uppercase tracking-widest text-tumtum-red sm:text-7xl"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
+          <h1 className="text-5xl font-black uppercase tracking-wider text-tumtum-red sm:text-7xl">
             Tumtum
           </h1>
           <p className="mt-4 text-xl text-tumtum-text-primary sm:text-2xl">
@@ -27,7 +24,7 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-secondary"
+              className="inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-deep"
             >
               Bora lá
             </Link>
@@ -133,7 +130,7 @@ export default function LandingPage() {
           </p>
           <Link
             href="/signup"
-            className="mt-8 inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-secondary"
+            className="mt-8 inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-deep"
           >
             Criar conta de graça
           </Link>
@@ -142,10 +139,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-tumtum-border py-8 text-center">
-        <p
-          className="text-sm font-bold uppercase tracking-widest text-tumtum-red"
-          style={{ fontFamily: 'Georgia, serif' }}
-        >
+        <p className="text-sm font-black uppercase tracking-wider text-tumtum-red">
           Tumtum
         </p>
         <p className="mt-2 text-xs text-tumtum-text-muted">

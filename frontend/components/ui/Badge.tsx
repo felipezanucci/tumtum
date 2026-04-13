@@ -11,7 +11,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
   warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   danger: 'bg-red-500/10 text-red-400 border-red-500/20',
-  accent: 'bg-tumtum-accent/10 text-tumtum-accent border-tumtum-accent/20',
+  accent: 'bg-tumtum-lime/10 text-tumtum-lime border-tumtum-lime/20',
 }
 
 export default function Badge({ variant = 'default', className = '', children }: BadgeProps) {

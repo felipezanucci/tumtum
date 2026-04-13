@@ -37,7 +37,7 @@ export default function TimelineBar({ entries, className = '' }: TimelineBarProp
 
             return (
               <div key={entry.id} className="relative flex items-start gap-3 pl-1">
-                <div className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-tumtum-border bg-tumtum-dark text-sm">
+                <div className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-tumtum-border bg-white text-sm">
                   {icon}
                 </div>
                 <div className="flex-1 pt-1">

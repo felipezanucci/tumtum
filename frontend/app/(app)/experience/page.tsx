@@ -9,7 +9,7 @@ import { Nav } from '@/components/layout'
 
 export default function ExperiencePage() {
   return (
-    <Suspense fallback={<><Nav /><main className="flex min-h-screen items-center justify-center bg-tumtum-dark"><Loading size="lg" /></main></>}>
+    <Suspense fallback={<><Nav /><main className="flex min-h-screen items-center justify-center bg-white"><Loading size="lg" /></main></>}>
       <ExperienceContent />
     </Suspense>
   )
@@ -31,7 +31,7 @@ function ExperienceContent() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-white">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-tumtum-text-primary">
               Nenhuma sessão selecionada
@@ -49,7 +49,7 @@ function ExperienceContent() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-white">
           <Loading size="lg" />
         </main>
       </>
@@ -60,7 +60,7 @@ function ExperienceContent() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-white">
           <p className="text-tumtum-text-muted">Dados não encontrados.</p>
         </main>
       </>
@@ -72,7 +72,7 @@ function ExperienceContent() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-white">
         <div className="mx-auto max-w-5xl px-4 py-8">
           {/* Header */}
           <div className="mb-8">

@@ -75,7 +75,7 @@ export default function CardsPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-white">
         <div className="mx-auto max-w-4xl px-4 py-8">
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-tumtum-text-primary">Seus Cards</h1>
@@ -156,7 +156,7 @@ export default function CardsPage() {
 
                     {/* Share menu */}
                     {shareMenuId === card.id && (
-                      <div className="mt-3 rounded-lg border border-tumtum-border bg-tumtum-dark p-3">
+                      <div className="mt-3 rounded-lg border border-tumtum-border bg-white p-3">
                         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-tumtum-text-muted">
                           Compartilhar em
                         </p>

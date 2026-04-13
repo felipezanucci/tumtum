@@ -30,7 +30,7 @@ export default function EventsPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-white">
         <div className="mx-auto max-w-4xl px-4 py-8">
           <h1 className="mb-6 text-3xl font-bold text-tumtum-text-primary">Eventos</h1>
 
@@ -76,7 +76,7 @@ export default function EventsPage() {
                 <Link key={event.id} href={`/events/${event.id}`}>
                   <Card hoverable className="h-full">
                     {event.cover_image_url && (
-                      <div className="mb-3 h-32 overflow-hidden rounded-lg bg-tumtum-dark">
+                      <div className="mb-3 h-32 overflow-hidden rounded-lg bg-white">
                         <img
                           src={event.cover_image_url}
                           alt={event.name}

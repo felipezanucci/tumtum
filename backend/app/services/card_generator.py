@@ -16,14 +16,16 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 # Brand colors
-TUMTUM_RED = (192, 57, 43)       # #C0392B
-TUMTUM_RED_SEC = (231, 76, 60)   # #E74C3C
-TUMTUM_DARK = (8, 8, 12)         # #08080C
-TUMTUM_SURFACE = (17, 17, 24)    # #111118
-TUMTUM_BORDER = (26, 26, 36)     # #1A1A24
-TUMTUM_MUTED = (107, 107, 128)   # #6B6B80
-TUMTUM_TEXT = (240, 240, 245)    # #F0F0F5
-TUMTUM_ACCENT = (0, 210, 255)    # #00D2FF
+TUMTUM_RED = (254, 36, 1)        # #FE2401
+TUMTUM_RED_DEEP = (219, 18, 60)  # #DB123C
+TUMTUM_BURGUNDY = (128, 1, 31)   # #80011F
+TUMTUM_RED_DARK = (139, 1, 0)    # #8B0100
+TUMTUM_LIME = (198, 249, 8)      # #C6F908
+TUMTUM_BG = (255, 255, 255)      # #FFFFFF
+TUMTUM_SURFACE = (245, 245, 245) # #F5F5F5
+TUMTUM_BORDER = (229, 229, 229)  # #E5E5E5
+TUMTUM_MUTED = (107, 114, 128)   # #6B7280
+TUMTUM_TEXT = (26, 26, 26)       # #1A1A1A
 
 # Card dimensions
 STORY_SIZE = (1080, 1920)
@@ -58,7 +60,7 @@ def generate_solo_card(
         PNG image bytes
     """
     size = STORY_SIZE if format == "story" else FEED_SIZE
-    img = Image.new("RGB", size, TUMTUM_DARK)
+    img = Image.new("RGB", size, TUMTUM_BG)
     draw = ImageDraw.Draw(img)
 
     w, h = size
@@ -80,9 +82,9 @@ def generate_solo_card(
     # Background gradient overlay
     for y in range(h):
         alpha = y / h
-        r = int(TUMTUM_DARK[0] * (1 - alpha * 0.3) + TUMTUM_RED[0] * alpha * 0.15)
-        g = int(TUMTUM_DARK[1] * (1 - alpha * 0.3))
-        b = int(TUMTUM_DARK[2] * (1 - alpha * 0.3))
+        r = int(TUMTUM_BG[0] * (1 - alpha * 0.3) + TUMTUM_RED[0] * alpha * 0.15)
+        g = int(TUMTUM_BG[1] * (1 - alpha * 0.3))
+        b = int(TUMTUM_BG[2] * (1 - alpha * 0.3))
         draw.line([(0, y), (w, y)], fill=(r, g, b))
 
     # Logo
@@ -102,7 +104,7 @@ def generate_solo_card(
     # Peak BPM highlight
     peak_y = (h // 2) + (100 if format == "story" else 50)
     draw.text((w // 2, peak_y), str(peak_bpm), fill=TUMTUM_RED, font=font_large, anchor="mm")
-    draw.text((w // 2, peak_y + 80), "BPM", fill=TUMTUM_RED_SEC, font=font_medium, anchor="mt")
+    draw.text((w // 2, peak_y + 80), "BPM", fill=TUMTUM_RED_DEEP, font=font_medium, anchor="mt")
 
     # Matched label
     if matched_label:
@@ -154,7 +156,7 @@ def generate_comparison_card(
     so fans can compare their heartbeats.
     """
     size = STORY_SIZE if format == "story" else FEED_SIZE
-    img = Image.new("RGB", size, TUMTUM_DARK)
+    img = Image.new("RGB", size, TUMTUM_BG)
     draw = ImageDraw.Draw(img)
 
     w, h = size
@@ -170,9 +172,9 @@ def generate_comparison_card(
     # Background
     for y in range(h):
         alpha = y / h
-        r = int(TUMTUM_DARK[0] * (1 - alpha * 0.2))
-        g = int(TUMTUM_DARK[1] * (1 - alpha * 0.2))
-        b = int(TUMTUM_DARK[2] * (1 - alpha * 0.2) + 20 * alpha * 0.1)
+        r = int(TUMTUM_BG[0] * (1 - alpha * 0.2))
+        g = int(TUMTUM_BG[1] * (1 - alpha * 0.2))
+        b = int(TUMTUM_BG[2] * (1 - alpha * 0.2) + 20 * alpha * 0.1)
         draw.line([(0, y), (w, y)], fill=(r, g, b))
 
     # Logo
@@ -184,7 +186,7 @@ def generate_comparison_card(
 
     # Sync percentage (center)
     center_y = h // 2
-    draw.text((w // 2, center_y - 60), f"{sync_percentage}%", fill=TUMTUM_ACCENT, font=font_large, anchor="mm")
+    draw.text((w // 2, center_y - 60), f"{sync_percentage}%", fill=TUMTUM_LIME, font=font_large, anchor="mm")
     draw.text((w // 2, center_y + 20), "em sincronia", fill=TUMTUM_MUTED, font=font_small, anchor="mt")
 
     # User vs Artist
@@ -195,7 +197,7 @@ def generate_comparison_card(
     draw.text((col_left, vs_y), str(user_peak_bpm), fill=TUMTUM_RED, font=font_large, anchor="mt")
     draw.text((col_left, vs_y + 90), "Seu pico", fill=TUMTUM_MUTED, font=font_small, anchor="mt")
 
-    draw.text((col_right, vs_y), str(artist_peak_bpm), fill=TUMTUM_ACCENT, font=font_large, anchor="mt")
+    draw.text((col_right, vs_y), str(artist_peak_bpm), fill=TUMTUM_LIME, font=font_large, anchor="mt")
     draw.text((col_right, vs_y + 90), artist_name, fill=TUMTUM_MUTED, font=font_small, anchor="mt")
 
     draw.text((w // 2, vs_y + 40), "vs", fill=TUMTUM_MUTED, font=font_medium, anchor="mm")

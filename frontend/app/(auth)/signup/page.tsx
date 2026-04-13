@@ -26,13 +26,10 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-tumtum-dark px-4">
+    <main className="flex min-h-screen items-center justify-center bg-white px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1
-            className="text-3xl font-bold uppercase tracking-widest text-tumtum-red"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
+          <h1 className="text-3xl font-black uppercase tracking-wider text-tumtum-red">
             Tumtum
           </h1>
           <p className="mt-2 text-tumtum-text-muted">Cria sua conta. Promete que não dói.</p>

@@ -38,7 +38,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-tumtum-dark px-4">
+    <main className="flex min-h-screen items-center justify-center bg-white px-4">
       <div className="w-full max-w-md">
         {/* Step: Welcome */}
         {step === 'welcome' && (

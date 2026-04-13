@@ -55,7 +55,7 @@ export default function ProfilePage() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-white">
           <Loading size="lg" />
         </main>
       </>
@@ -72,7 +72,7 @@ export default function ProfilePage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-white">
         <div className="mx-auto max-w-3xl px-4 py-8">
           {/* Header */}
           <div className="flex items-start gap-6">

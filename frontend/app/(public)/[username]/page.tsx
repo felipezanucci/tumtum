@@ -30,7 +30,7 @@ export default function PublicProfilePage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+      <main className="flex min-h-screen items-center justify-center bg-white">
         <Loading size="lg" />
       </main>
     )
@@ -38,7 +38,7 @@ export default function PublicProfilePage() {
 
   if (error || !profile) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+      <main className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
           <p className="text-lg text-tumtum-text-primary">Perfil não encontrado</p>
           <p className="mt-1 text-sm text-tumtum-text-muted">Este usuário não existe ou o perfil é privado.</p>
@@ -53,7 +53,7 @@ export default function PublicProfilePage() {
   })
 
   return (
-    <main className="min-h-screen bg-tumtum-dark">
+    <main className="min-h-screen bg-white">
       <div className="mx-auto max-w-md px-4 py-12">
         {/* Header */}
         <div className="flex flex-col items-center text-center">
@@ -78,14 +78,11 @@ export default function PublicProfilePage() {
 
         {/* Branding */}
         <div className="mt-12 text-center">
-          <p
-            className="text-sm font-bold uppercase tracking-widest text-tumtum-red"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
+          <p className="text-sm font-black uppercase tracking-wider text-tumtum-red">
             Tumtum
           </p>
           <p className="mt-1 text-xs text-tumtum-text-muted">
-            Sinta o evento. Compartilhe a emoção.
+            Seu coração não sabe mentir.
           </p>
         </div>
       </div>

@@ -7,14 +7,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        'tumtum-red': '#C0392B',
-        'tumtum-red-secondary': '#E74C3C',
-        'tumtum-accent': '#00D2FF',
-        'tumtum-dark': '#08080C',
-        'tumtum-surface': '#111118',
-        'tumtum-border': '#1A1A24',
-        'tumtum-text-muted': '#6B6B80',
-        'tumtum-text-primary': '#F0F0F5',
+        'tumtum-red': '#FE2401',
+        'tumtum-red-deep': '#DB123C',
+        'tumtum-burgundy': '#80011F',
+        'tumtum-red-dark': '#8B0100',
+        'tumtum-lime': '#C6F908',
+        'tumtum-surface': '#F5F5F5',
+        'tumtum-border': '#E5E5E5',
+        'tumtum-text-muted': '#6B7280',
+        'tumtum-text-primary': '#1A1A1A',
       },
     },
   },
