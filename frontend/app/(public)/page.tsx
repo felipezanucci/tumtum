@@ -18,11 +18,10 @@ export default function LandingPage() {
             Tumtum
           </h1>
           <p className="mt-4 text-xl text-tumtum-text-primary sm:text-2xl">
-            Sinta o evento. Compartilhe a emoção.
+            Seu coração já sabe o que você sentiu. A gente mostra.
           </p>
           <p className="mt-3 max-w-md text-tumtum-text-muted">
-            Descubra como seu coração reage nos shows e jogos mais emocionantes.
-            Conecte seu wearable e reviva cada batida.
+            Conecta seu relógio, vai pro show e descobre que você quase infartou de emoção naquela música.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -30,7 +29,7 @@ export default function LandingPage() {
               href="/signup"
               className="inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-secondary"
             >
-              Começar agora
+              Bora lá
             </Link>
             <Link
               href="/login"
@@ -59,18 +58,18 @@ export default function LandingPage() {
             {[
               {
                 icon: '⌚',
-                title: 'Conecte',
-                description: 'Vincule seu Apple Watch, Wear OS ou outro wearable que monitora frequência cardíaca.',
+                title: 'Conecta o relógio',
+                description: 'Apple Watch, Wear OS, Garmin... qualquer um que saiba contar seus batimentos. A gente não julga o modelo.',
               },
               {
                 icon: '🎵',
-                title: 'Viva',
-                description: 'Vá a um show, jogo ou festival. Seu wearable captura cada batida do seu coração.',
+                title: 'Vai pro evento',
+                description: 'Show, jogo, festival. Seu relógio grava cada batida enquanto você finge que tá de boa.',
               },
               {
                 icon: '🔥',
-                title: 'Compartilhe',
-                description: 'Veja seus picos de emoção sincronizados com o setlist e compartilhe com seus amigos.',
+                title: 'Mostra pro mundo',
+                description: 'A gente sincroniza seus picos com o setlist e gera um card. Seus amigos vão querer saber por que você tava a 140 bpm.',
               },
             ].map(({ icon, title, description }) => (
               <div key={title} className="text-center">
@@ -89,18 +88,18 @@ export default function LandingPage() {
           <div className="grid gap-12 sm:grid-cols-2">
             <div>
               <h3 className="text-2xl font-bold text-tumtum-text-primary">
-                Curva de emoção em tempo real
+                Sua curva de emoção
               </h3>
               <p className="mt-3 text-tumtum-text-muted">
-                Veja exatamente quando seu coração disparou — sincronizado com cada música do setlist ou gol do jogo.
+                Aquele arrepio em Evidências? A gente mostra exatamente quando aconteceu. Com gráfico e tudo.
               </p>
             </div>
             <div>
               <h3 className="text-2xl font-bold text-tumtum-text-primary">
-                Cards compartilháveis
+                Cards pra causar
               </h3>
               <p className="mt-3 text-tumtum-text-muted">
-                Gere cards visuais com seus picos de emoção e compartilhe no Instagram, X, WhatsApp e TikTok.
+                Gera um card com seu pico, manda no story e espera os "meu deus" nos replies.
               </p>
             </div>
             <div>
@@ -108,15 +107,15 @@ export default function LandingPage() {
                 Shows e jogos
               </h3>
               <p className="mt-3 text-tumtum-text-muted">
-                Cobrimos concerts com setlists do Setlist.fm e jogos de futebol com dados em tempo real.
+                Sabe o gol dos acréscimos? A gente sabe o que seu coração fez naquele segundo. Setlists e partidas cobertas.
               </p>
             </div>
             <div>
               <h3 className="text-2xl font-bold text-tumtum-text-primary">
-                Privacidade primeiro
+                Seus dados, suas regras
               </h3>
               <p className="mt-3 text-tumtum-text-muted">
-                Seus dados de saúde são sensíveis. Coleta mínima, controle total e transparência sempre.
+                A gente leva privacidade a sério (uma das poucas coisas que a gente leva a sério). Coleta mínima e controle total.
               </p>
             </div>
           </div>
@@ -127,16 +126,16 @@ export default function LandingPage() {
       <section className="border-t border-tumtum-border px-4 py-20">
         <div className="mx-auto max-w-lg text-center">
           <h2 className="text-3xl font-bold text-tumtum-text-primary">
-            Pronto para sentir o evento?
+            Bora descobrir o que seu coração aprontou?
           </h2>
           <p className="mt-3 text-tumtum-text-muted">
-            Crie sua conta grátis e descubra o que seu coração tem a dizer.
+            Cria sua conta. É grátis, rápido e não dói. (Diferente do gol contra do seu time.)
           </p>
           <Link
             href="/signup"
             className="mt-8 inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-secondary"
           >
-            Criar conta grátis
+            Criar conta de graça
           </Link>
         </div>
       </section>

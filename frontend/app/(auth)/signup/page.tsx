@@ -35,7 +35,7 @@ export default function SignupPage() {
           >
             Tumtum
           </h1>
-          <p className="mt-2 text-tumtum-text-muted">Crie sua conta e sinta o evento</p>
+          <p className="mt-2 text-tumtum-text-muted">Cria sua conta. Promete que não dói.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

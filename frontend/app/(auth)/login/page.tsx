@@ -34,7 +34,7 @@ export default function LoginPage() {
           >
             Tumtum
           </h1>
-          <p className="mt-2 text-tumtum-text-muted">Faça login para continuar</p>
+          <p className="mt-2 text-tumtum-text-muted">Voltou pra ver seus batimentos? A gente sabia.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

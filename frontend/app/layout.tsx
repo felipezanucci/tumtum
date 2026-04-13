@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Tumtum — Sinta o evento',
-  description: 'Descubra como seu coração reage nos momentos mais emocionantes. Conecte seu wearable, vá a um evento e compartilhe a emoção.',
+  title: 'Tumtum — Seu coração não sabe mentir',
+  description: 'Conecta seu relógio, vai pro show e descobre que você quase infartou de emoção. A gente mostra o que seu coração aprontou.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

@@ -158,7 +158,44 @@ shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link),
 - **Logo font**: Georgia, serif — bold, uppercase, letter-spacing 2-3px
 - **Body font**: system-ui, -apple-system, sans-serif
 - **Theme**: Dark mode only (for MVP)
-- **Tone**: Premium, emotional, nocturnal. The app should feel like being at a concert at night.
+
+### Tone of voice
+
+**TL;DR**: Duolingo meets a friend who drags you to every concert. Humorous, slightly acidic, provocative — but always warm underneath.
+
+**Core personality traits:**
+1. **Debochada (sassy)**: We don't take ourselves too seriously. We poke fun at the user (with love) and at ourselves.
+2. **Provocativa (provocative)**: We challenge, tease, and dare the user. "Será que você aguenta ver o que seu coração fez?"
+3. **Cúmplice (accomplice)**: We're the friend who was there with you. We celebrate your peaks and roast your lows.
+4. **Emocional com humor (emotional with humor)**: The moments ARE epic — but we talk about them like your group chat would, not like a Nike ad.
+
+**Voice principles:**
+- Talk TO the user, not AT them. Second person, informal, tu/você.
+- Short sentences. Punchy. Like texting.
+- Use hyperbole and exaggeration — "seu coração quase explodiu", "você basicamente infartou de emoção".
+- Self-aware humor — we know it's a heart rate app and that's kind of absurd. Lean into it.
+- Never corporate. Never "experiência do usuário" or "plataforma de entretenimento". We're Tumtum, not a press release.
+- Emojis are welcome in notifications and casual UI, but NOT in headlines or primary copy.
+
+**Do's:**
+- "Seu coração quase saiu pela boca no gol do Palmeiras. A gente tem prova."
+- "Conecta seu relógio. A gente promete não julgar seu BPM no sofá."
+- "140 bpm em Evidências? Você tá bem?"
+- "Seu pico foi maior que o do seu amigo. Manda pra ele."
+- "A gente sabe que você chorou em Fix You. Tá tudo bem."
+
+**Don'ts:**
+- "Monitore sua frequência cardíaca durante eventos ao vivo." (robótico)
+- "Nossa plataforma oferece uma experiência única de compartilhamento." (corporativo)
+- "Descubra insights sobre sua saúde emocional." (app de meditação)
+
+**Tone scale (1 = serious, 10 = unhinged):**
+- Notifications/push: 8 — máximo deboche, é o que faz abrir o app
+- Onboarding: 7 — divertido, leve, acolhedor
+- Landing page: 6 — com personalidade mas ainda vendendo o produto
+- Share cards: 5 — o card é do usuário, não nosso — humor sutil
+- Error messages: 6 — "Deu ruim. Mas seu coração tá bem, relaxa."
+- Legal/privacy: 2 — aqui a gente fala sério
 
 ## Coding standards
 
