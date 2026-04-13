@@ -40,7 +40,7 @@ export default function ComparisonCard({
 
         {/* Sync percentage */}
         <div className="text-center">
-          <p className="text-6xl font-bold text-tumtum-lime">{syncPercentage}%</p>
+          <p className="text-6xl font-bold text-tumtum-yellow">{syncPercentage}%</p>
           <p className="mt-1 text-sm text-tumtum-text-muted">em sincronia</p>
         </div>
 
@@ -52,7 +52,7 @@ export default function ComparisonCard({
           </div>
           <span className="text-lg font-medium text-tumtum-text-muted">vs</span>
           <div className="text-center">
-            <p className="text-4xl font-bold text-tumtum-lime">{artistPeakBpm}</p>
+            <p className="text-4xl font-bold text-tumtum-yellow">{artistPeakBpm}</p>
             <p className="mt-1 text-xs text-tumtum-text-muted">{artistName}</p>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function ComparisonCard({
         <p className="text-sm text-tumtum-text-muted">@{userName}</p>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-tumtum-lime/5 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-tumtum-yellow/5 to-transparent" />
     </div>
   )
 }

@@ -43,7 +43,7 @@ export default function SoloCard({
         {/* Peak BPM */}
         <div className="text-center">
           <p className="text-7xl font-bold text-tumtum-red">{peakBpm}</p>
-          <p className="text-xl font-semibold text-tumtum-red-deep">BPM</p>
+          <p className="text-xl font-semibold text-tumtum-indigo">BPM</p>
           {matchedLabel && (
             <p className="mt-2 text-sm text-tumtum-text-primary">
               durante &quot;{matchedLabel}&quot;

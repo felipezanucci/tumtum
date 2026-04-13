@@ -16,11 +16,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 # Brand colors
-TUMTUM_RED = (254, 36, 1)        # #FE2401
-TUMTUM_RED_DEEP = (219, 18, 60)  # #DB123C
-TUMTUM_BURGUNDY = (128, 1, 31)   # #80011F
-TUMTUM_RED_DARK = (139, 1, 0)    # #8B0100
-TUMTUM_LIME = (198, 249, 8)      # #C6F908
+TUMTUM_RED = (248, 36, 7)        # #F82407
+TUMTUM_YELLOW = (231, 245, 2)    # #E7F502
+TUMTUM_ICE = (230, 252, 255)     # #E6FCFF
+TUMTUM_INDIGO = (38, 27, 140)    # #261B8C
+TUMTUM_BEIGE = (224, 219, 198)   # #E0DBC6
 TUMTUM_BG = (255, 255, 255)      # #FFFFFF
 TUMTUM_SURFACE = (245, 245, 245) # #F5F5F5
 TUMTUM_BORDER = (229, 229, 229)  # #E5E5E5
@@ -104,7 +104,7 @@ def generate_solo_card(
     # Peak BPM highlight
     peak_y = (h // 2) + (100 if format == "story" else 50)
     draw.text((w // 2, peak_y), str(peak_bpm), fill=TUMTUM_RED, font=font_large, anchor="mm")
-    draw.text((w // 2, peak_y + 80), "BPM", fill=TUMTUM_RED_DEEP, font=font_medium, anchor="mt")
+    draw.text((w // 2, peak_y + 80), "BPM", fill=TUMTUM_INDIGO, font=font_medium, anchor="mt")
 
     # Matched label
     if matched_label:
@@ -186,7 +186,7 @@ def generate_comparison_card(
 
     # Sync percentage (center)
     center_y = h // 2
-    draw.text((w // 2, center_y - 60), f"{sync_percentage}%", fill=TUMTUM_LIME, font=font_large, anchor="mm")
+    draw.text((w // 2, center_y - 60), f"{sync_percentage}%", fill=TUMTUM_YELLOW, font=font_large, anchor="mm")
     draw.text((w // 2, center_y + 20), "em sincronia", fill=TUMTUM_MUTED, font=font_small, anchor="mt")
 
     # User vs Artist
@@ -197,7 +197,7 @@ def generate_comparison_card(
     draw.text((col_left, vs_y), str(user_peak_bpm), fill=TUMTUM_RED, font=font_large, anchor="mt")
     draw.text((col_left, vs_y + 90), "Seu pico", fill=TUMTUM_MUTED, font=font_small, anchor="mt")
 
-    draw.text((col_right, vs_y), str(artist_peak_bpm), fill=TUMTUM_LIME, font=font_large, anchor="mt")
+    draw.text((col_right, vs_y), str(artist_peak_bpm), fill=TUMTUM_YELLOW, font=font_large, anchor="mt")
     draw.text((col_right, vs_y + 90), artist_name, fill=TUMTUM_MUTED, font=font_small, anchor="mt")
 
     draw.text((w // 2, vs_y + 40), "vs", fill=TUMTUM_MUTED, font=font_medium, anchor="mm")

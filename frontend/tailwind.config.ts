@@ -7,11 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        'tumtum-red': '#FE2401',
-        'tumtum-red-deep': '#DB123C',
-        'tumtum-burgundy': '#80011F',
-        'tumtum-red-dark': '#8B0100',
-        'tumtum-lime': '#C6F908',
+        'tumtum-red': '#F82407',
+        'tumtum-yellow': '#E7F502',
+        'tumtum-ice': '#E6FCFF',
+        'tumtum-indigo': '#261B8C',
+        'tumtum-beige': '#E0DBC6',
         'tumtum-surface': '#F5F5F5',
         'tumtum-border': '#E5E5E5',
         'tumtum-text-muted': '#6B7280',

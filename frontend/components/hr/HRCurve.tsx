@@ -94,8 +94,8 @@ export default function HRCurve({
       .attr('y1', '0%')
       .attr('x2', '0%')
       .attr('y2', '100%')
-    gradient.append('stop').attr('offset', '0%').attr('stop-color', '#FE2401').attr('stop-opacity', 0.3)
-    gradient.append('stop').attr('offset', '100%').attr('stop-color', '#FE2401').attr('stop-opacity', 0)
+    gradient.append('stop').attr('offset', '0%').attr('stop-color', '#F82407').attr('stop-opacity', 0.3)
+    gradient.append('stop').attr('offset', '100%').attr('stop-color', '#F82407').attr('stop-opacity', 0)
 
     // Area
     const area = d3
@@ -121,7 +121,7 @@ export default function HRCurve({
       .append('path')
       .datum(parsed)
       .attr('fill', 'none')
-      .attr('stroke', '#FE2401')
+      .attr('stroke', '#F82407')
       .attr('stroke-width', 2)
       .attr('d', line)
 
@@ -175,10 +175,10 @@ export default function HRCurve({
           .attr('cx', x)
           .attr('cy', y)
           .attr('r', 6)
-          .attr('fill', '#DB123C')
+          .attr('fill', '#F82407')
           .attr('stroke', '#fff')
           .attr('stroke-width', 2)
-          .style('filter', 'drop-shadow(0 0 4px rgba(219, 18, 60, 0.6))')
+          .style('filter', 'drop-shadow(0 0 4px rgba(248, 36, 7, 0.6))')
 
         if (animated) {
           circle.attr('opacity', 0).transition().delay(2000).duration(500).attr('opacity', 1)

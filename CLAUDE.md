@@ -148,11 +148,11 @@ shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link),
 ## Brand identity
 
 ### Color palette (Paleta_TUMUM)
-- **Primary red**: #FE2401 (vibrant red — main brand color, logo color)
-- **Red deep**: #DB123C (crimson — secondary red, hover states)
-- **Burgundy**: #80011F (deep burgundy — dark accents)
-- **Red dark**: #8B0100 (dark red — subtle accents, shadows)
-- **Lime**: #C6F908 (electric lime — energy accent, highlights, artist HR line in comparison cards)
+- **Primary red**: #F82407 (vibrant red — main brand color, logo color)
+- **Yellow**: #E7F502 (electric yellow — energy accent, highlights, artist HR line in comparison cards)
+- **Ice blue**: #E6FCFF (ice blue — light surface tint, background accent)
+- **Indigo**: #261B8C (deep indigo — contrast color, dark accents, secondary actions)
+- **Beige**: #E0DBC6 (warm beige — neutral surface, muted backgrounds)
 - **Background**: #FFFFFF (white — light theme, always)
 - **Surface**: #F5F5F5 (light gray — cards, elevated surfaces)
 - **Border**: #E5E5E5 (light gray — dividers, separators)
@@ -160,7 +160,7 @@ shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link),
 - **Text muted**: #6B7280 (gray — secondary text, captions)
 
 ### Logo
-- The Tumtum logo is a custom 3D block lettering in red (#FE2401) on white background.
+- The Tumtum logo is a custom 3D block lettering in red (#F82407) on white background.
 - Bold, chunky, uppercase, with a perspective/shadow effect.
 - ALWAYS use the logo as an SVG/image asset — do not replicate with CSS fonts.
 - Fallback for code-rendered logo text: font-weight 900, uppercase, sans-serif (e.g., system-ui black).
