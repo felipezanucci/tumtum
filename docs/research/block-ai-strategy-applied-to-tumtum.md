@@ -155,29 +155,366 @@ Total: **3-4 pessoas + AI** fazendo o trabalho de um time de 10-15.
 
 #### Principio 3: World Model da TumTum
 
-Criar o equivalente dos "world models" da Block para a TumTum:
+Na Block, o "world model" e o que substitui a memoria coletiva dos gerentes — um sistema vivo que sabe o estado de tudo na empresa a qualquer momento. Para a TumTum, isso se traduz em dois pilares: um **World Model Interno** (como o time opera e decide) e um **World Model do Usuario** (como os usuarios se comportam e o que valorizam).
 
-**World Model Interno** (documentacao viva):
-- CLAUDE.md ja e o inicio disso — manter atualizado como fonte de verdade
-- Todo decision log registrado em `/docs/decisions/` (ADRs - Architecture Decision Records)
-- Metricas de desenvolvimento trackeadas (PRs/semana, cobertura de testes, velocidade de deploy)
+---
 
-**World Model do Usuario**:
-- Desde o beta, trackear: quais momentos as pessoas compartilham mais? Quais cards viralizam? Quais eventos geram mais engajamento?
-- PostHog como sistema central de customer signal
-- Feedback loops curtos: beta users no WhatsApp, dados quantitativos no PostHog
+##### 3A. World Model Interno: ADRs (Architecture Decision Records)
 
-#### Principio 4: Ciclos de 90 dias com DRIs
+**O que sao ADRs**
 
-Adaptar o modelo Block de 90-day cycles:
+ADRs sao documentos curtos e padronizados que registram **decisoes tecnicas e de produto** junto com seu contexto e consequencias. Sao a "memoria institucional" da empresa — o equivalente ao que a Block chama de world model interno.
 
-| Ciclo | Periodo | DRI | Entregavel |
-|-------|---------|-----|------------|
-| **Ciclo 0** | Semanas 1-12 | Felipe | MVP funcional: auth + sync HR + visualizacao + 1 card shareable |
-| **Ciclo 1** | Semanas 13-24 | TBD | Product-market fit: 1.000 usuarios, 100 cards compartilhados |
-| **Ciclo 2** | Semanas 25-36 | TBD | Growth engine: viralidade organica via cards, onboarding <2min |
+Sem ADRs, o conhecimento vive na cabeca das pessoas. Com 3-4 pessoas no time, se um dev sai ou se Felipe esquece por que uma decisao foi tomada ha 3 meses, o contexto se perde. ADRs evitam isso.
 
-Cada ciclo tem **um DRI unico** responsavel pelo resultado, nao por tarefas.
+**Formato padrao para a TumTum**
+
+Cada ADR segue uma estrutura fixa, salva em `/docs/decisions/`:
+
+```
+docs/decisions/
+  NNNN-titulo-curto.md    (ex: 0001-usar-timescaledb-para-hr-data.md)
+```
+
+Template:
+
+```markdown
+# ADR-NNNN: [Titulo da decisao]
+
+**Status**: proposta | aceita | substituida por ADR-XXXX | descartada
+**Data**: YYYY-MM-DD
+**DRI**: [Quem tomou a decisao]
+**Ciclo**: [Ciclo 0 / Ciclo 1 / ...]
+
+## Contexto
+
+[Qual problema estavamos enfrentando? Que restricoes existiam?
+O que motivou essa decisao?]
+
+## Decisao
+
+[O que decidimos fazer. Claro e direto.]
+
+## Alternativas consideradas
+
+| Alternativa | Pros | Contras | Por que descartada |
+|-------------|------|---------|-------------------|
+| Opcao A | ... | ... | ... |
+| Opcao B | ... | ... | ... |
+
+## Consequencias
+
+**Positivas:**
+- [O que ganhamos]
+
+**Negativas / Riscos:**
+- [O que perdemos ou arriscamos]
+
+**Metricas de validacao:**
+- [Como vamos saber se a decisao foi boa]
+```
+
+**Exemplos concretos de ADRs para a TumTum**
+
+| ADR | Decisao | Por que importa |
+|-----|---------|-----------------|
+| `0001-timescaledb-para-hr-data` | Usar TimescaleDB (hypertable) em vez de PostgreSQL puro para dados de HR | Define a arquitetura de dados do core business — irreversivel depois de ter dados em producao |
+| `0002-pwa-em-vez-de-app-nativo` | Lancar como PWA mobile-first antes de app nativo | Afeta toda a estrategia de distribuicao e acesso a HealthKit/Health Connect |
+| `0003-celery-redis-para-cards` | Usar Celery + Redis para geracao assincrona de cards | Define a arquitetura de processamento do recurso mais viral do produto |
+| `0004-dark-mode-only-mvp` | Apenas dark mode no MVP, sem light mode | Reduz escopo de design em 40-50%, mas pode excluir usuarios |
+| `0005-jwt-sem-refresh-rotation` | JWT simples sem refresh token rotation no MVP | Trade-off consciente: menos seguro, mas shipping mais rapido |
+| `0006-setlistfm-como-fonte-primaria` | Setlist.fm como fonte primaria de timeline de eventos musicais | Dependencia externa critica — precisa de fallback plan |
+| `0007-peak-detection-zscore` | Usar z-score com janela de 60s para peak detection | Decisao algoritmica central — validar com dados reais antes de iterar |
+| `0008-r2-para-card-storage` | Cloudflare R2 (S3-compatible) para storage de cards gerados | Custo vs. performance vs. vendor lock-in |
+| `0009-posthog-para-analytics` | PostHog self-hosted vs. cloud para analytics e customer signal | Define como o world model do usuario vai ser construido |
+| `0010-pt-br-default-i18n-ready` | UI em portugues BR como default, com estrutura i18n pronta | Foco no mercado primario sem fechar porta para expansao |
+
+**Quando escrever uma ADR**
+
+Nem toda decisao precisa de ADR. Regra pratica:
+
+- **Escreva ADR** quando: a decisao e dificil de reverter, afeta multiplos componentes, envolve trade-offs significativos, ou voce vai querer lembrar "por que fizemos isso?" daqui a 3 meses
+- **Nao precisa de ADR**: escolha de nome de variavel, formatacao de codigo, ajuste de cor CSS, bugfix simples
+
+**Processo de ADR no dia a dia**
+
+1. Qualquer pessoa do time pode propor uma ADR (status: `proposta`)
+2. DRI do ciclo revisa e aceita/recusa (status: `aceita` ou `descartada`)
+3. ADRs aceitas sao **imutaveis** — se a decisao mudar, cria-se uma nova ADR que referencia a anterior (status da antiga: `substituida por ADR-XXXX`)
+4. AI (Claude Code) pode **gerar rascunhos** de ADRs a partir de discussoes no PR ou commits
+
+**ADRs como insumo para AI**
+
+Aqui esta o pulo do gato que conecta ADRs ao world model da Block: quando o CLAUDE.md referencia as ADRs, qualquer agente AI que trabalhe no projeto tem **contexto completo** das decisoes passadas. Isso significa:
+- Claude Code nao vai sugerir usar MongoDB se existe uma ADR explicando por que escolhemos TimescaleDB
+- Novos devs (humanos ou AI) entendem o "por que" por tras da arquitetura instantaneamente
+- Decisoes nao sao re-debatidas — elas estao documentadas com contexto
+
+Adicionar ao CLAUDE.md:
+```markdown
+## Decision Log
+All architectural and product decisions are recorded as ADRs in `/docs/decisions/`.
+Before proposing changes to core architecture, read the relevant ADRs.
+```
+
+##### 3B. World Model Interno: alem das ADRs
+
+As ADRs sao o pilar principal, mas o world model interno completo inclui:
+
+| Componente | Onde vive | O que captura |
+|------------|-----------|---------------|
+| **CLAUDE.md** | Raiz do repo | Stack, padroes, regras, contexto de negocio — a "constituicao" |
+| **ADRs** | `/docs/decisions/` | Decisoes com contexto e trade-offs |
+| **Sprint Log** | `/docs/cycles/ciclo-N.md` | O que foi planejado, o que foi entregue, o que aprendemos |
+| **GitHub Issues + PRs** | GitHub | Historico granular de implementacao |
+| **PostHog dashboards** | PostHog | Metricas de produto e comportamento |
+| **Sentry** | Sentry | Saude tecnica — erros, performance |
+
+Juntos, esses componentes formam o equivalente TumTum do world model interno da Block — qualquer pessoa (ou AI) que entre no projeto consegue entender **o que existe, por que existe, e como esta performando** em minutos.
+
+---
+
+##### 3C. World Model do Usuario (Customer Signal System)
+
+O World Model do Usuario e o equivalente ao segundo world model da Block — o que mapeia comportamento de clientes para informar decisoes de produto. Para a TumTum, isso e **critico** porque o produto inteiro gira em torno de emocao, e emocao e subjetiva. Precisamos de dados para saber o que realmente emociona as pessoas.
+
+**Arquitetura do Customer Signal System**
+
+```
+                    FONTES DE DADOS
+                    ===============
+  [PostHog]   [WhatsApp Beta]   [Social Shares]   [App Usage]
+      |              |                |                |
+      v              v                v                v
+                +-----------------------+
+                |   CUSTOMER SIGNAL     |
+                |      DATABASE         |
+                +-----------------------+
+                         |
+          +--------------+--------------+
+          |              |              |
+     [Engagement   [Emotion      [Viral
+      Patterns]     Profile]     Signals]
+          |              |              |
+          v              v              v
+      DECISOES DE PRODUTO INFORMADAS POR DADOS
+```
+
+**Camada 1: Metricas de Comportamento (PostHog)**
+
+Eventos a trackear desde o dia 1 do beta:
+
+| Evento PostHog | O que revela | Decisao que informa |
+|----------------|-------------|---------------------|
+| `event_selected` + propriedade `event_type` | Concertos vs. futebol vs. festival — qual domina? | Priorizar integracao (Setlist.fm vs. API-Football) |
+| `hr_curve_viewed` + `time_spent_seconds` | Quanto tempo as pessoas olham a curva? Se >30s, e engajante. Se <5s, esta confusa ou irrelevante | Design da experiencia de visualizacao |
+| `peak_tapped` + `peak_rank` | Quais picos as pessoas clicam? Os top 3? Ou exploram alem? | Quantos peaks mostrar por padrao |
+| `card_generated` + `card_template` | Qual template de card e mais gerado? | Priorizar design de templates |
+| `card_shared` + `platform` | Instagram? WhatsApp? TikTok? | Otimizar formato e aspect ratio por plataforma |
+| `card_shared` / `card_generated` (ratio) | Taxa de conversao geracao -> compartilhamento | Qualidade dos cards gerados |
+| `onboarding_step_completed` + `step_number` | Onde as pessoas desistem no onboarding? | Simplificar passos com maior drop-off |
+| `wearable_connected` + `provider` | Apple Watch domina? Ou Fitbit/Garmin sao relevantes? | Priorizar integracao de wearables |
+| `session_duration` | Quanto tempo por sessao no app? | Feature prioritization |
+| `return_visit` + `days_since_last` | As pessoas voltam? Quando? | Estrategia de retencao/notificacao |
+
+**Camada 2: Perfil Emocional do Usuario**
+
+Dados derivados das sessoes de HR que formam um "perfil emocional" unico:
+
+| Dado derivado | Como calcular | Para que serve |
+|---------------|---------------|----------------|
+| **Intensidade media** | Media dos z-scores dos peaks ao longo de eventos | Classificar usuarios como "intense reactors" vs. "steady" |
+| **Genero/esporte mais emocionante** | Correlacao entre tipo de evento e magnitude de peaks | Event Recommender personalizado |
+| **Momento-tipo favorito** | Qual tipo de timeline entry gera mais peaks? (gol, refrão, encore) | Smart Highlights — priorizar momentos do tipo que mais emociona o usuario |
+| **Curva de emocao tipica** | O usuario comeca frio e esquenta? Comeca no topo e decai? | Personalizar narrativa do card |
+| **Social propensity** | Ratio de cards compartilhados vs. gerados | Identificar "super sharers" para viralidade |
+
+**Camada 3: Sinais de Viralidade**
+
+Os cards sao o motor viral da TumTum. Trackear o que viraliza:
+
+| Sinal | Como medir | Acao derivada |
+|-------|-----------|---------------|
+| **Cards mais compartilhados** | Contagem de shares por card_id | Analisar o que esses cards tem em comum (template? evento? pico alto?) |
+| **Plataforma com mais traction** | Shares por plataforma | Otimizar formato (Stories 9:16, Feed 1:1, TikTok, etc.) |
+| **Horario de compartilhamento** | Timestamp dos shares | Sugerir "melhor hora para compartilhar" |
+| **Efeito de rede** | Novos signups que vieram de um card compartilhado (UTM tracking) | Identificar loops virais e amplifica-los |
+| **Conteudo do card** | BPM mostrado, momento matched, template usado | Entender qual combinacao de elementos gera mais engajamento |
+
+**Camada 4: Feedback Qualitativo (WhatsApp Beta Group)**
+
+Dados quantitativos dizem O QUE. Feedback qualitativo diz POR QUE.
+
+| Metodo | Frequencia | O que perguntar |
+|--------|-----------|-----------------|
+| **Pesquisa pos-evento** | Apos cada evento trackeado | "O que voce mais curtiu? O que faltou? Voce compartilhou? Por que sim/nao?" |
+| **Entrevista 1:1** | Quinzenal com 3-5 usuarios | Deep dive em motivacoes, frustracao, wow moments |
+| **Print de share** | Sempre que alguem compartilha | Pedir screenshot do post — como as pessoas apresentam o card? Que texto colocam junto? |
+| **NPS simplificado** | Mensal | "De 0-10, quanto voce recomendaria TumTum pra um amigo?" + "Por que essa nota?" |
+
+**Como o World Model do Usuario alimenta decisoes**
+
+O ciclo completo:
+
+```
+  Dado coletado (PostHog/WhatsApp)
+         |
+         v
+  Insight gerado (AI pode ajudar a sintetizar)
+         |
+         v
+  Hipotese formulada ("usuarios compartilham mais cards de futebol que de shows")
+         |
+         v
+  Experimento desenhado (A/B test ou feature flag)
+         |
+         v
+  Resultado medido (PostHog)
+         |
+         v
+  ADR registrada (se decisao de produto significativa)
+         |
+         v
+  World Model atualizado (CLAUDE.md, roadmap, prioridades)
+```
+
+Isso fecha o loop entre os dois world models — o do usuario informa o interno, que por sua vez guia o que o time (e a AI) constroem a seguir.
+
+#### Principio 4: Ciclos de 90 dias com DRIs e metricas de sucesso
+
+Adaptar o modelo Block de 90-day cycles. Cada ciclo tem **um DRI unico** responsavel pelo **resultado** (nao por tarefas), e um conjunto claro de metricas que definem se o ciclo foi bem-sucedido.
+
+---
+
+##### Ciclo 0 — "Proof of Emotion" (Semanas 1-12)
+
+**DRI**: Felipe
+**Resultado esperado**: MVP funcional — uma pessoa consegue ir a um evento, ver sua curva HR sincronizada, e compartilhar um card.
+
+**Metricas de sucesso do Ciclo 0:**
+
+| Categoria | Metrica | Target | Como medir | Por que importa |
+|-----------|---------|--------|-----------|-----------------|
+| **Engenharia** | Features core entregues | 100% (auth + sync + viz + card) | GitHub milestones | Sem isso, nao existe produto |
+| **Engenharia** | % codigo AI-assisted | >60% | Tag nos PRs ou estimativa semanal | Validar a tese AI-first |
+| **Engenharia** | Cobertura de testes (services/) | >80% | pytest --cov | Qualidade do core (peak detection, correlator) |
+| **Engenharia** | Tempo medio de PR (aberto -> merged) | <24h | GitHub analytics | Velocidade de iteracao |
+| **Engenharia** | Uptime do ambiente de staging | >95% | Health check automatizado | Precisa funcionar para testar |
+| **Produto** | Fluxo completo funcional (end-to-end) | Sim/Nao | Teste manual: conectar wearable -> evento -> curva -> card | Gate binario — funciona ou nao |
+| **Produto** | Tempo do fluxo completo | <5 min | Cronometro em teste | Se demora mais, ninguem vai usar |
+| **Produto** | Peak detection accuracy | >70% dos peaks "fazem sentido" | Validacao manual com 5+ sessoes reais | Se os peaks estao errados, o produto perde credibilidade |
+| **Infra** | CI/CD pipeline funcional | Sim/Nao | GitHub Actions green | Deploy automatizado desde o inicio |
+| **Infra** | Custo mensal de infra | <R$500 | Vercel + Railway + R2 billing | Burn rate controlado |
+| **World Model** | ADRs registradas | >5 | Contagem em `/docs/decisions/` | Decisoes documentadas = contexto preservado |
+| **World Model** | CLAUDE.md atualizado | Sim/Nao | Revisao no final do ciclo | Fonte de verdade precisa refletir a realidade |
+
+**Checkpoint do Ciclo 0 (semana 12):**
+- [ ] Demo funcional: uma sessao real (ou simulada com dados reais) do fluxo completo
+- [ ] 3+ pessoas externas testaram o fluxo e deram feedback
+- [ ] Todas as ADRs de decisoes de arquitetura registradas
+- [ ] Sprint log do ciclo documentado em `/docs/cycles/ciclo-0.md`
+
+**Criterio de "go/no-go" para Ciclo 1**: O fluxo completo funciona end-to-end E pelo menos 1 pessoa externa disse "eu compartilharia isso".
+
+---
+
+##### Ciclo 1 — "First Fans" (Semanas 13-24)
+
+**DRI**: TBD
+**Resultado esperado**: Product-market fit inicial — usuarios reais usando o produto em eventos reais e compartilhando cards organicamente.
+
+**Metricas de sucesso do Ciclo 1:**
+
+| Categoria | Metrica | Target | Como medir | Por que importa |
+|-----------|---------|--------|-----------|-----------------|
+| **Aquisicao** | Usuarios registrados | 500+ | Contagem na tabela `users` | Massa critica para dados significativos |
+| **Aquisicao** | Custo por aquisicao (CPA) | <R$5 | Gasto marketing / novos usuarios | Escalabilidade do growth |
+| **Aquisicao** | Canal principal de aquisicao | Identificar top 3 | UTM tracking no PostHog | Saber onde dobrar a aposta |
+| **Ativacao** | % usuarios que completam onboarding | >60% | Funnel no PostHog (signup -> wearable connected -> first event) | Se <60%, onboarding esta quebrado |
+| **Ativacao** | % usuarios que conectam wearable | >70% dos que fizeram signup | PostHog event `wearable_connected` | Sem wearable conectado, sem produto |
+| **Ativacao** | Time-to-first-card | <3 min apos evento | Timestamp entre `event_ended` e `card_generated` | Friccao mata conversao |
+| **Engajamento** | Sessoes HR registradas / usuario | >1.5 | Contagem na tabela `hr_sessions` por `user_id` | Usuarios voltam para mais de um evento? |
+| **Engajamento** | Tempo na tela de experiencia (curva HR) | >45s media | PostHog event `hr_curve_viewed` + `session_duration` | As pessoas acham a curva interessante? |
+| **Engajamento** | Peaks interagidos / sessao | >2 | PostHog event `peak_tapped` | Usuarios exploram seus momentos? |
+| **Compartilhamento** | Cards gerados / usuario / evento | >1.2 | `cards` table count por sessao | Geracao e facil o suficiente? |
+| **Compartilhamento** | Cards compartilhados / cards gerados | >40% | `shares` count / `cards` count | Conversao do motor viral |
+| **Compartilhamento** | Plataforma dominante | Identificar | PostHog event `card_shared` + `platform` | Otimizar formato e fluxo |
+| **Viralidade** | Coeficiente viral (k-factor) | >0.3 | Novos signups vindos de cards / total shares | Indicador de crescimento organico |
+| **Retencao** | % usuarios que usam em 2+ eventos | >30% | `hr_sessions` count per `user_id` >= 2 | Retencao = product-market fit |
+| **Retencao** | Retention D7 (voltam em 7 dias) | >25% | PostHog cohort analysis | Habito comecando a se formar |
+| **Satisfacao** | NPS | >40 | Pesquisa mensal via WhatsApp/in-app | Satisfacao geral |
+| **Satisfacao** | "Voce compartilharia?" (qualitativo) | >70% dizem sim | Pesquisa pos-evento | Validacao do core value prop |
+| **Engenharia** | Deploy frequency | >3x/semana | GitHub deployments | Iteracao rapida |
+| **Engenharia** | Bug critico (P0) open time | <24h | GitHub Issues | Qualidade de resposta |
+| **Financeiro** | Burn rate mensal total | <R$10k | Soma de todos os custos (infra + tools + pessoas) | Sustentabilidade |
+
+**Checkpoint do Ciclo 1 (semana 24):**
+- [ ] 500+ usuarios registrados
+- [ ] 50+ cards compartilhados organicamente (sem pedir)
+- [ ] 3+ eventos reais cobertos com dados de HR
+- [ ] Identificados os 2-3 tipos de usuario que mais engajam (persona refinada)
+- [ ] World Model do Usuario com dados reais: sabe qual evento tipo, qual plataforma, qual momento gera mais shares
+
+**Criterio de "go/no-go" para Ciclo 2**: Taxa de compartilhamento >40% E pelo menos 30% dos usuarios usam em 2+ eventos. Se nao atingir, o Ciclo 2 vira "Ciclo 1.5" de iteracao sobre engagement, nao growth.
+
+---
+
+##### Ciclo 2 — "Viral Engine" (Semanas 25-36)
+
+**DRI**: TBD
+**Resultado esperado**: Crescimento organico funcionando — cada usuario traz pelo menos 0.5 novos usuarios via cards compartilhados.
+
+**Metricas de sucesso do Ciclo 2:**
+
+| Categoria | Metrica | Target | Como medir | Por que importa |
+|-----------|---------|--------|-----------|-----------------|
+| **Growth** | Usuarios totais | 3.000+ | Tabela `users` | Escala para dados significativos |
+| **Growth** | Crescimento MoM (mes a mes) | >30% | Comparacao mensal de signups | Curva de crescimento saudavel |
+| **Growth** | K-factor (coeficiente viral) | >0.5 | (Shares * taxa de conversao de share -> signup) / usuarios ativos | Motor viral funcionando |
+| **Growth** | % crescimento organico vs. pago | >60% organico | UTM tracking | Viralidade real, nao comprada |
+| **Engajamento** | DAU/MAU ratio | >15% | PostHog | Sticky factor — as pessoas usam regularmente? |
+| **Engajamento** | Eventos trackeados / usuario / mes | >1 | `hr_sessions` por mes | Uso recorrente |
+| **Engajamento** | Narrative Generator engagement | >60% leem a narrativa | PostHog event `narrative_viewed` | AI-generated content funciona? |
+| **Compartilhamento** | Cards compartilhados / semana | >200 | `shares` table weekly count | Volume do motor viral |
+| **Compartilhamento** | Impressoes estimadas de cards | Trackear | Link tracking / view count na pagina publica do card | Alcance real dos cards |
+| **Produto AI** | Smart Highlights satisfaction | >80% dos usuarios acham os highlights "certos" | Pesquisa pos-evento ou thumbs up/down no highlight | AI de highlights funciona? |
+| **Produto AI** | Card Auto-Gen acceptance rate | >50% usam card sugerido vs. customizam | PostHog: `card_auto_accepted` vs `card_customized` | AI gera cards bons o suficiente? |
+| **Produto AI** | Event Recommender CTR | >15% | Cliques em recomendacao / recomendacoes mostradas | AI de recomendacao e relevante? |
+| **Retencao** | Retention D30 | >20% | PostHog cohort | Retencao de medio prazo |
+| **Retencao** | Churn rate mensal | <15% | Usuarios que nao abrem o app em 30 dias / total | Perda controlada |
+| **Onboarding** | Time-to-first-card (novos usuarios) | <2 min | Timestamp tracking | Onboarding otimizado |
+| **Onboarding** | Onboarding completion rate | >75% | PostHog funnel | Friccao minimizada |
+| **Financeiro** | Revenue (se aplicavel) | Primeiros testes | Premium features / partnerships | Caminho para monetizacao |
+| **Financeiro** | LTV estimado | Calcular | Estimativa baseada em retencao e engagement | Base para decisao de investimento |
+
+**Checkpoint do Ciclo 2 (semana 36):**
+- [ ] 3.000+ usuarios, >60% vindos organicamente
+- [ ] Motor viral comprovado: k-factor >0.5
+- [ ] Features AI (Smart Highlights, Card Auto-Gen) em producao e com dados de satisfacao
+- [ ] Modelo de monetizacao testado (mesmo que early)
+- [ ] Dados suficientes para pitch deck a investidores (se desejado)
+- [ ] Decisao informada: escalar (Phase 1) ou pivotar
+
+---
+
+##### Logica de "cascata" entre ciclos
+
+```
+Ciclo 0: FUNCIONA? (produto tecnico)
+  |
+  |-- Sim --> Ciclo 1: IMPORTA? (product-market fit)
+  |              |
+  |              |-- Sim --> Ciclo 2: ESCALA? (growth engine)
+  |              |              |
+  |              |              |-- Sim --> Phase 1 (smart band, investimento)
+  |              |              |-- Nao --> Ciclo 2.5 (iterar growth)
+  |              |
+  |              |-- Nao --> Ciclo 1.5 (iterar engagement, testar novas hipoteses)
+  |
+  |-- Nao --> Iterar Ciclo 0 (fix core bugs, simplificar fluxo)
+```
+
+A chave e: **nenhum ciclo avanca se o anterior nao passou no gate**. Isso evita construir growth em cima de um produto que ninguem quer, ou escalar um produto que nem funciona direito.
 
 ### 5.2 AI na stack da TumTum: oportunidades especificas
 
