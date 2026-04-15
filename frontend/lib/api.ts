@@ -203,6 +203,11 @@ export interface Peak {
   matched_label: string | null
 }
 
+export interface HRDataPointBrief {
+  time: string
+  bpm: number
+}
+
 export interface ExperienceData {
   session: {
     id: string
@@ -217,6 +222,7 @@ export interface ExperienceData {
   }
   peaks: Peak[]
   timeline: TimelineEntry[]
+  hr_data: HRDataPointBrief[]
 }
 
 export const events = {
@@ -354,6 +360,22 @@ export interface PublicProfile {
   total_events: number
   total_cards: number
 }
+
+// --- Demo ---
+
+export const demo = {
+  seed: () =>
+    request<{ message: string; events?: Array<{ id: string; name: string }> }>('/api/demo/seed', {
+      method: 'POST',
+    }),
+
+  simulate: (eventId: string) =>
+    request<ExperienceData>(`/api/demo/simulate/${eventId}`, {
+      method: 'POST',
+    }),
+}
+
+// --- Users ---
 
 export const users = {
   getProfile: () => request<UserProfile>('/api/users/me'),

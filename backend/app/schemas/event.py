@@ -99,7 +99,13 @@ class HRSessionSummary(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class HRDataPointBrief(BaseModel):
+    time: datetime
+    bpm: int
+
+
 class ExperienceResponse(BaseModel):
     session: HRSessionSummary
     peaks: list[PeakResponse]
     timeline: list[TimelineEntryResponse]
+    hr_data: list[HRDataPointBrief] = []
