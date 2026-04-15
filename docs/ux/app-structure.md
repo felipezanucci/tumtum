@@ -1,7 +1,7 @@
 # Tumtum App — UX Structure & User Flows
 
-> Documento de arquitetura UX — contornos e fluxos de todas as telas
-> Versao: 1.0 | Data: 2026-04-06
+> Documento de arquitetura UX — Foco: Futebol & Experiencia de Torcida
+> Versao: 2.0 | Data: 2026-04-15
 
 ---
 
@@ -9,143 +9,155 @@
 
 1. [Mapa Geral de Telas](#1-mapa-geral-de-telas)
 2. [Fluxo 1 — Primeiro Acesso e Onboarding](#2-fluxo-1--primeiro-acesso-e-onboarding)
-3. [Fluxo 2 — Conexao do Wearable](#3-fluxo-2--conexao-do-wearable)
-4. [Fluxo 3 — Home e Descoberta de Eventos](#4-fluxo-3--home-e-descoberta-de-eventos)
-5. [Fluxo 4 — Pre-Evento](#5-fluxo-4--pre-evento)
-6. [Fluxo 5 — Durante o Evento (Modo Live)](#6-fluxo-5--durante-o-evento-modo-live)
-7. [Fluxo 6 — Pos-Evento e Experiencia](#7-fluxo-6--pos-evento-e-experiencia)
-8. [Fluxo 7 — Geracao e Compartilhamento do Card](#8-fluxo-7--geracao-e-compartilhamento-do-card)
-9. [Fluxo 8 — Perfil e Colecao](#9-fluxo-8--perfil-e-colecao)
-10. [Navegacao Global](#10-navegacao-global)
-11. [Principios de UX Aplicados](#11-principios-de-ux-aplicados)
+3. [Fluxo 2 — Escolha do Time e Conexao Wearable](#3-fluxo-2--escolha-do-time-e-conexao-wearable)
+4. [Fluxo 3 — Home e Proximos Jogos](#4-fluxo-3--home-e-proximos-jogos)
+5. [Fluxo 4 — Pre-Jogo](#5-fluxo-4--pre-jogo)
+6. [Fluxo 5 — Durante o Jogo (Modo Live)](#6-fluxo-5--durante-o-jogo-modo-live)
+7. [Fluxo 6 — Pos-Jogo e Experiencia da Torcida](#7-fluxo-6--pos-jogo-e-experiencia-da-torcida)
+8. [Fluxo 7 — Torcidometro (Pulso Coletivo)](#8-fluxo-7--torcidometro-pulso-coletivo)
+9. [Fluxo 8 — Duelo de Torcidas](#9-fluxo-8--duelo-de-torcidas)
+10. [Fluxo 9 — Geracao e Compartilhamento do Card](#10-fluxo-9--geracao-e-compartilhamento-do-card)
+11. [Fluxo 10 — Perfil do Torcedor e Colecao](#11-fluxo-10--perfil-do-torcedor-e-colecao)
+12. [Fluxo 11 — Ranking e Competicao](#12-fluxo-11--ranking-e-competicao)
+13. [Navegacao Global](#13-navegacao-global)
+14. [Principios de UX Aplicados](#14-principios-de-ux-aplicados)
 
 ---
 
 ## 1. Mapa Geral de Telas
 
 ```
-SPLASH → ONBOARDING (3 telas) → AUTH → WEARABLE SETUP → HOME
-                                                           |
-                                    ┌──────────────────────┼──────────────────────┐
-                                    v                      v                      v
-                               EVENTOS              MEU PERFIL              COLECAO
-                                    |                      |                      |
-                                    v                      v                      v
-                            DETALHE EVENTO          CONFIGURACOES          DETALHE CARD
-                                    |
-                                    v
-                            MODO LIVE (durante)
-                                    |
-                                    v
-                            EXPERIENCIA (pos)
-                                    |
-                                    v
-                            GERAR CARD
-                                    |
-                                    v
-                            PREVIEW CARD
-                                    |
-                                    v
-                            SHARE SHEET
+SPLASH -> ONBOARDING (3 telas) -> AUTH -> MEU TIME + WEARABLE -> HOME
+                                                                  |
+                          +---------------------------------------+---------------------------------------+
+                          v                                       v                                       v
+                       JOGOS                                  TORCIDA                                  PERFIL
+                          |                                       |                                       |
+                          v                                       v                                       v
+                   DETALHE JOGO                           TORCIDOMETRO                             CONFIGURACOES
+                          |                                       |
+                          v                                       v
+                   PRE-JOGO (checklist)                   DUELO DE TORCIDAS
+                          |                                       |
+                          v                                       v
+                   MODO LIVE (durante)                    RANKING TORCIDAS
+                          |
+                          v
+                   EXPERIENCIA (pos-jogo)
+                          |
+                   +------+------+
+                   v             v
+             GERAR CARD    TORCIDOMETRO
+                   |        (ver coletivo)
+                   v
+             SHARE SHEET
 ```
 
 ---
 
 ## 2. Fluxo 1 — Primeiro Acesso e Onboarding
 
-### Principio: Mostrar o valor antes de pedir qualquer coisa
+### Principio: Falar a lingua do torcedor desde o primeiro segundo
 
 ```
-┌─────────────────────────────┐
-│        TELA 0: SPLASH       │
-│                             │
-│    ┌───────────────────┐    │
-│    │                   │    │
-│    │   Logo Tumtum     │    │
-│    │   (animacao do    │    │
-│    │    coracao pulse)  │    │
-│    │                   │    │
-│    └───────────────────┘    │
-│                             │
-│    Duracao: 1.5s            │
-│    Transicao: fade out      │
-└─────────────────────────────┘
-          │
++-----------------------------+
+|        TELA 0: SPLASH       |
+|                             |
+|    +-------------------+    |
+|    |                   |    |
+|    |   Logo Tumtum     |    |
+|    |   (animacao:      |    |
+|    |    coracao pulsa   |    |
+|    |    no ritmo de     |    |
+|    |    torcida)        |    |
+|    |                   |    |
+|    +-------------------+    |
+|                             |
+|    Duracao: 1.5s            |
+|    Transicao: fade out      |
++-----------------------------+
+          |
           v
-┌─────────────────────────────┐
-│    TELA 1: ONBOARDING 1/3   │
-│    "Sinta cada momento"     │
-│                             │
-│    ┌───────────────────┐    │
-│    │                   │    │
-│    │  [Animacao: curva  │    │
-│    │   HR subindo com   │    │
-│    │   pico no drop     │    │
-│    │   de uma musica]   │    │
-│    │                   │    │
-│    └───────────────────┘    │
-│                             │
-│    "Seu coracao conta a     │
-│     historia do show"       │
-│                             │
-│    ● ○ ○                    │
-│                             │
-│    [Proximo →]              │
-│    [Pular]                  │
-└─────────────────────────────┘
-          │
++-----------------------------+
+|    TELA 1: ONBOARDING 1/3   |
+|    "Sinta o jogo"           |
+|                             |
+|    +-------------------+    |
+|    |                   |    |
+|    |  [Animacao: curva  |    |
+|    |   HR da torcida    |    |
+|    |   subindo no gol   |    |
+|    |   com estadio ao   |    |
+|    |   fundo]           |    |
+|    |                   |    |
+|    +-------------------+    |
+|                             |
+|    "Seu coracao conta a     |
+|     historia do jogo"       |
+|                             |
+|    * o o                    |
+|                             |
+|    [Proximo ->]             |
+|    [Pular]                  |
++-----------------------------+
+          |
           v
-┌─────────────────────────────┐
-│    TELA 2: ONBOARDING 2/3   │
-│    "Descubra seus picos"    │
-│                             │
-│    ┌───────────────────┐    │
-│    │                   │    │
-│    │  [Animacao: curva  │    │
-│    │   com marcadores   │    │
-│    │   nos picos +      │    │
-│    │   nome da musica   │    │
-│    │   aparecendo]      │    │
-│    │                   │    │
-│    └───────────────────┘    │
-│                             │
-│    "Veja qual musica fez    │
-│     seu coracao acelerar"   │
-│                             │
-│    ○ ● ○                    │
-│                             │
-│    [Proximo →]              │
-│    [Pular]                  │
-└─────────────────────────────┘
-          │
++-----------------------------+
+|    TELA 2: ONBOARDING 2/3   |
+|    "Sua torcida unida"      |
+|                             |
+|    +-------------------+    |
+|    |                   |    |
+|    |  [Animacao: varias |    |
+|    |   curvas HR se     |    |
+|    |   alinhando no     |    |
+|    |   mesmo pico =     |    |
+|    |   GOOOL!]          |    |
+|    |                   |    |
+|    +-------------------+    |
+|                             |
+|    "Veja como a torcida     |
+|     inteira sentiu cada     |
+|     momento do jogo"        |
+|                             |
+|    o * o                    |
+|                             |
+|    [Proximo ->]             |
+|    [Pular]                  |
++-----------------------------+
+          |
           v
-┌─────────────────────────────┐
-│    TELA 3: ONBOARDING 3/3   │
-│    "Compartilhe a emocao"   │
-│                             │
-│    ┌───────────────────┐    │
-│    │                   │    │
-│    │  [Mockup: card de  │    │
-│    │   compartilhamento │    │
-│    │   com HR curve +   │    │
-│    │   foto do show]    │    │
-│    │                   │    │
-│    └───────────────────┘    │
-│                             │
-│    "Crie cards e mostre     │
-│     como voce viveu"        │
-│                             │
-│    ○ ○ ●                    │
-│                             │
-│    [Comecar →]              │
-└─────────────────────────────┘
++-----------------------------+
+|    TELA 3: ONBOARDING 3/3   |
+|    "Quem vibra mais?"       |
+|                             |
+|    +-------------------+    |
+|    |                   |    |
+|    |  [Animacao: duas   |    |
+|    |   barras lado a    |    |
+|    |   lado - torcidas  |    |
+|    |   competindo em    |    |
+|    |   intensidade]     |    |
+|    |                   |    |
+|    +-------------------+    |
+|                             |
+|    "Compare sua torcida     |
+|     com a rival e prove     |
+|     quem vive mais o jogo"  |
+|                             |
+|    o o *                    |
+|                             |
+|    [Comecar ->]             |
++-----------------------------+
 ```
 
 ### Regras UX:
-- Swipe horizontal entre as 3 telas (gesto natural)
-- "Pular" sempre visivel (nao forcar onboarding)
-- Animacoes leves, 60fps, nao bloquear interacao
-- Onboarding so aparece no PRIMEIRO acesso (flag local)
+- Linguagem 100% futebol: "jogo", "torcida", "gol" — nunca "evento" generico
+- Onboarding mostra os 3 pilares: individual, coletivo (torcida), versus (duelo)
+- Swipe horizontal entre as 3 telas
+- "Pular" sempre visivel
+- Animacoes com estetica de estadio/arquibancada
+- Onboarding so aparece no PRIMEIRO acesso
 
 ---
 
@@ -154,929 +166,1340 @@ SPLASH → ONBOARDING (3 telas) → AUTH → WEARABLE SETUP → HOME
 ### Principio: Maximo 2 toques para entrar
 
 ```
-┌─────────────────────────────┐
-│       TELA 4: AUTH           │
-│                             │
-│    Logo Tumtum              │
-│                             │
-│    ┌───────────────────┐    │
-│    │ [G] Entrar com     │    │
-│    │     Google          │    │
-│    └───────────────────┘    │
-│                             │
-│    ┌───────────────────┐    │
-│    │ [] Entrar com     │    │
-│    │      Apple          │    │
-│    └───────────────────┘    │
-│                             │
-│    ─── ou ───               │
-│                             │
-│    ┌───────────────────┐    │
-│    │ Email              │    │
-│    └───────────────────┘    │
-│    ┌───────────────────┐    │
-│    │ Senha              │    │
-│    └───────────────────┘    │
-│                             │
-│    [Entrar]                 │
-│                             │
-│    Nao tem conta? Cadastrar │
-│                             │
-│    ───────────────────      │
-│    Ao continuar, voce       │
-│    aceita os Termos e       │
-│    Politica de Privacidade  │
-└─────────────────────────────┘
-```
-
-### Fluxo de Cadastro por Email (se nao usar social):
-
-```
-┌─────────────────────────────┐
-│    TELA 4b: CADASTRO         │
-│                             │
-│    "Crie sua conta"         │
-│                             │
-│    ┌───────────────────┐    │
-│    │ Nome               │    │
-│    └───────────────────┘    │
-│    ┌───────────────────┐    │
-│    │ Email              │    │
-│    └───────────────────┘    │
-│    ┌───────────────────┐    │
-│    │ Senha              │    │
-│    └───────────────────┘    │
-│                             │
-│    [Criar conta]            │
-│                             │
-│    Ja tem conta? Entrar     │
-└─────────────────────────────┘
++-----------------------------+
+|       TELA 4: AUTH           |
+|                             |
+|    Logo Tumtum              |
+|                             |
+|    +-------------------+    |
+|    | [G] Entrar com     |    |
+|    |     Google          |    |
+|    +-------------------+    |
+|                             |
+|    +-------------------+    |
+|    | [] Entrar com     |    |
+|    |      Apple          |    |
+|    +-------------------+    |
+|                             |
+|    --- ou ---               |
+|                             |
+|    +-------------------+    |
+|    | Email              |    |
+|    +-------------------+    |
+|    +-------------------+    |
+|    | Senha              |    |
+|    +-------------------+    |
+|                             |
+|    [Entrar]                 |
+|                             |
+|    Nao tem conta? Cadastrar |
+|                             |
+|    ___________________      |
+|    Ao continuar, voce       |
+|    aceita os Termos e       |
+|    Politica de Privacidade  |
++-----------------------------+
 ```
 
 ### Regras UX:
-- Social login (Google/Apple) como CTAs primarios — maiores e no topo
-- Email/senha como fallback — visualmente secundario
-- Zero campos desnecessarios no cadastro (sem telefone, sem username obrigatorio)
-- Validacao inline em tempo real (email valido, senha 8+ chars)
-- Botao desabilitado ate todos os campos validos
-- Apos auth: transicao direta para setup do wearable
+- Social login como CTAs primarios
+- Email/senha como fallback
+- Zero campos desnecessarios
+- Apos auth: tela de escolha do time (NOVO)
 
 ---
 
-## 4. Fluxo 2 — Conexao do Wearable
+## 4. Fluxo 2 — Escolha do Time e Conexao Wearable
 
-### Principio: Pre-permission priming — explicar ANTES de pedir
+### Principio: O time e a identidade central do torcedor no app
 
 ```
-┌─────────────────────────────┐
-│  TELA 5: WEARABLE PRIMING   │
-│                             │
-│    ┌───────────────────┐    │
-│    │                   │    │
-│    │  [Ilustracao:      │    │
-│    │   relogio no       │    │
-│    │   pulso com ondas  │    │
-│    │   de coracao]      │    │
-│    │                   │    │
-│    └───────────────────┘    │
-│                             │
-│    "Conecte seu relogio"    │
-│                             │
-│    "Vamos ler sua           │
-│     frequencia cardiaca     │
-│     durante os shows para   │
-│     mostrar seus momentos   │
-│     mais emocionantes"      │
-│                             │
-│    🔒 "Seus dados ficam     │
-│     seguros. Voce decide    │
-│     o que compartilhar."    │
-│                             │
-│    [Conectar dispositivo]   │
-│    [Fazer depois]           │
-└─────────────────────────────┘
-          │
-          v (se tocou "Conectar")
-┌─────────────────────────────┐
-│  TELA 6: SELECAO PROVIDER   │
-│                             │
-│    "Qual seu dispositivo?"  │
-│                             │
-│    ┌───────────────────┐    │
-│    │ ⌚ Apple Watch     │ >  │
-│    └───────────────────┘    │
-│    ┌───────────────────┐    │
-│    │ 📱 Galaxy Watch   │ >  │
-│    └───────────────────┘    │
-│    ┌───────────────────┐    │
-│    │ ⌚ Fitbit          │ >  │
-│    └───────────────────┘    │
-│    ┌───────────────────┐    │
-│    │ ⌚ Garmin          │ >  │
-│    └───────────────────┘    │
-│    ┌───────────────────┐    │
-│    │ 📱 Outro (Health  │ >  │
-│    │    Connect)        │    │
-│    └───────────────────┘    │
-│                             │
-│    "Nao tenho relogio"      │
-│    (link → explica que      │
-│     pode usar com celular   │
-│     no bolso em alguns      │
-│     dispositivos)           │
-└─────────────────────────────┘
-          │
++-----------------------------+
+|  TELA 5: ESCOLHA DO TIME     |
+|                             |
+|    "Qual e o seu time?"     |
+|                             |
+|    +-------------------+    |
+|    | [busca] Buscar...  |    |
+|    +-------------------+    |
+|                             |
+|    -- Populares em SP --    |
+|                             |
+|    +--------+ +--------+   |
+|    | [escu] | | [escu] |   |
+|    | Corin- | | Palmei-|   |
+|    | thians | | ras    |   |
+|    +--------+ +--------+   |
+|    +--------+ +--------+   |
+|    | [escu] | | [escu] |   |
+|    | Sao    | | Santos |   |
+|    | Paulo  | |        |   |
+|    +--------+ +--------+   |
+|                             |
+|    -- Outros times --       |
+|    Flamengo, Vasco,         |
+|    Cruzeiro, Atletico...    |
+|    [Ver todos]              |
+|                             |
++-----------------------------+
+          |
+          v (apos selecionar)
++-----------------------------+
+|  TELA 5b: CONFIRMA TIME     |
+|                             |
+|    +-------------------+    |
+|    |                   |    |
+|    |   [Escudo grande   |    |
+|    |    do time com     |    |
+|    |    animacao de     |    |
+|    |    entrada]        |    |
+|    |                   |    |
+|    +-------------------+    |
+|                             |
+|    "Corinthians"            |
+|    "Fiel ate o fim!"        |
+|    (frase iconica do time)  |
+|                             |
+|    A interface do app       |
+|    se adapta com as cores   |
+|    do seu time              |
+|                             |
+|    [Esse e meu time! ->]    |
+|    [Trocar]                 |
+|                             |
++-----------------------------+
+```
+
+### Regras UX:
+- Tela obrigatoria no primeiro acesso (time = identidade)
+- Deteccao por geolocalizacao: mostrar times locais primeiro
+- Busca com autocomplete para times de qualquer divisao
+- Ao confirmar: interface se adapta com cores do time (accent color)
+- Pode trocar depois nas configuracoes
+- Frase iconica do time gera identificacao emocional imediata
+
+### Conexao Wearable (mesmo fluxo anterior, adaptado):
+
+```
++-----------------------------+
+|  TELA 6: WEARABLE PRIMING   |
+|                             |
+|    +-------------------+    |
+|    |                   |    |
+|    |  [Ilustracao:      |    |
+|    |   torcedor na      |    |
+|    |   arquibancada     |    |
+|    |   com relogio]     |    |
+|    |                   |    |
+|    +-------------------+    |
+|                             |
+|    "Conecte seu relogio"    |
+|                             |
+|    "Vamos medir como seu    |
+|     coracao reage a cada    |
+|     lance do jogo"          |
+|                             |
+|    [lock] "Seus dados ficam |
+|     seguros e anonimos na   |
+|     torcida coletiva."      |
+|                             |
+|    [Conectar dispositivo]   |
+|    [Fazer depois]           |
++-----------------------------+
+          |
           v
-┌─────────────────────────────┐
-│  TELA 7: PERMISSAO OS       │
-│                             │
-│  [Dialog nativo do OS:      │
-│   "Tumtum quer acessar      │
-│    seus dados de saude"     │
-│                             │
-│   Frequencia cardiaca ✓     │
-│                             │
-│   [Nao permitir] [OK] ]    │
-│                             │
-└─────────────────────────────┘
-          │
++-----------------------------+
+|  TELA 7: SELECAO PROVIDER   |
+|                             |
+|    "Qual seu dispositivo?"  |
+|                             |
+|    +-------------------+    |
+|    | [watch] Apple Watch| >  |
+|    +-------------------+    |
+|    +-------------------+    |
+|    | [phone] Galaxy     | >  |
+|    |         Watch      |    |
+|    +-------------------+    |
+|    +-------------------+    |
+|    | [watch] Fitbit     | >  |
+|    +-------------------+    |
+|    +-------------------+    |
+|    | [watch] Garmin     | >  |
+|    +-------------------+    |
+|    +-------------------+    |
+|    | [phone] Mi Band /  | >  |
+|    |    Outro            |    |
+|    +-------------------+    |
+|                             |
++-----------------------------+
+          |
           v
-┌─────────────────────────────┐
-│  TELA 8: SUCESSO CONEXAO    │
-│                             │
-│    ┌───────────────────┐    │
-│    │                   │    │
-│    │   ✓ (check        │    │
-│    │    animado verde)  │    │
-│    │                   │    │
-│    └───────────────────┘    │
-│                             │
-│    "Conectado!"             │
-│    "Apple Watch de Felipe"  │
-│                             │
-│    BPM atual: 72 ♥         │
-│    (mostra BPM real como    │
-│     prova de que funciona)  │
-│                             │
-│    [Ir para o app →]        │
-└─────────────────────────────┘
++-----------------------------+
+|  TELA 8: SUCESSO CONEXAO    |
+|                             |
+|    +-------------------+    |
+|    |                   |    |
+|    |   [check animado] |    |
+|    |                   |    |
+|    +-------------------+    |
+|                             |
+|    "Conectado!"             |
+|    "Apple Watch de Felipe"  |
+|                             |
+|    BPM atual: 72 [heart]    |
+|                             |
+|    "Pronto pra sentir o     |
+|     proximo jogo do         |
+|     Corinthians!"           |
+|                             |
+|    [Bora! ->]               |
++-----------------------------+
 ```
 
 ### Regras UX:
-- NUNCA pedir permissao do OS sem a tela de priming antes
-- Mostrar BPM real apos conexao (feedback imediato = confianca)
-- "Fazer depois" sempre disponivel — nao bloquear acesso ao app
-- Se usuario pular: mostrar banner persistente na Home ate conectar
-- Detectar automaticamente o OS (iOS → Apple Health, Android → Health Connect)
+- Linguagem de futebol no priming ("cada lance do jogo")
+- Mencao a privacidade: dados anonimos na torcida coletiva
+- Sucesso cita o time do usuario — reforco emocional
+- CTA usa giria de torcida ("Bora!")
 
 ---
 
-## 5. Fluxo 3 — Home e Descoberta de Eventos
+## 5. Fluxo 3 — Home e Proximos Jogos
 
-### Principio: O app deve parecer vivo mesmo sem dados
-
-```
-┌─────────────────────────────┐
-│  TELA 9: HOME                │
-│                             │
-│  ┌─ Header ──────────────┐  │
-│  │ ♥ Tumtum    [avatar]  │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Se tem evento proximo ──│
-│                             │
-│  ┌───────────────────────┐  │
-│  │ PROXIMO EVENTO         │  │
-│  │ ┌───────────────────┐ │  │
-│  │ │ [Capa do evento]   │ │  │
-│  │ │                   │ │  │
-│  │ │ Coldplay           │ │  │
-│  │ │ Allianz Parque     │ │  │
-│  │ │ 12 Abr • 21h       │ │  │
-│  │ └───────────────────┘ │  │
-│  │                       │  │
-│  │ "Faltam 6 dias" ⏱     │  │
-│  │ [Ver detalhes]        │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Eventos populares ──    │
-│                             │
-│  ┌─────┐ ┌─────┐ ┌─────┐  │
-│  │Show1│ │Show2│ │Show3│  │
-│  │     │ │     │ │     │  │
-│  └─────┘ └─────┘ └─────┘  │
-│  (scroll horizontal)       │
-│                             │
-│  ── Suas experiencias ──    │
-│                             │
-│  ┌───────────────────────┐  │
-│  │  [Empty state:         │  │
-│  │   ilustracao leve]     │  │
-│  │                        │  │
-│  │  "Sua primeira         │  │
-│  │   experiencia comeca   │  │
-│  │   no proximo show"     │  │
-│  │                        │  │
-│  │  [Encontrar evento]    │  │
-│  └───────────────────────┘  │
-│                             │
-│  ┌─ Tab Bar ─────────────┐  │
-│  │ 🏠    🔍    ♥    👤   │  │
-│  │ Home  Busca Card Perfil│  │
-│  └───────────────────────┘  │
-└─────────────────────────────┘
-```
-
-### Home — Estado com experiencias anteriores:
+### Principio: O torcedor entra e ja ve quando e o proximo jogo do time dele
 
 ```
-┌─────────────────────────────┐
-│  HOME (com historico)        │
-│                             │
-│  [Proximo evento — mesmo]   │
-│                             │
-│  ── Ultima experiencia ──   │
-│                             │
-│  ┌───────────────────────┐  │
-│  │ Coldplay • 12 Abr      │  │
-│  │ ┌───────────────────┐ │  │
-│  │ │ [Mini curva HR     │ │  │
-│  │ │  com pico marcado] │ │  │
-│  │ └───────────────────┘ │  │
-│  │ ♥ Pico: 142bpm        │  │
-│  │ 🎵 "Fix You"          │  │
-│  │ [Ver experiencia →]   │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Eventos populares ──    │
-│  [cards horizontais]        │
-│                             │
-└─────────────────────────────┘
++-----------------------------+
+|  TELA 9: HOME                |
+|                             |
+|  +- Header ----------------+|
+|  | [escudo] Tumtum  [avtr] ||
+|  +--------------------------+|
+|                             |
+|  -- Proximo jogo -----------|
+|                             |
+|  +------------------------+ |
+|  | CORINTHIANS             | |
+|  |        vs               | |
+|  | PALMEIRAS               | |
+|  |                         | |
+|  | [escu]  X  [escu]       | |
+|  |                         | |
+|  | Neo Quimica Arena       | |
+|  | Dom, 20 Abr - 16h       | |
+|  |                         | |
+|  | "Faltam 5 dias"         | |
+|  |                         | |
+|  | [timer] 247 torcedores  | |
+|  |    ja confirmaram       | |
+|  |                         | |
+|  | [Eu vou estar la!]      | |
+|  | [Vou assistir de casa]  | |
+|  +------------------------+ |
+|                             |
+|  -- Ultimo jogo ------------|
+|                             |
+|  +------------------------+ |
+|  | COR 2 x 1 SAO          | |
+|  | +--------------------+  | |
+|  | | [mini curva HR     |  | |
+|  | |  com 2 picos nos   |  | |
+|  | |  gols marcados]    |  | |
+|  | +--------------------+  | |
+|  | [heart] Pico: 142bpm    | |
+|  | [ball] Gol do Yuri      | |
+|  | [Ver experiencia ->]    | |
+|  +------------------------+ |
+|                             |
+|  -- Torcidometro Geral -----|
+|                             |
+|  +------------------------+ |
+|  | [heart] Torcida mais    | |
+|  |    intensa da rodada:   | |
+|  |                         | |
+|  |  1. Flamengo  [bar====] | |
+|  |  2. Corinthians [bar===]| |
+|  |  3. Palmeiras  [bar== ] | |
+|  |                         | |
+|  | [Ver ranking ->]        | |
+|  +------------------------+ |
+|                             |
+|  +- Tab Bar ---------------+|
+|  | [home] [ball] [heart]   ||
+|  | [trophy] [user]         ||
+|  | Home Jogos Torcida      ||
+|  | Ranking Perfil          ||
+|  +--------------------------+|
++-----------------------------+
 ```
 
----
-
-## 6. Fluxo 4 — Busca e Selecao de Evento
-
-### Principio: Achar o evento em menos de 10 segundos
+### Home — Estado vazio (sem jogos anteriores):
 
 ```
-┌─────────────────────────────┐
-│  TELA 10: BUSCA EVENTOS      │
-│                             │
-│  ┌───────────────────────┐  │
-│  │ 🔍 Buscar evento...   │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Filtros rapidos ──      │
-│  [Shows] [Futebol] [Festival]│
-│                             │
-│  ── Proximos na sua cidade ─│
-│                             │
-│  ┌───────────────────────┐  │
-│  │ [img] Coldplay         │  │
-│  │       Allianz • 12 Abr │  │
-│  ├───────────────────────┤  │
-│  │ [img] Corinthians x    │  │
-│  │       Palmeiras        │  │
-│  │       Neo Quimica • 15 │  │
-│  ├───────────────────────┤  │
-│  │ [img] Lollapalooza     │  │
-│  │       Interlagos • 22  │  │
-│  └───────────────────────┘  │
-│                             │
-└─────────────────────────────┘
-          │
-          v (toque no evento)
-┌─────────────────────────────┐
-│  TELA 11: DETALHE EVENTO     │
-│                             │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │   [Imagem capa grande │  │
-│  │    com gradiente      │  │
-│  │    escuro embaixo]    │  │
-│  │                       │  │
-│  │   Coldplay            │  │
-│  │   Music of the        │  │
-│  │   Spheres Tour        │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-│  📍 Allianz Parque, SP      │
-│  📅 12 Abr 2026 • 21:00     │
-│  🎵 Concert                 │
-│                             │
-│  ── Setlist (se disponivel)─│
-│  1. Higher Power             │
-│  2. Adventure of a Lifetime  │
-│  3. The Scientist            │
-│  ... ver mais               │
-│                             │
-│  ── X pessoas monitorando ──│
-│  👤👤👤 + 47 pessoas         │
-│                             │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │   [Eu vou estar la!]  │  │
-│  │   (botao primario)    │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-└─────────────────────────────┘
++-----------------------------+
+|  HOME (primeiro acesso)      |
+|                             |
+|  [Proximo jogo do time]     |
+|  (mesmo card acima)         |
+|                             |
+|  -- Sua primeira vez? ------|
+|                             |
+|  +------------------------+ |
+|  |  [ilustracao: torcida   | |
+|  |   vibrando]             | |
+|  |                         | |
+|  |  "Confirme presenca no  | |
+|  |   proximo jogo e veja   | |
+|  |   como seu coracao vive | |
+|  |   cada lance"           | |
+|  |                         | |
+|  |  [Encontrar jogo]       | |
+|  +------------------------+ |
+|                             |
++-----------------------------+
 ```
 
 ### Regras UX:
-- Busca com autocomplete (debounce 300ms)
-- Geolocalizacao para sugerir eventos proximos (pedir permissao com priming)
-- Mostrar social proof ("47 pessoas monitorando")
-- Setlist pre-carregado via Setlist.fm quando disponivel
-- "Eu vou estar la" = confirma presenca + ativa monitoramento automatico
+- Home = 100% focada no time do usuario
+- Proximo jogo sempre no topo com countdown
+- Social proof: "247 torcedores ja confirmaram"
+- Duas opcoes de presenca: estadio OU em casa (ambas monitoram)
+- Torcidometro resumido na Home = hook de engajamento
+- Tab bar com 5 abas: Home, Jogos, Torcida, Ranking, Perfil
 
 ---
 
-## 7. Fluxo 5 — Pre-Evento
+## 6. Fluxo 4 — Busca e Selecao de Jogo
 
-### Principio: Criar antecipacao e garantir que tudo funciona
-
-```
-┌─────────────────────────────┐
-│  TELA 12: PRE-EVENTO         │
-│  (aparece no dia do evento)  │
-│                             │
-│  ┌───────────────────────┐  │
-│  │ Coldplay • HOJE       │  │
-│  │ Allianz Parque • 21h  │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Checklist automatico ── │
-│                             │
-│  ✅ Wearable conectado      │
-│     "Apple Watch • 74 bpm"  │
-│                             │
-│  ✅ Bateria do relogio OK   │
-│     "82% — suficiente"      │
-│                             │
-│  ✅ Evento confirmado       │
-│     "Setlist carregado"     │
-│                             │
-│  ── ou, se problema ──      │
-│  ⚠️ Wearable desconectado  │
-│     [Reconectar agora]      │
-│                             │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │  "Monitoramento       │  │
-│  │   comeca              │  │
-│  │   automaticamente     │  │
-│  │   as 21:00"           │  │
-│  │                       │  │
-│  │  [Iniciar agora]      │  │
-│  │  (para quem quer      │  │
-│  │   comecar antes)      │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-│  💡 Dica: Coloque o app    │
-│     em segundo plano.       │
-│     Nos cuidamos do resto.  │
-│                             │
-└─────────────────────────────┘
-```
-
-### Notificacao push (3h antes):
+### Principio: Jogos do meu time primeiro, sempre
 
 ```
-┌─────────────────────────────┐
-│ 🔔 PUSH NOTIFICATION        │
-│                             │
-│ ♥ Tumtum                    │
-│ "Coldplay em 3 horas!       │
-│  Tudo pronto para capturar  │
-│  seus batimentos. ♥"        │
-│                             │
-│ [Abrir] [Ignorar]          │
-└─────────────────────────────┘
++-----------------------------+
+|  TELA 10: JOGOS              |
+|                             |
+|  -- Meu time ---------------| 
+|  [Todos] [Brasileirao]      |
+|  [Copa do Brasil] [Liberta] |
+|                             |
+|  +------------------------+ |
+|  | Dom 20/04              | |
+|  | COR vs PAL             | |
+|  | Brasileirao - Rod. 5   | |
+|  | Neo Quimica - 16h      | |
+|  | [Confirmar presenca]   | |
+|  +------------------------+ |
+|  +------------------------+ |
+|  | Qua 23/04              | |
+|  | COR vs BOC             | |
+|  | Libertadores - Grupo   | |
+|  | Neo Quimica - 21h30    | |
+|  | [Confirmar presenca]   | |
+|  +------------------------+ |
+|                             |
+|  -- Outros jogos hoje ------|
+|                             |
+|  +------------------------+ |
+|  | FLA vs FLU  | 18h30    | |
+|  | Maracana    | [heart]423| |
+|  +------------------------+ |
+|  +------------------------+ |
+|  | SAO vs SAN  | 21h      | |
+|  | Morumbi     | [heart]189| |
+|  +------------------------+ |
+|                             |
++-----------------------------+
+          |
+          v (toque no jogo)
++-----------------------------+
+|  TELA 11: DETALHE DO JOGO    |
+|                             |
+|  +------------------------+ |
+|  |                         | |
+|  |  [escu] CORINTHIANS     | |
+|  |          vs              | |
+|  |  [escu] PALMEIRAS       | |
+|  |                         | |
+|  |  Brasileirao Serie A    | |
+|  |  Rodada 5               | |
+|  |                         | |
+|  +------------------------+ |
+|                             |
+|  [pin] Neo Quimica Arena    |
+|  [cal] Dom, 20 Abr - 16h   |
+|  [tv] Premiere              |
+|                             |
+|  -- Torcida confirmada -----|
+|                             |
+|  +------------------------+ |
+|  | [heart] 247 torcedores  | |
+|  |   Corinthians           | |
+|  |                         | |
+|  | [heart] 198 torcedores  | |
+|  |   Palmeiras             | |
+|  |                         | |
+|  | "Fiel ja esta em        | |
+|  |  vantagem!"             | |
+|  +------------------------+ |
+|                             |
+|  -- Historico de confronto -|
+|                             |
+|  Ultimo Derby:              |
+|  COR 1x0 PAL               |
+|  Torcida Corinthians:       |
+|  [heart] Pico medio: 138bpm|
+|  Torcida Palmeiras:         |
+|  [heart] Pico medio: 141bpm|
+|                             |
+|  +------------------------+ |
+|  |                         | |
+|  | [Eu vou estar la!]     | |
+|  | (botao primario)        | |
+|  |                         | |
+|  | [Vou assistir de casa]  | |
+|  | (botao secundario)      | |
+|  |                         | |
+|  +------------------------+ |
+|                             |
++-----------------------------+
 ```
 
 ### Regras UX:
-- Notificacao push NAO intrusiva — apenas 1x, 3h antes
-- Checklist automatico: detecta problemas ANTES do show
-- Monitoramento inicia automaticamente baseado no horario do evento
-- Nao exigir que o usuario abra o app durante o show
-- "Iniciar agora" para quem quer incluir a fila/pre-show
+- Jogos do time do usuario SEMPRE primeiro
+- Filtro por competicao (Brasileirao, Copa, Libertadores)
+- Social proof competitivo: "Fiel ja esta em vantagem!" (mais torcedores confirmados)
+- Historico de confronto com dados Tumtum de jogos anteriores
+- DUAS opcoes de presenca: estadio e de casa — ambas contam para a torcida
+- Contagem de torcedores visivel = pressao social positiva
 
 ---
 
-## 8. Fluxo 6 — Durante o Evento (Modo Live)
+## 7. Fluxo 5 — Pre-Jogo
 
-### Principio: O app trabalha em background — zero interacao necessaria
+### Principio: Criar clima de jogo e garantir que tudo funciona
 
 ```
-┌─────────────────────────────┐
-│  ESTADO: BACKGROUND          │
-│                             │
-│  [App coletando HR silencio-│
-│   samente em background]    │
-│                             │
-│  - Coleta a cada 1-5s       │
-│  - Salva localmente         │
-│  - Sync quando wifi         │
-│  - Zero notificacoes        │
-│    durante o evento         │
-│                             │
-└─────────────────────────────┘
++-----------------------------+
+|  TELA 12: PRE-JOGO           |
+|  (aparece no dia do jogo)    |
+|                             |
+|  +------------------------+ |
+|  | [escu] COR vs PAL      | |
+|  |  HOJE - 16h             | |
+|  |  Neo Quimica Arena      | |
+|  +------------------------+ |
+|                             |
+|  -- Checklist ---------------| 
+|                             |
+|  [OK] Wearable conectado   |
+|     "Apple Watch - 74 bpm" |
+|                             |
+|  [OK] Bateria OK            |
+|     "82% - suficiente"     |
+|                             |
+|  [OK] Jogo confirmado       |
+|     "Monitoramento as 16h" |
+|                             |
+|  -- Clima do jogo -----------|
+|                             |
+|  +------------------------+ |
+|  |  [heart] 312 vs 267    | |
+|  |  COR        PAL        | |
+|  |  torcedores confirmados | |
+|  |                         | |
+|  |  "A Fiel esta 17%       | |
+|  |   maior. Bora manter!"  | |
+|  +------------------------+ |
+|                             |
+|  +------------------------+ |
+|  |  "Monitoramento comeca  | |
+|  |   automaticamente       | |
+|  |   as 16:00"             | |
+|  |                         | |
+|  |  [Iniciar agora]        | |
+|  +------------------------+ |
+|                             |
+|  [tip] Coloque o celular    |
+|  no bolso e viva o jogo!    |
+|                             |
++-----------------------------+
+```
 
-SE o usuario abrir o app durante o evento:
+### Notificacao push (2h antes):
 
-┌─────────────────────────────┐
-│  TELA 13: MODO LIVE          │
-│                             │
-│  ┌───────────────────────┐  │
-│  │    Coldplay • AO VIVO │  │
-│  │    Allianz Parque      │  │
-│  └───────────────────────┘  │
-│                             │
-│         ♥ 127              │
-│        bpm                  │
-│    (numero grande,          │
-│     pulsando no ritmo)      │
-│                             │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │  [Curva HR em tempo   │  │
-│  │   real, ultimos 5min, │  │
-│  │   scrollando para     │  │
-│  │   a esquerda]         │  │
-│  │                       │  │
-│  │   ~~~~/\~~~~~/\~~~~   │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-│  ⏱ 01:23:45 de evento      │
-│                             │
-│  🎵 Tocando agora:          │
-│     "The Scientist"         │
-│     (se setlist disponivel) │
-│                             │
-│  ── Stats rapidos ──        │
-│  Pico: 142bpm               │
-│  Media: 98bpm                │
-│  Tempo monitorando: 1h23    │
-│                             │
-│  ┌───────────────────────┐  │
-│  │  💡 Guarde o celular  │  │
-│  │  e aproveite o show!  │  │
-│  └───────────────────────┘  │
-│                             │
-└─────────────────────────────┘
+```
++-----------------------------+
+| [bell] PUSH NOTIFICATION    |
+|                             |
+| [heart] Tumtum              |
+| "COR x PAL em 2 horas!     |
+|  312 fieis ja prontos.      |
+|  Bora fazer a Fiel pulsar!" |
+|                             |
+| [Abrir] [Ignorar]          |
++-----------------------------+
 ```
 
 ### Regras UX:
-- Modo Live e OPCIONAL — usuario NAO precisa abrir o app
-- Se abrir, mostrar BPM grande e pulsante (feedback visceral)
-- Mensagem "guarde o celular" — incentivar experiencia real
-- Tela com brilho reduzido automaticamente (modo cinema)
-- Nao mostrar notificacoes de pico DURANTE o evento (nao interromper)
+- Notificacao com linguagem de torcida e contagem social
+- Pre-jogo mostra "placar" de torcedores confirmados (competicao antes do jogo)
+- Checklist automatico resolve problemas ANTES do apito
+- "Iniciar agora" para quem quer capturar pre-jogo / aquecimento
+- Monitoramento inicia automaticamente no horario do jogo
 
 ---
 
-## 9. Fluxo 7 — Pos-Evento e Experiencia
+## 8. Fluxo 6 — Durante o Jogo (Modo Live)
 
-### Principio: O "momento magico" — revelar a experiencia como presente
-
-### Notificacao pos-evento (30min depois do fim):
+### Principio: Background por padrao, mas se abrir = experiencia de estadio
 
 ```
-┌─────────────────────────────┐
-│ 🔔 PUSH NOTIFICATION        │
-│                             │
-│ ♥ Tumtum                    │
-│ "Sua experiencia no         │
-│  Coldplay esta pronta!      │
-│  Veja como seu coracao      │
-│  viveu o show. ♥"           │
-│                             │
-│ [Ver agora →]               │
-└─────────────────────────────┘
++-----------------------------+
+|  ESTADO: BACKGROUND          |
+|                             |
+|  [App coletando HR silencio-|
+|   samente em background]    |
+|                             |
+|  - Coleta a cada 1-5s       |
+|  - Salva localmente         |
+|  - Sync quando wifi         |
+|  - Zero notificacoes        |
+|    durante o jogo           |
++-----------------------------+
+
+SE o usuario abrir o app durante o jogo:
+
++-----------------------------+
+|  TELA 13: MODO LIVE          |
+|                             |
+|  +------------------------+ |
+|  | [escu] COR 1x0 PAL     | |
+|  |       AO VIVO 67'       | |
+|  +------------------------+ |
+|                             |
+|         [heart] 134        |
+|              bpm            |
+|    (numero grande,          |
+|     pulsando, na cor        |
+|     do time)                |
+|                             |
+|  +------------------------+ |
+|  |                         | |
+|  |  [Curva HR em tempo     | |
+|  |   real, ultimos 5min]   | |
+|  |                         | |
+|  |  ~~~~~/\~~~~~~/\~~~~~   | |
+|  |       GOL!              | |
+|  |                         | |
+|  +------------------------+ |
+|                             |
+|  -- Pulso da Torcida -------|
+|                             |
+|  +------------------------+ |
+|  | Fiel agora:             | |
+|  | [heart] 128bpm medio    | |
+|  | [users] 312 torcedores  | |
+|  |                         | |
+|  | Alviverde agora:        | |
+|  | [heart] 119bpm medio    | |
+|  | [users] 267 torcedores  | |
+|  |                         | |
+|  | "Fiel 7% mais intensa!" | |
+|  +------------------------+ |
+|                             |
+|  -- Timeline do jogo -------|
+|  67' COR [ball] Yuri        |
+|  45' Intervalo               |
+|  23' PAL [card] Falta dura  |
+|  12' COR [corner] Escanteio |
+|                             |
+|  +------------------------+ |
+|  |  [tip] Guarde o celular| |
+|  |  e viva o jogo!         | |
+|  +------------------------+ |
+|                             |
++-----------------------------+
 ```
 
-### Tela de revelacao (transicao cinematica):
+### Regras UX:
+- Modo Live mostra PLACAR REAL atualizado via API-Football
+- BPM pessoal grande + pulso coletivo da torcida (NOVO)
+- Comparacao em tempo real com torcida adversaria
+- Timeline do jogo com eventos reais (gols, cartoes, escanteios)
+- Mensagem "guarde o celular" — experiencia real > app
+- Tela com brilho reduzido automaticamente
+
+---
+
+## 9. Fluxo 7 — Pos-Jogo e Experiencia da Torcida
+
+### Principio: Revelar o jogo pelos batimentos — seu e da torcida inteira
+
+### Notificacao pos-jogo (30min depois):
 
 ```
-┌─────────────────────────────┐
-│  TELA 14: REVELACAO          │
-│  (tela cheia, imersiva)      │
-│                             │
-│  [Fundo escuro]             │
-│                             │
-│  "Coldplay"                 │
-│  "Allianz Parque"           │
-│  "12 de Abril de 2026"      │
-│                             │
-│  (pausa dramatica 2s)       │
-│                             │
-│  "Voce viveu 2h14 de pura  │
-│   emocao"                   │
-│                             │
-│  (pausa 1.5s)               │
-│                             │
-│  "Seu coracao bateu         │
-│   mais forte em..."         │
-│                             │
-│  (animacao: numero sobe)    │
-│         142                 │
-│         bpm                 │
-│                             │
-│  "durante Fix You"          │
-│                             │
-│  [Ver experiencia completa →]│
-│                             │
-└─────────────────────────────┘
++-----------------------------+
+| [bell] PUSH NOTIFICATION    |
+|                             |
+| [heart] Tumtum              |
+| "COR 2x1 PAL - Que jogo!   |
+|  Veja como a Fiel viveu     |
+|  cada gol. Seu coracao      |
+|  atingiu 148bpm!"           |
+|                             |
+| [Ver agora ->]              |
++-----------------------------+
+```
+
+### Tela de revelacao:
+
+```
++-----------------------------+
+|  TELA 14: REVELACAO          |
+|  (tela cheia, imersiva)      |
+|                             |
+|  [Fundo com cores do time]  |
+|                             |
+|  [escu] CORINTHIANS         |
+|         2 x 1               |
+|         PALMEIRAS [escu]    |
+|                             |
+|  "Neo Quimica Arena"        |
+|  "20 de Abril de 2026"      |
+|                             |
+|  (pausa dramatica 2s)       |
+|                             |
+|  "Voce viveu 97 minutos     |
+|   de pura emocao"           |
+|                             |
+|  (pausa 1.5s)               |
+|                             |
+|  "Seu coracao bateu mais    |
+|   forte quando..."          |
+|                             |
+|  (animacao: numero sobe)    |
+|         148                 |
+|         bpm                 |
+|                             |
+|  "Yuri marcou o gol da      |
+|   virada aos 78'"           |
+|                             |
+|  [Ver jogo completo ->]     |
+|                             |
++-----------------------------+
 ```
 
 ### Tela de experiencia completa:
 
 ```
-┌─────────────────────────────┐
-│  TELA 15: EXPERIENCIA        │
-│                             │
-│  ┌───────────────────────┐  │
-│  │ Coldplay              │  │
-│  │ Allianz Parque • 12Abr│  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Stats resumo ──         │
-│  ┌──────┐ ┌──────┐ ┌──────┐│
-│  │ 142  │ │  98  │ │ 2h14 ││
-│  │ pico │ │media │ │ tempo││
-│  └──────┘ └──────┘ └──────┘│
-│                             │
-│  ── Curva HR completa ──    │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │     /\      /\        │  │
-│  │    /  \    / |\       │  │
-│  │   /    \  /  | \      │  │
-│  │  /      \/   |  \     │  │
-│  │ /        Fix You \    │  │
-│  │/                  \   │  │
-│  │                       │  │
-│  │ [Markers nos picos    │  │
-│  │  com nome da musica]  │  │
-│  │                       │  │
-│  │ ← arrastar para       │  │
-│  │   explorar timeline → │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Seus momentos ──        │
-│  (top 5 picos, ordenados)   │
-│                             │
-│  🥇 142bpm • Fix You        │
-│     "Seu maior pico!"       │
-│     [Criar card →]          │
-│                             │
-│  🥈 138bpm • Viva la Vida   │
-│     [Criar card →]          │
-│                             │
-│  🥉 135bpm • Yellow          │
-│     [Criar card →]          │
-│                             │
-│  4. 131bpm • Clocks          │
-│     [Criar card →]          │
-│                             │
-│  5. 128bpm • Paradise        │
-│     [Criar card →]          │
-│                             │
-│  ── Curiosidades ──         │
-│  "Voce ficou acima de       │
-│   120bpm por 34 minutos"    │
-│                             │
-│  "Seu coracao descansou     │
-│   no intervalo: 72bpm"     │
-│                             │
-│  ┌───────────────────────┐  │
-│  │ [Gerar card do show]  │  │
-│  │ (botao primario)      │  │
-│  └───────────────────────┘  │
-│                             │
-└─────────────────────────────┘
++-----------------------------+
+|  TELA 15: EXPERIENCIA        |
+|                             |
+|  +------------------------+ |
+|  | [escu] COR 2x1 PAL     | |
+|  | Neo Quimica - 20 Abr   | |
+|  +------------------------+ |
+|                             |
+|  -- Meus stats -------------|
+|  +------+ +------+ +------+ |
+|  | 148  | |  97  | | 97   | |
+|  | pico | |media | | min  | |
+|  +------+ +------+ +------+ |
+|                             |
+|  -- Minha curva HR ----------|
+|  +------------------------+ |
+|  |                         | |
+|  |     /\      /\          | |
+|  |    /  \    / |\         | |
+|  |   /    \  /  | \        | |
+|  |  /      \/   |  \       | |
+|  | / GOL 1'  GOL 78'\      | |
+|  |/                    \   | |
+|  |                         | |
+|  | [Marcadores nos gols    | |
+|  |  com minuto e jogador]  | |
+|  |                         | |
+|  | <- arrastar timeline -> | |
+|  +------------------------+ |
+|                             |
+|  -- Meus picos -------------|
+|                             |
+|  [1st] 148bpm - 78' GOL     |
+|     Yuri Alberto             |
+|     "Seu maior pico!"       |
+|     [Criar card ->]         |
+|                             |
+|  [2nd] 142bpm - 12' GOL     |
+|     Romero                   |
+|     [Criar card ->]         |
+|                             |
+|  [3rd] 131bpm - 90+3'       |
+|     Apito final              |
+|     [Criar card ->]         |
+|                             |
+|  -- Curiosidades ------------|
+|                             |
+|  "Voce ficou acima de       |
+|   120bpm por 23 minutos"    |
+|                             |
+|  "No intervalo seu coracao  |
+|   descansou pra 72bpm"     |
+|                             |
+|  "Voce reagiu ao gol do     |
+|   Yuri 0.3s antes da        |
+|   media da torcida!"        |
+|                             |
+|  +------------------------+ |
+|  | [Ver pulso da torcida]  | |
+|  | (botao secundario)      | |
+|  +------------------------+ |
+|  +------------------------+ |
+|  | [Gerar card do jogo]    | |
+|  | (botao primario)        | |
+|  +------------------------+ |
+|                             |
++-----------------------------+
 ```
 
 ### Interacao na curva HR:
-```
-┌───────────────────────────────┐
-│  CURVA HR — INTERACAO          │
-│                               │
-│  Toque longo em qualquer      │
-│  ponto da curva:              │
-│                               │
-│  ┌─────────────────────────┐  │
-│  │         ● ← tooltip     │  │
-│  │     /\ │127bpm          │  │
-│  │    /  \│21:47            │  │
-│  │   /    │"The Scientist"  │  │
-│  └─────────────────────────┘  │
-│                               │
-│  Arrastar = scrub pela        │
-│  timeline (como Spotify)      │
-│                               │
-│  Pinch = zoom in/out          │
-│  na curva                     │
-│                               │
-└───────────────────────────────┘
-```
-
-### Regras UX:
-- Revelacao e CINEMATICA — tratar como abertura de presente
-- Animacoes sequenciais com timing (nao tudo de uma vez)
-- Curva HR desenhada com animacao (como escrita a mao)
-- Interacao de scrub na curva = CORE UX do produto
-- Cada pico e acionavel → leva direto para gerar card
-- "Curiosidades" humanizam os dados (nao so numeros)
-
----
-
-## 10. Fluxo 8 — Geracao e Compartilhamento do Card
-
-### Principio: 2 toques do trigger ate o share sheet
 
 ```
-┌─────────────────────────────┐
-│  TELA 16: EDITOR DE CARD     │
-│                             │
-│  ── Template ──             │
-│  [Solo ●] [Comparacao ○]    │
-│                             │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │  PREVIEW DO CARD      │  │
-│  │  (tempo real)         │  │
-│  │                       │  │
-│  │  ┌─────────────────┐  │  │
-│  │  │   TUMTUM         │  │  │
-│  │  │                  │  │  │
-│  │  │  Coldplay        │  │  │
-│  │  │  Fix You         │  │  │
-│  │  │                  │  │  │
-│  │  │  [curva HR mini] │  │  │
-│  │  │  ♥ 142bpm        │  │  │
-│  │  │                  │  │  │
-│  │  │  @felipe         │  │  │
-│  │  │  12.04.2026      │  │  │
-│  │  └─────────────────┘  │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Estilo ──               │
-│  [🔴] [🔵] [⚫] [🟣]       │
-│  (paleta de cores)          │
-│                             │
-│  ── Formato ──              │
-│  [Stories 9:16] [Feed 1:1]  │
-│  [Post 4:5]                 │
-│                             │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │  [Compartilhar →]     │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-│  [Salvar na galeria]        │
-│                             │
-└─────────────────────────────┘
-```
-
-### Card de Comparacao (feature futura - artista):
-
-```
-┌─────────────────────────────┐
-│  CARD COMPARACAO             │
-│                             │
-│  ┌─────────────────────┐    │
-│  │   TUMTUM             │    │
-│  │                      │    │
-│  │  Coldplay • Fix You  │    │
-│  │                      │    │
-│  │  [duas curvas HR:    │    │
-│  │   vermelha = voce    │    │
-│  │   cyan = artista]    │    │
-│  │                      │    │
-│  │  ♥ Voce: 142bpm      │    │
-│  │  ♥ Chris: 156bpm     │    │
-│  │                      │    │
-│  │  78% em sincronia    │    │
-│  │                      │    │
-│  │  @felipe             │    │
-│  └─────────────────────┘    │
-│                             │
-└─────────────────────────────┘
-```
-
-### Share Sheet:
-
-```
-┌─────────────────────────────┐
-│  TELA 17: SHARE SHEET        │
-│  (bottom sheet nativo)       │
-│                             │
-│  ┌───────────────────────┐  │
-│  │ [mini preview card]   │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Compartilhar em ──      │
-│                             │
-│  ┌──────┐ ┌──────┐ ┌──────┐│
-│  │ Insta│ │TikTok│ │  X   ││
-│  │Stories│ │     │ │      ││
-│  └──────┘ └──────┘ └──────┘│
-│  ┌──────┐ ┌──────┐ ┌──────┐│
-│  │ Whats│ │Copiar│ │ Mais ││
-│  │ App  │ │ Link │ │      ││
-│  └──────┘ └──────┘ └──────┘│
-│                             │
-│  ── ou ──                   │
-│  [Salvar imagem]            │
-│  [Salvar video]             │
-│                             │
-└─────────────────────────────┘
-```
-
-### Pos-compartilhamento:
-
-```
-┌─────────────────────────────┐
-│  TELA 18: POS-SHARE          │
-│  (celebracao)                │
-│                             │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │   🎉 (confetti        │  │
-│  │    animacao sutil)    │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-│  "Compartilhado!"           │
-│                             │
-│  "Seu card foi salvo        │
-│   na sua colecao"           │
-│                             │
-│  [Ver minha colecao]        │
-│  [Voltar para experiencia]  │
-│                             │
-└─────────────────────────────┘
++-------------------------------+
+|  CURVA HR — INTERACAO          |
+|                               |
+|  Toque longo em qualquer      |
+|  ponto da curva:              |
+|                               |
+|  +-------------------------+  |
+|  |         * <- tooltip    |  |
+|  |     /\ |134bpm          |  |
+|  |    /  \|67'              |  |
+|  |   /    |"Escanteio"     |  |
+|  +-------------------------+  |
+|                               |
+|  Arrastar = scrub pela        |
+|  timeline (como Spotify)      |
+|                               |
+|  Pinch = zoom in/out          |
+|                               |
++-------------------------------+
 ```
 
 ### Regras UX:
-- Card pre-gerado em background (Celery) — zero espera ao abrir editor
-- Preview atualiza em TEMPO REAL ao trocar estilo/formato
-- Instagram Stories = formato padrao (maior viralidade)
-- Deep link para Instagram Stories API (card ja pre-carregado como sticker)
-- Salvar na galeria sempre disponivel (fallback se share falhar)
-- Pos-share: celebracao BREVE (1.5s) e redireciona — nao prender o usuario
-- Card salvo automaticamente na colecao do perfil
+- Revelacao cita PLACAR, JOGADOR e MINUTO do gol — contexto real
+- Curiosidades de futebol: "reagiu 0.3s antes da media da torcida" = viral
+- Picos sempre correlacionados com eventos do jogo (gols, cartoes, defesas)
+- CTA duplo: "Gerar card" (share) + "Ver pulso da torcida" (social/coletivo)
+- Curva HR com markers nos momentos do jogo (timeline de futebol)
 
 ---
 
-## 11. Fluxo 9 — Perfil e Colecao
+## 10. Fluxo 8 — Torcidometro (Pulso Coletivo)
+
+### Principio: Voce nao torce sozinho — ver a torcida unida e o hook emocional
 
 ```
-┌─────────────────────────────┐
-│  TELA 19: MEU PERFIL         │
-│                             │
-│  ┌───────────────────────┐  │
-│  │  [Avatar]              │  │
-│  │  Felipe Zanucci        │  │
-│  │  @felipe               │  │
-│  │                        │  │
-│  │  3 shows • 12 cards    │  │
-│  └───────────────────────┘  │
-│                             │
-│  ── Stats gerais ──         │
-│  ┌──────┐ ┌──────┐ ┌──────┐│
-│  │ 156  │ │ 3    │ │ 12   ││
-│  │ pico │ │shows │ │cards ││
-│  │ max  │ │      │ │      ││
-│  └──────┘ └──────┘ └──────┘│
-│                             │
-│  ── Minha colecao ──        │
-│  (grid de cards, 2 colunas) │
-│                             │
-│  ┌──────┐ ┌──────┐         │
-│  │card 1│ │card 2│         │
-│  │      │ │      │         │
-│  └──────┘ └──────┘         │
-│  ┌──────┐ ┌──────┐         │
-│  │card 3│ │card 4│         │
-│  │      │ │      │         │
-│  └──────┘ └──────┘         │
-│                             │
-│  ── Minhas experiencias ──  │
-│  ┌───────────────────────┐  │
-│  │ Coldplay • 12 Abr      │  │
-│  │ ♥ 142bpm • 5 picos     │  │
-│  ├───────────────────────┤  │
-│  │ Corinthians • 08 Abr   │  │
-│  │ ♥ 138bpm • 3 picos     │  │
-│  └───────────────────────┘  │
-│                             │
-│  [⚙️ Configuracoes]         │
-│                             │
-└─────────────────────────────┘
++-----------------------------+
+|  TELA 16: TORCIDOMETRO       |
+|  (Pulso da Torcida)          |
+|                             |
+|  +------------------------+ |
+|  | [escu] COR 2x1 PAL     | |
+|  | Torcida Fiel - 312      | |
+|  | torcedores monitorados  | |
+|  +------------------------+ |
+|                             |
+|  -- Curva coletiva ----------|
+|  +------------------------+ |
+|  |                         | |
+|  | LINHA VERMELHA:          | |
+|  | media BPM de toda a     | |
+|  | torcida Corinthians     | |
+|  |                         | |
+|  |     /\      /\          | |
+|  |    /  \    / |\         | |
+|  |---/----\--/--|-\---     | |
+|  |  /      \/   |  \       | |
+|  | /              \        | |
+|  |                         | |
+|  | LINHA FINA BRANCA:       | |
+|  | seu BPM pessoal          | |
+|  |                         | |
+|  | [Markers nos gols]      | |
+|  +------------------------+ |
+|                             |
+|  -- Momento mais intenso ----|
+|                             |
+|  +------------------------+ |
+|  | 78' - GOL DO YURI       | |
+|  |                         | |
+|  | [heart] 143bpm medio    | |
+|  |   da torcida            | |
+|  |                         | |
+|  | [heart] Voce: 148bpm    | |
+|  |   (acima da media!)     | |
+|  |                         | |
+|  | 98% da torcida reagiu   | |
+|  | em menos de 2 segundos  | |
+|  |                         | |
+|  | [chart] Distribuicao:   | |
+|  | < 100bpm: 2%            | |
+|  | 100-120:  15%           | |
+|  | 120-140:  51%           | |
+|  | 140-160:  29%           | |
+|  | > 160bpm: 3%            | |
+|  +------------------------+ |
+|                             |
+|  -- Ranking de reacao -------|
+|                             |
+|  "Voce reagiu mais rapido   |
+|   que 73% da torcida"       |
+|                             |
+|  Seu ranking: #84 de 312    |
+|                             |
+|  +------------------------+ |
+|  | [Comparar com rival ->] | |
+|  +------------------------+ |
+|  +------------------------+ |
+|  | [Gerar card coletivo]   | |
+|  +------------------------+ |
+|                             |
++-----------------------------+
 ```
 
-### Perfil publico (compartilhavel):
+### Dados coletivos exibidos:
+- BPM medio da torcida ao longo do jogo (curva agregada)
+- Seu BPM sobreposto na curva da torcida
+- Distribuicao de intensidade por faixa de BPM
+- Percentual de torcedores que reagiram a cada lance
+- Seu ranking de velocidade de reacao dentro da torcida
+- Tempo medio de reacao da torcida a cada gol
+
+### Regras UX:
+- Torcidometro e a tela SOCIAL do app — ver-se como parte do grupo
+- Curva coletiva = media anonimizada (privacidade preservada)
+- Seu BPM pessoal sobreposto na curva coletiva = "eu estava la"
+- Ranking dentro da torcida = gamificacao natural
+- Distribuicao de BPM humaniza os dados ("51% da torcida passou de 120bpm")
+- CTA para "Comparar com rival" leva ao Duelo de Torcidas
+
+---
+
+## 11. Fluxo 9 — Duelo de Torcidas
+
+### Principio: A rivalidade ja existe — Tumtum da dados pra ela
+
+### Fase 1 (MVP): Pos-jogo, dados agregados
 
 ```
-┌─────────────────────────────┐
-│  TELA 20: PERFIL PUBLICO     │
-│  (tumtum.app/@felipe)        │
-│                             │
-│  [Mesmo layout do perfil,   │
-│   mas apenas cards publicos │
-│   e stats agregados]        │
-│                             │
-│  Sem dados sensiveis de HR  │
-│  Apenas cards compartilhados│
-│                             │
-└─────────────────────────────┘
++-----------------------------+
+|  TELA 17: DUELO DE TORCIDAS  |
+|  (Pos-jogo)                  |
+|                             |
+|  +------------------------+ |
+|  |  COR 2x1 PAL            | |
+|  |  Neo Quimica - 20 Abr   | |
+|  +------------------------+ |
+|                             |
+|  "QUEM VIVEU MAIS           |
+|   O JOGO?"                  |
+|                             |
+|  +------------------------+ |
+|  |                         | |
+|  | CORINTHIANS  PALMEIRAS  | |
+|  |                         | |
+|  | [escu]       [escu]     | |
+|  |                         | |
+|  | 312          267        | |
+|  | torcedores   torcedores | |
+|  |                         | |
+|  | INTENSIDADE:             | |
+|  | [======>  ] [=====>   ] | |
+|  |  138bpm      131bpm     | |
+|  |  medio       medio      | |
+|  |                         | |
+|  | EXPLOSAO NO GOL:        | |
+|  | [========>] [=>       ] | |
+|  |  +47bpm      +12bpm     | |
+|  |  no gol 1    no gol 1   | |
+|  |                         | |
+|  | REACAO:                  | |
+|  | [=======> ] [=====>   ] | |
+|  |  1.2s        2.8s       | |
+|  |  tempo medio tempo medio| |
+|  |                         | |
+|  | SOFRIMENTO:              | |
+|  | [====>    ] [========>] | |
+|  |  leve        intenso    | |
+|  |  (venceu)    (perdeu)   | |
+|  |                         | |
+|  +------------------------+ |
+|                             |
+|  +------------------------+ |
+|  |                         | |
+|  |  VEREDITO TUMTUM:       | |
+|  |                         | |
+|  |  "A Fiel viveu mais     | |
+|  |   intensamente em 3     | |
+|  |   de 4 categorias.      | |
+|  |   Vitoria dentro e      | |
+|  |   fora de campo!"       | |
+|  |                         | |
+|  +------------------------+ |
+|                             |
+|  [Gerar card do duelo ->]   |
+|  [Compartilhar resultado]   |
+|                             |
++-----------------------------+
+```
+
+### Categorias do Duelo:
+
+| Categoria | O que mede | Calculo |
+|-----------|-----------|---------|
+| Intensidade | BPM medio durante o jogo | Media de todos os torcedores |
+| Explosao | Reacao aos gols | Delta BPM (pico - baseline) no momento do gol |
+| Reacao | Velocidade de reacao | Tempo entre o gol e o pico de BPM |
+| Sofrimento | Tensao em momentos criticos | BPM medio em lances defensivos e gols sofridos |
+| Fidelidade | Quem ficou ate o fim | % de torcedores monitorando ate o apito final |
+| Sintonia | Sincronia da torcida | % de torcedores com pico no mesmo segundo |
+
+### Fase 2 (Futura): Duelo em tempo real durante o jogo
+
+```
++-----------------------------+
+|  DUELO LIVE (futuro)         |
+|                             |
+|  +------------------------+ |
+|  |  AO VIVO - 67'          | |
+|  |                         | |
+|  |  COR         PAL        | |
+|  | [heart]128  119[heart]  | |
+|  |  bpm medio   bpm medio  | |
+|  |                         | |
+|  |  [==========|======   ] | |
+|  |  FIEL          ALVIVERDE| |
+|  |                         | |
+|  |  "Fiel 7% mais          | |
+|  |   intensa agora!"       | |
+|  |                         | |
+|  +------------------------+ |
+|                             |
++-----------------------------+
+```
+
+### Regras UX:
+- Duelo so aparece quando ha dados de AMBAS as torcidas
+- Minimo de torcedores para exibir: 50 por lado (representatividade)
+- Categorias sao desenhadas para gerar debate e compartilhamento
+- "Sofrimento" e a metrica que transforma derrota em orgulho
+- "Veredito Tumtum" e o selo oficial — conteudo viral
+- Card do duelo = formato horizontal (side by side) para social
+
+---
+
+## 12. Fluxo 10 — Geracao e Compartilhamento do Card
+
+### Principio: Cards de futebol sao o motor viral — devem parecer transmissao esportiva
+
+```
++-----------------------------+
+|  TELA 18: EDITOR DE CARD     |
+|                             |
+|  -- Tipo de card ------------|
+|  [Meu jogo] [Torcida]      |
+|  [Duelo] [Momento]          |
+|                             |
+|  +------------------------+ |
+|  |                         | |
+|  |  PREVIEW DO CARD        | |
+|  |  (tempo real)           | |
+|  |                         | |
+|  |  +-----------------+    | |
+|  |  |  TUMTUM          |    | |
+|  |  |                  |    | |
+|  |  |  COR 2x1 PAL    |    | |
+|  |  |                  |    | |
+|  |  |  [curva HR]      |    | |
+|  |  |  [heart] 148bpm  |    | |
+|  |  |  GOL 78' Yuri    |    | |
+|  |  |                  |    | |
+|  |  |  @felipe         |    | |
+|  |  |  #FielAteFim     |    | |
+|  |  +-----------------+    | |
+|  |                         | |
+|  +------------------------+ |
+|                             |
+|  -- Estilo ------------------|
+|  [cores time] [preto]       |
+|  [branco] [neon]            |
+|                             |
+|  -- Formato -----------------|
+|  [Stories 9:16] [Feed 1:1]  |
+|  [Post 4:5]                 |
+|                             |
+|  +------------------------+ |
+|  | [Compartilhar ->]       | |
+|  +------------------------+ |
+|  [Salvar na galeria]        |
+|                             |
++-----------------------------+
+```
+
+### 4 Tipos de Card:
+
+```
+CARD 1: MEU JOGO (individual)
++-----------------+
+|  TUMTUM          |
+|  COR 2x1 PAL    |
+|  [curva HR]      |
+|  [heart] 148bpm  |
+|  GOL 78' Yuri    |
+|  @felipe         |
++-----------------+
+
+CARD 2: TORCIDA (coletivo)
++-----------------+
+|  TUMTUM          |
+|  TORCIDA FIEL    |
+|  312 coracoes    |
+|  [curva coletiva]|
+|  143bpm no gol   |
+|  #FielAteFim     |
++-----------------+
+
+CARD 3: DUELO (versus)
++-----------------+
+|  TUMTUM          |
+|  COR    vs   PAL |
+|  [barra COR >>>]|
+|  [barra PAL >> ]|
+|  Fiel viveu mais|
+|  #DerbyDaFiel   |
++-----------------+
+
+CARD 4: MOMENTO (pico unico)
++-----------------+
+|  TUMTUM          |
+|  78' GOOOL!      |
+|  [zoom na curva  |
+|   no momento     |
+|   do gol]        |
+|  148bpm          |
+|  Yuri Alberto    |
+|  @felipe         |
++-----------------+
+```
+
+### Regras UX:
+- 4 tipos de card = 4x mais conteudo compartilhavel
+- Card de Duelo e o mais viral (rivalidade gera debate)
+- Card de Torcida gera orgulho coletivo
+- Card de Momento = ideal pra Stories (vertical, dramatico)
+- Hashtags automaticas por time (#FielAteFim, #AvantiPalestra)
+- Estilo "cores do time" como padrao — reforco de identidade
+- Pre-gerado em background — zero espera
+
+---
+
+## 13. Fluxo 11 — Ranking e Competicao
+
+### Principio: Gamificacao via rivalidade real — sem pontos artificiais
+
+```
++-----------------------------+
+|  TELA 19: RANKING TORCIDAS   |
+|  (Tab: Ranking)              |
+|                             |
+|  -- Tipo de ranking ---------|
+|  [Rodada] [Campeonato]      |
+|  [Historico]                |
+|                             |
+|  -- Ranking da Rodada 5 ----|
+|                             |
+|  "Torcida mais intensa      |
+|   da rodada:"               |
+|                             |
+|  +------------------------+ |
+|  |  1. [escu] Flamengo     | |
+|  |     [bar=============]  | |
+|  |     141bpm medio        | |
+|  |     1.247 torcedores    | |
+|  |                         | |
+|  |  2. [escu] Corinthians  | |
+|  |     [bar===========  ]  | |
+|  |     138bpm medio        | |
+|  |     312 torcedores      | |
+|  |     "Seu time!"         | |
+|  |                         | |
+|  |  3. [escu] Palmeiras    | |
+|  |     [bar==========   ]  | |
+|  |     135bpm medio        | |
+|  |                         | |
+|  |  4. [escu] Sao Paulo    | |
+|  |     [bar=========    ]  | |
+|  |     131bpm medio        | |
+|  |                         | |
+|  |  ...                    | |
+|  |  20. [escu] Cuiaba      | |
+|  |     [bar===          ]  | |
+|  |     98bpm medio         | |
+|  +------------------------+ |
+|                             |
+|  -- Conquistas do seu time --|
+|                             |
+|  +------------------------+ |
+|  | [trophy] "Torcida mais  | |
+|  |  explosiva" na Rod. 3   | |
+|  |                         | |
+|  | [trophy] "Sofredor-mor" | |
+|  |  no Derby da Rod. 5     | |
+|  |                         | |
+|  | [trophy] "100% fiel"    | |
+|  |  3 jogos consecutivos   | |
+|  |  com 90%+ monitorando   | |
+|  |  ate o final            | |
+|  +------------------------+ |
+|                             |
++-----------------------------+
+```
+
+### Sistema de Conquistas por Torcida:
+
+| Conquista | Criterio | Icone |
+|-----------|----------|-------|
+| Torcida Inferno | Maior BPM medio da rodada | [fire] |
+| Explosao Maxima | Maior pico coletivo num gol | [explosion] |
+| Sofredor-mor | Maior BPM medio em derrota | [sweat] |
+| Muro de Ferro | Menor BPM medio em vitoria (sangue frio) | [shield] |
+| 100% Fiel | 90%+ torcedores ate o apito final | [medal] |
+| Sintonia Total | Maior % de torcedores reagindo no mesmo segundo | [wave] |
+| Madrugadao | Mais torcedores em jogo depois das 22h | [moon] |
+| Reacao Relampago | Tempo medio de reacao mais rapido | [lightning] |
+
+### Ranking Individual (dentro do time):
+
+```
++-----------------------------+
+|  TELA 20: MEU RANKING        |
+|  (dentro da minha torcida)   |
+|                             |
+|  +------------------------+ |
+|  | [avatar] Felipe         | |
+|  | Torcedor Fiel desde     | |
+|  | Abr 2026                | |
+|  |                         | |
+|  | Ranking na Fiel:        | |
+|  | #84 de 312 torcedores   | |
+|  |                         | |
+|  | -- Stats acumulados --  | |
+|  | Jogos: 3                | |
+|  | Pico max: 156bpm        | |
+|  | Media geral: 112bpm     | |
+|  | Reacao media: 1.1s      | |
+|  +------------------------+ |
+|                             |
+|  -- Titulos pessoais --------|
+|                             |
+|  [trophy] "Coracao Fiel"    |
+|  Presente em 100% dos jogos |
+|                             |
+|  [trophy] "Reacao de Goleiro"|
+|  Top 10% reacao mais rapida |
+|                             |
+|  [trophy] "Maximo BPM"      |
+|  156bpm no Derby            |
+|                             |
+|  -- Proxima conquista -------|
+|                             |
+|  [lock] "Infarto Fiel"      |
+|  Atinja 160bpm em um jogo   |
+|  Progresso: 156/160          |
+|  [bar=================>  ]  |
+|                             |
++-----------------------------+
+```
+
+### Mecanicas de Competicao (hooks de engajamento):
+
+1. RANKING POR RODADA
+   - Cada rodada do Brasileirao tem ranking de torcidas
+   - Resetado a cada rodada = sempre relevante
+   - "Seu time caiu para 5o lugar. Bora virar no proximo jogo!"
+
+2. RANKING ACUMULADO
+   - Soma de todas as rodadas = campeonato paralelo
+   - "Corinthians e o 2o time mais intenso do Brasileirao"
+
+3. DESAFIOS SEMANAIS
+   - "Desafio da rodada: Consiga 30+ torcedores acima de 130bpm"
+   - Objetivo coletivo = incentiva recrutamento
+   - Desbloqueio de conquistas especiais
+
+4. CONFRONTO DIRETO
+   - Em classicos (Derby, Fla-Flu, Grenal):
+   - "Duelo especial: quem vence o Derby do coracao?"
+   - Card especial desbloqueado so no classico
+
+5. META COLETIVA
+   - "Se 500 fieis monitorarem o proximo jogo,
+     desbloqueamos o card exclusivo da Arena"
+   - Incentiva compartilhamento e convites
+
+6. RECRUTAMENTO
+   - "Convide amigos para fortalecer a Fiel"
+   - "Cada torcedor conta no ranking!"
+   - Link de convite com escudo do time
+
+### Regras UX:
+- Rankings usam dados REAIS de jogos — nao pontos artificiais
+- Conquistas sao nomeadas com giria de futebol
+- Ranking por rodada mantem relevancia semanal
+- Proxima conquista com barra de progresso = motivacao
+- Confronto direto em classicos = engajamento maximo
+- Meta coletiva transforma torcedores em recrutadores
+- Desafios semanais dao motivo para abrir o app fora de dia de jogo
+
+---
+
+## 14. Fluxo 12 — Perfil do Torcedor e Colecao
+
+```
++-----------------------------+
+|  TELA 21: PERFIL TORCEDOR    |
+|                             |
+|  +------------------------+ |
+|  |  [Avatar]               | |
+|  |  Felipe Zanucci         | |
+|  |  @felipe                | |
+|  |                         | |
+|  |  [escu] Corinthians     | |
+|  |  "Fiel desde Abr 2026"  | |
+|  |                         | |
+|  |  3 jogos | 8 cards      | |
+|  |  #84 ranking na Fiel    | |
+|  +------------------------+ |
+|                             |
+|  -- Titulos ------------------|
+|  [trophy][trophy][trophy]   |
+|  (badges horizontais)       |
+|                             |
+|  -- Meus cards --------------|
+|  (grid 2 colunas)           |
+|                             |
+|  +------+ +------+         |
+|  |card 1| |card 2|         |
+|  |      | |      |         |
+|  +------+ +------+         |
+|  +------+ +------+         |
+|  |card 3| |card 4|         |
+|  |      | |      |         |
+|  +------+ +------+         |
+|                             |
+|  -- Meus jogos --------------|
+|  +------------------------+ |
+|  | COR 2x1 PAL - 20 Abr   | |
+|  | [heart] 148bpm - 3 picos| |
+|  +------------------------+ |
+|  | COR 1x1 SAN - 13 Abr   | |
+|  | [heart] 134bpm - 2 picos| |
+|  +------------------------+ |
+|  | COR 3x0 GOI - 06 Abr   | |
+|  | [heart] 128bpm - 4 picos| |
+|  +------------------------+ |
+|                             |
+|  [gear] Configuracoes       |
+|                             |
++-----------------------------+
 ```
 
 ### Configuracoes:
 
 ```
-┌─────────────────────────────┐
-│  TELA 21: CONFIGURACOES      │
-│                             │
-│  ── Conta ──                │
-│  Nome                    >  │
-│  Email                   >  │
-│  Senha                   >  │
-│                             │
-│  ── Dispositivo ──          │
-│  Apple Watch          ✅ >  │
-│  [Adicionar dispositivo]    │
-│                             │
-│  ── Privacidade ──          │
-│  Perfil publico        [◉]  │
-│  Mostrar BPM real      [◉]  │
-│  Dados de saude        [>]  │
-│                             │
-│  ── Notificacoes ──         │
-│  Pre-evento            [◉]  │
-│  Pos-evento            [◉]  │
-│  Novos eventos         [○]  │
-│                             │
-│  ── Sobre ──                │
-│  Termos de uso           >  │
-│  Politica de privacidade >  │
-│  Versao 1.0.0               │
-│                             │
-│  [Sair da conta]            │
-│  [Excluir minha conta]      │
-│                             │
-└─────────────────────────────┘
++-----------------------------+
+|  TELA 22: CONFIGURACOES      |
+|                             |
+|  -- Conta --                |
+|  Nome                    >  |
+|  Email                   >  |
+|  Senha                   >  |
+|                             |
+|  -- Meu time --             |
+|  Corinthians         [>]    |
+|  (trocar time)              |
+|                             |
+|  -- Dispositivo --          |
+|  Apple Watch          [OK]  |
+|  [Adicionar dispositivo]    |
+|                             |
+|  -- Privacidade --          |
+|  Perfil publico        [*]  |
+|  Incluir meu BPM na   [*]  |
+|    torcida coletiva         |
+|  Mostrar no ranking    [*]  |
+|  Dados de saude        [>]  |
+|                             |
+|  -- Notificacoes --         |
+|  Pre-jogo              [*]  |
+|  Pos-jogo              [*]  |
+|  Ranking da rodada     [*]  |
+|  Desafios semanais     [o]  |
+|                             |
+|  -- Sobre --                |
+|  Termos de uso           >  |
+|  Politica de privacidade >  |
+|  Versao 1.0.0               |
+|                             |
+|  [Sair da conta]            |
+|  [Excluir minha conta]      |
+|                             |
++-----------------------------+
 ```
 
 ---
 
-## 12. Navegacao Global
+## 15. Navegacao Global
 
-### Tab Bar (sempre visivel nas telas principais):
+### Tab Bar:
 
 ```
-┌─────────────────────────────────────┐
-│                                     │
-│   🏠        🔍        ♥        👤   │
-│   Home     Busca    Cards    Perfil │
-│                                     │
-└─────────────────────────────────────┘
++------------------------------------------+
+|                                          |
+| [home]  [ball]  [heart]  [trophy] [user] |
+|  Home   Jogos   Torcida  Ranking  Perfil |
+|                                          |
++------------------------------------------+
 ```
 
-### Hierarquia de navegacao:
+### Hierarquia:
 
 ```
 Tab 1: HOME
-├── Proximo evento → Detalhe evento
-├── Ultima experiencia → Experiencia completa → Editor card
-└── Eventos populares → Detalhe evento
++-- Proximo jogo -> Detalhe jogo
++-- Ultimo jogo -> Experiencia -> Card
++-- Torcidometro resumido -> Ranking
 
-Tab 2: BUSCA
-├── Lista de eventos
-├── Filtros (tipo, cidade, data)
-└── Detalhe evento → Confirmar presenca
+Tab 2: JOGOS
++-- Lista de jogos (meu time primeiro)
++-- Filtro por competicao
++-- Detalhe jogo -> Confirmar presenca
 
-Tab 3: CARDS (Colecao)
-├── Grid de todos os cards gerados
-├── Detalhe card → Re-compartilhar
-└── Filtro por evento
+Tab 3: TORCIDA
++-- Torcidometro (ultimo jogo)
++-- Duelo de Torcidas
++-- Historico de torcidas
 
-Tab 4: PERFIL
-├── Stats pessoais
-├── Lista de experiencias
-├── Configuracoes
-└── Perfil publico (preview)
+Tab 4: RANKING
++-- Ranking de torcidas (rodada/campeonato)
++-- Meu ranking individual
++-- Conquistas e titulos
++-- Desafios da semana
+
+Tab 5: PERFIL
++-- Stats pessoais
++-- Colecao de cards
++-- Lista de jogos
++-- Configuracoes
 ```
 
 ### Gestos globais:
@@ -1084,116 +1507,102 @@ Tab 4: PERFIL
 | Gesto | Acao |
 |-------|------|
 | Swipe right (da borda) | Voltar (navegacao nativa) |
-| Pull down | Refresh na Home e Busca |
+| Pull down | Refresh na Home e Jogos |
 | Long press em card | Quick actions (compartilhar, deletar) |
 | Pinch na curva HR | Zoom in/out |
-| Drag na curva HR | Scrub pela timeline |
+| Drag na curva HR | Scrub pela timeline do jogo |
 
 ---
 
-## 13. Principios de UX Aplicados
+## 16. Principios de UX Aplicados
 
-### 1. Friccao Zero
-- Social login como padrao (1 toque para entrar)
-- Monitoramento automatico (zero interacao durante o evento)
-- Card pre-gerado (zero espera ao compartilhar)
-- Deteccao automatica de OS para wearable correto
+### 1. Identidade de Torcedor
+- Escolha do time no primeiro acesso = identidade central
+- Cores do time na interface = pertencimento
+- Linguagem de arquibancada em todas as telas
+- Escudo do time presente em cada momento
 
-### 2. Value First, Ask Later
-- Onboarding mostra o produto antes de pedir cadastro
-- Pre-permission priming antes de cada permissao do OS
-- "Fazer depois" sempre disponivel — nunca bloquear
+### 2. Friccao Zero
+- Social login (1 toque para entrar)
+- Monitoramento automatico no horario do jogo
+- Cards pre-gerados em background
+- "Vou assistir de casa" = inclusao sem estadio
 
-### 3. Progressive Disclosure
-- Home simples → detalhes sob demanda
-- Stats resumidos → curva completa ao tocar
-- Picos ranqueados → card detalhado ao selecionar
+### 3. Torcida como Grupo
+- Torcidometro transforma dados individuais em experiencia coletiva
+- Ranking de reacao dentro da torcida
+- Meta coletiva incentiva recrutamento
+- Dados anonimizados preservam privacidade
 
-### 4. Feedback Visceral
-- BPM pulsante no modo live
-- Curva HR animada na revelacao
-- Confetti no pos-compartilhamento
-- Haptic feedback nos picos (vibra suave no celular)
+### 4. Rivalidade como Motor
+- Duelo de Torcidas gera debate e compartilhamento
+- Ranking por rodada mantem competicao semanal
+- Classicos desbloqueiam cards especiais
+- "Sofrimento" transforma derrota em orgulho (metrica genial)
 
-### 5. Empty States Uteis
-- Toda tela vazia tem: ilustracao + texto + CTA
-- Empty state da Home = demo do produto
-- Empty state dos Cards = link para experiencias
+### 5. Dados com Contexto
+- "148bpm no gol do Yuri aos 78'" > "148bpm as 17:23"
+- Picos correlacionados com eventos reais do jogo
+- Curiosidades humanizam os numeros
+- "Voce reagiu 0.3s antes da media" = micro-narrativa viral
 
-### 6. Privacidade por Design
-- Tela de priming antes de TODA permissao
-- Dados de saude = opt-in explicito
+### 6. Ciclo de Engajamento
+- Pre-jogo: countdown + social proof + checklist
+- Jogo: monitoramento passivo + live opcional
+- Pos-jogo: revelacao + experiencia + torcida + duelo
+- Entre jogos: ranking + desafios + conquistas + recrutamento
+- O app tem motivo para ser aberto TODOS OS DIAS, nao so em dia de jogo
+
+### 7. Privacidade por Design
+- Dados coletivos sao SEMPRE anonimizados
+- Opt-in explicito para ranking e torcida coletiva
 - Perfil publico mostra apenas cards, nunca HR raw
 - "Excluir minha conta" acessivel e claro
 
-### 7. Performance Percebida
-- Skeleton screens em todas as listas
-- Cards pre-gerados em background
-- Curva HR renderizada com WebGL/Canvas (60fps)
-- Imagens com blur-up progressive loading
-
 ---
 
-## 14. Mapa de Estados e Transicoes
+## 17. Inventario Completo de Telas
 
-```
-PRIMEIRO ACESSO:
-Splash → Onboarding 1 → 2 → 3 → Auth → Wearable Setup → Home (empty)
-
-FLUXO RECORRENTE:
-Home → Busca → Detalhe Evento → Confirmar Presenca
-→ [dia do evento] Pre-Evento → [durante] Background/Live
-→ [depois] Notificacao → Revelacao → Experiencia → Card → Share → Colecao
-
-FLUXO RAPIDO (usuario recorrente):
-Home → Experiencia (da notificacao) → Card → Share
-(3 telas do trigger ao share)
-
-FLUXO DE REVISITA:
-Home → Colecao → Card → Re-share
-Perfil → Experiencia antiga → Novo card
-```
-
----
-
-## 15. Inventario Completo de Telas
-
-| # | Tela | Tipo | Prioridade MVP |
-|---|------|------|----------------|
-| 0 | Splash | Transitoria | P0 |
-| 1 | Onboarding 1/3 | Onboarding | P0 |
-| 2 | Onboarding 2/3 | Onboarding | P0 |
-| 3 | Onboarding 3/3 | Onboarding | P0 |
+| # | Tela | Fluxo | Prioridade |
+|---|------|-------|------------|
+| 0 | Splash | Primeiro acesso | P0 |
+| 1 | Onboarding 1/3 | Primeiro acesso | P0 |
+| 2 | Onboarding 2/3 | Primeiro acesso | P0 |
+| 3 | Onboarding 3/3 | Primeiro acesso | P0 |
 | 4 | Auth (Login/Cadastro) | Auth | P0 |
-| 4b | Cadastro email | Auth | P0 |
-| 5 | Wearable Priming | Setup | P0 |
-| 6 | Selecao Provider | Setup | P0 |
-| 7 | Permissao OS | Setup (nativo) | P0 |
+| 5 | Escolha do Time | Setup | P0 |
+| 5b | Confirma Time | Setup | P0 |
+| 6 | Wearable Priming | Setup | P0 |
+| 7 | Selecao Provider | Setup | P0 |
 | 8 | Sucesso Conexao | Setup | P0 |
 | 9 | Home | Core | P0 |
-| 10 | Busca Eventos | Core | P0 |
-| 11 | Detalhe Evento | Core | P0 |
-| 12 | Pre-Evento | Core | P1 |
-| 13 | Modo Live | Core | P1 |
-| 14 | Revelacao | Core | P0 |
-| 15 | Experiencia | Core | P0 |
-| 16 | Editor de Card | Core | P0 |
-| 17 | Share Sheet | Core | P0 |
-| 18 | Pos-Share | Core | P0 |
-| 19 | Meu Perfil | Core | P0 |
-| 20 | Perfil Publico | Social | P2 |
-| 21 | Configuracoes | Settings | P1 |
+| 10 | Jogos (lista) | Core | P0 |
+| 11 | Detalhe do Jogo | Core | P0 |
+| 12 | Pre-Jogo | Jogo | P0 |
+| 13 | Modo Live | Jogo | P1 |
+| 14 | Revelacao | Pos-jogo | P0 |
+| 15 | Experiencia | Pos-jogo | P0 |
+| 16 | Torcidometro | Torcida | P0 |
+| 17 | Duelo de Torcidas | Torcida | P1 |
+| 18 | Editor de Card | Share | P0 |
+| 19 | Ranking Torcidas | Ranking | P1 |
+| 20 | Meu Ranking | Ranking | P1 |
+| 21 | Perfil Torcedor | Perfil | P0 |
+| 22 | Configuracoes | Settings | P1 |
 
-**Total: 22 telas unicas**
+**23 telas unicas**
 **MVP (P0): 17 telas**
+**Fase 2 (P1): 6 telas adicionais (Live, Duelo, Rankings)**
 
 ---
 
-## 16. Proximos Passos
+## 18. Proximos Passos
 
-1. **Wireframes de alta fidelidade** — Figma com componentes reutilizaveis
-2. **Prototipo interativo** — Fluxo completo clicavel para validacao
-3. **Design system** — Tokens de cor, tipografia, espacamento, componentes
-4. **Teste de usabilidade** — 5 usuarios, fluxo primeiro acesso ate share
-5. **Especificacao de animacoes** — Timing, easing, triggers para cada transicao
+1. Wireframes de alta fidelidade — Figma com escudos reais
+2. Prototipo interativo — Fluxo completo do Derby (COR x PAL)
+3. Design system — Cores adaptativas por time + componentes
+4. Teste de usabilidade — 5 torcedores, fluxo jogo completo
+5. Integracao API-Football — Eventos em tempo real para timeline
+6. Algoritmo de Torcidometro — Agregacao anonima de BPM
+7. Templates de card — 4 tipos com variantes por time
 
