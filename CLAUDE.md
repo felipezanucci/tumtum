@@ -158,7 +158,8 @@ shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link),
 - **Logo font**: Georgia, serif — bold, uppercase, letter-spacing 2-3px
 - **Body font**: system-ui, -apple-system, sans-serif
 - **Theme**: Dark mode only (for MVP)
-- **Tone**: Premium, emotional, nocturnal. The app should feel like being at a concert at night.
+- **Tone**: Bold, daring, acid humor. Tumtum is NOT a wellness app — it's the only health brand that roots for the user to lose control. Taquicardia is flex, not a problem. Copy is dry, deadpan, slightly disrespectful. Banned words: "journey", "mindful", "self-care", "bem-estar", "carinho", "jornada", sparkle emojis on hearts. If it reads like a health-insurance pamphlet, throw it out.
+- **Voice rules**: Short sentences. Full stop. Next. Never explain jokes. The brand laughs at itself. Prefers to annoy over being ignored. See `ESSENCE.md` for the full brand soul and copy examples.
 
 ## Coding standards
 
@@ -242,6 +243,6 @@ Output: [{ timestamp, bpm, duration, magnitude, matched_label }]
 - This is a startup MVP. Speed > perfection. Ship fast, iterate based on feedback.
 - The founder (Felipe) is non-technical but actively learning. Explain decisions clearly.
 - Primary market: Brazil (São Paulo). Events = concerts + football matches.
-- Share cards are the viral engine. They must be visually stunning and instantly shareable.
+- Share cards are the viral engine. They are weapons, not souvenirs — they must make whoever stayed home feel FOMO. Visually striking, copy with bite.
 - Privacy is critical: health data is sensitive. Minimal collection, clear consent, user control.
 - The smart band hardware is NOT part of Phase 0. Don't build BLE or real-time streaming yet.
