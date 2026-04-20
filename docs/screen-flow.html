@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Tumtum — Fluxo de Telas Atual</title>
+<style>
+  :root {
+    --ink: #1a1a24;
+    --muted: #6b6b80;
+    --line: #d6d6e0;
+    --wire-fill: #e4e4ef;
+    --wire-stroke: #b7b7c9;
+    --wire-accent: #8d8dab;
+    --red: #c0392b;
+    --red-soft: #fdecea;
+    --cyan: #00d2ff;
+    --ok: #2d8a4e;
+    --warn: #b26a00;
+    --bg-soft: #f5f5f8;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  .page {
+    page-break-after: always;
+    padding: 4mm 2mm 0 2mm;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  h1, h2, h3, h4 {
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    margin: 0 0 6pt 0;
+    letter-spacing: 0.5px;
+  }
+  h1 { font-size: 28pt; line-height: 1.1; }
+  h2 { font-size: 18pt; border-bottom: 2px solid var(--red); padding-bottom: 4pt; margin-bottom: 10pt; }
+  h3 { font-size: 13pt; margin-top: 10pt; }
+  h4 { font-size: 11pt; font-family: system-ui, sans-serif; text-transform: uppercase; letter-spacing: 1.5px; color: var(--red); margin: 8pt 0 4pt; }
+
+  p { margin: 0 0 6pt 0; }
+  ul { margin: 0 0 6pt 0; padding-left: 16pt; }
+  li { margin-bottom: 2pt; }
+
+  .muted { color: var(--muted); }
+  .small { font-size: 9pt; }
+
+  /* Cover */
+  .cover {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 265mm;
+    padding: 10mm 4mm;
+  }
+  .cover-top .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 9pt;
+    color: var(--red);
+    margin-bottom: 8pt;
+  }
+  .cover-logo {
+    font-family: Georgia, serif;
+    font-weight: bold;
+    font-size: 40pt;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .cover-logo .dot { color: var(--red); }
+  .cover h1 { font-size: 36pt; margin-top: 20pt; }
+  .cover .sub { color: var(--muted); font-size: 13pt; max-width: 150mm; }
+  .cover-meta {
+    border-top: 1px solid var(--line);
+    padding-top: 10pt;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8pt;
+    font-size: 9pt;
+  }
+  .cover-meta div strong { display: block; color: var(--red); text-transform: uppercase; letter-spacing: 1px; font-size: 8pt; margin-bottom: 2pt; }
+
+  /* Overview */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt;
+  }
+  .box {
+    border: 1px solid var(--line);
+    border-radius: 4pt;
+    padding: 8pt 10pt;
+    background: var(--bg-soft);
+  }
+  .box.accent {
+    border-color: var(--red);
+    background: var(--red-soft);
+  }
+  .legend { display: flex; gap: 12pt; flex-wrap: wrap; font-size: 9pt; }
+  .legend span { display: inline-flex; align-items: center; gap: 4pt; }
+  .swatch {
+    display: inline-block;
+    width: 10pt;
+    height: 10pt;
+    border-radius: 2pt;
+    border: 1px solid var(--line);
+  }
+
+  /* Screen flow diagram (later parts) */
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10pt 6pt;
+  }
+  .phone {
+    position: relative;
+    aspect-ratio: 9 / 18;
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 14pt;
+    padding: 5pt 4pt;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone .notch {
+    width: 22%;
+    height: 4pt;
+    background: var(--ink);
+    border-radius: 6pt;
+    margin: 0 auto 4pt;
+  }
+  .phone .label-top {
+    position: absolute;
+    top: -14pt;
+    left: 0;
+    font-size: 8pt;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .phone .label-top strong { color: var(--red); margin-right: 3pt; }
+
+  .wire {
+    background: var(--wire-fill);
+    border-radius: 2pt;
+  }
+  .wire.w-line { height: 3pt; margin-bottom: 3pt; }
+  .wire.w-line.short { width: 50%; }
+  .wire.w-line.mid { width: 75%; }
+  .wire.w-block { height: 22pt; margin-bottom: 4pt; }
+  .wire.w-cta {
+    height: 10pt;
+    background: var(--red);
+    margin-top: auto;
+    margin-bottom: 4pt;
+  }
+  .wire.w-avatar {
+    width: 22pt;
+    height: 22pt;
+    border-radius: 50%;
+    background: var(--wire-accent);
+    margin: 4pt auto 6pt;
+  }
+  .wire.w-pill {
+    height: 8pt;
+    width: 40%;
+    border-radius: 10pt;
+    background: var(--wire-accent);
+    margin-bottom: 3pt;
+  }
+
+  /* Detail cards */
+  .screen-card {
+    border: 1px solid var(--line);
+    border-radius: 4pt;
+    padding: 10pt 12pt;
+    margin-bottom: 10pt;
+    page-break-inside: avoid;
+  }
+  .screen-card .head {
+    display: flex;
+    align-items: baseline;
+    gap: 8pt;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 4pt;
+    margin-bottom: 6pt;
+  }
+  .screen-card .num {
+    font-family: Georgia, serif;
+    font-size: 16pt;
+    color: var(--red);
+    font-weight: bold;
+    min-width: 28pt;
+  }
+  .screen-card .title { font-size: 13pt; font-weight: 600; flex: 1; }
+  .screen-card .route { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9pt; color: var(--muted); }
+  .tag {
+    display: inline-block;
+    font-size: 8pt;
+    padding: 1pt 6pt;
+    border-radius: 10pt;
+    background: var(--bg-soft);
+    color: var(--muted);
+    margin-right: 4pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag.public { background: #e6f4ea; color: var(--ok); }
+  .tag.auth { background: var(--red-soft); color: var(--red); }
+  .tag.warn { background: #fff3e0; color: var(--warn); }
+
+  .kv {
+    display: grid;
+    grid-template-columns: 28mm 1fr;
+    gap: 3pt 8pt;
+    font-size: 9.5pt;
+  }
+  .kv dt { color: var(--muted); text-transform: uppercase; font-size: 8pt; letter-spacing: 1px; padding-top: 2pt; }
+  .kv dd { margin: 0; }
+
+  code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9pt;
+    background: var(--bg-soft);
+    padding: 1pt 3pt;
+    border-radius: 2pt;
+  }
+
+  /* Print tweaks */
+  @media print {
+    .page { padding: 0; }
+    .screen-card, .phone { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =============================================================== -->
+<!-- PAGE 1 — COVER                                                    -->
+<!-- =============================================================== -->
+<section class="page cover">
+  <div class="cover-top">
+    <div class="eyebrow">Documento de Revisão · Produto</div>
+    <div class="cover-logo">TUM<span class="dot">·</span>TUM</div>
+    <h1>Fluxo de Telas<br/>— Estado Atual</h1>
+    <p class="sub">Mapeamento visual e descritivo de todas as telas implementadas no MVP (Fase 0) do Tumtum, pronto para revisão impressa com a equipe.</p>
+  </div>
+  <div class="cover-meta">
+    <div><strong>Versão</strong>MVP · Fase 0</div>
+    <div><strong>Data</strong>20 · Abr · 2026</div>
+    <div><strong>Escopo</strong>Frontend Next.js 14</div>
+    <div><strong>Status</strong>Pronto para revisão</div>
+  </div>
+</section>
+
+<!-- =============================================================== -->
+<!-- PAGE 2 — OVERVIEW                                                 -->
+<!-- =============================================================== -->
+<section class="page">
+  <h2>Visão geral</h2>
+  <p>
+    Este documento registra o fluxo de navegação atualmente implementado no app Tumtum, com base no código-fonte do diretório <code>frontend/app/</code>.
+    O objetivo é servir como referência visual para revisão de produto, identificação de lacunas e alinhamento de prioridades para os próximos sprints.
+  </p>
+
+  <div class="two-col">
+    <div class="box accent">
+      <h4>O que este documento cobre</h4>
+      <ul>
+        <li>Todas as rotas construídas (públicas, autenticação e app)</li>
+        <li>Gatilhos de navegação entre telas (cliques, redirects, submits)</li>
+        <li>Elementos-chave de cada tela</li>
+        <li>Endpoints de API consumidos</li>
+        <li>Lacunas entre a especificação (CLAUDE.md) e o que está em código</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h4>O que este documento NÃO cobre</h4>
+      <ul>
+        <li>Especificações visuais finais (design system)</li>
+        <li>Estados de loading / erro / vazio de cada componente</li>
+        <li>Integrações externas (HealthKit, Setlist.fm) — ainda não conectadas à UI</li>
+        <li>Geração de card (endpoint existe, UI ainda não dispara)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Legenda</h3>
+  <div class="legend">
+    <span><span class="swatch" style="background:#e6f4ea;border-color:#b6dbc2"></span> Pública (sem auth)</span>
+    <span><span class="swatch" style="background:var(--red-soft);border-color:var(--red)"></span> Autenticação</span>
+    <span><span class="swatch" style="background:var(--wire-fill);border-color:var(--wire-stroke)"></span> App autenticado</span>
+    <span><span class="swatch" style="background:#fff3e0;border-color:#e0b877"></span> Lacuna / a construir</span>
+  </div>
+
+  <h3>Resumo das rotas</h3>
+  <dl class="kv">
+    <dt>Públicas</dt>
+    <dd><code>/</code> Landing · <code>/[username]</code> Perfil público</dd>
+    <dt>Autenticação</dt>
+    <dd><code>/login</code> · <code>/signup</code></dd>
+    <dt>App</dt>
+    <dd><code>/onboarding</code> · <code>/events</code> · <code>/events/[id]</code> · <code>/experience</code> · <code>/cards</code> · <code>/profile</code></dd>
+    <dt>Total</dt>
+    <dd>10 rotas construídas</dd>
+  </dl>
+
+  <h3>Observações críticas</h3>
+  <ul>
+    <li><strong>Sem middleware de auth:</strong> as rotas do grupo <code>(app)</code> não têm proteção server-side; o acesso depende das chamadas de API falharem sem JWT válido.</li>
+    <li><strong>Sem gatilho para criar sessão de HR:</strong> o fluxo para do detalhe do evento à tela de experiência. A aquisição de dados de batimentos (HealthKit / Health Connect) ainda não está conectada à UI.</li>
+    <li><strong>Sem UI para gerar card:</strong> a galeria existe e lista cards, mas não há botão que dispare <code>POST /api/cards</code> a partir de um pico.</li>
+  </ul>
+</section>
+
+<!-- =============================================================== -->
+<!-- PAGE 3 — VISUAL FLOW DIAGRAM                                      -->
+<!-- =============================================================== -->
+<section class="page">
+  <h2>Diagrama do fluxo</h2>
+  <p class="muted small">Cada wireframe representa uma tela implementada no código. Setas indicam navegação ativa; linhas tracejadas indicam lacunas (fluxo previsto, mas ainda não disparado pela UI).</p>
+
+  <div class="flow-grid">
+
+    <!-- 1.0 Landing -->
+    <div class="phone">
+      <span class="label-top"><strong>1.0</strong>Landing</span>
+      <div class="notch"></div>
+      <div class="wire w-pill" style="margin:2pt 0 6pt;width:30%"></div>
+      <div class="wire w-block" style="height:34pt;background:linear-gradient(135deg,#c0392b,#08080c)"></div>
+      <div class="wire w-line mid"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-line"></div>
+      <div class="wire w-block"></div>
+      <div class="wire w-cta"></div>
+      <div class="wire w-line short" style="background:var(--wire-accent);margin:0 auto;width:40%"></div>
+    </div>
+
+    <!-- 2.0 Login -->
+    <div class="phone">
+      <span class="label-top"><strong>2.0</strong>Login</span>
+      <div class="notch"></div>
+      <div class="wire w-pill" style="margin:6pt auto 10pt;width:35%"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-block" style="height:12pt"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-block" style="height:12pt"></div>
+      <div class="wire w-cta"></div>
+      <div class="wire w-line short" style="width:45%;margin:2pt auto"></div>
+    </div>
+
+    <!-- 2.1 Signup -->
+    <div class="phone">
+      <span class="label-top"><strong>2.1</strong>Sign-up</span>
+      <div class="notch"></div>
+      <div class="wire w-pill" style="margin:6pt auto 10pt;width:35%"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-block" style="height:10pt"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-block" style="height:10pt"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-block" style="height:10pt"></div>
+      <div class="wire w-cta"></div>
+      <div class="wire w-line short" style="width:45%;margin:2pt auto"></div>
+    </div>
+
+    <!-- 3.0 Onboarding -->
+    <div class="phone">
+      <span class="label-top"><strong>3.0</strong>Onboarding</span>
+      <div class="notch"></div>
+      <div class="wire w-line mid" style="margin-top:4pt"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-block" style="height:26pt;background:var(--wire-accent)"></div>
+      <div class="wire w-block" style="height:16pt"></div>
+      <div class="wire w-block" style="height:16pt"></div>
+      <div class="wire w-cta"></div>
+    </div>
+
+    <!-- 4.0 Events List -->
+    <div class="phone">
+      <span class="label-top"><strong>4.0</strong>Eventos</span>
+      <div class="notch"></div>
+      <div class="wire w-line" style="height:8pt;border-radius:4pt;margin-top:4pt"></div>
+      <div style="display:flex;gap:2pt;margin-bottom:4pt">
+        <div class="wire w-line" style="height:6pt;width:25%;background:var(--red);border-radius:8pt"></div>
+        <div class="wire w-line" style="height:6pt;width:25%;border-radius:8pt"></div>
+        <div class="wire w-line" style="height:6pt;width:25%;border-radius:8pt"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3pt">
+        <div class="wire w-block" style="height:30pt"></div>
+        <div class="wire w-block" style="height:30pt"></div>
+        <div class="wire w-block" style="height:30pt"></div>
+        <div class="wire w-block" style="height:30pt"></div>
+      </div>
+    </div>
+
+    <!-- 4.1 Event Detail -->
+    <div class="phone">
+      <span class="label-top"><strong>4.1</strong>Evento · Detalhe</span>
+      <div class="notch"></div>
+      <div class="wire w-block" style="height:40pt;background:linear-gradient(135deg,#c0392b33,#08080c22)"></div>
+      <div class="wire w-line mid"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-line"></div>
+      <div class="wire w-line" style="height:8pt;background:var(--wire-accent);border-radius:10pt;margin:6pt 0"></div>
+      <div class="wire w-line"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-line"></div>
+    </div>
+
+    <!-- 5.0 Experience -->
+    <div class="phone">
+      <span class="label-top"><strong>5.0</strong>Experiência</span>
+      <div class="notch"></div>
+      <div class="wire w-line mid" style="margin-top:4pt"></div>
+      <div style="display:flex;gap:2pt;margin-bottom:4pt">
+        <div class="wire w-line" style="height:10pt;width:32%"></div>
+        <div class="wire w-line" style="height:10pt;width:32%"></div>
+        <div class="wire w-line" style="height:10pt;width:32%"></div>
+      </div>
+      <svg viewBox="0 0 100 30" style="width:100%;height:30pt;margin-bottom:4pt">
+        <path d="M0,22 C15,18 20,10 30,12 S55,4 65,16 80,26 100,8" fill="none" stroke="#c0392b" stroke-width="1.5"/>
+        <circle cx="30" cy="12" r="1.8" fill="#c0392b"/>
+        <circle cx="65" cy="16" r="1.8" fill="#c0392b"/>
+      </svg>
+      <div class="wire w-block" style="height:12pt"></div>
+      <div class="wire w-block" style="height:12pt"></div>
+    </div>
+
+    <!-- 6.0 Cards -->
+    <div class="phone">
+      <span class="label-top"><strong>6.0</strong>Cards</span>
+      <div class="notch"></div>
+      <div class="wire w-line mid" style="margin-top:4pt"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3pt;margin-top:4pt">
+        <div class="wire w-block" style="height:36pt;background:linear-gradient(135deg,#c0392b,#08080c)"></div>
+        <div class="wire w-block" style="height:36pt;background:linear-gradient(135deg,#c0392b,#08080c)"></div>
+        <div class="wire w-block" style="height:36pt;background:linear-gradient(135deg,#c0392b,#08080c)"></div>
+        <div class="wire w-block" style="height:36pt;background:linear-gradient(135deg,#c0392b,#08080c)"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Second row: profile + public profile -->
+  <div class="flow-grid" style="grid-template-columns:repeat(4,1fr);margin-top:18pt">
+    <div class="phone">
+      <span class="label-top"><strong>7.0</strong>Perfil</span>
+      <div class="notch"></div>
+      <div class="wire w-avatar"></div>
+      <div class="wire w-line short" style="width:55%;margin:0 auto 4pt"></div>
+      <div class="wire w-line short" style="width:40%;margin:0 auto 8pt;background:var(--wire-accent)"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3pt;margin-bottom:5pt">
+        <div class="wire w-block" style="height:16pt"></div>
+        <div class="wire w-block" style="height:16pt"></div>
+        <div class="wire w-block" style="height:16pt"></div>
+        <div class="wire w-block" style="height:16pt"></div>
+      </div>
+      <div class="wire w-line"></div>
+      <div class="wire w-line short"></div>
+      <div class="wire w-cta" style="background:#a0251a"></div>
+    </div>
+
+    <div class="phone">
+      <span class="label-top"><strong>8.0</strong>Perfil Público</span>
+      <div class="notch"></div>
+      <div class="wire w-avatar"></div>
+      <div class="wire w-line short" style="width:55%;margin:0 auto 4pt"></div>
+      <div class="wire w-line short" style="width:40%;margin:0 auto 8pt;background:var(--wire-accent)"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3pt;margin-bottom:5pt">
+        <div class="wire w-block" style="height:20pt"></div>
+        <div class="wire w-block" style="height:20pt"></div>
+        <div class="wire w-block" style="height:20pt"></div>
+      </div>
+      <div class="wire w-line"></div>
+      <div class="wire w-line short"></div>
+    </div>
+
+    <!-- Placeholder: future card-generation screen -->
+    <div class="phone" style="border-style:dashed;border-color:#b26a00;background:#fffaf0">
+      <span class="label-top" style="color:#b26a00"><strong>?</strong>Gerar Card</span>
+      <div class="notch" style="background:#b26a00"></div>
+      <div class="wire w-line mid" style="margin-top:4pt;background:#f3d9a5"></div>
+      <div class="wire w-line short" style="background:#f3d9a5"></div>
+      <div class="wire w-block" style="height:30pt;background:#f3d9a5"></div>
+      <div class="wire w-line" style="background:#f3d9a5"></div>
+      <div class="wire w-line short" style="background:#f3d9a5"></div>
+      <div class="wire w-cta" style="background:#b26a00"></div>
+      <p class="small" style="text-align:center;color:#b26a00;font-size:7pt;margin:4pt 0 0">A construir</p>
+    </div>
+
+    <!-- Placeholder: future HR sync screen -->
+    <div class="phone" style="border-style:dashed;border-color:#b26a00;background:#fffaf0">
+      <span class="label-top" style="color:#b26a00"><strong>?</strong>Sync HR</span>
+      <div class="notch" style="background:#b26a00"></div>
+      <div class="wire w-line mid" style="margin-top:4pt;background:#f3d9a5"></div>
+      <div class="wire w-block" style="height:40pt;background:#f3d9a5"></div>
+      <div class="wire w-line" style="background:#f3d9a5"></div>
+      <div class="wire w-line short" style="background:#f3d9a5"></div>
+      <div class="wire w-cta" style="background:#b26a00"></div>
+      <p class="small" style="text-align:center;color:#b26a00;font-size:7pt;margin:4pt 0 0">A construir</p>
+    </div>
+  </div>
+
+  <!-- Navigation map -->
+  <h3 style="margin-top:14pt">Mapa de navegação</h3>
+  <div class="box small" style="font-family:'SF Mono',Menlo,Consolas,monospace;line-height:1.7">
+    [1.0 Landing] ──▶ [2.0 Login] ──▶ [4.0 Eventos]<br/>
+    [1.0 Landing] ──▶ [2.1 Sign-up] ──▶ [3.0 Onboarding] ──▶ [4.0 Eventos]<br/>
+    [4.0 Eventos] ──▶ [4.1 Evento · Detalhe] ╌╌▶ <span style="color:#b26a00">[? Sync HR]</span> ╌╌▶ [5.0 Experiência]<br/>
+    [5.0 Experiência] ╌╌▶ <span style="color:#b26a00">[? Gerar Card]</span> ╌╌▶ [6.0 Cards]<br/>
+    [6.0 Cards] ──▶ (share externo)<br/>
+    [Nav global] ──▶ [4.0 Eventos] · [6.0 Cards] · [7.0 Perfil]<br/>
+    [7.0 Perfil] ──▶ [3.0 Onboarding] (conectar wearable) · Logout ──▶ [1.0 Landing]<br/>
+    [Link externo] ──▶ [8.0 Perfil Público]
+  </div>
+  <p class="small muted" style="margin-top:4pt">Linhas tracejadas (╌╌▶) indicam transições previstas na arquitetura, mas que ainda não têm gatilho na UI atual.</p>
+</section>
+
+<!-- =============================================================== -->
+<!-- PAGE 4 — SCREEN DETAIL · PUBLIC + AUTH                            -->
+<!-- =============================================================== -->
+<section class="page">
+  <h2>Detalhe das telas · Público &amp; Autenticação</h2>
+
+  <!-- 1.0 Landing -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">1.0</span>
+      <span class="title">Landing Page</span>
+      <span class="route">/</span>
+      <span class="tag public">Pública</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(public)/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Apresentar o produto, comunicar a proposta de valor e converter visitante em cadastro.</dd>
+      <dt>Elementos</dt><dd>Hero com glow animado · cards de features (Conectar · Viver · Compartilhar) · seção "Como funciona" · CTAs</dd>
+      <dt>Ações</dt>
+      <dd>
+        "Começar agora" ▶ <code>/signup</code><br/>
+        "Já tenho conta" ▶ <code>/login</code><br/>
+        CTA final ▶ <code>/signup</code>
+      </dd>
+      <dt>Origem</dt><dd>Entrada direta pelo browser; logout do perfil retorna para cá.</dd>
+      <dt>API</dt><dd class="muted">Nenhuma (conteúdo estático)</dd>
+    </dl>
+  </article>
+
+  <!-- 2.0 Login -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">2.0</span>
+      <span class="title">Login</span>
+      <span class="route">/login</span>
+      <span class="tag auth">Autenticação</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(auth)/login/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Autenticar usuário com email + senha e direcionar para a lista de eventos.</dd>
+      <dt>Elementos</dt><dd>Logo · input de email · input de senha · botão de submit · mensagem de erro · link para cadastro</dd>
+      <dt>Ações</dt>
+      <dd>
+        Submit OK ▶ <code>/events</code> (<code>router.push</code>)<br/>
+        "Criar conta" ▶ <code>/signup</code>
+      </dd>
+      <dt>Origem</dt><dd>Landing (botão "Já tenho conta") · link da tela de signup</dd>
+      <dt>API</dt><dd><code>POST /api/auth/login</code> → JWT salvo em <code>useAuthStore</code></dd>
+    </dl>
+  </article>
+
+  <!-- 2.1 Signup -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">2.1</span>
+      <span class="title">Cadastro</span>
+      <span class="route">/signup</span>
+      <span class="tag auth">Autenticação</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(auth)/signup/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Criar nova conta (nome, email, senha mín. 6 caracteres) e iniciar onboarding.</dd>
+      <dt>Elementos</dt><dd>Logo · input de nome · input de email · input de senha · submit · link para login</dd>
+      <dt>Ações</dt>
+      <dd>
+        Submit OK ▶ <code>/onboarding</code> (<code>router.push</code>)<br/>
+        "Fazer login" ▶ <code>/login</code>
+      </dd>
+      <dt>Origem</dt><dd>Landing (botão "Começar agora" ou CTA final)</dd>
+      <dt>API</dt><dd><code>POST /api/auth/register</code> → JWT salvo em <code>useAuthStore</code></dd>
+    </dl>
+  </article>
+
+  <!-- 8.0 Public Profile -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">8.0</span>
+      <span class="title">Perfil Público</span>
+      <span class="route">/[username]</span>
+      <span class="tag public">Pública</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(public)/[username]/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Exibir perfil resumido de outro usuário quando acessado por link externo (compartilhamento social).</dd>
+      <dt>Elementos</dt><dd>Avatar · nome · data de cadastro · stats públicos (Sessões · Eventos · Cards) · rodapé com marca</dd>
+      <dt>Ações</dt><dd class="muted">Sem navegação interna — página terminal acessada via link externo.</dd>
+      <dt>Origem</dt><dd>Compartilhamentos externos (futuro)</dd>
+      <dt>API</dt><dd><code>GET /api/users/{user_id}</code> (sem auth)</dd>
+      <dt>Atenção</dt><dd><span class="tag warn">Inconsistência</span> O segmento da rota é <code>[username]</code>, mas o backend espera UUID. A implementação atual repassa <code>params.username</code> como se fosse ID.</dd>
+    </dl>
+  </article>
+</section>
+
+<!-- =============================================================== -->
+<!-- PAGE 5 — SCREEN DETAIL · APP (onboarding + events)                -->
+<!-- =============================================================== -->
+<section class="page">
+  <h2>Detalhe das telas · App autenticado (1/2)</h2>
+
+  <!-- 3.0 Onboarding -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">3.0</span>
+      <span class="title">Onboarding · Conectar Wearable</span>
+      <span class="route">/onboarding</span>
+      <span class="tag">App</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(app)/onboarding/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Wizard de 3 passos (boas-vindas → escolha do wearable → pronto) para configurar a fonte de dados de batimento cardíaco.</dd>
+      <dt>Elementos</dt>
+      <dd>
+        Card de boas-vindas com emoji · opções de wearable (Apple Watch, Wear OS) · indicadores de progresso (dots) · botões de ação (Começar, Conectar, Pular, Explorar eventos)
+      </dd>
+      <dt>Ações</dt>
+      <dd>
+        "Começar" ▶ passo de seleção de wearable<br/>
+        "Conectar" ▶ chama <code>connectWearable()</code> e avança para o passo final<br/>
+        "Pular" ▶ avança direto para o passo final<br/>
+        "Explorar eventos" ▶ <code>/events</code>
+      </dd>
+      <dt>Origem</dt><dd>Conclusão do cadastro · link "Conectar agora" da tela de perfil</dd>
+      <dt>API</dt><dd><code>POST /api/health/wearables</code> (cria <code>WearableConnection</code>)</dd>
+      <dt>Atenção</dt><dd><span class="tag warn">Lacuna</span> Ainda não há fluxo real de OAuth com HealthKit ou Health Connect — só o registro da conexão no backend.</dd>
+    </dl>
+  </article>
+
+  <!-- 4.0 Events List -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">4.0</span>
+      <span class="title">Lista de Eventos</span>
+      <span class="route">/events</span>
+      <span class="tag">App</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(app)/events/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Navegar eventos futuros (shows, esportes, festivais) com busca e filtros. Ponto de entrada para o fluxo de experiência.</dd>
+      <dt>Elementos</dt>
+      <dd>
+        Nav fixa · título · busca · filtros por tipo (Todos · Show · Esporte · Festival) · grid 2-col de cards (capa · badge de tipo · nome · local · data) · estado vazio
+      </dd>
+      <dt>Ações</dt>
+      <dd>
+        Card do evento ▶ <code>/events/[id]</code><br/>
+        Busca ▶ recarrega com <code>?q=</code> (debounced)<br/>
+        Filtro ▶ recarrega com <code>?event_type=</code><br/>
+        Logo da nav ▶ <code>/</code>
+      </dd>
+      <dt>Origem</dt><dd>Passo final do onboarding · nav global · link "Ver eventos"</dd>
+      <dt>API</dt><dd><code>GET /api/events</code> (params: <code>q</code>, <code>event_type</code>, <code>city</code>, <code>date_from</code>, <code>date_to</code>)</dd>
+    </dl>
+  </article>
+
+  <!-- 4.1 Event Detail -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">4.1</span>
+      <span class="title">Detalhe do Evento</span>
+      <span class="route">/events/[id]</span>
+      <span class="tag">App</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(app)/events/[id]/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Exibir informações completas do evento e sua timeline (setlist de músicas, lances da partida, etc). Deveria ser o ponto de partida para registrar uma sessão de HR.</dd>
+      <dt>Elementos</dt>
+      <dd>
+        Nav · capa em largura total · badge + título + subtítulo · bloco de informações (local, cidade, país, data) · componente <code>TimelineBar</code> com os marcos do evento
+      </dd>
+      <dt>Ações</dt>
+      <dd>
+        Logo da nav ▶ <code>/</code><br/>
+        "Eventos" na nav ▶ <code>/events</code>
+      </dd>
+      <dt>Origem</dt><dd>Clique em um card da lista de eventos</dd>
+      <dt>API</dt><dd><code>GET /api/events/{event_id}</code> (traz timeline embutida)</dd>
+      <dt>Atenção</dt><dd><span class="tag warn">Lacuna crítica</span> Não existe botão para iniciar sessão de HR ou acionar o sync. O fluxo para aqui.</dd>
+    </dl>
+  </article>
+</section>
+
+<!-- =============================================================== -->
+<!-- PAGE 6 — SCREEN DETAIL · APP (experience + cards + profile)       -->
+<!-- =============================================================== -->
+<section class="page">
+  <h2>Detalhe das telas · App autenticado (2/2)</h2>
+
+  <!-- 5.0 Experience -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">5.0</span>
+      <span class="title">Experiência · Visualização de HR</span>
+      <span class="route">/experience?session=…</span>
+      <span class="tag">App</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(app)/experience/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Exibir a curva animada de batimentos sincronizada com a timeline do evento, listar picos ranqueados por intensidade e servir de partida para geração de cards.</dd>
+      <dt>Elementos</dt>
+      <dd>
+        Nav · cabeçalho "Sua Experiência" + stats (BPM médio/máx/mín · qualidade dos dados) · componente <code>HRCurve</code> (chart com marcadores de pico) · coluna esquerda (2/3) com <code>PeakMarker</code> por pico · coluna direita (1/3) com <code>TimelineBar</code> · estado vazio
+      </dd>
+      <dt>Ações</dt>
+      <dd>
+        Requer <code>?session=[uuid]</code> na URL<br/>
+        <span class="muted">(Clique em pico → disparar geração de card — previsto, ainda não implementado)</span>
+      </dd>
+      <dt>Origem</dt><dd class="muted">Nenhum link interno ainda. No futuro: callback do sync de HR ou upload manual de sessão.</dd>
+      <dt>API</dt>
+      <dd>
+        <code>GET /api/experience/{session_id}</code><br/>
+        <code>POST /api/experience/{session_id}/analyze</code>
+      </dd>
+      <dt>Atenção</dt><dd><span class="tag warn">Lacuna</span> Sem entrada navegacional definida — tela existe, mas só é acessível colando a URL com um session_id válido.</dd>
+    </dl>
+  </article>
+
+  <!-- 6.0 Cards -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">6.0</span>
+      <span class="title">Galeria de Cards</span>
+      <span class="route">/cards</span>
+      <span class="tag">App</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(app)/cards/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Listar cards gerados (solo ou comparação), permitir compartilhar em redes sociais, baixar ou excluir.</dd>
+      <dt>Elementos</dt>
+      <dd>
+        Nav · título "Seus Cards" · grid de thumbnails com badges (Solo/Comparação · Pronto/Gerando) · nome do evento · BPM do pico · data · botões Compartilhar / Baixar / Excluir · menu de plataformas de share · estado vazio
+      </dd>
+      <dt>Ações</dt>
+      <dd>
+        "Compartilhar" ▶ abre menu (Instagram · X · WhatsApp · TikTok · Copiar link) → dispara <code>trackShare()</code><br/>
+        "Baixar" ▶ download da imagem<br/>
+        "Excluir" ▶ remove o card
+      </dd>
+      <dt>Origem</dt><dd>Nav global · botão "Ver todos" na tela de perfil</dd>
+      <dt>API</dt>
+      <dd>
+        <code>GET /api/cards</code> · <code>GET /api/cards/{id}/image</code><br/>
+        <code>DELETE /api/cards/{id}</code> · <code>POST /api/cards/{id}/share</code>
+      </dd>
+      <dt>Atenção</dt><dd><span class="tag warn">Lacuna</span> Não há UI que dispare <code>POST /api/cards</code> para gerar um novo card a partir de um pico.</dd>
+    </dl>
+  </article>
+
+  <!-- 7.0 Profile -->
+  <article class="screen-card">
+    <div class="head">
+      <span class="num">7.0</span>
+      <span class="title">Perfil</span>
+      <span class="route">/profile</span>
+      <span class="tag">App</span>
+    </div>
+    <dl class="kv">
+      <dt>Arquivo</dt><dd><code>frontend/app/(app)/profile/page.tsx</code></dd>
+      <dt>Propósito</dt><dd>Visualizar e editar dados do usuário, gerenciar wearables conectados, ver estatísticas e cards recentes, fazer logout.</dd>
+      <dt>Elementos</dt>
+      <dd>
+        Nav · avatar + nome editável + email + data de cadastro · botões Editar/Salvar/Cancelar · grid de stats (Sessões · Eventos · Cards · BPM mais alto) · seção "Dispositivos conectados" · seção "Cards recentes" (6 thumbnails) · botão "Sair da conta"
+      </dd>
+      <dt>Ações</dt>
+      <dd>
+        "Editar" ▶ habilita input inline de nome<br/>
+        "Salvar" ▶ <code>PATCH /api/users/me</code><br/>
+        "Conectar agora" ▶ <code>/onboarding</code><br/>
+        "Ver todos" ▶ <code>/cards</code><br/>
+        "Sair da conta" ▶ <code>logout()</code> → <code>/</code>
+      </dd>
+      <dt>Origem</dt><dd>Nav global · redirecionamento após tentativa de acesso negado</dd>
+      <dt>API</dt>
+      <dd>
+        <code>GET /api/users/me</code> · <code>PATCH /api/users/me</code><br/>
+        <code>GET /api/health/wearables</code> · <code>GET /api/cards</code>
+      </dd>
+    </dl>
+  </article>
+</section>
+
+<!-- =============================================================== -->
+<!-- PAGE 7 — GAPS & NEXT STEPS                                        -->
+<!-- =============================================================== -->
+<section class="page">
+  <h2>Lacunas &amp; próximos passos</h2>
+
+  <h3>Lacunas funcionais priorizadas</h3>
+
+  <article class="screen-card" style="border-color:#e0b877;background:#fffaf0">
+    <div class="head"><span class="num" style="color:#b26a00">P0</span><span class="title">Aquisição de dados de HR</span></div>
+    <p class="small">Sem um caminho para o usuário gerar uma sessão de HR, toda a jornada pós-evento fica inacessível. Hoje a tela de experiência é órfã de entrada.</p>
+    <dl class="kv">
+      <dt>Impacto</dt><dd>Bloqueia a validação da hipótese central do MVP (ver sua reação emocional ao evento).</dd>
+      <dt>Proposta</dt><dd>Construir botão "Registrar sessão" no detalhe do evento que dispare fluxo de sync (HealthKit on-device / Health Connect OAuth) e, ao concluir, redirecione para <code>/experience?session=…</code>.</dd>
+      <dt>Dependências</dt><dd>Integrações em <code>lib/health/</code> precisam ser conectadas à UI; endpoint <code>POST /api/health/sync</code> já existe no backend.</dd>
+    </dl>
+  </article>
+
+  <article class="screen-card" style="border-color:#e0b877;background:#fffaf0">
+    <div class="head"><span class="num" style="color:#b26a00">P0</span><span class="title">Geração de card a partir de um pico</span></div>
+    <p class="small">A galeria lista cards, mas não há ação que crie um novo. O motor viral do produto está desligado.</p>
+    <dl class="kv">
+      <dt>Impacto</dt><dd>Impede o momento-chave de compartilhamento, principal canal de crescimento orgânico previsto.</dd>
+      <dt>Proposta</dt><dd>Na tela de experiência, clicar em um <code>PeakMarker</code> abre modal de preview do card e dispara <code>POST /api/cards</code>; ao concluir redireciona para <code>/cards</code> destacando o novo item.</dd>
+      <dt>Dependências</dt><dd>Serviço <code>card_generator.py</code> e endpoint já existentes no backend.</dd>
+    </dl>
+  </article>
+
+  <article class="screen-card" style="border-color:#e0b877;background:#fffaf0">
+    <div class="head"><span class="num" style="color:#b26a00">P1</span><span class="title">Proteção das rotas autenticadas</span></div>
+    <p class="small">Não há <code>middleware.ts</code>; páginas do grupo <code>(app)</code> carregam para qualquer visitante e quebram ao fazer a primeira chamada de API.</p>
+    <dl class="kv">
+      <dt>Impacto</dt><dd>UX degradada (flash de tela vazia + erro) e superfície de risco para vazamento de dados via componentes client-side.</dd>
+      <dt>Proposta</dt><dd>Adicionar <code>middleware.ts</code> que valida cookie/token e redireciona para <code>/login</code> quando ausente nas rotas do grupo <code>(app)</code>.</dd>
+    </dl>
+  </article>
+
+  <article class="screen-card" style="border-color:#e0b877;background:#fffaf0">
+    <div class="head"><span class="num" style="color:#b26a00">P2</span><span class="title">Perfil público por <code>username</code></span></div>
+    <p class="small">Rota <code>/[username]</code> existe mas o backend só expõe busca por UUID; o link de share vai gerar 404 na vida real.</p>
+    <dl class="kv">
+      <dt>Proposta</dt><dd>Adicionar campo <code>username</code> único em <code>users</code>, endpoint <code>GET /api/users/by-username/{username}</code> e atualizar a página para buscar por username.</dd>
+    </dl>
+  </article>
+
+  <h3>Telas previstas no CLAUDE.md ainda não implementadas</h3>
+  <ul>
+    <li><strong>Tela de geração/preview de card</strong> — motor viral.</li>
+    <li><strong>Tela de sync / importação de HR</strong> — callback do wearable.</li>
+    <li><strong>Esqueci minha senha</strong> — fluxo comum de recuperação, ausente no código.</li>
+    <li><strong>Login social (Apple / Google)</strong> — previsto, ainda só email/senha.</li>
+    <li><strong>Modo de comparação com artista/atleta</strong> — só o card solo existe.</li>
+    <li><strong>Coleções / favoritos</strong> — mencionado no produto, sem rota.</li>
+  </ul>
+
+  <h3>Infraestrutura &amp; qualidade</h3>
+  <ul>
+    <li>Sem Sentry configurado (monitoramento de erros).</li>
+    <li>Sem PostHog (analytics de funil).</li>
+    <li>Sem manifesto PWA / instalabilidade.</li>
+    <li>Sem tasks Celery em uso real (geração de card ainda síncrona).</li>
+    <li>Sem integração ativa com Setlist.fm ou APIs de esportes (eventos são seed manual).</li>
+  </ul>
+
+  <h3>Recomendação para a próxima sprint</h3>
+  <div class="box accent">
+    <p class="small" style="margin:0"><strong>Foco sugerido (Sprint 3):</strong> fechar a jornada ponta-a-ponta para um único caso (show com Apple HealthKit). Isso significa 4 entregas conectadas: (1) botão de registro na tela do evento, (2) fluxo de sync real em on-device, (3) redirecionamento automático para a tela de experiência após o sync, (4) geração de card a partir de um pico. Tudo o mais (comparação, esportes, Android) fica como P2 até termos o primeiro loop completo validado com usuários.</p>
+  </div>
+
+  <p class="small muted" style="margin-top:12pt;text-align:center">Documento gerado em 20 · Abr · 2026 · Tumtum · MVP Fase 0 · Branch <code>claude/document-app-screen-flow-SSPjw</code></p>
+</section>
+
+</body>
+</html>
