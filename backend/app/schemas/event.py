@@ -60,7 +60,7 @@ class TimelineEntryResponse(BaseModel):
     timestamp: datetime
     label: str
     entry_type: str
-    metadata: dict | None = None
+    metadata_: dict | None = Field(None, alias="metadata_")
 
     model_config = {"from_attributes": True}
 

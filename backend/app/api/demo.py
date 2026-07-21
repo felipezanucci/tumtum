@@ -207,10 +207,17 @@ async def seed_database(db: AsyncSession = Depends(get_db)):
     if result.scalar_one_or_none():
         return {"message": "Database já possui eventos. Seed ignorado.", "events_created": 0}
 
+    # Event start_time/end_time columns are TIME WITH TIME ZONE, so the values
+    # must be timezone-aware. Seed times are in Brasília time (UTC-3).
+    brt = timezone(timedelta(hours=-3))
+
     created_events = []
     for ev_data in SEED_EVENTS:
         timeline_data = ev_data["timeline"]
         event_fields = {k: v for k, v in ev_data.items() if k != "timeline"}
+        for time_field in ("start_time", "end_time"):
+            if event_fields.get(time_field) is not None:
+                event_fields[time_field] = event_fields[time_field].replace(tzinfo=brt)
 
         event = Event(**event_fields)
         db.add(event)
