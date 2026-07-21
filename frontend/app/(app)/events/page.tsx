@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useEventStore } from '@/lib/stores/useEventStore'
-import { Card, Badge, Loading, Input } from '@/components/ui'
+import { demo } from '@/lib/api'
+import { Card, Badge, Button, Loading, Input } from '@/components/ui'
 import { Nav } from '@/components/layout'
 
 const eventTypeLabels: Record<string, string> = {
@@ -22,10 +23,21 @@ export default function EventsPage() {
   const { eventList, eventsLoading, loadEvents } = useEventStore()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('')
+  const [seeding, setSeeding] = useState(false)
 
   useEffect(() => {
     loadEvents({ q: search || undefined, event_type: typeFilter || undefined })
   }, [search, typeFilter, loadEvents])
+
+  async function handleSeed() {
+    setSeeding(true)
+    try {
+      await demo.seed()
+      loadEvents()
+    } finally {
+      setSeeding(false)
+    }
+  }
 
   return (
     <>
@@ -67,8 +79,19 @@ export default function EventsPage() {
             <div className="py-20 text-center">
               <p className="text-lg text-tumtum-text-muted">Nenhum evento encontrado</p>
               <p className="mt-1 text-sm text-tumtum-text-muted">
-                Tente ajustar os filtros ou buscar por outro termo.
+                {search || typeFilter
+                  ? 'Tente ajustar os filtros ou buscar por outro termo.'
+                  : 'Popule o banco com eventos de demonstração para começar.'}
               </p>
+              {!search && !typeFilter && (
+                <Button
+                  className="mt-4"
+                  onClick={handleSeed}
+                  disabled={seeding}
+                >
+                  {seeding ? 'Criando eventos...' : 'Carregar Eventos de Demo'}
+                </Button>
+              )}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">

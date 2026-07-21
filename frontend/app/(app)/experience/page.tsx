@@ -1,10 +1,11 @@
 'use client'
 
-import { Suspense, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useEventStore } from '@/lib/stores/useEventStore'
+import { cards } from '@/lib/api'
 import { HRCurve, PeakMarker, TimelineBar } from '@/components/hr'
-import { Loading } from '@/components/ui'
+import { Button, Loading } from '@/components/ui'
 import { Nav } from '@/components/layout'
 
 export default function ExperiencePage() {
@@ -17,9 +18,12 @@ export default function ExperiencePage() {
 
 function ExperienceContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const sessionId = searchParams.get('session')
 
   const { experienceData, experienceLoading, loadExperience } = useEventStore()
+  const [generatingCard, setGeneratingCard] = useState(false)
+  const [cardError, setCardError] = useState<string | null>(null)
 
   useEffect(() => {
     if (sessionId) {
@@ -69,32 +73,62 @@ function ExperienceContent() {
 
   const { session, peaks, timeline } = experienceData
 
+  async function handleGenerateCard() {
+    if (!sessionId) return
+    setGeneratingCard(true)
+    setCardError(null)
+    try {
+      const topPeak = peaks.length > 0 ? peaks[0] : null
+      await cards.create({
+        session_id: sessionId,
+        peak_id: topPeak?.id,
+        card_type: 'solo',
+        format: 'story',
+      })
+      router.push('/cards')
+    } catch (err: any) {
+      setCardError(err.detail || 'Erro ao gerar card')
+    } finally {
+      setGeneratingCard(false)
+    }
+  }
+
   return (
     <>
       <Nav />
       <main className="min-h-screen bg-tumtum-dark">
         <div className="mx-auto max-w-5xl px-4 py-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-tumtum-text-primary">
-              Sua Experiência
-            </h1>
-            <div className="mt-2 flex flex-wrap gap-4 text-sm text-tumtum-text-muted">
-              {session.avg_bpm && <span>Média: {session.avg_bpm} bpm</span>}
-              {session.max_bpm && (
-                <span className="text-tumtum-red">Máx: {session.max_bpm} bpm</span>
-              )}
-              {session.min_bpm && <span>Mín: {session.min_bpm} bpm</span>}
-              {session.data_quality_score !== null && (
-                <span>Qualidade: {session.data_quality_score}%</span>
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-tumtum-text-primary">
+                Sua Experiência
+              </h1>
+              <div className="mt-2 flex flex-wrap gap-4 text-sm text-tumtum-text-muted">
+                {session.avg_bpm && <span>Média: {session.avg_bpm} bpm</span>}
+                {session.max_bpm && (
+                  <span className="text-tumtum-red">Máx: {session.max_bpm} bpm</span>
+                )}
+                {session.min_bpm && <span>Mín: {session.min_bpm} bpm</span>}
+                {session.data_quality_score !== null && (
+                  <span>Qualidade: {session.data_quality_score}%</span>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <Button onClick={handleGenerateCard} disabled={generatingCard}>
+                {generatingCard ? 'Gerando...' : 'Gerar Card para Compartilhar'}
+              </Button>
+              {cardError && (
+                <p className="text-xs text-red-400">{cardError}</p>
               )}
             </div>
           </div>
 
-          {/* HR Curve — placeholder data for the chart */}
+          {/* HR Curve */}
           <div className="mb-8 rounded-xl border border-tumtum-border bg-tumtum-surface p-4">
             <HRCurve
-              data={[]}
+              data={experienceData.hr_data || []}
               peaks={peaks}
               timeline={timeline}
               height={350}

@@ -1,21 +1,38 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { useEventStore } from '@/lib/stores/useEventStore'
+import { demo } from '@/lib/api'
 import { TimelineBar } from '@/components/hr'
-import { Badge, Loading } from '@/components/ui'
+import { Badge, Button, Loading } from '@/components/ui'
 import { Nav } from '@/components/layout'
 
 export default function EventDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const eventId = params.id as string
 
   const { currentEvent, eventsLoading, loadEvent } = useEventStore()
+  const [simulating, setSimulating] = useState(false)
+  const [simulateError, setSimulateError] = useState<string | null>(null)
 
   useEffect(() => {
     if (eventId) loadEvent(eventId)
   }, [eventId, loadEvent])
+
+  async function handleSimulate() {
+    setSimulating(true)
+    setSimulateError(null)
+    try {
+      const result = await demo.simulate(eventId)
+      router.push(`/experience?session=${result.session.id}`)
+    } catch (err: any) {
+      setSimulateError(err.detail || 'Erro ao simular experiência')
+    } finally {
+      setSimulating(false)
+    }
+  }
 
   if (eventsLoading) {
     return (
@@ -80,6 +97,26 @@ export default function EventDetailPage() {
             {event.venue && <span>📍 {event.venue}</span>}
             {event.city && <span>{event.city}{event.country ? `, ${event.country}` : ''}</span>}
             <span>📅 {formattedDate}</span>
+          </div>
+
+          {/* Simulate CTA */}
+          <div className="mt-8 rounded-xl border border-tumtum-border bg-tumtum-surface p-6">
+            <h2 className="text-lg font-semibold text-tumtum-text-primary">
+              Simular Experiência
+            </h2>
+            <p className="mt-1 text-sm text-tumtum-text-muted">
+              Veja como seria sua experiência nesse evento com dados simulados de frequência cardíaca.
+            </p>
+            <Button
+              className="mt-4"
+              onClick={handleSimulate}
+              disabled={simulating}
+            >
+              {simulating ? 'Simulando...' : 'Simular Experiência'}
+            </Button>
+            {simulateError && (
+              <p className="mt-2 text-sm text-red-400">{simulateError}</p>
+            )}
           </div>
 
           {/* Timeline */}

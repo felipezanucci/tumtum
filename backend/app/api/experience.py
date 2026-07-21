@@ -12,7 +12,7 @@ from app.models.hr_data import HRData
 from app.models.event import Event
 from app.models.event_timeline import EventTimeline
 from app.models.peak import Peak
-from app.schemas.event import PeakResponse, ExperienceResponse, HRSessionSummary, TimelineEntryResponse
+from app.schemas.event import PeakResponse, ExperienceResponse, HRSessionSummary, TimelineEntryResponse, HRDataPointBrief
 from app.services.peak_detection import detect_peaks
 from app.services.event_correlator import correlate_peaks_to_timeline
 
@@ -133,8 +133,15 @@ async def get_experience(
             resp.matched_label = tl_map.get(str(peak.timeline_entry_id))
         peak_responses.append(resp)
 
+    # Fetch HR data points for the curve
+    data_result = await db.execute(
+        select(HRData).where(HRData.session_id == session_id).order_by(HRData.time)
+    )
+    data_points = data_result.scalars().all()
+
     return ExperienceResponse(
         session=HRSessionSummary.model_validate(session),
         peaks=peak_responses,
         timeline=[TimelineEntryResponse.model_validate(e) for e in timeline_entries],
+        hr_data=[HRDataPointBrief(time=dp.time, bpm=dp.bpm) for dp in data_points],
     )
