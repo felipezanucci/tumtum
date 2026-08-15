@@ -1,18 +1,20 @@
 'use client'
 
 import type { TimelineEntry } from '@/lib/api'
+import { Music, Target, Pause, Flame, Star } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 interface TimelineBarProps {
   entries: TimelineEntry[]
   className?: string
 }
 
-const entryTypeIcons: Record<string, string> = {
-  song_start: '🎵',
-  goal: '⚽',
-  halftime: '⏸',
-  encore: '🔥',
-  highlight: '⭐',
+const entryTypeIcons: Record<string, ReactNode> = {
+  song_start: <Music className="w-4 h-4 text-tumtum-text-primary" />,
+  goal: <Target className="w-4 h-4 text-tumtum-text-primary" />,
+  halftime: <Pause className="w-4 h-4 text-tumtum-text-primary" />,
+  encore: <Flame className="w-4 h-4 text-tumtum-text-primary" />,
+  highlight: <Star className="w-4 h-4 text-tumtum-text-primary" />,
 }
 
 export default function TimelineBar({ entries, className = '' }: TimelineBarProps) {
@@ -33,7 +35,7 @@ export default function TimelineBar({ entries, className = '' }: TimelineBarProp
               hour: '2-digit',
               minute: '2-digit',
             })
-            const icon = entryTypeIcons[entry.entry_type] || '•'
+            const icon = entryTypeIcons[entry.entry_type] || <span className="text-tumtum-text-muted">&#8226;</span>
 
             return (
               <div key={entry.id} className="relative flex items-start gap-3 pl-1">

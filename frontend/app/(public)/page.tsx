@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Watch, Music, Share2 } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -58,23 +59,23 @@ export default function LandingPage() {
           <div className="grid gap-8 sm:grid-cols-3">
             {[
               {
-                icon: '⌚',
+                icon: <Watch className="w-8 h-8 text-tumtum-red" />,
                 title: 'Conecte',
                 description: 'Vincule seu Apple Watch, Wear OS ou outro wearable que monitora frequência cardíaca.',
               },
               {
-                icon: '🎵',
+                icon: <Music className="w-8 h-8 text-tumtum-red" />,
                 title: 'Viva',
                 description: 'Vá a um show, jogo ou festival. Seu wearable captura cada batida do seu coração.',
               },
               {
-                icon: '🔥',
+                icon: <Share2 className="w-8 h-8 text-tumtum-red" />,
                 title: 'Compartilhe',
                 description: 'Veja seus picos de emoção sincronizados com o setlist e compartilhe com seus amigos.',
               },
             ].map(({ icon, title, description }) => (
               <div key={title} className="text-center">
-                <div className="mb-4 text-5xl">{icon}</div>
+                <div className="mb-4 flex justify-center">{icon}</div>
                 <h3 className="mb-2 text-xl font-semibold text-tumtum-text-primary">{title}</h3>
                 <p className="text-sm text-tumtum-text-muted">{description}</p>
               </div>
