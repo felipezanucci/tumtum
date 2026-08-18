@@ -16,15 +16,14 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 # Brand colors
-# Brand palette v2.0 — see shared/brand/BRAND.md
-TUMTUM_RED = (255, 46, 60)       # #FF2E3C Batida — the user's heart rate
-TUMTUM_RED_SEC = (255, 85, 97)   # #FF5561 Batida lifted
-TUMTUM_DARK = (10, 10, 15)       # #0A0A0F Preto Palco
-TUMTUM_SURFACE = (21, 20, 28)    # #15141C
-TUMTUM_BORDER = (42, 40, 56)     # #2A2838
-TUMTUM_MUTED = (138, 135, 160)   # #8A87A0 Nevoa
-TUMTUM_TEXT = (244, 242, 247)    # #F4F2F7 Luz
-TUMTUM_ACCENT = (0, 229, 255)    # #00E5FF Palco — artist line only
+TUMTUM_RED = (192, 57, 43)       # #C0392B
+TUMTUM_RED_SEC = (231, 76, 60)   # #E74C3C
+TUMTUM_DARK = (8, 8, 12)         # #08080C
+TUMTUM_SURFACE = (17, 17, 24)    # #111118
+TUMTUM_BORDER = (26, 26, 36)     # #1A1A24
+TUMTUM_MUTED = (107, 107, 128)   # #6B6B80
+TUMTUM_TEXT = (240, 240, 245)    # #F0F0F5
+TUMTUM_ACCENT = (0, 210, 255)    # #00D2FF
 
 # Card dimensions
 STORY_SIZE = (1080, 1920)

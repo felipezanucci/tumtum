@@ -147,58 +147,27 @@ shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link),
 
 ## Brand identity
 
-Full guidelines live in `shared/brand/BRAND.md`; machine-readable values in
-`shared/brand/tokens.json` and `shared/brand/tokens.css`. Rebuilt from scratch in v2.0 (Aug 2026),
-inspired by MTV's variable-logo system.
+**Status: pending.** The visual identity is being commissioned from an external designer and has
+not been defined yet. Nothing in this section is a brand decision.
 
-### The idea
+The written brief handed to the designer is `shared/brand/DESIGN-BRIEF.md` — it covers the product,
+the audience, the feeling to trigger and the brand personality, and deliberately carries no visual
+direction. Read it before writing any user-facing copy: the personality and tone-of-voice rules in
+it are already agreed and do apply.
 
-The logo is a **container**, not a drawing. Two parts:
-- **O Bloco** — `TUM` in heavy slab geometry, one packed silhouette, the M's chevron dropping deep as
-  the valley between two beats. The geometry never changes.
-- **O Risco** — `tum`, hand-drawn, always crossing the lower right at −5°, always with a knockout halo.
+Until the identity lands, the values below are **placeholders inherited from the initial scaffold**.
+Use them so the app stays coherent, but do not treat them as brand, do not build a design system on
+top of them, and expect all of them to be replaced.
 
-**Shape is law, fill is free.** The Bloco accepts any paint: flat colour, texture, photo, video, or —
-the default on share cards — the user's own heart-rate curve from that event. Every user leaves a show
-with a logo that never existed before.
+- Primary: `#C0392B` · Secondary red: `#E74C3C` · Accent (artist HR line): `#00D2FF`
+- Background `#08080C` · Surface `#111118` · Border `#1A1A24`
+- Text muted `#6B6B80` · Text primary `#F0F0F5`
+- Wordmark: Georgia serif, bold, uppercase — placeholder, not a logo
+- Body font: `system-ui`
+- Dark mode only for the MVP
 
-Assets: `shared/brand/logo/*.svg`. In the app use `frontend/components/brand/Logo.tsx`
-(`variant`: primary | icon | horizontal | seal; pass any SVG paint to `fill`, including `url(#id)`).
-
-### Colour
-
-Core (never changes): **#0A0A0F** Preto Palco (background) · **#FF2E3C** Batida (brand red, the user's
-HR line) · **#F4F2F7** Luz (text, the Risco).
-
-Functional: **#00E5FF** Palco (artist/athlete line only — never decorative) · **#15141C** surface ·
-**#1F1D2A** raised · **#2A2838** border · **#8A87A0** muted text.
-
-Carnival (rotates by event/artist/campaign, **one per surface**): **#D4FF3D** Ácido · **#FF3DBE**
-Choque · **#FFCC00** Sol · **#7A3DFF** Ultravioleta (large text and fills only, 3.7:1) ·
-**#00E676** Campo.
-
-Semantic: success #00E676, warning #FFCC00, error #FF2E3C (always with icon and text; no other red on
-that screen).
-
-### Type
-
-- **Display**: Bricolage Grotesque (variable wdth/wght) — headlines only
-- **Text**: Instrument Sans — all interface copy
-- **Data**: Martian Mono, tabular-nums — every number that represents someone's body (BPM, sync %)
-
-Loaded via `next/font/google` in `app/layout.tsx`, exposed as `--font-display`, `--font-sans`,
-`--font-mono`, with helper classes `.tt-display`, `.tt-data`, `.tt-label` in `globals.css`.
-
-### Theme and tone
-
-- **Theme**: dark mode only, by design — the brand commits to one nocturnal world
-- **Personality**: Creator 60% / Jester 30% / Lover 10%. Loud not aggressive, intimate not invasive,
-  exaggerated not dishonest, precise with data but never clinical
-- **Feeling to trigger**: *arrepio* — the instant of recognition, "I knew that moment was different,
-  and now I have proof"
-- **Voice** (pt-BR): *batida* not frequência cardíaca; *a gente* not nós; the person is the subject
-  ("seu coração bateu 187", never "nós detectamos"); headlines under 12 words; **zero medical advice**
-- **Taglines under test**: "O show que seu coração viu." · "Prova que você sentiu." · "Bateu, ficou."
+Two things are settled and should hold regardless of what the designer delivers: UI text is
+Brazilian Portuguese, and the product never gives medical advice or interprets anyone's health data.
 
 ## Coding standards
 

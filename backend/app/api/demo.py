@@ -1,6 +1,6 @@
 """Demo API — seed data and simulate experiences for testing.
 
-These endpoints allow testing the full TumTum flow without real wearable devices.
+These endpoints allow testing the full Tumtum flow without real wearable devices.
 They should be disabled or restricted in production.
 """
 
@@ -408,7 +408,7 @@ async def simulate_experience(
         max_bpm=max_bpm,
         min_bpm=min_bpm,
         data_quality_score=95,
-        source_device="TumTum Demo (simulado)",
+        source_device="Tumtum Demo (simulado)",
     )
     db.add(session)
     await db.flush()

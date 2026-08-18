@@ -1,7 +1,5 @@
 'use client'
 
-import { Logo } from '@/components/brand'
-
 interface ComparisonCardProps {
   eventName: string
   eventDate: string
@@ -30,7 +28,12 @@ export default function ComparisonCard({
     >
       <div className="flex h-full flex-col items-center justify-between p-8">
         {/* Logo */}
-        <Logo className="h-9 w-auto" />
+        <h2
+          className="text-xl font-bold uppercase tracking-widest text-tumtum-red"
+          style={{ fontFamily: 'Georgia, serif' }}
+        >
+          Tumtum
+        </h2>
 
         {/* Event */}
         <div className="text-center">
@@ -40,7 +43,7 @@ export default function ComparisonCard({
 
         {/* Sync percentage */}
         <div className="text-center">
-          <p className="tt-data text-6xl font-bold text-tumtum-accent">{syncPercentage}%</p>
+          <p className="text-6xl font-bold text-tumtum-accent">{syncPercentage}%</p>
           <p className="mt-1 text-sm text-tumtum-text-muted">em sincronia</p>
         </div>
 

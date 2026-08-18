@@ -5,8 +5,6 @@ import { useParams } from 'next/navigation'
 import { users, type PublicProfile } from '@/lib/api'
 import { Avatar, Card, Loading } from '@/components/ui'
 
-import { Logo } from '@/components/brand'
-
 export default function PublicProfilePage() {
   const params = useParams()
   const userId = params.username as string
@@ -80,7 +78,12 @@ export default function PublicProfilePage() {
 
         {/* Branding */}
         <div className="mt-12 text-center">
-          <Logo variant="horizontal" className="mx-auto h-5 w-auto" />
+          <p
+            className="text-sm font-bold uppercase tracking-widest text-tumtum-red"
+            style={{ fontFamily: 'Georgia, serif' }}
+          >
+            Tumtum
+          </p>
           <p className="mt-1 text-xs text-tumtum-text-muted">
             Sinta o evento. Compartilhe a emoção.
           </p>

@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Button, Input } from '@/components/ui'
 
-import { Logo } from '@/components/brand'
-
 export default function LoginPage() {
   const router = useRouter()
   const { login, loading } = useAuthStore()
@@ -30,7 +28,12 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-tumtum-dark px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Logo className="mx-auto h-14 w-auto" />
+          <h1
+            className="text-3xl font-bold uppercase tracking-widest text-tumtum-red"
+            style={{ fontFamily: 'Georgia, serif' }}
+          >
+            Tumtum
+          </h1>
           <p className="mt-2 text-tumtum-text-muted">Faça login para continuar</p>
         </div>
 

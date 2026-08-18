@@ -7,28 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Core — see shared/brand/BRAND.md
-        'tumtum-red': '#FF2E3C', // Batida
-        'tumtum-red-hover': '#FF5561', // Batida, lifted — hover and active states on dark
-        'tumtum-red-deep': '#B31220', // Batida on light or uncoated stock
-        'tumtum-accent': '#00E5FF', // Palco — artist line only, never decorative
-        'tumtum-dark': '#0A0A0F', // Preto Palco
-        'tumtum-surface': '#15141C',
-        'tumtum-raised': '#1F1D2A',
-        'tumtum-border': '#2A2838',
-        'tumtum-text-muted': '#8A87A0', // Névoa
-        'tumtum-text-primary': '#F4F2F7', // Luz
-        // Carnival — rotates by event, artist or campaign. One per surface.
-        'tumtum-acido': '#D4FF3D',
-        'tumtum-choque': '#FF3DBE',
-        'tumtum-sol': '#FFCC00',
-        'tumtum-uv': '#7A3DFF',
-        'tumtum-campo': '#00E676',
-      },
-      fontFamily: {
-        display: ['var(--font-display)', 'Arial Black', 'system-ui', 'sans-serif'],
-        sans: ['var(--font-sans)', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        'tumtum-red': '#C0392B',
+        'tumtum-red-secondary': '#E74C3C',
+        'tumtum-accent': '#00D2FF',
+        'tumtum-dark': '#08080C',
+        'tumtum-surface': '#111118',
+        'tumtum-border': '#1A1A24',
+        'tumtum-text-muted': '#6B6B80',
+        'tumtum-text-primary': '#F0F0F5',
       },
     },
   },
