@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import { Logo } from '@/components/brand'
+
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-tumtum-dark">
@@ -11,12 +13,7 @@ export default function LandingPage() {
         </div>
 
         <div className="relative z-10">
-          <h1
-            className="text-5xl font-bold uppercase tracking-widest text-tumtum-red sm:text-7xl"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Tumtum
-          </h1>
+          <Logo className="mx-auto h-32 w-auto sm:h-48" />
           <p className="mt-4 text-xl text-tumtum-text-primary sm:text-2xl">
             Sinta o evento. Compartilhe a emoção.
           </p>
@@ -28,7 +25,7 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-secondary"
+              className="inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-hover"
             >
               Começar agora
             </Link>
@@ -134,7 +131,7 @@ export default function LandingPage() {
           </p>
           <Link
             href="/signup"
-            className="mt-8 inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-secondary"
+            className="mt-8 inline-flex items-center justify-center rounded-lg bg-tumtum-red px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-tumtum-red-hover"
           >
             Criar conta grátis
           </Link>
@@ -143,14 +140,9 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-tumtum-border py-8 text-center">
-        <p
-          className="text-sm font-bold uppercase tracking-widest text-tumtum-red"
-          style={{ fontFamily: 'Georgia, serif' }}
-        >
-          Tumtum
-        </p>
+        <Logo variant="horizontal" className="mx-auto h-5 w-auto" />
         <p className="mt-2 text-xs text-tumtum-text-muted">
-          &copy; {new Date().getFullYear()} Tumtum. Todos os direitos reservados.
+          &copy; {new Date().getFullYear()} TumTum. Todos os direitos reservados.
         </p>
       </footer>
     </main>

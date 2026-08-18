@@ -1,0 +1,36 @@
+/* TumTum brand tokens v2.0 — see shared/brand/BRAND.md
+   Dark-only by design: the brand commits to a single nocturnal world. */
+
+:root {
+  /* Core — never changes */
+  --tt-ink: #0A0A0F;
+  --tt-batida: #FF2E3C;
+  --tt-light: #F4F2F7;
+
+  /* Functional */
+  --tt-palco: #00E5FF;
+  --tt-surface: #15141C;
+  --tt-raised: #1F1D2A;
+  --tt-border: #2A2838;
+  --tt-muted: #8A87A0;
+
+  /* Carnival — rotates by event, artist or campaign. One per surface. */
+  --tt-acido: #D4FF3D;
+  --tt-choque: #FF3DBE;
+  --tt-sol: #FFCC00;
+  --tt-ultravioleta: #7A3DFF;
+  --tt-campo: #00E676;
+
+  /* Semantic */
+  --tt-success: #00E676;
+  --tt-warning: #FFCC00;
+  --tt-error: #FF2E3C;
+
+  /* Print */
+  --tt-batida-deep: #B31220;
+
+  /* Type */
+  --tt-font-display: 'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
+  --tt-font-text: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  --tt-font-data: 'Martian Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}

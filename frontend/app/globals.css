@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Brand tokens — mirrors shared/brand/tokens.css */
+:root {
+  --tt-ink: #0a0a0f;
+  --tt-batida: #ff2e3c;
+  --tt-light: #f4f2f7;
+  --tt-palco: #00e5ff;
+  --tt-surface: #15141c;
+  --tt-raised: #1f1d2a;
+  --tt-border: #2a2838;
+  --tt-muted: #8a87a0;
+  --tt-acido: #d4ff3d;
+  --tt-choque: #ff3dbe;
+  --tt-sol: #ffcc00;
+  --tt-ultravioleta: #7a3dff;
+  --tt-campo: #00e676;
+}
+
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Display type carries the brand: wide, heavy, tight. */
+.tt-display {
+  font-family: var(--font-display), 'Arial Black', system-ui, sans-serif;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 100, 'opsz' 72;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+
+/* Every number that represents someone's body. */
+.tt-data {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+
+.tt-label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }

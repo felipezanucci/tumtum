@@ -1,5 +1,6 @@
 'use client'
 
+import { Logo } from '@/components/brand'
 import type { Peak } from '@/lib/api'
 
 interface SoloCardProps {
@@ -29,13 +30,8 @@ export default function SoloCard({
       style={{ aspectRatio: '9/16', maxWidth: 360 }}
     >
       <div className="flex h-full flex-col items-center justify-between p-8">
-        {/* Logo */}
-        <h2
-          className="text-xl font-bold uppercase tracking-widest text-tumtum-red"
-          style={{ fontFamily: 'Georgia, serif' }}
-        >
-          Tumtum
-        </h2>
+        {/* Logo — on a card the Bloco should carry the user's own HR curve as its fill. */}
+        <Logo className="h-9 w-auto" />
 
         {/* Event info */}
         <div className="text-center">
@@ -45,8 +41,8 @@ export default function SoloCard({
 
         {/* Peak BPM */}
         <div className="text-center">
-          <p className="text-7xl font-bold text-tumtum-red">{peakBpm}</p>
-          <p className="text-xl font-semibold text-tumtum-red-secondary">BPM</p>
+          <p className="tt-data text-7xl font-bold text-tumtum-red">{peakBpm}</p>
+          <p className="tt-display text-xl text-tumtum-text-primary">BPM</p>
           {matchedLabel && (
             <p className="mt-2 text-sm text-tumtum-text-primary">
               durante &quot;{matchedLabel}&quot;
@@ -59,18 +55,18 @@ export default function SoloCard({
           <div className="mb-4 h-px bg-tumtum-border" />
           <div className="flex justify-around">
             <div className="text-center">
-              <p className="text-lg font-bold text-tumtum-text-primary">{avgBpm}</p>
-              <p className="text-xs text-tumtum-text-muted">Média</p>
+              <p className="tt-data text-lg font-bold text-tumtum-text-primary">{avgBpm}</p>
+              <p className="tt-label text-tumtum-text-muted">Média</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-bold text-tumtum-text-primary">{maxBpm}</p>
-              <p className="text-xs text-tumtum-text-muted">Máximo</p>
+              <p className="tt-data text-lg font-bold text-tumtum-text-primary">{maxBpm}</p>
+              <p className="tt-label text-tumtum-text-muted">Máximo</p>
             </div>
           </div>
         </div>
 
         {/* User */}
-        <p className="text-sm text-tumtum-text-muted">@{userName}</p>
+        <p className="tt-label text-tumtum-text-muted">@{userName}</p>
       </div>
 
       {/* Decorative glow */}

@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Tumtum API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="TumTum API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -72,7 +72,7 @@ app.include_router(demo_router)
 
 @app.get("/")
 async def root():
-    return {"message": "Tumtum API"}
+    return {"message": "TumTum API"}
 
 
 @app.get("/health")

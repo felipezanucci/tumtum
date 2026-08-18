@@ -147,18 +147,58 @@ shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link),
 
 ## Brand identity
 
-- **Primary color**: #C0392B (Tumtum red)
-- **Secondary red**: #E74C3C
-- **Accent (artist)**: #00D2FF (cyan — used for artist HR line in comparison cards)
-- **Dark background**: #08080C
-- **Surface**: #111118
-- **Border**: #1A1A24
-- **Text muted**: #6B6B80
-- **Text primary**: #F0F0F5
-- **Logo font**: Georgia, serif — bold, uppercase, letter-spacing 2-3px
-- **Body font**: system-ui, -apple-system, sans-serif
-- **Theme**: Dark mode only (for MVP)
-- **Tone**: Premium, emotional, nocturnal. The app should feel like being at a concert at night.
+Full guidelines live in `shared/brand/BRAND.md`; machine-readable values in
+`shared/brand/tokens.json` and `shared/brand/tokens.css`. Rebuilt from scratch in v2.0 (Aug 2026),
+inspired by MTV's variable-logo system.
+
+### The idea
+
+The logo is a **container**, not a drawing. Two parts:
+- **O Bloco** — `TUM` in heavy slab geometry, one packed silhouette, the M's chevron dropping deep as
+  the valley between two beats. The geometry never changes.
+- **O Risco** — `tum`, hand-drawn, always crossing the lower right at −5°, always with a knockout halo.
+
+**Shape is law, fill is free.** The Bloco accepts any paint: flat colour, texture, photo, video, or —
+the default on share cards — the user's own heart-rate curve from that event. Every user leaves a show
+with a logo that never existed before.
+
+Assets: `shared/brand/logo/*.svg`. In the app use `frontend/components/brand/Logo.tsx`
+(`variant`: primary | icon | horizontal | seal; pass any SVG paint to `fill`, including `url(#id)`).
+
+### Colour
+
+Core (never changes): **#0A0A0F** Preto Palco (background) · **#FF2E3C** Batida (brand red, the user's
+HR line) · **#F4F2F7** Luz (text, the Risco).
+
+Functional: **#00E5FF** Palco (artist/athlete line only — never decorative) · **#15141C** surface ·
+**#1F1D2A** raised · **#2A2838** border · **#8A87A0** muted text.
+
+Carnival (rotates by event/artist/campaign, **one per surface**): **#D4FF3D** Ácido · **#FF3DBE**
+Choque · **#FFCC00** Sol · **#7A3DFF** Ultravioleta (large text and fills only, 3.7:1) ·
+**#00E676** Campo.
+
+Semantic: success #00E676, warning #FFCC00, error #FF2E3C (always with icon and text; no other red on
+that screen).
+
+### Type
+
+- **Display**: Bricolage Grotesque (variable wdth/wght) — headlines only
+- **Text**: Instrument Sans — all interface copy
+- **Data**: Martian Mono, tabular-nums — every number that represents someone's body (BPM, sync %)
+
+Loaded via `next/font/google` in `app/layout.tsx`, exposed as `--font-display`, `--font-sans`,
+`--font-mono`, with helper classes `.tt-display`, `.tt-data`, `.tt-label` in `globals.css`.
+
+### Theme and tone
+
+- **Theme**: dark mode only, by design — the brand commits to one nocturnal world
+- **Personality**: Creator 60% / Jester 30% / Lover 10%. Loud not aggressive, intimate not invasive,
+  exaggerated not dishonest, precise with data but never clinical
+- **Feeling to trigger**: *arrepio* — the instant of recognition, "I knew that moment was different,
+  and now I have proof"
+- **Voice** (pt-BR): *batida* not frequência cardíaca; *a gente* not nós; the person is the subject
+  ("seu coração bateu 187", never "nós detectamos"); headlines under 12 words; **zero medical advice**
+- **Taglines under test**: "O show que seu coração viu." · "Prova que você sentiu." · "Bateu, ficou."
 
 ## Coding standards
 

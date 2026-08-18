@@ -1,6 +1,6 @@
-# Tumtum
+# TumTum
 
-Tumtum is a live entertainment technology platform that captures how people feel during their most exciting moments — concerts, sports matches, festivals — by monitoring their heart rate and correlating it with the event timeline. Users can collect, relive, and share those emotional highlights on social media.
+TumTum is a live entertainment technology platform that captures how people feel during their most exciting moments — concerts, sports matches, festivals — by monitoring their heart rate and correlating it with the event timeline. Users can collect, relive, and share those emotional highlights on social media.
 
 ## Getting Started
 
@@ -22,3 +22,9 @@ Tumtum is a live entertainment technology platform that captures how people feel
 ## Project Structure
 
 See CLAUDE.md for detailed project structure.
+## Brand
+
+Brand identity v2.0 lives in [`shared/brand/`](shared/brand/) — see
+[`BRAND.md`](shared/brand/BRAND.md) for the full guidelines, `tokens.json` / `tokens.css` for the
+machine-readable values, and `logo/` for the SVG assets. In the app, render the mark with
+`frontend/components/brand/Logo.tsx`.

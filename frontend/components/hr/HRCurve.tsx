@@ -94,8 +94,8 @@ export default function HRCurve({
       .attr('y1', '0%')
       .attr('x2', '0%')
       .attr('y2', '100%')
-    gradient.append('stop').attr('offset', '0%').attr('stop-color', '#C0392B').attr('stop-opacity', 0.3)
-    gradient.append('stop').attr('offset', '100%').attr('stop-color', '#C0392B').attr('stop-opacity', 0)
+    gradient.append('stop').attr('offset', '0%').attr('stop-color', '#FF2E3C').attr('stop-opacity', 0.3)
+    gradient.append('stop').attr('offset', '100%').attr('stop-color', '#FF2E3C').attr('stop-opacity', 0)
 
     // Area
     const area = d3
@@ -121,7 +121,7 @@ export default function HRCurve({
       .append('path')
       .datum(parsed)
       .attr('fill', 'none')
-      .attr('stroke', '#C0392B')
+      .attr('stroke', '#FF2E3C')
       .attr('stroke-width', 2)
       .attr('d', line)
 
@@ -147,7 +147,7 @@ export default function HRCurve({
           .attr('x2', x)
           .attr('y1', 0)
           .attr('y2', h)
-          .attr('stroke', '#6B6B80')
+          .attr('stroke', '#8A87A0')
           .attr('stroke-width', 1)
           .attr('stroke-dasharray', '4 4')
           .attr('opacity', 0.5)
@@ -156,7 +156,7 @@ export default function HRCurve({
           .attr('x', x)
           .attr('y', -6)
           .attr('text-anchor', 'middle')
-          .attr('fill', '#6B6B80')
+          .attr('fill', '#8A87A0')
           .attr('font-size', '10px')
           .text(entry.label.length > 15 ? entry.label.slice(0, 15) + '…' : entry.label)
       }
@@ -175,7 +175,7 @@ export default function HRCurve({
           .attr('cx', x)
           .attr('cy', y)
           .attr('r', 6)
-          .attr('fill', '#E74C3C')
+          .attr('fill', '#FF5561')
           .attr('stroke', '#fff')
           .attr('stroke-width', 2)
           .style('filter', 'drop-shadow(0 0 4px rgba(231, 76, 60, 0.6))')
@@ -190,7 +190,7 @@ export default function HRCurve({
           .attr('x', x)
           .attr('y', y - 14)
           .attr('text-anchor', 'middle')
-          .attr('fill', '#F0F0F5')
+          .attr('fill', '#F4F2F7')
           .attr('font-size', '12px')
           .attr('font-weight', 'bold')
           .text(`${peak.bpm} bpm`)
@@ -207,13 +207,13 @@ export default function HRCurve({
       .attr('transform', `translate(0,${h})`)
       .call(xAxis)
       .selectAll('text, line, path')
-      .attr('color', '#6B6B80')
+      .attr('color', '#8A87A0')
 
     const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat((d) => `${d}`)
     g.append('g')
       .call(yAxis)
       .selectAll('text, line, path')
-      .attr('color', '#6B6B80')
+      .attr('color', '#8A87A0')
 
     // Y-axis label
     g.append('text')
@@ -221,7 +221,7 @@ export default function HRCurve({
       .attr('y', -40)
       .attr('x', -h / 2)
       .attr('text-anchor', 'middle')
-      .attr('fill', '#6B6B80')
+      .attr('fill', '#8A87A0')
       .attr('font-size', '12px')
       .text('BPM')
   }, [data, peaks, timeline, dimensions, animated])

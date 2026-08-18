@@ -45,7 +45,7 @@ export default function OnboardingPage() {
           <div className="text-center">
             <div className="mb-6 text-6xl">❤️</div>
             <h1 className="text-3xl font-bold text-tumtum-text-primary">
-              Bem-vindo ao Tumtum
+              Bem-vindo ao TumTum
             </h1>
             <p className="mt-3 text-tumtum-text-muted">
               Descubra como seu coração reage nos momentos mais emocionantes.

@@ -1,0 +1,1151 @@
+<title>TumTum Brand Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Martian+Mono:wght@300..800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   TumTum Brand Book — committed single-theme (nocturnal).
+   Every color is painted explicitly so the page holds on any host ground.
+   ============================================================ */
+:root{
+  --ink:#0A0A0F;
+  --surface:#15141C;
+  --raised:#1F1D2A;
+  --line:#2A2838;
+  --muted:#8A87A0;
+  --text:#F4F2F7;
+  --batida:#FF2E3C;
+  --batida-deep:#B31220;
+  --cyan:#00E5FF;
+  --acido:#D4FF3D;
+  --choque:#FF3DBE;
+  --sol:#FFCC00;
+  --uv:#7A3DFF;
+  --campo:#00E676;
+
+  --display:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;
+  --text-face:"Instrument Sans",system-ui,-apple-system,sans-serif;
+  --mono:"Martian Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+
+  --pad:clamp(1.25rem,5vw,4rem);
+  --col:min(1140px,100%);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--text);
+  font-family:var(--text-face);
+  font-size:clamp(1rem,.55vw + .92rem,1.09rem);
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{max-width:100%}
+::selection{background:var(--batida);color:#0A0A0F}
+a{color:var(--cyan)}
+:focus-visible{outline:3px solid var(--acido);outline-offset:3px;border-radius:2px}
+
+/* ---------- layout ---------- */
+.wrap{width:var(--col);margin-inline:auto;padding-inline:var(--pad)}
+.band{padding-block:clamp(3.5rem,9vw,7rem);border-top:1px solid var(--line)}
+.band--flush{border-top:none}
+.stack{display:flex;flex-direction:column;gap:1.15rem}
+.grid{display:grid;gap:clamp(1rem,2vw,1.6rem)}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+
+/* ---------- type ---------- */
+.eyebrow{
+  font-family:var(--mono);
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--batida);
+  margin:0 0 1.1rem;
+  display:flex;align-items:center;gap:.7rem;
+}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+h1,h2,h3,h4{font-family:var(--display);font-weight:800;text-wrap:balance;margin:0;line-height:.95}
+h2{font-size:clamp(2rem,5.4vw,3.6rem);font-variation-settings:"wdth" 100,"opsz" 72;letter-spacing:-.02em;margin-bottom:1.2rem}
+h3{font-size:clamp(1.2rem,2.4vw,1.6rem);font-variation-settings:"wdth" 92,"opsz" 24;line-height:1.05;letter-spacing:-.01em}
+h4{font-size:1rem;font-variation-settings:"wdth" 88,"opsz" 16;line-height:1.2}
+p{margin:0}
+.lede{font-size:clamp(1.1rem,1.6vw,1.35rem);line-height:1.5;color:var(--text);max-width:62ch}
+.prose{max-width:66ch;color:#CFCCDB}
+.prose strong{color:var(--text);font-weight:600}
+.small{font-size:.86rem;line-height:1.5;color:var(--muted)}
+.mono{font-family:var(--mono);font-size:.78rem;letter-spacing:.02em}
+.hot{color:var(--batida)}
+.dim{color:var(--muted)}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(1.1rem,2vw,1.6rem);display:flex;flex-direction:column;gap:.7rem}
+.card--edge{border-left:3px solid var(--batida)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;padding:.3rem .55rem;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;background:var(--ink);padding-block:clamp(2.5rem,7vw,5rem) clamp(3rem,7vw,5.5rem)}
+.hero__glow{position:absolute;inset:auto -20% 30% -20%;height:60vh;background:radial-gradient(60% 50% at 50% 100%,rgba(255,46,60,.20),transparent 70%);pointer-events:none}
+.hero__inner{position:relative}
+.hero__logo{display:block;width:100%;max-width:860px;margin:clamp(1.5rem,4vw,2.5rem) 0 clamp(1.6rem,4vw,2.4rem)}
+.hero h1{font-size:clamp(2.3rem,6.4vw,4.6rem);font-variation-settings:"wdth" 100,"opsz" 96;letter-spacing:-.025em;max-width:18ch}
+.hero__meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.8rem}
+.zap{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:.4rem .7rem}
+
+/* ---------- logo lab ---------- */
+.lab{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem}
+.lab__cell{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.85rem;display:flex;flex-direction:column;gap:.6rem;align-items:flex-start}
+.lab__cell svg{width:100%;height:auto}
+.lab__name{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- swatches ---------- */
+.sw{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column}
+.sw__chip{height:96px}
+.sw__body{padding:.8rem .9rem 1rem;display:flex;flex-direction:column;gap:.15rem}
+.sw__name{font-family:var(--display);font-weight:800;font-variation-settings:"wdth" 88;font-size:1.02rem;line-height:1.1}
+.sw__hex{font-family:var(--mono);font-size:.72rem;color:var(--text)}
+.sw__use{font-size:.78rem;color:var(--muted);line-height:1.4;margin-top:.25rem}
+
+/* ---------- table ---------- */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:440px;font-size:.88rem}
+th,td{text-align:left;padding:.72rem .9rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:none}
+td.y{color:var(--text)}
+td.n{color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------- sliders ---------- */
+.scale{display:flex;flex-direction:column;gap:.9rem}
+.scale__row{display:grid;grid-template-columns:minmax(88px,auto) 1fr minmax(88px,auto);gap:.8rem;align-items:center;font-size:.8rem}
+.scale__track{height:6px;background:var(--raised);border-radius:99px;position:relative}
+.scale__fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--batida-deep),var(--batida));border-radius:99px}
+.scale__dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--text);transform:translate(-50%,-50%);border:3px solid var(--ink)}
+.scale__l{color:var(--muted);text-align:right}
+.scale__r{color:var(--text)}
+
+/* ---------- misc ---------- */
+.rule-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.55rem}
+.rule-list li{display:flex;gap:.6rem;align-items:flex-start;font-size:.92rem;line-height:1.5}
+.rule-list b{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;padding:.15rem .4rem;border-radius:4px;flex:none;margin-top:.15rem}
+.yes b{background:rgba(0,230,118,.14);color:var(--campo)}
+.no b{background:rgba(255,46,60,.14);color:var(--batida)}
+.quote{font-family:var(--display);font-weight:800;font-variation-settings:"wdth" 100,"opsz" 72;font-size:clamp(1.5rem,3.6vw,2.5rem);line-height:1.02;letter-spacing:-.02em;text-wrap:balance}
+.footer{padding-block:3rem 4rem;color:var(--muted);font-size:.82rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<!-- ============================================================
+     LOGO GEOMETRY + FILL LIBRARY
+     #bloco  = the fixed container (TUM, slab, pulse-dip M)
+     #risco  = the hand-drawn second beat (tum)
+     p-*     = the interchangeable fills. Shape is law, fill is free.
+     ============================================================ -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <g id="bloco">
+      <path d="M0 0H190V58H0ZM66 0H124V260H66ZM210 0H268V260H210ZM342 0H400V260H342ZM210 202H400V260H210ZM420 0H478V260H420ZM602 0H660V260H602ZM478 0L540 166L602 0V58L540 224L478 58Z"/>
+    </g>
+    <g id="risco" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 -78C10 -50 7 -24 9 -9 10 1 19 5 31 -2"/>
+      <path d="M-6 -44L32 -52"/>
+      <path d="M42 -47C38 -25 37 -11 39 -4 42 3 57 5 64 -6 67 -13 69 -30 71 -47"/>
+      <path d="M84 1C87 -13 88 -27 90 -41 94 -51 106 -51 109 -41 110 -29 109 -15 108 -1"/>
+      <path d="M109 -41C114 -51 127 -51 130 -41 131 -27 130 -13 129 1"/>
+    </g>
+
+    <linearGradient id="p-cromo" x1="0" y1="0" x2="660" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00E5FF"/><stop offset=".33" stop-color="#F4F2F7"/>
+      <stop offset=".62" stop-color="#FF3DBE"/><stop offset="1" stop-color="#FFCC00"/>
+    </linearGradient>
+    <linearGradient id="p-uv" x1="0" y1="260" x2="660" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7A3DFF"/><stop offset="1" stop-color="#FF2E3C"/>
+    </linearGradient>
+
+    <pattern id="p-scan" width="14" height="14" patternUnits="userSpaceOnUse">
+      <rect width="14" height="14" fill="#FF2E3C"/>
+      <rect width="14" height="5" fill="#0A0A0F" opacity=".55"/>
+    </pattern>
+    <pattern id="p-hr" width="80" height="52" patternUnits="userSpaceOnUse">
+      <rect width="80" height="52" fill="#0A0A0F"/>
+      <path d="M0 28H16L22 8L27 46L32 24H46L50 22L54 32L58 28H80" fill="none" stroke="#FF2E3C" stroke-width="4" stroke-linejoin="round"/>
+    </pattern>
+    <pattern id="p-hr-xl" width="230" height="150" patternUnits="userSpaceOnUse">
+      <rect width="230" height="150" fill="#0A0A0F"/>
+      <path d="M0 82H46L64 24L78 132L92 70H132L144 62L156 96L168 82H230" fill="none" stroke="#FF2E3C" stroke-width="11" stroke-linejoin="round"/>
+    </pattern>
+    <pattern id="p-meiotom" width="18" height="18" patternUnits="userSpaceOnUse">
+      <rect width="18" height="18" fill="#0A0A0F"/>
+      <circle cx="5" cy="5" r="4.4" fill="#D4FF3D"/><circle cx="14" cy="14" r="2.6" fill="#D4FF3D"/>
+    </pattern>
+    <pattern id="p-xadrez" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#F4F2F7"/>
+      <rect width="20" height="20" fill="#0A0A0F"/><rect x="20" y="20" width="20" height="20" fill="#0A0A0F"/>
+    </pattern>
+    <pattern id="p-diagonal" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
+      <rect width="26" height="26" fill="#7A3DFF"/>
+      <rect width="13" height="26" fill="#FFCC00"/>
+    </pattern>
+    <pattern id="p-confete" width="54" height="54" patternUnits="userSpaceOnUse">
+      <rect width="54" height="54" fill="#312D4A"/>
+      <rect x="3" y="7" width="17" height="8" rx="3" fill="#FF3DBE" transform="rotate(22 9 10)"/>
+      <rect x="28" y="3" width="15" height="8" rx="3" fill="#00E5FF" transform="rotate(-38 34 6)"/>
+      <rect x="14" y="28" width="18" height="8" rx="3" fill="#D4FF3D" transform="rotate(64 22 32)"/>
+      <rect x="36" y="34" width="16" height="8" rx="3" fill="#FFCC00" transform="rotate(-14 43 38)"/>
+      <rect x="0" y="43" width="15" height="8" rx="3" fill="#FF2E3C" transform="rotate(48 6 46)"/>
+    </pattern>
+    <pattern id="p-onca" width="66" height="66" patternUnits="userSpaceOnUse">
+      <rect width="66" height="66" fill="#FFCC00"/>
+      <g fill="none" stroke="#0A0A0F" stroke-width="6">
+        <ellipse cx="16" cy="18" rx="10" ry="7" transform="rotate(-18 16 18)"/>
+        <ellipse cx="48" cy="40" rx="11" ry="8" transform="rotate(24 48 40)"/>
+        <ellipse cx="8" cy="52" rx="8" ry="6" transform="rotate(40 8 52)"/>
+        <ellipse cx="52" cy="6" rx="8" ry="5" transform="rotate(-30 52 6)"/>
+      </g>
+    </pattern>
+    <pattern id="p-campo" width="64" height="64" patternUnits="userSpaceOnUse">
+      <rect width="64" height="64" fill="#00E676"/>
+      <rect width="32" height="64" fill="#00C264"/>
+    </pattern>
+    <pattern id="p-tipo" width="230" height="46" patternUnits="userSpaceOnUse">
+      <rect width="230" height="46" fill="#FF2E3C"/>
+      <text x="0" y="34" font-family="Bricolage Grotesque, Arial Black, sans-serif" font-size="40" font-weight="800" fill="#0A0A0F">TUMTUM</text>
+    </pattern>
+    <pattern id="p-publico" width="72" height="72" patternUnits="userSpaceOnUse">
+      <rect width="72" height="72" fill="#2B1633"/>
+      <rect x="10" width="6" height="72" fill="#FFCC00" opacity=".5"/>
+      <rect x="46" width="9" height="72" fill="#00E5FF" opacity=".42"/>
+      <g fill="#FFCC00">
+        <circle cx="6" cy="14" r="5"/><circle cx="26" cy="30" r="4" opacity=".9"/>
+        <circle cx="58" cy="10" r="4.4"/><circle cx="38" cy="58" r="5.4"/>
+        <circle cx="66" cy="44" r="3.6" opacity=".85"/><circle cx="16" cy="64" r="4.2"/>
+      </g>
+      <g fill="#FF3DBE"><circle cx="50" cy="26" r="4.4"/><circle cx="4" cy="42" r="3.6"/><circle cx="30" cy="6" r="3"/></g>
+    </pattern>
+    <filter id="f-ruido"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3"/>
+      <feColorMatrix values="0 0 0 0 1  0 0 0 0 .22  0 0 0 0 .28  0 0 0 -1.1 1.25"/></filter>
+    <pattern id="p-ruido" width="120" height="120" patternUnits="userSpaceOnUse">
+      <rect width="120" height="120" fill="#4A1018"/><rect width="120" height="120" filter="url(#f-ruido)"/>
+    </pattern>
+  </defs>
+</svg>
+
+<!-- ============================== HERO ============================== -->
+<header class="hero band--flush">
+  <div class="hero__glow"></div>
+  <div class="wrap hero__inner">
+    <p class="eyebrow">TumTum · Identidade de marca v2.0 · Agosto 2026</p>
+
+    <svg class="hero__logo" viewBox="0 0 660 372" role="img" aria-label="Logotipo TumTum: bloco TUM preenchido, com a palavra tum riscada à mão por cima">
+      <use id="heroFill" href="#bloco" fill="#FF2E3C"/>
+      <g transform="translate(408 337) rotate(-5) scale(1.5)">
+        <use id="heroHalo" href="#risco" stroke="#0A0A0F" stroke-width="20"/>
+        <use id="heroRisco" href="#risco" stroke="#F4F2F7" stroke-width="11"/>
+      </g>
+    </svg>
+
+    <h1>A marca muda de pele a cada batida.</h1>
+    <p class="lede" style="margin-top:1.4rem">
+      TumTum é uma identidade-recipiente: a forma é fixa, o recheio é infinito. É o mesmo
+      sistema que a MTV inventou em 1981 — só que alimentado por um dado que a MTV não tinha:
+      a batida do seu coração naquela noite.
+    </p>
+    <div class="hero__meta">
+      <span class="zap">Bloco + Risco</span>
+      <span class="zap">Recheio infinito</span>
+      <span class="zap">Dark-first</span>
+      <span class="zap">São Paulo</span>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== O INSIGHT ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">O insight</p>
+    <div class="grid g2" style="align-items:start">
+      <div class="stack">
+        <h2>O nome já é um som.<br>Falta virar uma forma.</h2>
+        <p class="prose">
+          <strong>Tum-tum é a onomatopeia brasileira do coração batendo.</strong> Todo mundo aqui já sabe
+          pronunciar a marca e já sabe o que ela significa — sem nenhuma explicação, sem nenhuma campanha.
+          Isso é raríssimo. O trabalho de marca não é ensinar o nome: é dar a ele um corpo visual à altura.
+        </p>
+        <p class="prose">
+          E o nome carrega uma estrutura pronta: <strong>são dois toques, e eles são diferentes.</strong>
+          Um alto e um baixo. Sístole e diástole. A identidade nasce disso — dois elementos, nunca um.
+        </p>
+      </div>
+      <div class="stack">
+        <div class="card card--edge">
+          <span class="tag">A lição da MTV, 1981</span>
+          <h3>O logo não era um desenho. Era um buraco.</h3>
+          <p class="small" style="color:#CFCCDB">
+            A Manhattan Design entregou uma marca que quebrava a regra da época: o M não tinha cor fixa.
+            Era um recipiente. O que entrava dentro mudava a cada 30 segundos — tinta spray, superfície lunar,
+            vaca, fogo, videoteipe. Ninguém reconhecia a MTV pela aparência dela. Reconhecia pela
+            <strong>silhueta</strong>. Constância absoluta na forma, caos absoluto no conteúdo.
+          </p>
+        </div>
+        <div class="card">
+          <span class="tag">A virada do TumTum</span>
+          <p class="small" style="color:#CFCCDB">
+            A MTV enchia o M à mão, um artista por vez. <strong>O TumTum enche com dado.</strong>
+            Cada usuário gera o próprio recheio — a curva de batimentos daquela noite, naquele show.
+            É a primeira identidade de recipiente em que a variação não é feita pela agência:
+            é feita pelo público, automaticamente, uma por evento.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PÚBLICO ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Público</p>
+    <h2>Quem é o coração que a gente quer.</h2>
+    <p class="lede" style="margin-bottom:2.4rem">
+      Um alvo central — <strong>o colecionador de noites</strong> — dividido em três tribos que se
+      comportam de formas bem diferentes na hora de compartilhar.
+    </p>
+
+    <div class="card card--edge" style="margin-bottom:1.6rem">
+      <span class="tag">Núcleo</span>
+      <h3>O colecionador de noites</h3>
+      <p class="small" style="color:#CFCCDB">
+        18–34 anos, São Paulo capital e região metropolitana, classe B/C alta. Vai a
+        <strong>6 ou mais eventos por ano</strong>. Já tem smartwatch (Apple Watch, Galaxy, Xiaomi) e usa
+        principalmente para notificação, não para treino. Posta story de todo show — e depois não faz
+        nada com esse conteúdo. Guarda ingresso, pulseira de festival, print de setlist.
+        <strong>Não quer saber de saúde. Quer saber de história.</strong>
+      </p>
+    </div>
+
+    <div class="grid g3">
+      <div class="card">
+        <span class="tag" style="border-color:#FF3DBE;color:#FF3DBE">Tribo 01 · Fandom</span>
+        <h4>Swifties, Coldplayers, K-poppers, sertanejo</h4>
+        <p class="small">
+          Identidade construída em cima do artista. Cultura de print, de contagem, de ranking.
+          É a tribo que mais compartilha e a única que espera de verdade pela função de
+          comparar a batida com a do palco.
+        </p>
+        <p class="mono" style="color:#FF3DBE">Maior coeficiente viral · prioridade 1</p>
+      </div>
+      <div class="card">
+        <span class="tag" style="border-color:#00E676;color:#00E676">Tribo 02 · Torcida</span>
+        <h4>Palmeiras, Corinthians, São Paulo, Flamengo</h4>
+        <p class="small">
+          Tribal, sofredora, competitiva. Quer prova de sofrimento — “meu coração no pênalti” é um
+          gênero de conteúdo por si só. Compartilha em grupo de WhatsApp mais do que no feed.
+          Frequência alta e previsível: o calendário já existe.
+        </p>
+        <p class="mono" style="color:#00E676">Maior recorrência · prioridade 2</p>
+      </div>
+      <div class="card">
+        <span class="tag" style="border-color:#00E5FF;color:#00E5FF">Tribo 03 · Festivaleiro</span>
+        <h4>Lollapalooza, Rock in Rio, Primavera, raves</h4>
+        <p class="small">
+          Colecionador por natureza. Vive arcos de 2–3 dias, o que gera não um card mas uma série.
+          Cultura de credencial e badge. Poucos eventos por ano, mas com pico enorme de aquisição
+          concentrado em datas conhecidas.
+        </p>
+        <p class="mono" style="color:#00E5FF">Maior pico de aquisição · prioridade 3</p>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:1.6rem">
+      <div class="card">
+        <span class="tag">Público secundário — Fase 1</span>
+        <h4>Artistas, clubes e produtoras</h4>
+        <p class="small">
+          O lado da oferta. Não compram o produto: <strong>viram o produto.</strong> Quando um artista
+          topa compartilhar a própria batida, ele entrega ao fã algo que nenhuma plataforma de streaming
+          consegue entregar. A marca precisa parecer suficientemente boa para um artista aceitar
+          colocar o nome dele ao lado dela.
+        </p>
+      </div>
+      <div class="card" style="border-color:#3a2430">
+        <span class="tag" style="border-color:#FF2E3C;color:#FF2E3C">Quem NÃO é</span>
+        <h4>O quantified self</h4>
+        <p class="small">
+          O público de Whoop, Oura, Garmin e Strava-de-corrida <strong>não é nosso</strong>, por mais
+          tentador que pareça. Eles medem para melhorar; nosso público mede para lembrar. Se a
+          comunicação escorregar para performance, sono, recuperação ou VO₂ máx., a marca vira mais um
+          app de saúde — e morre num mercado onde não temos hardware nem dinheiro para brigar.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CONCORRÊNCIA ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Concorrência</p>
+    <h2>Ninguém é dono do souvenir biométrico.</h2>
+    <p class="lede" style="margin-bottom:2.2rem">
+      Não existe concorrente direto. Existe um cerco: de um lado marcas que medem o corpo e falam de
+      saúde; do outro, marcas que guardam memória e falam de emoção. O canto onde as duas coisas se
+      encontram — <strong>ao vivo, no evento, involuntário</strong> — está vazio.
+    </p>
+
+    <div class="tablewrap" style="border:none;background:transparent;padding-bottom:.5rem">
+      <svg viewBox="0 0 620 500" style="min-width:560px;width:100%;height:auto" role="img"
+           aria-label="Mapa de posicionamento. Eixo horizontal vai de clínico e performance à esquerda até emocional e memória à direita. Eixo vertical vai de pessoal e privado embaixo até social e compartilhável em cima. TumTum ocupa sozinho o extremo superior direito.">
+        <rect x="330" y="20" width="270" height="210" fill="#FF2E3C" opacity=".06" rx="10"/>
+        <rect x="330" y="20" width="270" height="210" fill="none" stroke="#FF2E3C" stroke-opacity=".45" stroke-dasharray="6 7" rx="10"/>
+        <text x="344" y="46" font-family="Martian Mono, monospace" font-size="11" fill="#FF2E3C" letter-spacing="1.5">ESPAÇO EM BRANCO</text>
+
+        <line x1="40" y1="440" x2="600" y2="440" stroke="#2A2838" stroke-width="1.5"/>
+        <line x1="40" y1="20" x2="40" y2="440" stroke="#2A2838" stroke-width="1.5"/>
+        <text x="40" y="472" font-family="Martian Mono, monospace" font-size="11" fill="#8A87A0">CLÍNICO / PERFORMANCE</text>
+        <text x="600" y="472" text-anchor="end" font-family="Martian Mono, monospace" font-size="11" fill="#8A87A0">EMOCIONAL / MEMÓRIA</text>
+        <text x="30" y="26" font-family="Martian Mono, monospace" font-size="11" fill="#8A87A0" transform="rotate(-90 30 26)" text-anchor="end">PESSOAL / PRIVADO</text>
+        <text x="30" y="26" font-family="Martian Mono, monospace" font-size="11" fill="#8A87A0" transform="rotate(-90 30 26)">SOCIAL / COMPARTILHÁVEL</text>
+
+        <g font-family="Instrument Sans, sans-serif" font-size="13" fill="#CFCCDB">
+          <circle cx="86" cy="392" r="6" fill="#3A3850"/><text x="100" y="397">Oura</text>
+          <circle cx="108" cy="348" r="6" fill="#3A3850"/><text x="122" y="353">Whoop</text>
+          <circle cx="152" cy="300" r="6" fill="#3A3850"/><text x="166" y="305">Apple Fitness / Garmin</text>
+          <circle cx="176" cy="168" r="7" fill="#7A3DFF"/><text x="192" y="173" fill="#F4F2F7">Strava</text>
+          <circle cx="392" cy="318" r="6" fill="#3A3850"/><text x="406" y="323">Setlist.fm / Songkick</text>
+          <circle cx="300" cy="88" r="6" fill="#3A3850"/><text x="314" y="93">Stories / BeReal</text>
+          <circle cx="418" cy="150" r="7" fill="#00E5FF"/><text x="434" y="155" fill="#F4F2F7">Spotify Wrapped</text>
+        </g>
+        <circle cx="528" cy="78" r="13" fill="#FF2E3C"/>
+        <circle cx="528" cy="78" r="24" fill="none" stroke="#FF2E3C" stroke-opacity=".4" stroke-width="2"/>
+        <text x="528" y="128" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="22" fill="#F4F2F7">TumTum</text>
+      </svg>
+    </div>
+
+    <div class="tablewrap" style="margin-top:1.6rem">
+      <table>
+        <thead><tr><th>Referência</th><th>O que faz muito bem</th><th>O espaço que deixa</th></tr></thead>
+        <tbody>
+          <tr><td class="y"><strong>Strava</strong></td><td class="n">Transformou dado de corpo em prova social. É o precedente comportamental mais próximo do nosso.</td><td class="n">Tudo é esforço e mérito. Não existe emoção passiva, nem evento cultural, nem noite.</td></tr>
+          <tr><td class="y"><strong>Spotify Wrapped</strong></td><td class="n">O padrão-ouro de dado pessoal virando conteúdo compartilhável. Definiu a estética do gênero.</td><td class="n">Uma vez por ano, agregado e retrospectivo. Nunca é sobre um momento específico que você viveu.</td></tr>
+          <tr><td class="y"><strong>Whoop / Oura / Apple</strong></td><td class="n">Precisão, confiança e uma linguagem de saúde já estabelecida.</td><td class="n">Frias, clínicas, privadas. Ninguém posta o print do Whoop porque estava emocionado.</td></tr>
+          <tr><td class="y"><strong>Setlist.fm / Songkick</strong></td><td class="n">São a memória factual do show — a ordem exata das músicas. Parceiro, não inimigo.</td><td class="n">Guardam o que aconteceu no palco. Ninguém guarda o que aconteceu em você.</td></tr>
+          <tr><td class="y"><strong>Stories / BeReal</strong></td><td class="n">Estão na mão da pessoa no exato momento do evento. Concorrem pela mesma atenção.</td><td class="n">O conteúdo é posado e some em 24h. Batimento não posa e não expira.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SENTIMENTO + DIFERENCIAL ============================== -->
+<section class="band">
+  <div class="wrap">
+    <div class="grid g2" style="align-items:start;gap:clamp(2rem,4vw,3.5rem)">
+      <div class="stack">
+        <p class="eyebrow">O sentimento</p>
+        <p class="quote">A marca inteira existe para provocar<br><span class="hot">arrepio de reconhecimento.</span></p>
+        <p class="prose">
+          Não é orgulho, não é nostalgia, não é saúde. É aquele segundo em que a pessoa olha a tela e pensa:
+          <strong>“eu SABIA que aquela hora foi diferente — e agora eu tenho a prova.”</strong>
+          Tudo — cor, tipo, som, texto, animação — é julgado por uma pergunta só: isso aproxima ou afasta
+          desse segundo?
+        </p>
+        <div class="grid g3" style="margin-top:.6rem">
+          <div class="card" style="gap:.3rem"><h4>Noturno</h4><p class="small">Preto de sala escura, não preto de dashboard.</p></div>
+          <div class="card" style="gap:.3rem"><h4>Suado</h4><p class="small">Textura, grão, ruído. Nada de superfície limpa.</p></div>
+          <div class="card" style="gap:.3rem"><h4>Coletivo</h4><p class="small">Você sentiu junto com 40 mil pessoas.</p></div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <p class="eyebrow">Diferencial</p>
+        <h3 style="font-size:clamp(1.4rem,3vw,2rem)">Três coisas que ninguém pode copiar rápido.</h3>
+        <div class="card card--edge">
+          <h4>01 · É involuntário</h4>
+          <p class="small">Foto você posa. Legenda você escolhe. Batida não. É o único souvenir de um evento que
+          <strong>não dá para fingir</strong> — e por isso o único com valor de prova.</p>
+        </div>
+        <div class="card card--edge">
+          <h4>02 · O dado já existe</h4>
+          <p class="small">A pessoa não precisa comprar nada nem lembrar de ligar nada. O relógio já estava no pulso.
+          A gente só vai buscar, cruza com a linha do tempo do evento e devolve com significado.</p>
+        </div>
+        <div class="card card--edge">
+          <h4>03 · Compara com o palco</h4>
+          <p class="small">“Eu estava 78% em sincronia com o Chris Martin.” Ninguém copia isso sem relação direta
+          com artista e produtora. É a barreira de entrada da Fase 1 — e o motivo de a marca precisar
+          parecer grande antes de ser grande.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PERSONALIDADE ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Personalidade</p>
+    <h2>Divertida, ousada e com o coração exposto.</h2>
+
+    <div class="grid g3" style="margin:2rem 0 1.6rem">
+      <div class="card" style="border-color:#3a2430">
+        <span class="tag" style="border-color:#FF2E3C;color:#FF2E3C">60% · Criador</span>
+        <h4>A máquina de variações</h4>
+        <p class="small">O arquétipo dominante. A marca existe para transformar dado bruto em objeto que a pessoa
+        quer ter. Cada card é uma peça nova. A identidade nunca se repete duas vezes.</p>
+      </div>
+      <div class="card" style="border-color:#3a3a20">
+        <span class="tag" style="border-color:#D4FF3D;color:#D4FF3D">30% · Bobo da corte</span>
+        <h4>A ousadia e a zoeira</h4>
+        <p class="small">É o que impede a marca de virar app de saúde. Deboche leve, exagero, barulho visual,
+        piada com o próprio corpo. Nunca ironia amarga — a graça é de quem está se divertindo, não de quem
+        está julgando.</p>
+      </div>
+      <div class="card" style="border-color:#2a2440">
+        <span class="tag" style="border-color:#7A3DFF;color:#7A3DFF">10% · Amante</span>
+        <h4>A intimidade</h4>
+        <p class="small">A dose pequena e essencial. Batimento é a coisa mais íntima que alguém pode entregar.
+        Aparece na hora certa: no momento de revelar o pico, no texto de consentimento, no cuidado com dado.</p>
+      </div>
+    </div>
+
+    <div class="grid g2" style="align-items:start">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>A gente é</th><th>A gente não é</th></tr></thead>
+          <tbody>
+            <tr><td class="y">Barulhenta</td><td class="n">Agressiva</td></tr>
+            <tr><td class="y">Íntima</td><td class="n">Invasiva</td></tr>
+            <tr><td class="y">Exagerada</td><td class="n">Mentirosa</td></tr>
+            <tr><td class="y">Precisa no dado</td><td class="n">Clínica no jeito</td></tr>
+            <tr><td class="y">Brasileira sem fantasia</td><td class="n">Tropicalizada de cartão-postal</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <span class="tag">Escalas de calibragem</span>
+        <div class="scale" style="margin-top:.6rem">
+          <div class="scale__row"><span class="scale__l">Sóbria</span><span class="scale__track"><span class="scale__fill" style="width:90%"></span><span class="scale__dot" style="left:90%"></span></span><span class="scale__r">Festiva</span></div>
+          <div class="scale__row"><span class="scale__l">Discreta</span><span class="scale__track"><span class="scale__fill" style="width:85%"></span><span class="scale__dot" style="left:85%"></span></span><span class="scale__r">Barulhenta</span></div>
+          <div class="scale__row"><span class="scale__l">Fria</span><span class="scale__track"><span class="scale__fill" style="width:78%"></span><span class="scale__dot" style="left:78%"></span></span><span class="scale__r">Calorosa</span></div>
+          <div class="scale__row"><span class="scale__l">Clássica</span><span class="scale__track"><span class="scale__fill" style="width:88%"></span><span class="scale__dot" style="left:88%"></span></span><span class="scale__r">Irreverente</span></div>
+          <div class="scale__row"><span class="scale__l">Técnica</span><span class="scale__track"><span class="scale__fill" style="width:30%"></span><span class="scale__dot" style="left:30%"></span></span><span class="scale__r">Emocional</span></div>
+          <div class="scale__row"><span class="scale__l">Clínica</span><span class="scale__track"><span class="scale__fill" style="width:4%"></span><span class="scale__dot" style="left:4%"></span></span><span class="scale__r">Visceral</span></div>
+        </div>
+        <p class="small" style="margin-top:.9rem">A única escala fixa em zero é <strong>clínica</strong>. Todo o resto pode
+        oscilar por contexto — a marca fica mais quieta na tela de consentimento e mais alta no card de compartilhamento.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== LOGO ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Logo · Anatomia</p>
+    <h2>Dois toques. Um duro, um à mão.</h2>
+    <p class="lede">
+      O logo é composto de duas peças que nunca aparecem sozinhas na versão principal.
+      <strong>O Bloco</strong> é a geometria imutável — o recipiente. <strong>O Risco</strong> é o segundo
+      batimento, sempre feito à mão, sempre atravessando o canto inferior direito.
+    </p>
+
+    <div class="tablewrap" style="margin-top:2rem;background:var(--surface)">
+      <svg viewBox="0 0 940 440" style="min-width:640px;width:100%;height:auto" role="img"
+           aria-label="Diagrama de anatomia do logo, apontando O Bloco, A Queda no M e O Risco.">
+        <g transform="translate(24 40) scale(.86)">
+          <use href="#bloco" fill="#2A2838"/>
+          <g transform="translate(408 337) rotate(-5) scale(1.5)">
+            <use href="#risco" stroke="#15141C" stroke-width="20"/>
+            <use href="#risco" stroke="#FF2E3C" stroke-width="11"/>
+          </g>
+        </g>
+        <g stroke="#4a4860" stroke-width="1.5" fill="none">
+          <path d="M600 116H310"/><circle cx="304" cy="116" r="5" fill="#4a4860" stroke="none"/>
+          <path d="M600 252H488"/><circle cx="482" cy="252" r="5" fill="#4a4860" stroke="none"/>
+          <path d="M600 356H470"/><circle cx="464" cy="356" r="5" fill="#4a4860" stroke="none"/>
+        </g>
+        <g font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="21" fill="#F4F2F7">
+          <text x="614" y="110">01 · O Bloco</text>
+          <text x="614" y="246">02 · A Queda</text>
+          <text x="614" y="350">03 · O Risco</text>
+        </g>
+        <g font-family="Instrument Sans, sans-serif" font-size="14" fill="#8A87A0">
+          <text x="614" y="134">Recipiente. Geometria travada,</text><text x="614" y="153">preenchimento livre.</text>
+          <text x="614" y="270">O vale do M é o intervalo entre</text><text x="614" y="289">dois batimentos.</text>
+          <text x="614" y="374">Segundo toque. Sempre à mão,</text><text x="614" y="393">sempre com recorte de fundo.</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="grid g2" style="margin-top:1.6rem">
+      <div class="card card--edge">
+        <span class="tag">Regra de ouro</span>
+        <p class="quote" style="font-size:clamp(1.3rem,2.8vw,1.9rem)">A forma é lei.<br>O recheio é liberdade.</p>
+        <p class="small">Qualquer pessoa pode inventar um recheio novo — um artista convidado, um estagiário,
+        um algoritmo, um fã. Ninguém, nunca, mexe na geometria. É essa assimetria que fez a MTV sobreviver
+        a quatro décadas de mudança de moda.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Categorias de recheio</span>
+        <ul class="rule-list" style="margin-top:.4rem">
+          <li><b style="background:rgba(255,46,60,.14);color:#FF2E3C">DADO</b><span>A curva de batimentos da pessoa naquele evento. O recheio padrão de todo card individual.</span></li>
+          <li><b style="background:rgba(0,229,255,.14);color:#00E5FF">FOTO</b><span>Público, cidade, palco, gramado. Vídeo também — o Bloco aceita máscara de vídeo.</span></li>
+          <li><b style="background:rgba(212,255,61,.14);color:#D4FF3D">TEXTURA</b><span>Cromado, scanline de VHS, meio-tom, ruído, onça. A gaveta de referência oitentista.</span></li>
+          <li><b style="background:rgba(255,204,0,.14);color:#FFCC00">EVENTO</b><span>Confete, gramado listrado, cores do time, paleta do álbum em turnê.</span></li>
+          <li><b style="background:rgba(122,61,255,.14);color:#7A3DFF">CHAPADO</b><span>Cor sólida da paleta. O padrão para tamanho pequeno e favicon.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SISTEMA DE VARIAÇÃO ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Logo · Sistema de variação</p>
+    <h2>Uma marca, infinitas peles.</h2>
+    <p class="lede" style="margin-bottom:2rem">
+      Todas as versões abaixo são o <strong>mesmo arquivo</strong> — muda só a pintura.
+      Em produção, o recheio “batimento” é gerado automaticamente a partir dos dados de cada usuário:
+      cada pessoa que sai de um show leva para casa um logo que nunca existiu antes.
+    </p>
+    <div class="lab" id="lab"></div>
+    <p class="small" style="margin-top:1.2rem">
+      Estes catorze recheios são exemplos de partida, não a lista fechada. O sistema é a regra, não o catálogo.
+    </p>
+  </div>
+</section>
+
+<!-- ============================== VERSÕES + REGRAS ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Logo · Versões e regras</p>
+    <h2>Quatro peças cobrem tudo.</h2>
+
+    <div class="grid g4" style="margin:2rem 0">
+      <div class="card" style="align-items:center;gap:1rem">
+        <svg viewBox="0 0 260 260" style="width:100%;max-width:170px;height:auto" role="img" aria-label="Ícone do aplicativo TumTum">
+          <rect width="260" height="260" rx="56" fill="url(#p-hr-xl)"/>
+          <g transform="translate(38 182) rotate(-4) scale(1.34)">
+            <use href="#risco" stroke="#0A0A0F" stroke-width="22"/>
+            <use href="#risco" stroke="#F4F2F7" stroke-width="11"/>
+          </g>
+        </svg>
+        <div style="width:100%"><h4>Ícone</h4><p class="small">O Bloco vira quadrado e o Risco assume. Recheio livre; no tamanho mínimo, vermelho chapado.</p></div>
+      </div>
+
+      <div class="card" style="align-items:center;gap:1rem">
+        <svg viewBox="0 0 660 372" style="width:100%;max-width:210px;height:auto" role="img" aria-label="Logo principal do TumTum">
+          <use href="#bloco" fill="#FF2E3C"/>
+          <g transform="translate(408 337) rotate(-5) scale(1.5)">
+            <use href="#risco" stroke="#0A0A0F" stroke-width="20"/><use href="#risco" stroke="#F4F2F7" stroke-width="11"/>
+          </g>
+        </svg>
+        <div style="width:100%"><h4>Principal</h4><p class="small">Bloco + Risco. A versão de assinatura, de card e de qualquer lugar com espaço vertical.</p></div>
+      </div>
+
+      <div class="card" style="align-items:center;gap:1rem">
+        <svg viewBox="0 0 780 260" style="width:100%;max-width:210px;height:auto" role="img" aria-label="Assinatura horizontal do TumTum">
+          <g transform="translate(0 26) scale(.7)"><use href="#bloco" fill="#F4F2F7"/></g>
+          <g transform="translate(500 208) rotate(-5) scale(1.22)">
+            <use href="#risco" stroke="#0A0A0F" stroke-width="22"/><use href="#risco" stroke="#FF2E3C" stroke-width="11"/>
+          </g>
+        </svg>
+        <div style="width:100%"><h4>Horizontal</h4><p class="small">Risco recuado para a direita, fora do Bloco. Para barras de navegação e faixas estreitas.</p></div>
+      </div>
+
+      <div class="card" style="align-items:center;gap:1rem">
+        <svg viewBox="0 0 260 260" style="width:100%;max-width:170px;height:auto" role="img" aria-label="Selo TumTum São Paulo">
+          <defs><path id="selo-arc" d="M130 130m-102 0a102 102 0 1 1 204 0a102 102 0 1 1 -204 0" fill="none"/></defs>
+          <circle cx="130" cy="130" r="126" fill="none" stroke="#FF2E3C" stroke-width="7"/>
+          <text font-family="Martian Mono, monospace" font-size="18" fill="#FF2E3C" letter-spacing="3">
+            <textPath href="#selo-arc" startOffset="2%">TUMTUM · SÃO PAULO · AO VIVO · </textPath>
+          </text>
+          <g transform="translate(48 168) rotate(-4) scale(1.05)">
+            <use href="#risco" stroke="#F4F2F7" stroke-width="11"/>
+          </g>
+        </svg>
+        <div style="width:100%"><h4>Selo</h4><p class="small">Para adesivo, pulseira, credencial e merch. O único uso em que o Risco aparece sozinho.</p></div>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <span class="tag" style="border-color:#00E676;color:#00E676">Pode, e deve</span>
+        <ul class="rule-list yes">
+          <li><b>✓</b><span>Trocar o recheio por qualquer cor, textura, foto, vídeo ou padrão.</span></li>
+          <li><b>✓</b><span>Cortar o Bloco na borda da tela (sangria) — o reconhecimento vive na silhueta.</span></li>
+          <li><b>✓</b><span>Animar o recheio: o Bloco pode piscar no ritmo real do BPM da pessoa.</span></li>
+          <li><b>✓</b><span>Redesenhar o Risco à mão para uma campanha, desde que continue legível como “tum”.</span></li>
+          <li><b>✓</b><span>Usar o Bloco vazado (recorte) sobre uma foto de público.</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tag" style="border-color:#FF2E3C;color:#FF2E3C">Nunca</span>
+        <ul class="rule-list no">
+          <li><b>✕</b><span>Alterar proporção, espessura ou espaçamento do Bloco. A geometria é fechada.</span></li>
+          <li><b>✕</b><span>Esticar, inclinar, arredondar cantos ou aplicar sombra e relevo.</span></li>
+          <li><b>✕</b><span>Girar o Bloco. Só o Risco tem inclinação, e ela é fixa em −5°.</span></li>
+          <li><b>✕</b><span>Usar o Risco sem recorte de fundo sobre foto, vídeo ou textura movimentada.</span></li>
+          <li><b>✕</b><span>Trocar o Risco por uma fonte manuscrita pronta. É desenho, não tipografia.</span></li>
+          <li><b>✕</b><span>Escrever “Tumtum” em caixa alta corrida como substituto do logo.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:1.6rem">
+      <div class="card">
+        <span class="tag">Área de respiro</span>
+        <svg viewBox="0 0 800 500" style="width:100%;height:auto;margin-top:.5rem" role="img" aria-label="Diagrama de área de respiro: uma unidade x igual à espessura da haste em todos os lados">
+          <rect x="12" y="6" width="776" height="488" fill="none" stroke="#2A2838" stroke-dasharray="7 7"/>
+          <g transform="translate(70 64)">
+            <use href="#bloco" fill="#2A2838"/>
+            <g transform="translate(408 337) rotate(-5) scale(1.5)"><use href="#risco" stroke="#2A2838" stroke-width="11"/></g>
+          </g>
+          <g fill="#FF2E3C" opacity=".85">
+            <rect x="12" y="6" width="58" height="58"/><rect x="730" y="6" width="58" height="58"/>
+            <rect x="12" y="436" width="58" height="58"/><rect x="730" y="436" width="58" height="58"/>
+          </g>
+          <text x="41" y="44" text-anchor="middle" font-family="Martian Mono, monospace" font-size="22" font-weight="700" fill="#0A0A0F">x</text>
+        </svg>
+        <p class="small"><strong>x = a espessura da haste do Bloco.</strong> Nenhum elemento — texto, foto, borda — entra
+        nessa faixa. Em sangria proposital, a regra é suspensa de um lado só.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Tamanho mínimo</span>
+        <div class="tablewrap" style="margin-top:.5rem">
+          <table>
+            <thead><tr><th>Contexto</th><th>Mínimo</th><th>Versão</th></tr></thead>
+            <tbody>
+              <tr><td class="y">Tela</td><td class="num">28 px de altura do Bloco</td><td class="n">Principal</td></tr>
+              <tr><td class="y">Barra de navegação</td><td class="num">20 px</td><td class="n">Horizontal</td></tr>
+              <tr><td class="y">Favicon / ícone</td><td class="num">16 px</td><td class="n">Ícone, chapado</td></tr>
+              <tr><td class="y">Impresso</td><td class="num">14 mm</td><td class="n">Principal</td></tr>
+              <tr><td class="y">Bordado / serigrafia</td><td class="num">30 mm</td><td class="n">Selo</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small">Abaixo de 28 px o Risco perde legibilidade: use o Ícone. Nunca reduza o logo principal
+        e “aumente” o Risco para compensar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== COR ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Cor · Núcleo</p>
+    <h2>Três cores fixas.<br>Cinco que giram.</h2>
+    <p class="lede" style="margin-bottom:2rem">
+      O núcleo é o que a pessoa reconhece de longe e nunca muda. O carnaval é o motor de variação —
+      cores que entram e saem por evento, por artista, por campanha. <strong>Uma cor de carnaval por
+      superfície. Nunca duas brigando na mesma tela.</strong>
+    </p>
+
+    <div class="grid g3">
+      <div class="sw"><div class="sw__chip" style="background:#0A0A0F;border-bottom:1px solid #2A2838"></div>
+        <div class="sw__body"><span class="sw__name">Preto Palco</span><span class="sw__hex">#0A0A0F</span>
+        <span class="sw__use">O fundo de tudo. Preto de sala escura, com um sopro de violeta — nunca preto puro, nunca cinza de dashboard.</span></div></div>
+      <div class="sw"><div class="sw__chip" style="background:#FF2E3C"></div>
+        <div class="sw__body"><span class="sw__name">Batida</span><span class="sw__hex">#FF2E3C</span>
+        <span class="sw__use">O vermelho da marca. Arterial, de tela, não de tinta. Contraste 5,4:1 sobre o Preto Palco — passa AA para texto corrido.</span></div></div>
+      <div class="sw"><div class="sw__chip" style="background:#F4F2F7"></div>
+        <div class="sw__body"><span class="sw__name">Luz</span><span class="sw__hex">#F4F2F7</span>
+        <span class="sw__use">Texto principal e o Risco. Branco com um resto de violeta para não vibrar sobre o fundo. 17,8:1.</span></div></div>
+    </div>
+
+    <p class="eyebrow" style="margin:2.6rem 0 1.1rem">Cor · Funcional</p>
+    <div class="grid g3">
+      <div class="sw"><div class="sw__chip" style="background:#00E5FF"></div>
+        <div class="sw__body"><span class="sw__name">Palco</span><span class="sw__hex">#00E5FF</span>
+        <span class="sw__use">Reservado. É a linha do artista ou do atleta na comparação — nunca decoração. Quando o ciano aparece, tem alguém no palco. 12,8:1.</span></div></div>
+      <div class="sw"><div class="sw__chip" style="background:linear-gradient(90deg,#15141C,#1F1D2A,#2A2838)"></div>
+        <div class="sw__body"><span class="sw__name">Superfícies</span><span class="sw__hex">#15141C · #1F1D2A · #2A2838</span>
+        <span class="sw__use">Carta, carta elevada e borda. Todos com viés violeta, na mesma família do Preto Palco.</span></div></div>
+      <div class="sw"><div class="sw__chip" style="background:#8A87A0"></div>
+        <div class="sw__body"><span class="sw__name">Névoa</span><span class="sw__hex">#8A87A0</span>
+        <span class="sw__use">Texto secundário, metadado, legenda. 5,7:1 — o cinza mais claro que ainda passa AA sobre o fundo.</span></div></div>
+    </div>
+
+    <p class="eyebrow" style="margin:2.6rem 0 1.1rem">Cor · Carnaval (rotativas)</p>
+    <div class="grid g4">
+      <div class="sw"><div class="sw__chip" style="background:#D4FF3D"></div><div class="sw__body"><span class="sw__name">Ácido</span><span class="sw__hex">#D4FF3D</span><span class="sw__use">Energia crua. Festival, rave, madrugada. 17,1:1</span></div></div>
+      <div class="sw"><div class="sw__chip" style="background:#FF3DBE"></div><div class="sw__body"><span class="sw__name">Choque</span><span class="sw__hex">#FF3DBE</span><span class="sw__use">Fandom, pop, arquibancada. 6,3:1</span></div></div>
+      <div class="sw"><div class="sw__chip" style="background:#FFCC00"></div><div class="sw__body"><span class="sw__name">Sol</span><span class="sw__hex">#FFCC00</span><span class="sw__use">Alerta e euforia. Também é a cor do país. 13,1:1</span></div></div>
+      <div class="sw"><div class="sw__chip" style="background:#7A3DFF"></div><div class="sw__body"><span class="sw__name">Ultravioleta</span><span class="sw__hex">#7A3DFF</span><span class="sw__use">Noite tarde. 3,7:1 — só título grande, ícone e fundo. Nunca texto pequeno.</span></div></div>
+      <div class="sw"><div class="sw__chip" style="background:#00E676"></div><div class="sw__body"><span class="sw__name">Campo</span><span class="sw__hex">#00E676</span><span class="sw__use">Futebol e confirmação. 11,8:1</span></div></div>
+    </div>
+
+    <div class="grid g2" style="margin-top:1.8rem">
+      <div class="card card--edge">
+        <h4>A regra do vermelho</h4>
+        <p class="small">Batida significa duas coisas, e as duas são viscerais: <strong>coração</strong> e
+        <strong>pare</strong>. Em erro, ele sempre vem acompanhado de ícone e texto — nunca sozinho.
+        Em contexto de erro, nenhum outro elemento decorativo pode usar vermelho, para que a única
+        mancha vermelha da tela seja a que importa.</p>
+      </div>
+      <div class="card">
+        <h4>Semântica</h4>
+        <div class="tablewrap" style="margin-top:.4rem">
+          <table>
+            <thead><tr><th>Estado</th><th>Cor</th><th>Regra</th></tr></thead>
+            <tbody>
+              <tr><td class="y">Sucesso</td><td class="num" style="color:#00E676">#00E676</td><td class="n">Sempre com ícone</td></tr>
+              <tr><td class="y">Atenção</td><td class="num" style="color:#FFCC00">#FFCC00</td><td class="n">Texto sobre fundo escuro</td></tr>
+              <tr><td class="y">Erro</td><td class="num" style="color:#FF2E3C">#FF2E3C</td><td class="n">Ícone + texto, nunca só cor</td></tr>
+              <tr><td class="y">Você</td><td class="num" style="color:#FF2E3C">#FF2E3C</td><td class="n">Sua linha, sempre</td></tr>
+              <tr><td class="y">Palco</td><td class="num" style="color:#00E5FF">#00E5FF</td><td class="n">Linha do artista, sempre</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TIPOGRAFIA ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Tipografia</p>
+    <h2>Uma fonte que também tem variação infinita.</h2>
+
+    <div class="grid g3" style="margin:2rem 0 1.6rem">
+      <div class="card">
+        <span class="tag" style="border-color:#FF2E3C;color:#FF2E3C">Display</span>
+        <p style="font-family:var(--display);font-weight:800;font-variation-settings:'wdth' 100,'opsz' 96;font-size:clamp(2.4rem,5vw,3.4rem);line-height:.9;letter-spacing:-.03em">Bricolage<br>Grotesque</p>
+        <p class="small">Grotesca de display com <strong>eixos variáveis de largura e peso</strong> — o mesmo princípio
+        do logo, aplicado ao texto: uma forma, infinitas versões. Estreita quando a manchete é longa,
+        larga quando precisa gritar. Só em título, nunca em parágrafo.</p>
+        <p class="mono dim">wdth 75–100 · wght 200–800 · opsz 12–96</p>
+      </div>
+      <div class="card">
+        <span class="tag">Texto</span>
+        <p style="font-family:var(--text-face);font-weight:600;font-size:clamp(2.2rem,4.6vw,3rem);line-height:1;letter-spacing:-.02em">Instrument<br>Sans</p>
+        <p class="small">A voz normal. Neutra sem ser genérica, com desenho aberto que aguenta acentuação
+        portuguesa em corpo pequeno. Todo texto de interface, todo parágrafo, todo botão.</p>
+        <p class="mono dim">400 · 500 · 600 · 700</p>
+      </div>
+      <div class="card">
+        <span class="tag" style="border-color:#00E5FF;color:#00E5FF">Dado</span>
+        <p style="font-family:var(--mono);font-weight:700;font-size:clamp(1.5rem,3.2vw,2.1rem);line-height:1.05;letter-spacing:-.02em">Martian<br>Mono</p>
+        <p class="small">Larga, tabular, mecânica. Toda vez que um número representa o corpo de alguém —
+        BPM, horário, porcentagem de sincronia — ele é Martian Mono. Números nunca são Instrument Sans.</p>
+        <p class="mono dim">300 · 400 · 700 · tabular-nums</p>
+      </div>
+    </div>
+
+    <div class="card" style="align-items:flex-start;gap:1.2rem">
+      <span class="tag">Espécime · o número é o herói</span>
+      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem 1.2rem">
+        <span style="font-family:var(--mono);font-weight:700;font-size:clamp(4rem,16vw,10rem);line-height:.82;letter-spacing:-.06em;color:#FF2E3C;font-variant-numeric:tabular-nums">187</span>
+        <span style="font-family:var(--display);font-weight:800;font-variation-settings:'wdth' 88;font-size:clamp(1.6rem,4vw,2.6rem);color:#F4F2F7">BPM</span>
+      </div>
+      <p class="small" style="max-width:60ch">“A Sky Full of Stars” · Allianz Parque · 12.03.26 — o número vem sempre
+      maior que o nome do artista. A pessoa é a protagonista do card, não o show.</p>
+    </div>
+
+    <div class="tablewrap" style="margin-top:1.6rem">
+      <table>
+        <thead><tr><th>Papel</th><th>Fonte</th><th>Tamanho</th><th>Ajustes</th></tr></thead>
+        <tbody>
+          <tr><td class="y">Display XL</td><td class="n">Bricolage 800</td><td class="num">clamp(2.5rem, 8vw, 6rem)</td><td class="n">wdth 100 · tracking −3% · leading 0,92</td></tr>
+          <tr><td class="y">Título de tela</td><td class="n">Bricolage 800</td><td class="num">1,75–2,25rem</td><td class="n">wdth 92 · tracking −2%</td></tr>
+          <tr><td class="y">Título de card</td><td class="n">Bricolage 700</td><td class="num">1,125rem</td><td class="n">wdth 88</td></tr>
+          <tr><td class="y">Corpo</td><td class="n">Instrument 400</td><td class="num">1rem / 1,6</td><td class="n">máx. 65 caracteres por linha</td></tr>
+          <tr><td class="y">Rótulo</td><td class="n">Martian 600</td><td class="num">0,68rem</td><td class="n">caixa alta · tracking +18%</td></tr>
+          <tr><td class="y">Número grande</td><td class="n">Martian 700</td><td class="num">livre</td><td class="n">tabular-nums · tracking −6%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small" style="margin-top:.9rem">As três estão no Google Fonts, com licença aberta e suporte a latim estendido —
+    zero custo de licenciamento e carregamento direto no Next.js via <span class="mono">next/font/google</span>.</p>
+  </div>
+</section>
+
+<!-- ============================== VOZ ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Tom de voz</p>
+    <h2>Fala como quem tá saindo do show.</h2>
+    <p class="lede" style="margin-bottom:2rem">
+      Não como quem tá vendendo relógio. O teste é simples: se a frase caberia num grupo de WhatsApp
+      às 2h da manhã, ela é TumTum. Se caberia num folheto de plano de saúde, joga fora.
+    </p>
+
+    <div class="grid g3">
+      <div class="card"><h4>01 · Sentimento, nunca saúde</h4><p class="small">A palavra é <strong>batida</strong>, não frequência cardíaca. É <strong>arrepio</strong>, não resposta fisiológica. A gente mede o corpo mas fala da alma.</p></div>
+      <div class="card"><h4>02 · Curto como grito</h4><p class="small">Título com no máximo 12 palavras. Notificação com no máximo duas frases. Ninguém lê parágrafo no meio da multidão.</p></div>
+      <div class="card"><h4>03 · Onomatopeia é bem-vinda</h4><p class="small">Tum tum. Pá. Uhul. O nome da marca já é um som — a escrita pode continuar sendo. Com moderação: uma por peça.</p></div>
+      <div class="card"><h4>04 · Português de rua</h4><p class="small">“A gente”, não “nós”. Gringuês só quando já virou palavra daqui: <em>card</em> e <em>story</em> ficam; <em>insight</em> e <em>engajamento</em> não.</p></div>
+      <div class="card"><h4>05 · A pessoa é o sujeito</h4><p class="small">A marca é narradora, nunca protagonista. “Seu coração bateu 187” — não “nós detectamos um pico de 187”.</p></div>
+      <div class="card" style="border-color:#3a2430"><h4>06 · Zero conselho médico</h4><p class="small">Regra dura, sem exceção. A gente nunca interpreta, diagnostica, tranquiliza ou alarma sobre saúde. Se o texto sugere qualquer avaliação clínica, ele não sai.</p></div>
+    </div>
+
+    <div class="grid g2" style="margin-top:1.8rem;align-items:start">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>A gente diz</th><th>A gente não diz</th></tr></thead>
+          <tbody>
+            <tr><td class="y">batida, batimento</td><td class="n">frequência cardíaca, BPM médio</td></tr>
+            <tr><td class="y">pico</td><td class="n">anomalia, evento detectado</td></tr>
+            <tr><td class="y">show, jogo, festa</td><td class="n">evento (só quando não dá para evitar)</td></tr>
+            <tr><td class="y">seu coração</td><td class="n">seus dados biométricos</td></tr>
+            <tr><td class="y">conectar o relógio</td><td class="n">sincronizar dispositivo vestível</td></tr>
+            <tr><td class="y">a gente</td><td class="n">nós, a Tumtum, a plataforma</td></tr>
+            <tr><td class="y">você tava lá</td><td class="n">sua participação foi registrada</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="stack">
+        <div class="card" style="gap:.35rem"><span class="tag">Notificação, no dia seguinte</span>
+          <p style="font-size:1.02rem">Ontem, 22h47. Seu coração foi a 187.<br>A gente sabe exatamente qual música era. 👀</p></div>
+        <div class="card" style="gap:.35rem"><span class="tag">Tela vazia</span>
+          <p style="font-size:1.02rem">Nenhum show ainda.<br><span class="dim">Seu coração tá de folga.</span></p></div>
+        <div class="card" style="gap:.35rem"><span class="tag">Erro de sincronização</span>
+          <p style="font-size:1.02rem">Não achamos batida nesse horário.<br><span class="dim">O relógio tava no pulso? Dá pra tentar de novo.</span></p></div>
+        <div class="card" style="gap:.35rem"><span class="tag">Consentimento</span>
+          <p style="font-size:1.02rem">A gente só lê sua batida nas horas do show. Nem antes, nem depois.<br><span class="dim">Você apaga tudo quando quiser, num toque.</span></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TAGLINES ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Taglines · três para testar</p>
+    <h2>Cada uma aposta numa coisa diferente.</h2>
+    <p class="lede" style="margin-bottom:2rem">
+      Não são três versões da mesma ideia — são três posicionamentos. Testar é escolher qual gatilho
+      converte melhor: memória, prova social ou pura sonoridade.
+    </p>
+
+    <div class="grid g3">
+      <div class="card card--edge" style="gap:1rem">
+        <span class="tag">Aposta: memória</span>
+        <p class="quote" style="font-size:clamp(1.5rem,3.4vw,2.2rem)">O show que seu coração viu.</p>
+        <p class="small"><strong>EN:</strong> The show your heart saw.</p>
+        <p class="small">A mais emocional e a mais “grande marca”. Funciona em filme, em outdoor, em abertura de
+        app. Fraqueza: não explica o produto para quem nunca ouviu falar.</p>
+        <p class="mono dim">Melhor em: institucional, vídeo, topo de funil</p>
+      </div>
+      <div class="card card--edge" style="gap:1rem">
+        <span class="tag">Aposta: prova social</span>
+        <p class="quote" style="font-size:clamp(1.5rem,3.4vw,2.2rem)">Prova que você sentiu.</p>
+        <p class="small"><strong>EN:</strong> Proof you felt it.</p>
+        <p class="small">A mais competitiva e a mais compartilhável — encosta direto no diferencial de “não dá para
+        fingir”. Funciona como carimbo no rodapé do card. Fraqueza: mais fria, quase desafiadora.</p>
+        <p class="mono dim">Melhor em: card, performance, aquisição</p>
+      </div>
+      <div class="card card--edge" style="gap:1rem">
+        <span class="tag">Aposta: sonoridade</span>
+        <p class="quote" style="font-size:clamp(1.5rem,3.4vw,2.2rem)">Bateu, ficou.</p>
+        <p class="small"><strong>EN:</strong> It beat. It stays.</p>
+        <p class="small">Duas palavras, ritmo de dois toques — a tagline imita o próprio nome. A mais fácil de virar
+        gíria e adesivo. Fraqueza: só funciona em português, e depende da marca já ser conhecida.</p>
+        <p class="mono dim">Melhor em: merch, assinatura curta, som</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.6rem">
+      <span class="tag">Como testar em 3 semanas</span>
+      <ul class="rule-list" style="margin-top:.5rem">
+        <li><b style="background:rgba(255,46,60,.14);color:#FF2E3C">01</b><span>Três variantes da landing, idênticas exceto pela tagline no topo. Divisão igual de tráfego.</span></li>
+        <li><b style="background:rgba(255,46,60,.14);color:#FF2E3C">02</b><span>Anúncios em Instagram e TikTok, mesma peça, mesmo público, orçamento igual. Mínimo de 3 mil impressões por variante para o número significar alguma coisa.</span></li>
+        <li><b style="background:rgba(255,46,60,.14);color:#FF2E3C">03</b><span>Métrica de decisão é <strong>cadastro concluído com relógio conectado</strong>, não clique. Clique mede curiosidade; conexão mede convicção.</span></li>
+        <li><b style="background:rgba(255,46,60,.14);color:#FF2E3C">04</b><span>Desempate qualitativo: 48h depois, perguntar a 20 pessoas se lembram da frase. Recall ganha de conversão empatada.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== APLICAÇÕES ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Aplicação · o motor viral</p>
+    <h2>O card é o produto que o mundo vê.</h2>
+
+    <div class="grid" style="grid-template-columns:minmax(260px,340px) minmax(280px,1fr);align-items:start;gap:clamp(1.5rem,4vw,3rem);margin-top:2rem">
+      <div style="background:#0A0A0F;border:1px solid #2A2838;border-radius:22px;overflow:hidden;aspect-ratio:9/16;display:flex;flex-direction:column;justify-content:space-between;padding:1.4rem 1.3rem;position:relative">
+        <div style="position:absolute;inset:auto 0 0 0;height:55%;background:radial-gradient(70% 60% at 50% 100%,rgba(255,46,60,.22),transparent 72%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;position:relative">
+          <svg viewBox="0 0 660 372" style="height:34px;width:auto" aria-hidden="true">
+            <use href="#bloco" fill="url(#p-hr-xl)"/>
+            <g transform="translate(408 337) rotate(-5) scale(1.5)"><use href="#risco" stroke="#0A0A0F" stroke-width="20"/><use href="#risco" stroke="#F4F2F7" stroke-width="11"/></g>
+          </svg>
+          <span class="mono" style="font-size:.55rem;letter-spacing:.16em;color:#8A87A0">12.03.26</span>
+        </div>
+
+        <div style="position:relative">
+          <p class="mono" style="font-size:.55rem;letter-spacing:.16em;color:#8A87A0;text-transform:uppercase">Seu pico da noite</p>
+          <div style="display:flex;align-items:baseline;gap:.4rem;margin-top:.2rem">
+            <span style="font-family:var(--mono);font-weight:700;font-size:4.6rem;line-height:.8;letter-spacing:-.07em;color:#FF2E3C;font-variant-numeric:tabular-nums">187</span>
+            <span style="font-family:var(--display);font-weight:800;font-variation-settings:'wdth' 88;font-size:1.3rem;color:#F4F2F7">BPM</span>
+          </div>
+          <p style="font-family:var(--display);font-weight:800;font-variation-settings:'wdth' 92;font-size:1.25rem;line-height:1.05;margin-top:.7rem;color:#F4F2F7">“A Sky Full<br>of Stars”</p>
+        </div>
+
+        <div style="position:relative">
+          <svg viewBox="0 0 320 96" style="width:100%;height:auto" aria-hidden="true">
+            <defs><linearGradient id="curvefill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#FF2E3C" stop-opacity=".38"/><stop offset="1" stop-color="#FF2E3C" stop-opacity="0"/>
+            </linearGradient></defs>
+            <path d="M0 62L14 58L26 63L38 55L50 60L62 52L74 57L86 48L98 54L110 44L122 50L134 42L146 47L158 38L170 43L182 30L194 34L206 18L214 12L224 22L236 30L248 26L260 34L272 40L284 36L296 44L308 40L320 46V96H0Z" fill="url(#curvefill)"/>
+            <path d="M0 62L14 58L26 63L38 55L50 60L62 52L74 57L86 48L98 54L110 44L122 50L134 42L146 47L158 38L170 43L182 30L194 34L206 18L214 12L224 22L236 30L248 26L260 34L272 40L284 36L296 44L308 40L320 46" fill="none" stroke="#FF2E3C" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+            <circle cx="214" cy="12" r="9" fill="#FF2E3C" opacity=".28"/><circle cx="214" cy="12" r="4.5" fill="#F4F2F7"/>
+          </svg>
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:.9rem;border-top:1px solid #2A2838;padding-top:.8rem">
+            <div><p style="font-size:.8rem;color:#F4F2F7;font-weight:600">Coldplay · Allianz Parque</p>
+              <p class="mono" style="font-size:.55rem;letter-spacing:.14em;color:#8A87A0;margin-top:.2rem">SÃO PAULO · @felipe</p></div>
+            <p style="font-family:var(--display);font-weight:800;font-variation-settings:'wdth' 82;font-size:.72rem;color:#FF2E3C;text-align:right;line-height:1.1">PROVA QUE<br>VOCÊ SENTIU</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="card"><h4>O logo do card é o dado do card</h4><p class="small">O Bloco vem preenchido com a curva daquela noite. Ninguém mais no mundo tem aquele logo — é a variação MTV gerada por quem viveu o show, não por uma agência.</p></div>
+        <div class="card"><h4>Hierarquia travada</h4><p class="small">Número &gt; música &gt; artista &gt; local. Se o nome do artista ficar maior que o BPM, o card virou cartaz de show e perdeu o motivo de existir.</p></div>
+        <div class="card"><h4>Sangria de segurança</h4><p class="small">Nada essencial nos 12% de cima nem nos 14% de baixo: é onde a interface do Instagram Stories cobre. O card precisa funcionar sem a moldura.</p></div>
+        <div class="card"><h4>Um carnaval por card</h4><p class="small">A cor rotativa entra no recheio do logo ou no fundo — nunca nos dois. A curva é sempre Batida; a linha do artista é sempre Palco.</p></div>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-top:2rem">
+      <div class="card" style="gap:.9rem">
+        <span class="tag">Barra do app</span>
+        <div style="background:#0A0A0F;border:1px solid #2A2838;border-radius:12px;padding:.8rem 1rem;display:flex;align-items:center;justify-content:space-between">
+          <svg viewBox="0 0 780 260" style="height:26px;width:auto" aria-hidden="true">
+            <g transform="translate(0 26) scale(.7)"><use href="#bloco" fill="#F4F2F7"/></g>
+            <g transform="translate(500 208) rotate(-5) scale(1.22)"><use href="#risco" stroke="#0A0A0F" stroke-width="22"/><use href="#risco" stroke="#FF2E3C" stroke-width="11"/></g>
+          </svg>
+          <span class="mono" style="font-size:.58rem;letter-spacing:.12em;color:#8A87A0">SHOWS · CARDS · PERFIL</span>
+        </div>
+        <p class="small">Na navegação o Bloco é branco e o Risco é vermelho — inversão da versão principal, para o logo não competir com o conteúdo.</p>
+      </div>
+      <div class="card" style="gap:.9rem">
+        <span class="tag">Adesivo e pulseira</span>
+        <div style="display:flex;gap:.6rem;align-items:center;justify-content:center;padding:.6rem 0">
+          <svg viewBox="0 0 260 260" style="width:74px;transform:rotate(-8deg)" aria-hidden="true"><rect width="260" height="260" rx="52" fill="#D4FF3D"/><g transform="translate(38 182) rotate(-4) scale(1.34)"><use href="#risco" stroke="#0A0A0F" stroke-width="11"/></g></svg>
+          <svg viewBox="0 0 260 260" style="width:74px;transform:rotate(5deg)" aria-hidden="true"><circle cx="130" cy="130" r="128" fill="#FF2E3C"/><g transform="translate(48 168) rotate(-4) scale(1.05)"><use href="#risco" stroke="#0A0A0F" stroke-width="11"/></g></svg>
+          <svg viewBox="0 0 260 260" style="width:74px;transform:rotate(-3deg)" aria-hidden="true"><rect width="260" height="260" rx="52" fill="url(#p-onca)"/><g transform="translate(38 182) rotate(-4) scale(1.34)"><use href="#risco" stroke="#F4F2F7" stroke-width="22"/><use href="#risco" stroke="#0A0A0F" stroke-width="11"/></g></svg>
+        </div>
+        <p class="small">O Risco sozinho vira carimbo. É a peça de rua: adesivo de banheiro de casa de show, pulseira de festival, tatuagem temporária.</p>
+      </div>
+      <div class="card" style="gap:.9rem">
+        <span class="tag">Movimento</span>
+        <div style="display:flex;align-items:center;justify-content:center;padding:.4rem 0">
+          <svg viewBox="0 0 660 372" style="width:100%;max-width:180px" aria-hidden="true">
+            <use href="#bloco" fill="#FF2E3C" id="pulseBloco"/>
+            <g transform="translate(408 337) rotate(-5) scale(1.5)"><use href="#risco" stroke="#0A0A0F" stroke-width="20"/><use href="#risco" stroke="#F4F2F7" stroke-width="11"/></g>
+          </svg>
+        </div>
+        <p class="small">Toda animação do logo obedece a um único ritmo: o BPM real da pessoa naquele momento. A marca não pulsa por estética — pulsa porque alguém está vivo do outro lado.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== ENTREGA ============================== -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">O que já está no repositório</p>
+    <h2>A marca virou código junto com o manual.</h2>
+    <div class="grid g2" style="margin-top:1.6rem;align-items:start">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Arquivo</th><th>O que é</th></tr></thead>
+          <tbody>
+            <tr><td class="y mono">shared/brand/BRAND.md</td><td class="n">O manual completo, versão texto</td></tr>
+            <tr><td class="y mono">shared/brand/tokens.json</td><td class="n">Todos os tokens em formato legível por máquina</td></tr>
+            <tr><td class="y mono">shared/brand/tokens.css</td><td class="n">Custom properties para uso direto no CSS</td></tr>
+            <tr><td class="y mono">shared/brand/logo/*.svg</td><td class="n">Principal, ícone, horizontal, selo e o Risco isolado</td></tr>
+            <tr><td class="y mono">frontend/components/brand/Logo.tsx</td><td class="n">O logo como componente, com a prop de recheio</td></tr>
+            <tr><td class="y mono">frontend/tailwind.config.ts</td><td class="n">Paleta e fontes novas nos mesmos nomes de token</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="stack">
+        <div class="card card--edge"><h4>Próximo passo imediato</h4><p class="small">Contratar o desenho final do Risco com um letrista à mão. O SVG entregue é a direção — precisa de uma passada humana em traço real, digitalizada em alta, para virar o ativo definitivo.</p></div>
+        <div class="card"><h4>Depois</h4><p class="small">Gerar o recheio “batimento” no serviço de card do backend, para que cada card saia com o logo preenchido pela curva daquele usuário. É o que transforma a variação de conceito em produto.</p></div>
+        <div class="card"><h4>Registro</h4><p class="small">Antes de investir em mídia: busca de anterioridade e depósito da marca mista no INPI, classes 09, 41 e 42.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="band footer">
+  <div class="wrap">
+    <p class="mono" style="color:#8A87A0">TUMTUM · IDENTIDADE DE MARCA v2.0 · AGOSTO 2026</p>
+    <p style="margin-top:.5rem">Direção visual a partir do sistema de logo variável da MTV (Manhattan Design, 1981) e da produção gráfica do canal nos anos 80 e 90.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var FILLS = [
+    { f: '#FF2E3C',           r: '#F4F2F7', h: '#0A0A0F', n: 'Batida chapada' },
+    { f: 'url(#p-hr)',        r: '#F4F2F7', h: '#0A0A0F', n: 'Batimento · gerado' },
+    { f: 'url(#p-publico)',   r: '#F4F2F7', h: '#0A0A0F', n: 'Público' },
+    { f: 'url(#p-scan)',      r: '#F4F2F7', h: '#0A0A0F', n: 'Scanline VHS' },
+    { f: 'url(#p-cromo)',     r: '#0A0A0F', h: '#F4F2F7', n: 'Cromado' },
+    { f: 'url(#p-meiotom)',   r: '#F4F2F7', h: '#0A0A0F', n: 'Meio-tom' },
+    { f: 'url(#p-xadrez)',    r: '#FF2E3C', h: '#0A0A0F', n: 'Xadrez' },
+    { f: 'url(#p-diagonal)',  r: '#F4F2F7', h: '#0A0A0F', n: 'Diagonal' },
+    { f: 'url(#p-confete)',   r: '#F4F2F7', h: '#0A0A0F', n: 'Confete' },
+    { f: 'url(#p-onca)',      r: '#0A0A0F', h: '#FFCC00', n: 'Onça' },
+    { f: 'url(#p-campo)',     r: '#F4F2F7', h: '#0A0A0F', n: 'Gramado' },
+    { f: 'url(#p-tipo)',      r: '#F4F2F7', h: '#0A0A0F', n: 'Tipográfico' },
+    { f: 'url(#p-uv)',        r: '#F4F2F7', h: '#0A0A0F', n: 'Ultravioleta' },
+    { f: 'url(#p-ruido)',     r: '#F4F2F7', h: '#0A0A0F', n: 'Ruído' }
+  ];
+
+  var lab = document.getElementById('lab');
+  if (lab) {
+    FILLS.forEach(function (v) {
+      var cell = document.createElement('div');
+      cell.className = 'lab__cell';
+      cell.innerHTML =
+        '<svg viewBox="0 0 660 372" role="img" aria-label="Logo TumTum com recheio ' + v.n + '">' +
+          '<use href="#bloco" fill="' + v.f + '"></use>' +
+          '<g transform="translate(408 337) rotate(-5) scale(1.5)">' +
+            '<use href="#risco" stroke="' + v.h + '" stroke-width="20"></use>' +
+            '<use href="#risco" stroke="' + v.r + '" stroke-width="11"></use>' +
+          '</g>' +
+        '</svg>' +
+        '<span class="lab__name">' + v.n + '</span>';
+      lab.appendChild(cell);
+    });
+  }
+
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var bloco = document.getElementById('heroFill');
+  var risco = document.getElementById('heroRisco');
+  var halo  = document.getElementById('heroHalo');
+  if (!still && bloco && risco && halo) {
+    var i = 0;
+    setInterval(function () {
+      i = (i + 1) % FILLS.length;
+      bloco.setAttribute('fill', FILLS[i].f);
+      risco.setAttribute('stroke', FILLS[i].r);
+      halo.setAttribute('stroke', FILLS[i].h);
+    }, 2200);
+  }
+
+  var pulse = document.getElementById('pulseBloco');
+  if (!still && pulse) {
+    var t = 0;
+    setInterval(function () {
+      t++;
+      pulse.style.transformOrigin = '50% 50%';
+      pulse.style.transition = 'transform .12s ease-out';
+      pulse.style.transform = (t % 2 ? 'scale(1.035)' : 'scale(1)');
+    }, 480);
+  }
+})();
+</script>

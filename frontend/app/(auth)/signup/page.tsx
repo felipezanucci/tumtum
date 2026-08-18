@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Button, Input } from '@/components/ui'
 
+import { Logo } from '@/components/brand'
+
 export default function SignupPage() {
   const router = useRouter()
   const { register, loading } = useAuthStore()
@@ -29,12 +31,7 @@ export default function SignupPage() {
     <main className="flex min-h-screen items-center justify-center bg-tumtum-dark px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1
-            className="text-3xl font-bold uppercase tracking-widest text-tumtum-red"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Tumtum
-          </h1>
+          <Logo className="mx-auto h-14 w-auto" />
           <p className="mt-2 text-tumtum-text-muted">Crie sua conta e sinta o evento</p>
         </div>
 
