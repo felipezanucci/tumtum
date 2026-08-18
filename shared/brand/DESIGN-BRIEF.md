@@ -200,6 +200,7 @@ Escopo a combinar, mas o que o produto precisa para funcionar:
 
 - Identidade visual da marca, com o sistema que permite a variação descrita no item 5
 - Logo e suas versões de uso (aplicativo, favicon, barra de navegação, peça compartilhável, merch)
+- **Um mascote da marca** — detalhado abaixo, porque é um pedido central e não um extra
 - Manual com as regras do sistema: o que pode variar, o que nunca muda, e como alguém de fora
   aplica isso sem quebrar a marca
 - Direção para a peça de compartilhamento — é o produto que o mundo vê e o motor de crescimento
@@ -207,6 +208,38 @@ Escopo a combinar, mas o que o produto precisa para funcionar:
 - Direção visual para o app (não precisa ser a interface inteira; precisa ser o suficiente para a
   equipe seguir)
 - Arquivos finais em formato aberto e editável
+
+### O mascote
+
+Queremos um mascote e ele é parte importante do trabalho, não um enfeite no fim do manual.
+
+**Por que.** O deboche descrito no item 5 é difícil de sustentar só com texto e com o logo — em
+algum momento a marca começa a soar forçada. Um mascote resolve isso: ele pode dizer, fazer e
+reagir a coisas que a marca institucional não pode. É ele que comenta que a pessoa passou de 180 na
+música lenta. É ele que aparece quando não achamos os dados. É por ele que a marca ganha carinho
+em vez de só ganhar atenção.
+
+**Onde ele vai viver.** No app, nos momentos em que hoje não tem nada acontecendo — tela vazia,
+carregamento, onboarding, erro, o instante antes de revelar o pico da noite. Em adesivo, pulseira,
+camiseta e nas peças de rua, que é onde ele vira afeto de verdade. Nas redes da marca, como
+personagem recorrente. E, com cuidado, na peça de compartilhamento: ali **ele nunca pode competir
+com o dado**, porque o herói daquela peça é o número da pessoa, não a nossa marca.
+
+**Que papel ele tem.** Ele é a voz debochada da marca em forma de personagem: cúmplice, curioso,
+exagerado, um pouco atrevido. Ri junto e ri da própria marca — nunca da pessoa nem do que ela
+sentiu. Ele testemunha a noite do usuário, não a protagoniza.
+
+**O que precisamos junto com ele:**
+- Um pequeno repertório de estados e reações, para que a equipe consiga usar o mascote no produto
+  sem chamar um designer toda vez
+- As regras de uso: quando ele entra, quando ele fica calado, e o que ele nunca faz
+- Ele precisa funcionar bem pequeno, dentro do app, e sobreviver a ser animado depois
+- Um nome, que podemos definir juntos
+
+**O que ainda não está decidido, de propósito:** o que ele é. Bicho, objeto, criatura, coisa
+abstrata, ninguém sabe — não temos ideia formada e não queremos ter. A única exigência é a do item 5:
+divertido sem ser infantil, e capaz de aparecer ao lado da marca de um artista grande sem
+constranger ninguém.
 
 ---
 
@@ -247,7 +280,8 @@ Nesta ordem:
 4. **Ninguém confunde com app de saúde.** Se alguém olhar e pensar em treino, sono ou bem-estar,
    erramos.
 5. **Dá para perceber que a marca não se leva a sério.** Se o resultado for bonito mas solene,
-   ficou correto e errado ao mesmo tempo.
+   ficou correto e errado ao mesmo tempo. O mascote é a prova mais rápida disso: se ele arranca um
+   sorriso, funcionou.
 6. **Reconhecível em um segundo**, pequeno, no meio de um feed cheio.
 
 ---
