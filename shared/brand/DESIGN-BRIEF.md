@@ -116,6 +116,10 @@ segundo?*
 
 ## 5. A personalidade da marca
 
+Se for para resumir em uma linha: **a TumTum é uma marca levemente debochada.** Ela leva o
+sentimento da pessoa muito a sério e não se leva a sério em nenhum momento. É essa combinação que
+define quase todas as decisões abaixo.
+
 ### O que ela é
 
 **Ousada.** A marca fala alto porque nasceu num lugar barulhento. Ela não pede licença, não explica
@@ -130,9 +134,16 @@ Uma pessoa que foi a cinco shows deve ter cinco coisas que são visivelmente da 
 visivelmente diferentes entre si. Se a solução final só funciona quando está sempre idêntica, ela
 não serve para este produto.
 
-**Divertida.** Deboche leve, exagero, piada com o próprio corpo. A graça é de quem está se
-divertindo, nunca de quem está julgando. É a característica que impede a marca de virar app de
-saúde — se em algum momento ela ficar séria demais, perdemos.
+**Divertida e levemente debochada.** Este é o traço mais fácil de errar, então vale detalhar.
+O deboche da TumTum é o de quem está se divertindo junto — exagero, piada com o próprio corpo,
+sarro com a intensidade da situação ("seu coração claramente não aguentou o refrão"). Nunca é
+sarcasmo, nunca é ironia amarga, e nunca é às custas da pessoa ou do que ela sentiu. A marca ri
+com o usuário e, principalmente, ri de si mesma: ela sabe que está tratando batimento cardíaco
+como troféu de show e acha isso ótimo.
+
+Na prática, isso significa que a marca é capaz de dizer uma coisa emocionante e desmontar a
+solenidade dela na mesma frase. É o que a impede de virar app de saúde — e também o que a impede
+de virar cartão-postal emocionado. Se em algum momento ela ficar séria demais, perdemos.
 
 **Íntima.** Batimento é a coisa mais particular que alguém pode entregar. A marca sabe disso e
 trata com carinho, sem solenidade. Aparece na hora de revelar o pico e na hora de pedir permissão.
@@ -151,6 +162,7 @@ de nada que "represente o Brasil" — precisa soar como alguém daqui falando no
 | Precisa com o dado | Clínica no jeito |
 | Brasileira | Tropicalizada de cartão-postal |
 | Divertida | Infantil |
+| Levemente debochada | Sarcástica, cínica, deboche em cima do usuário |
 
 A única característica travada em zero é **clínica**. Todas as outras podem oscilar por contexto:
 a marca fica mais quieta na tela em que pede acesso aos dados de saúde e mais alta na peça que a
@@ -159,7 +171,8 @@ pessoa posta.
 ### Como a marca fala
 
 O teste: se a frase caberia num grupo de WhatsApp às duas da manhã, é TumTum. Se caberia num
-folheto de plano de saúde, joga fora.
+folheto de plano de saúde, joga fora. O deboche mora aqui também — a marca comenta a situação
+como um amigo comentaria, com um pouco de sarro e nenhuma cerimônia.
 
 - Fala de **sentimento, nunca de saúde**. "Batida", não "frequência cardíaca". "Arrepio", não
   "resposta fisiológica".
@@ -174,6 +187,8 @@ Exemplos do tom, para calibrar:
 > *Ontem, 22h47. Seu coração foi a 187. A gente sabe exatamente qual música era.*
 
 > *Nenhum show ainda. Seu coração tá de folga.*
+
+> *187 batimentos por minuto numa música lenta. A gente não vai comentar.*
 
 > *Não achamos batida nesse horário. O relógio tava no pulso?*
 
@@ -231,7 +246,9 @@ Nesta ordem:
    mesma marca e obviamente diferentes entre si.
 4. **Ninguém confunde com app de saúde.** Se alguém olhar e pensar em treino, sono ou bem-estar,
    erramos.
-5. **Reconhecível em um segundo**, pequeno, no meio de um feed cheio.
+5. **Dá para perceber que a marca não se leva a sério.** Se o resultado for bonito mas solene,
+   ficou correto e errado ao mesmo tempo.
+6. **Reconhecível em um segundo**, pequeno, no meio de um feed cheio.
 
 ---
 
