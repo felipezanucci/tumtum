@@ -12,16 +12,21 @@ the project notes.
 
 | File | Purpose |
 |------|---------|
-| `PPGActivity.java` | Drop-in replacement for `app/src/main/java/com/jstyle/test2025/activity/PPGActivity.java` in the vendor's `v8test` Android Studio project (inside `V8 SDK/v8_sdk_android.zip`). Adds CSV logging of every raw PPG sample (wall-clock timestamp + packetID), logging of the firmware's own HR values, and auto re-arm of the measurement session for multi-hour runs. |
+| `PPGActivity.java` | Instrumented replacement for the vendor demo's PPG screen (already applied inside `v8test/`). Adds CSV logging of every raw PPG sample (wall-clock timestamp + packetID), logging of the firmware's own HR values, auto re-arm of the measurement session for multi-hour runs, and export of finished CSVs to `Downloads/tumtum_spike/`. |
+| `v8test/` | The vendor's full Android demo project, patched to build on CI (LF `gradlew`, public HelloCharts artifact replacing the vendor's incomplete fork, JDK 17 compiler flags for ButterKnife 8.5.1, reconstructed `activity_hrv_data_read.xml`). |
 | `analyze_ppg.py` | Derives 1 Hz heart rate from the recorded raw PPG, compares it against a Polar H10 reference and the firmware HR, and reports the decision metrics: peak delay, peak amplitude ratio, MAE, sample rate, packet loss, re-arm count. |
 
 ## Quick run
 
-1. Unzip the vendor SDK, open `v8test/` in Android Studio, replace `PPGActivity.java`
-   with the copy in this folder, run the app on an Android phone (8.0+).
-2. Connect the V8, open the PPG screen, press **Start** — files land in
-   `Android/data/com.jstyle.test2025/files/` (`ppg_raw_*.csv`, `events_*.csv`).
-3. Record the Polar H10 in parallel (e.g. Polar Sensor Logger on a second phone).
+1. Install the prebuilt APK from the `spike-apk` release
+   (https://github.com/felipezanucci/tumtum/releases/tag/spike-apk) on an
+   Android phone (10+). CI rebuilds it on every push to
+   `hardware/jstyle-spike/v8test/**` (see `.github/workflows/build-spike-apk.yml`);
+   the full instrumented project is vendored in `v8test/`.
+2. Connect the V8, open the PPG screen, press **Start**; press **End** to stop —
+   the CSVs (`ppg_raw_*.csv`, `events_*.csv`) are exported to
+   `Downloads/tumtum_spike/` (originals in `Android/data/com.jstyle.testv8/files/`).
+3. Record the Polar H10 in parallel (e.g. Polar Flow/Beat on another phone).
 4. Analyze:
 
 ```bash
