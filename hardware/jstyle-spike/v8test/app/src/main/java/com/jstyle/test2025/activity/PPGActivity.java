@@ -59,6 +59,8 @@ public class PPGActivity extends BaseActivity {
 
     private BufferedWriter ppgWriter = null;
     private BufferedWriter eventWriter = null;
+    private File ppgFile = null;
+    private File eventFile = null;
     private boolean recording = false;
     private long packetCount = 0;
     private long sampleCount = 0;
@@ -94,11 +96,11 @@ public class PPGActivity extends BaseActivity {
         String stamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
         File dir = getExternalFilesDir(null);
         try {
-            File ppgFile = new File(dir, "ppg_raw_" + stamp + ".csv");
+            ppgFile = new File(dir, "ppg_raw_" + stamp + ".csv");
             ppgWriter = new BufferedWriter(new FileWriter(ppgFile));
             ppgWriter.write("received_ms,packet_id,sample_index,ppg\n");
 
-            File eventFile = new File(dir, "events_" + stamp + ".csv");
+            eventFile = new File(dir, "events_" + stamp + ".csv");
             eventWriter = new BufferedWriter(new FileWriter(eventFile));
             eventWriter.write("received_ms,event,device_heart_rate\n");
 
@@ -123,6 +125,37 @@ public class PPGActivity extends BaseActivity {
         }
         ppgWriter = null;
         eventWriter = null;
+        exportToDownloads(ppgFile);
+        exportToDownloads(eventFile);
+    }
+
+    /**
+     * Copies a finished CSV into the public Downloads/tumtum_spike folder so it
+     * can be shared straight from the phone (Android/data is not browsable on
+     * modern Android). API 29+ only; on older devices the app-dir copy remains.
+     */
+    private void exportToDownloads(File src) {
+        if (src == null || !src.exists() || android.os.Build.VERSION.SDK_INT < 29) return;
+        try {
+            android.content.ContentValues values = new android.content.ContentValues();
+            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, src.getName());
+            values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "text/csv");
+            values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH,
+                    android.os.Environment.DIRECTORY_DOWNLOADS + "/tumtum_spike");
+            android.net.Uri uri = getContentResolver()
+                    .insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+            if (uri == null) return;
+            try (java.io.OutputStream os = getContentResolver().openOutputStream(uri);
+                 java.io.FileInputStream is = new java.io.FileInputStream(src)) {
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = is.read(buf)) > 0) os.write(buf, 0, n);
+            }
+            Log.i(TAG, "Exported to Downloads/tumtum_spike: " + src.getName());
+            runOnUiThread(() -> info.setText("CSVs salvos em Downloads/tumtum_spike"));
+        } catch (Exception e) {
+            Log.e(TAG, "Export to Downloads failed", e);
+        }
     }
 
     private void logEvent(String event, String heartRate) {
