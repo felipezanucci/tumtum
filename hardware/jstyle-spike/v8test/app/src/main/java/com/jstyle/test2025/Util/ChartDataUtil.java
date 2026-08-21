@@ -36,11 +36,11 @@ public class ChartDataUtil {
 //        viewport.bottom = bottom;
 //        viewport.left = left;
 //        viewport.right = right;
-//        chart.setContainerScrollEnabled(true, ContainerScrollType.HORIZONTAL_IN_ScrollView);
+//        chart.setContainerScrollEnabled(true, ContainerScrollType.HORIZONTAL);
 //        chart.setViewportCalculationEnabled(false);
 //        chart.setMaximumViewport(viewport);
 //        chart.setZoomType(ZoomType.HORIZONTAL);
-//        chart.setCurrentViewport(viewport, false);
+//        chart.setCurrentViewport(viewport);
 //        // chart.setZoomEnabled(false);
 //    }
 
@@ -55,7 +55,7 @@ public class ChartDataUtil {
         chart.setViewportCalculationEnabled(false);
         chart.setMaximumViewport(viewport);
         chart.setZoomType(ZoomType.HORIZONTAL_AND_VERTICAL);
-        chart.setCurrentViewport(viewport, false);
+        chart.setCurrentViewport(viewport);
     }
 
 
@@ -93,8 +93,8 @@ public class ChartDataUtil {
         listLines.add(line);
         lineChartData.setLines(listLines);
         Bitmap bitmap=BitmapFactory.decodeResource(context.getResources(), R.drawable.bg_ecg_h);
-        lineChartData.setBitmap(bitmap);
-        lineChartData.setAxisXBottom(axisX.setHasAxisLines(false));
+        // lineChartData.setBitmap(bitmap); // fork-only API, cosmetic background
+        lineChartData.setAxisXBottom(axisX.setHasLines(false));
         return lineChartData;
     }
 
@@ -132,7 +132,7 @@ public class ChartDataUtil {
         line.setHasPoints(false);
         listLines.add(line);
         lineChartData.setLines(listLines);
-        lineChartData.setAxisXBottom(axisX.setHasAxisLines(false));
+        lineChartData.setAxisXBottom(axisX.setHasLines(false));
         return lineChartData;
     }
 
@@ -163,8 +163,8 @@ public class ChartDataUtil {
         listLines.add(line);
         lineChartData.setLines(listLines);
         Bitmap bitmap=BitmapFactory.decodeResource(context.getResources(),R.drawable.bg_ecg_h);
-        lineChartData.setBitmap(bitmap);
-        lineChartData.setAxisXBottom(axisX.setHasAxisLines(false));
+        // lineChartData.setBitmap(bitmap); // fork-only API, cosmetic background
+        lineChartData.setAxisXBottom(axisX.setHasLines(false));
         return lineChartData;
     }
 
@@ -227,7 +227,7 @@ public class ChartDataUtil {
         listLines.add(line);
         lineChartData.setLines(listLines);
 
-        lineChartData.setAxisXBottom(axisX.setHasAxisLines(false));
+        lineChartData.setAxisXBottom(axisX.setHasLines(false));
         return lineChartData;
     }
 
@@ -278,14 +278,14 @@ public class ChartDataUtil {
         viewport.left = left;
         viewport.right = right;
         chart.setScrollEnabled(true);
-        chart.setContainerScrollEnabled(true, ContainerScrollType.HORIZONTAL_IN_ScrollView);
+        chart.setContainerScrollEnabled(true, ContainerScrollType.HORIZONTAL);
         chart.setViewportCalculationEnabled(false);
         chart.setMaximumViewport(viewport);
 
         chart.setZoomType(ZoomType.HORIZONTAL);
         viewport.left = showLeft;
         viewport.right = showRight;
-        chart.setCurrentViewport(viewport, false);
+        chart.setCurrentViewport(viewport);
         //chart.setZoomEnabled(false);
     }
 
@@ -317,7 +317,7 @@ public class ChartDataUtil {
         lineChartData.setLines(listLines);
 //        Bitmap bitmap=BitmapFactory.decodeResource(context.getResources(),R.drawable.bg_ecg_h);
 //        lineChartData.setBitmap(bitmap);
-        lineChartData.setAxisXBottom(axisX.setHasAxisLines(false));
+        lineChartData.setAxisXBottom(axisX.setHasLines(false));
         return lineChartData;
     }
 }
