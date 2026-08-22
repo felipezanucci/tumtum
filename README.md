@@ -25,6 +25,9 @@ See CLAUDE.md for detailed project structure.
 
 ## Project management
 
-The team's Notion workspace ("second brain") is specified in [`docs/notion/`](./docs/notion/):
-setup guide, database specs, dashboard layout, working rituals, page templates and
-ready-to-import CSV seeds.
+Day-to-day planning lives in the team's Notion workspace, TumTum HQ: roadmap stages,
+tasks, decisions, hypotheses and weekly metrics, with a dashboard that answers where we
+are, what is blocked and what comes next.
+
+[`docs/notion.md`](./docs/notion.md) is the versioned reference for that workspace —
+database schemas, formulas, dashboard filters and links.
