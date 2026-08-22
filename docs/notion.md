@@ -8,6 +8,7 @@ precisar reconstruir.
 |---|---|
 | **Página raiz** | [🫀 TumTum HQ](https://app.notion.com/p/3c4cb8f196238184a9c5eec93ffa8dbd) |
 | **Uso diário** | [🎛️ Painel de Controle](https://app.notion.com/p/3c4cb8f19623819c88fce906ba282226) |
+| **Estratégia de mercado** | [🚀 GTM — Go to Market](https://app.notion.com/p/3c4cb8f1962381e0a4fdda20ae0ba086) |
 | **Rituais e templates** | [📖 Manual](https://app.notion.com/p/3c4cb8f1962381b28a13c92b95d0364c) |
 
 ## As três regras
@@ -125,6 +126,16 @@ etapa que fechou, marque na próxima, e troque a etapa naquele filtro.
 
 **A barra de progresso é uma opção de exibição.** `Progresso` → *Mostrar como* → **Barra**.
 Só dá para configurar pela interface.
+
+---
+
+## 🚀 GTM
+
+Página de trabalho da estratégia de entrada no mercado, com as sete perguntas que a
+estratégia precisa responder e duas visões vinculadas: tarefas de Growth e Parcerias em
+aberto, e as hipóteses por criticidade. O que sai de lá se espalha pelos bancos — decisão
+vira card em Decisões, ação vira tarefa, aposta vira hipótese. Na página fica só o
+raciocínio.
 
 ---
 
