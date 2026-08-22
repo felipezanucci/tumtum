@@ -22,3 +22,9 @@ Tumtum is a live entertainment technology platform that captures how people feel
 ## Project Structure
 
 See CLAUDE.md for detailed project structure.
+
+## Project management
+
+The team's Notion workspace ("second brain") is specified in [`docs/notion/`](./docs/notion/):
+setup guide, database specs, dashboard layout, working rituals, page templates and
+ready-to-import CSV seeds.

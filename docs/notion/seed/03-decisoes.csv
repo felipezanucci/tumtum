@@ -1,0 +1,9 @@
+Decisão,Status,Data,Área,Impacto,Etapa,Resumo
+Fase 0 usa wearables que as pessoas já têm,Decidida,2026-01-05,Produto,Alto,Sprint 0 — Fundação,"Hardware próprio custa caro e demora. Primeiro provar que alguém quer o produto, depois construir a pulseira."
+Next.js com App Router no frontend,Decidida,2026-01-06,Frontend,Médio,Sprint 0 — Fundação,"Server Components por padrão, PWA instalável e deploy na Vercel sem esforço"
+FastAPI com SQLAlchemy async no backend,Decidida,2026-01-06,Backend,Médio,Sprint 0 — Fundação,"Python assíncrono, tipagem via Pydantic e boa vizinhança com bibliotecas de dados"
+PostgreSQL com TimescaleDB para os batimentos,Decidida,2026-01-07,Backend,Alto,Sprint 0 — Fundação,"Batimento é série temporal. Hypertable particionada por dia resolve escala sem banco extra."
+Modo escuro apenas no MVP,Decidida,2026-01-08,Design,Baixo,Sprint 0 — Fundação,"O app vive à noite, em show. Tema claro dobra o trabalho de design e não serve ninguém agora."
+PWA primeiro em vez de app nativo,Revisada,2026-01-08,Produto,Alto,Sprint 1 — Dados de saúde,"Decisão em xeque: um PWA não lê o HealthKit. Sem casca nativa não há dado de iPhone. Precisa ser reaberta antes do beta."
+Textos em pt-BR com estrutura de i18n pronta,Decidida,2026-01-09,Produto,Baixo,Sprint 0 — Fundação,"Mercado inicial é São Paulo. Inglês entra quando houver motivo, não antes."
+D3 para a curva de batimentos,Decidida,2026-02-16,Frontend,Médio,Sprint 3 — Visualização,"Controle fino da animação. A curva é o momento emocional do produto e não pode parecer gráfico de dashboard."

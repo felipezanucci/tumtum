@@ -1,0 +1,13 @@
+Documento,Área,Tipo,Estado,Resumo
+Algoritmo de detecção de picos,Backend,Especificação,Vigente,"Os 11 passos: suavização, linha de base, z-score, agrupamento, ranqueamento e casamento com a linha do tempo do evento"
+Esquema do banco de dados,Backend,Especificação,Vigente,"As 9 tabelas e por que hr_data é hypertable"
+Guia de marca TumTum,Design,Marca,Rascunho,"Cores, fontes, logo e o tom noturno e premium"
+Integração com Apple HealthKit,Frontend,Pesquisa,Rascunho,"O que dá e o que não dá para ler, e o que muda entre PWA e casca nativa"
+Integração com Google Health Connect,Frontend,Pesquisa,Rascunho,"Escopos de OAuth, permissões e o que o Wear OS entrega"
+APIs de evento — Setlist.fm e API-Football,Backend,Pesquisa,Rascunho,"Limites de requisição, formato de resposta e estratégia de cache"
+LGPD e dados de saúde,Legal,Referência,Rascunho,"Base legal, consentimento específico, direitos do titular e retenção"
+Manual de operação de evento,Operação,Processo,Rascunho,"Checklist de antes, durante e depois de cada evento-piloto"
+Roteiro dos cards de compartilhamento,Design,Especificação,Rascunho,"Formatos por rede, hierarquia visual e o que nunca pode faltar no card"
+Como rodar o projeto localmente,Infra,Processo,Vigente,"docker-compose, variáveis de ambiente e o modo de demonstração"
+Pesquisa de mercado — eventos em São Paulo,Produto,Pesquisa,Rascunho,"Casas de show, calendário de futebol e tamanho de público por tipo de evento"
+Roteiro de entrevista com beta tester,Produto,Processo,Rascunho,"As perguntas do dia seguinte ao evento, antes que a memória esfrie"
