@@ -60,6 +60,29 @@ export function isWebBluetoothAvailable(): boolean {
 }
 
 /**
+ * Exposing navigator.bluetooth is not the same as implementing it. Several
+ * Chromium-derived Android browsers ship the object but never open the device
+ * chooser, so requestDevice() simply never settles and the UI waits forever.
+ * Detect the ones we know about so the screen can say so up front rather than
+ * leaving the user staring at "Conectando...".
+ */
+export function getBrowserWarning(): string | null {
+  if (typeof navigator === 'undefined') return null
+  const ua = navigator.userAgent
+
+  if (/SamsungBrowser/i.test(ua)) {
+    return 'O Samsung Internet costuma não abrir o seletor de dispositivos Bluetooth. Abra esta página no Google Chrome.'
+  }
+  if (/FxiOS|Firefox/i.test(ua)) {
+    return 'O Firefox não implementa Bluetooth na web. Abra esta página no Google Chrome.'
+  }
+  if (/OPR|Opera/i.test(ua)) {
+    return 'O Opera pode não abrir o seletor de dispositivos Bluetooth. Se travar, use o Google Chrome.'
+  }
+  return null
+}
+
+/**
  * Decode a Heart Rate Measurement (0x2A37) characteristic value.
  *
  * Layout: one flags byte, then the rate as uint8 or uint16 depending on flag

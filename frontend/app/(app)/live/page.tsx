@@ -8,6 +8,7 @@ import { useHRStore } from '@/lib/stores/useHRStore'
 import {
   HeartRateMonitor,
   isWebBluetoothAvailable,
+  getBrowserWarning,
   type BleState,
   type HRReading,
 } from '@/lib/health/ble-heart-rate'
@@ -80,9 +81,12 @@ export default function LivePage() {
   const [error, setError] = useState<string | null>(null)
   const [recovered, setRecovered] = useState<LiveSessionSnapshot | null>(null)
   const [eventsUnavailable, setEventsUnavailable] = useState(false)
+  const [browserWarning, setBrowserWarning] = useState<string | null>(null)
+  const [chooserStuck, setChooserStuck] = useState(false)
 
   useEffect(() => {
     setSupported(isWebBluetoothAvailable())
+    setBrowserWarning(getBrowserWarning())
     // Linking a session to an event is optional, and capture works with no
     // backend at all — so a failed event fetch must not disturb this screen.
     loadEvents().catch(() => setEventsUnavailable(true))
@@ -139,6 +143,10 @@ export default function LivePage() {
 
   async function handleConnect() {
     setError(null)
+    setChooserStuck(false)
+    // requestDevice() never settles when a browser exposes the API without
+    // implementing the chooser, so nothing would ever tell the user why.
+    const stuckTimer = setTimeout(() => setChooserStuck(true), 8000)
     const monitor = new HeartRateMonitor({
       onReading: handleReading,
       onStateChange: (next, detail) => {
@@ -149,7 +157,12 @@ export default function LivePage() {
       },
     })
     monitorRef.current = monitor
-    await monitor.connect()
+    try {
+      await monitor.connect()
+    } finally {
+      clearTimeout(stuckTimer)
+    }
+    setChooserStuck(false)
     setDeviceName(monitor.getDeviceName())
     await acquireWakeLock()
   }
@@ -316,6 +329,24 @@ export default function LivePage() {
                   <p className="mt-3 text-center text-xs text-tumtum-text-muted">
                     Intervalos R-R disponíveis ({lastReading.rrIntervalsMs.join(', ')} ms)
                   </p>
+                )}
+
+                {browserWarning && (
+                  <p className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+                    {browserWarning}
+                  </p>
+                )}
+
+                {chooserStuck && (
+                  <div className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+                    <p className="font-medium">O seletor de dispositivos não abriu.</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-4 text-xs">
+                      <li>Use o <strong>Google Chrome</strong> — outros navegadores Android costumam travar aqui.</li>
+                      <li>Ligue o <strong>Bluetooth</strong> do celular.</li>
+                      <li>Ligue a <strong>Localização</strong> — o Android exige para buscar dispositivos.</li>
+                      <li>Permita <strong>Dispositivos por perto</strong> para o navegador.</li>
+                    </ul>
+                  </div>
                 )}
 
                 {!capturing && (
