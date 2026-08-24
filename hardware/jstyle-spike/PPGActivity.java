@@ -65,16 +65,22 @@ import butterknife.OnClick;
  *     firmware no-ops a start while it believes a session is active. Re-arming
  *     now sends stop, waits, and starts again, and the HR fallback triggers on
  *     total PPG yield rather than on having never seen a packet.
+ *  9. Warm-up aware (24/08 run 5): the sensor needs 8-9s after a measurement
+ *     command before it emits anything, so v5's 5s watchdog killed every
+ *     session before it could produce data (zero PPG packets all run). The
+ *     PPG watchdog now waits 30s, and HR sessions are long (300s) because each
+ *     re-arm costs a warm-up and restarts the firmware's 0.5 BPM/s ramp.
  *
  * Analysis of the resulting CSVs: hardware/jstyle-spike/analyze_ppg.py in the tumtum repo.
  */
 public class PPGActivity extends BaseActivity {
     private static final String TAG = "TumtumSpike";
-    // Seconds (the working Real Time Measurement screen types this in, min 30).
-    // Kept short so a session expires on its own rather than blocking re-arms:
-    // the 24/08 run showed the device ignoring "start" while a 300s session was
-    // still nominally active.
-    private static final long MEASUREMENT_TIME = 60;
+    // Session durations in SECONDS — confirmed empirically on 24/08: a 60s
+    // request yielded 9s of warm-up plus exactly 51s of 1 Hz heart rate.
+    // Raw PPG gets a medium session; HR gets a long one because every re-arm
+    // costs a fresh 9s warm-up AND restarts the firmware's 0.5 BPM/s ramp.
+    private static final long MEASUREMENT_TIME_HRV = 120;
+    private static final long MEASUREMENT_TIME_HR = 300;
 
     @BindView(R.id.info)
     TextView info;
@@ -90,14 +96,19 @@ public class PPGActivity extends BaseActivity {
     private boolean recording = false;
     private long packetCount = 0;
     private long sampleCount = 0;
-    /** Re-arm after this much stream silence while recording. */
-    private static final long WATCHDOG_SILENCE_MS = 5_000;
+    /**
+     * Re-arm after this much raw-PPG silence. Must comfortably exceed the
+     * sensor warm-up (measured at 8-9s on 24/08): the 5s threshold of v5 kept
+     * killing each session before the sensor was ready, which is why that run
+     * captured zero PPG packets while v4's slower re-arm captured a burst.
+     */
+    private static final long WATCHDOG_SILENCE_MS = 30_000;
     /** Gap between the stop and the start of a re-arm toggle. */
     private static final long TOGGLE_GAP_MS = 800;
     /** Give the raw-PPG (AutoHRV) path this long before falling back to plain HR. */
-    private static final long HRV_GIVE_UP_MS = 90_000;
+    private static final long HRV_GIVE_UP_MS = 150_000;
     /** In HR mode, re-arm when no non-zero heart rate arrives for this long. */
-    private static final long HR_SILENCE_MS = 15_000;
+    private static final long HR_SILENCE_MS = 25_000;
     private volatile long lastPacketMs = 0;
     private volatile long firstPacketMs = 0;
     private volatile long lastArmMs = 0;
@@ -114,7 +125,7 @@ public class PPGActivity extends BaseActivity {
         setContentView(R.layout.activity_ppg);
         ButterKnife.bind(this);
         ppg_ChartsView.setBlankCount(20);
-        info.setText("spike v5 (toggle re-arm) — pronto");
+        info.setText("spike v6 (warm-up aware) — pronto");
     }
 
     private void Start() {
@@ -174,6 +185,11 @@ public class PPGActivity extends BaseActivity {
         }
     }
 
+    /** Session length to request for the mode currently armed. */
+    private long measurementSeconds() {
+        return mode == AutoTestMode.AutoHRV ? MEASUREMENT_TIME_HRV : MEASUREMENT_TIME_HR;
+    }
+
     /** Milliseconds of raw PPG actually streamed so far this recording. */
     private long streamedMs() {
         return firstPacketMs == 0 ? 0 : lastPacketMs - firstPacketMs;
@@ -196,7 +212,7 @@ public class PPGActivity extends BaseActivity {
     /** Stop whichever measurement is armed, plus the raw-PPG flag. */
     private void sendStopCommands() {
         BleManager.getInstance().offerValue(
-                BleSDK.SetDeviceMeasurementWithType(mode, MEASUREMENT_TIME, false));
+                BleSDK.SetDeviceMeasurementWithType(mode, measurementSeconds(), false));
         if (mode == AutoTestMode.AutoHRV) {
             BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(false));
         }
@@ -328,8 +344,9 @@ public class PPGActivity extends BaseActivity {
         // Keep the 1 Hz real-time stream on: it carries the device HR while a
         // measurement session is active (field-validated on the A17, 24/08).
         BleManager.getInstance().offerValue(BleSDK.RealTimeStep(true, true));
+        logEvent("arm_" + mode + "_" + measurementSeconds() + "s", "");
         BleManager.getInstance().offerValue(
-                BleSDK.SetDeviceMeasurementWithType(mode, MEASUREMENT_TIME, true));
+                BleSDK.SetDeviceMeasurementWithType(mode, measurementSeconds(), true));
         if (mode == AutoTestMode.AutoHRV) {
             BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(true));
         }
@@ -362,10 +379,10 @@ public class PPGActivity extends BaseActivity {
                 break;
             case R.id.end:
                 recording = false;
-                BleManager.getInstance().offerValue(
-                        BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHRV, MEASUREMENT_TIME, false));
-                BleManager.getInstance().offerValue(
-                        BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHeartRate, MEASUREMENT_TIME, false));
+                BleManager.getInstance().offerValue(BleSDK.SetDeviceMeasurementWithType(
+                        AutoTestMode.AutoHRV, MEASUREMENT_TIME_HRV, false));
+                BleManager.getInstance().offerValue(BleSDK.SetDeviceMeasurementWithType(
+                        AutoTestMode.AutoHeartRate, MEASUREMENT_TIME_HR, false));
                 BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(false));
                 BleManager.getInstance().offerValue(BleSDK.RealTimeStep(false, false));
                 BleManager.getInstance().writeValue();
