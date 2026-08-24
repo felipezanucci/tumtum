@@ -1,9 +1,14 @@
 package com.jstyle.test2025.activity;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+
+import com.jstyle.test2025.BuildConfig;
 
 import com.jstyle.blesdkv8.Util.BleSDK;
 import com.jstyle.blesdkv8.constant.BleConst;
@@ -46,6 +51,9 @@ import butterknife.OnClick;
  *     re-sends the start commands whenever the stream stays mute for 5s.
  *  5. Catch-all callback logging: every BLE callback type the device sends is
  *     written to the events CSV, so a refusal or an unmapped response is visible.
+ *  6. Share sheet on End: the finished CSVs are offered straight through the
+ *     system share dialog (Drive, WhatsApp...), because the Downloads export
+ *     proved hard to locate in the field; export errors now surface on screen.
  *
  * Analysis of the resulting CSVs: hardware/jstyle-spike/analyze_ppg.py in the tumtum repo.
  */
@@ -80,7 +88,7 @@ public class PPGActivity extends BaseActivity {
         setContentView(R.layout.activity_ppg);
         ButterKnife.bind(this);
         ppg_ChartsView.setBlankCount(20);
-        info.setText("spike v2 (watchdog) — pronto");
+        info.setText("spike v3 (watchdog + share) — pronto");
     }
 
     private void Start() {
@@ -157,6 +165,36 @@ public class PPGActivity extends BaseActivity {
         eventWriter = null;
         exportToDownloads(ppgFile);
         exportToDownloads(eventFile);
+        shareCsvs();
+    }
+
+    /**
+     * Offers the finished CSVs through the system share sheet, using the same
+     * FileProvider the vendor demo already ships for its log sharing. This is
+     * the primary hand-off path; the Downloads copy is a fallback.
+     */
+    private void shareCsvs() {
+        try {
+            java.util.ArrayList<Uri> uris = new java.util.ArrayList<>();
+            for (File f : new File[]{ppgFile, eventFile}) {
+                if (f != null && f.exists()) {
+                    uris.add(FileProvider.getUriForFile(
+                            this, BuildConfig.APPLICATION_ID + ".provider", f));
+                }
+            }
+            if (uris.isEmpty()) {
+                runOnUiThread(() -> info.setText("nenhum CSV para compartilhar"));
+                return;
+            }
+            Intent share = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            share.setType("text/csv");
+            share.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(share, "Enviar CSVs do spike"));
+        } catch (Exception e) {
+            Log.e(TAG, "Share failed", e);
+            runOnUiThread(() -> info.setText("ERRO ao compartilhar: " + e.getMessage()));
+        }
     }
 
     /**
@@ -185,6 +223,7 @@ public class PPGActivity extends BaseActivity {
             runOnUiThread(() -> info.setText("CSVs salvos em Downloads/tumtum_spike"));
         } catch (Exception e) {
             Log.e(TAG, "Export to Downloads failed", e);
+            runOnUiThread(() -> info.setText("ERRO no export p/ Downloads: " + e.getMessage()));
         }
     }
 
@@ -210,6 +249,12 @@ public class PPGActivity extends BaseActivity {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.start:
+                if (ppgWriter != null) {
+                    // Start pressed twice without End: flush and export the previous
+                    // pair instead of silently leaking it.
+                    recording = false;
+                    closeLogFiles();
+                }
                 recording = true;
                 packetCount = 0;
                 sampleCount = 0;
