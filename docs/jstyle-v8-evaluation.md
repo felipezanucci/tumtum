@@ -35,31 +35,42 @@ Todo candidato roda o protocolo **parado E em movimento**, contra Polar H10:
 | MAE | ≤ 5 |
 | Transporte | 0x180D presente, ou stream ao vivo ~1Hz via SDK documentado |
 
-## O teste pendente — seção 8: SDK da J-Style no Samsung A17
+## O teste pendente — spike de PPG bruto no Samsung A17
 
-A J-Style respondeu ao e-mail técnico (positiva, sem compromisso) e o **SDK
-Android/iOS está a caminho**. O Samsung Galaxy A17 é o host Android para rodar
-esse SDK (o MacBook Air 2015/Monterey não compila apps iOS/watchOS modernos).
+A etapa "aguardar SDK" já passou (sessão de 20–21/08, branch
+`claude/jstyle-bracelet-analysis-cm8u8z`): o SDK chegou, foi analisado por
+completo (~150 MB, Android com código-fonte + iOS fechado) e a J-Style
+confirmou **por escrito** (Arena Lee, 20/08) que o motion gating é firmware e
+não pode ser desligado. O caminho do BPM pronto está morto; o caminho vivo é o
+**PPG bruto**: o V8 Android já expõe streaming do sinal óptico cru
+(`setECGRealtimeDuringHRVEnabled(true)` durante medição de HRV), antes do
+algoritmo — Tumtum calcula o BPM no próprio backend.
 
-Quando o SDK chegar:
+O teste que decide a compra já está montado e publicado:
 
-1. **Stream ao vivo existe a ~1Hz?** Se sim, substitui a gravação de tela;
-   refazer a Fase 1 com captura automatizada (app de captura Android no A17,
-   gravando no mesmo formato CSV do `tumtum_ble.py`:
-   `timestamp_iso, elapsed_s, source, hr_bpm, rr_ms, contact, raw_hex`).
-2. **Teste decisivo — onde mora o filtro:** protocolo parado capturando pelo
-   SDK, comparando com o valor exibido no app JCVitalPro.
-   - SDK **menos filtrado** que o app ⇒ gating na camada de aplicação ⇒
-     problema contornável sem firmware novo (V8 volta ao jogo).
-   - SDK **idêntico** ao app ⇒ gating no firmware ⇒ decisão fica pendurada na
-     resposta da engenharia da J-Style (customização, provavelmente
-     condicionada a MOQ).
+- **App instrumentado**: demo oficial da J-Style com a tela de PPG modificada
+  para gravar cada amostra crua em CSV, registrar o HR do firmware em
+  paralelo, re-armar a sessão automaticamente e exportar para
+  `Downloads/tumtum_spike/`. Código em `hardware/jstyle-spike/` (branch acima).
+- **APK pronto**: release `spike-apk`
+  (github.com/felipezanucci/tumtum/releases/tag/spike-apk,
+  `tumtum-spike-v8.apk`), recompilado pelo CI a cada push no spike.
+- **Análise**: `analyze_ppg.py` deriva HR 1 Hz do PPG cru e compara com Polar
+  H10 e com o firmware (smoke-testado com PPG sintético: MAE 0,7, atraso 2s,
+  razão 0,99).
+- **Host do teste**: Samsung Galaxy A17 (Android; em mãos desde 24/08).
+
+Critérios de decisão do spike: atraso de pico parado ≤ 5s, amplitude ≥ 85%,
+perda de pacotes < 5%, sessão de 4h sem intervenção. Verde nos quatro ⇒
+fechar com a J-Style e negociar o pacote de integração (US$ 15k viram item de
+negociação). Vermelho em qualquer um ⇒ levar os números à Arena e acelerar a
+Veepoo.
 
 ## Panorama de fornecedores (17/08)
 
 | Fornecedor | Status |
 |---|---|
-| J-Style (V8 + 2208A) | Reprovados como estão; aguardando SDK e resposta da engenharia |
+| J-Style (V8 + 2208A) | BPM de firmware morto (confirmado por escrito 20/08); avaliação segue pelo spike de PPG bruto |
 | Veepoo (H Band SDK) | Contato inicial redigido; se confirmar raw PPG/RR, vira candidato principal |
 | Amazfit Bip 6 (Zepp OS 3.0+, broadcast BLE 0x180D) | Candidato nº 1 de prateleira; comprar 1 unidade e rodar o protocolo de 2 modos |
 | Braçadeiras (Chileaf, Verity Sense) | Descartadas por decisão de produto (usabilidade) |
