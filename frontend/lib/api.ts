@@ -1,6 +1,6 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(
     public status: number,
     public detail: string,
@@ -17,14 +17,23 @@ async function request<T>(
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    })
+  } catch {
+    // fetch only rejects when the request never reached a server: the API is
+    // down, unreachable from this device, or blocked by CORS. Naming the URL
+    // turns "erro desconhecido" into something diagnosable — a misconfigured
+    // NEXT_PUBLIC_API_URL still pointing at localhost is visible immediately.
+    throw new ApiError(0, `Não foi possível falar com o servidor em ${API_BASE}`)
+  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ detail: 'Erro desconhecido' }))

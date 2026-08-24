@@ -20,7 +20,7 @@ export default function LoginPage() {
       await login(email, password)
       router.push('/events')
     } catch (err: any) {
-      setError(err.detail || 'Erro ao fazer login')
+      setError(err?.detail || err?.message || 'Erro ao fazer login')
     }
   }
 

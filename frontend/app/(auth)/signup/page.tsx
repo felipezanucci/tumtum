@@ -21,7 +21,7 @@ export default function SignupPage() {
       await register(email, name, password)
       router.push('/onboarding')
     } catch (err: any) {
-      setError(err.detail || 'Erro ao criar conta')
+      setError(err?.detail || err?.message || 'Erro ao criar conta')
     }
   }
 
