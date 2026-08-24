@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 const navLinks = [
   { href: '/events', label: 'Eventos' },
+  { href: '/import', label: 'Importar' },
   { href: '/cards', label: 'Cards' },
   { href: '/profile', label: 'Perfil' },
 ]
@@ -24,7 +25,7 @@ export default function Nav() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
