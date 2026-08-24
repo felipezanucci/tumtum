@@ -3,7 +3,7 @@ name: Build JStyle spike APK
 on:
   workflow_dispatch:
   push:
-    branches: [claude/jstyle-bracelet-analysis-cm8u8z]
+    branches: [claude/jstyle-bracelet-analysis-cm8u8z, claude/samsung-a17-test-fz2nx5]
     paths:
       - "hardware/jstyle-spike/v8test/**"
 

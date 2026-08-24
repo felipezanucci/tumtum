@@ -41,6 +41,11 @@ import butterknife.OnClick;
  *     firmware BPM can be compared against our PPG-derived BPM on the same clock.
  *  3. Auto re-arm: when the device ends the HRV measurement session, the same start
  *     commands are sent again so the raw stream keeps flowing for multi-hour tests.
+ *  4. Watchdog re-arm: the A17 bench run of 2026-08-24 showed the stream dying
+ *     silently (2 packets then nothing, no stop callback), so a 1s watchdog
+ *     re-sends the start commands whenever the stream stays mute for 5s.
+ *  5. Catch-all callback logging: every BLE callback type the device sends is
+ *     written to the events CSV, so a refusal or an unmapped response is visible.
  *
  * Analysis of the resulting CSVs: hardware/jstyle-spike/analyze_ppg.py in the tumtum repo.
  */
@@ -64,6 +69,10 @@ public class PPGActivity extends BaseActivity {
     private boolean recording = false;
     private long packetCount = 0;
     private long sampleCount = 0;
+    /** Re-send the start commands after this much stream silence while recording. */
+    private static final long WATCHDOG_SILENCE_MS = 5_000;
+    private volatile long lastPacketMs = 0;
+    private volatile long lastArmMs = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +80,7 @@ public class PPGActivity extends BaseActivity {
         setContentView(R.layout.activity_ppg);
         ButterKnife.bind(this);
         ppg_ChartsView.setBlankCount(20);
+        info.setText("spike v2 (watchdog) — pronto");
     }
 
     private void Start() {
@@ -89,7 +99,27 @@ public class PPGActivity extends BaseActivity {
                     e.printStackTrace();
                 }
             }, 0, 50L, TimeUnit.MILLISECONDS);
+            timer.scheduleWithFixedDelay(this::watchdogTick, 1, 1, TimeUnit.SECONDS);
         }
+    }
+
+    /**
+     * The device has been seen dropping the raw stream without sending any stop
+     * callback, which starves the callback-driven re-arm. This ticks every second
+     * while recording and re-sends the start commands after WATCHDOG_SILENCE_MS
+     * of silence, surfacing the wait on screen so the operator sees it happening.
+     */
+    private void watchdogTick() {
+        if (!recording) return;
+        long now = System.currentTimeMillis();
+        long reference = Math.max(lastPacketMs, lastArmMs);
+        long silence = now - reference;
+        if (silence < WATCHDOG_SILENCE_MS) return;
+        logEvent("watchdog_rearm_after_ms_" + silence, "");
+        lastArmMs = now;
+        sendStartCommands();
+        final long silenceS = silence / 1000;
+        runOnUiThread(() -> info.setText("sem pacotes há " + silenceS + "s — re-armando..."));
     }
 
     private void openLogFiles() {
@@ -169,6 +199,7 @@ public class PPGActivity extends BaseActivity {
     }
 
     private void sendStartCommands() {
+        lastArmMs = System.currentTimeMillis();
         BleManager.getInstance().offerValue(
                 BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHRV, MEASUREMENT_TIME, true));
         BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(true));
@@ -182,6 +213,7 @@ public class PPGActivity extends BaseActivity {
                 recording = true;
                 packetCount = 0;
                 sampleCount = 0;
+                lastPacketMs = 0;
                 openLogFiles();
                 sendStartCommands();
                 Start();
@@ -201,6 +233,7 @@ public class PPGActivity extends BaseActivity {
     public void dataCallback(Map<String, Object> maps) {
         super.dataCallback(maps);
         String dataType = getDataType(maps);
+        if (dataType == null) dataType = "";
         switch (dataType) {
             case BleConst.Getppg: {
                 long now = System.currentTimeMillis();
@@ -208,6 +241,7 @@ public class PPGActivity extends BaseActivity {
                 String ppg = map.get(DeviceKey.arrayPpgRawData);
                 String packetId = map.get(DeviceKey.packetID);
                 if (ppg == null) break;
+                lastPacketMs = now;
                 packetCount++;
                 String[] samples = ppg.split(",");
                 if (ppgWriter != null) {
@@ -255,6 +289,21 @@ public class PPGActivity extends BaseActivity {
                 }
                 break;
             }
+            default: {
+                // Unknown territory is exactly what this spike needs to see: record
+                // every other callback the device sends, payload included, so a
+                // refusal or an unmapped response shows up in the events CSV.
+                logEvent("cb_" + dataType, compactPayload(maps));
+                break;
+            }
         }
+    }
+
+    /** Flatten a callback payload to one CSV-safe cell (no commas or newlines). */
+    private static String compactPayload(Map<String, Object> maps) {
+        Object data = maps == null ? null : maps.get(DeviceKey.Data);
+        if (data == null) return "";
+        String text = String.valueOf(data).replace(',', ';').replace('\n', ' ');
+        return text.length() > 200 ? text.substring(0, 200) : text;
     }
 }
