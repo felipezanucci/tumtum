@@ -67,6 +67,8 @@ export default function LivePage() {
   const wakeLockRef = useRef<WakeLockSentinel | null>(null)
   const samplesRef = useRef<HRSample[]>([])
   const lastSnapshotRef = useRef(0)
+  /** Mirrors the selection so the capture callback never reads a stale value. */
+  const eventIdRef = useRef('')
 
   const [supported, setSupported] = useState<boolean | null>(null)
   const [state, setState] = useState<BleState>('idle')
@@ -101,6 +103,10 @@ export default function LivePage() {
     return () => clearInterval(id)
   }, [startedAt])
 
+  useEffect(() => {
+    eventIdRef.current = eventId
+  }, [eventId])
+
   const handleReading = useCallback(
     (reading: HRReading) => {
       samplesRef.current.push({ time: reading.time, bpm: reading.bpm })
@@ -113,12 +119,12 @@ export default function LivePage() {
         saveSnapshot({
           startedAt: samplesRef.current[0].time,
           deviceName: monitorRef.current?.getDeviceName() ?? null,
-          eventId: eventId || null,
+          eventId: eventIdRef.current || null,
           samples: samplesRef.current,
         })
       }
     },
-    [eventId],
+    [],
   )
 
   /**
@@ -153,7 +159,13 @@ export default function LivePage() {
         setState(next)
         setStateDetail(detail ?? null)
         setDeviceName(monitorRef.current?.getDeviceName() ?? null)
-        if (next === 'connected' && !startedAt) setStartedAt(new Date().toISOString())
+        // The monitor captures this callback once, so `startedAt` read from the
+        // closure is frozen at its value when the sensor was first connected —
+        // which made every reconnection restart the elapsed clock at zero while
+        // the reading count kept climbing. A functional update reads live state.
+        if (next === 'connected') {
+          setStartedAt((prev) => prev ?? new Date().toISOString())
+        }
       },
     })
     monitorRef.current = monitor
@@ -167,6 +179,9 @@ export default function LivePage() {
     await acquireWakeLock()
   }
 
+  // Recompute every tenth reading rather than every one: the analysis sorts the
+  // interval list, and a four-hour session holds ~14k samples.
+  const qualityTick = Math.floor(sampleCount / 10)
   const report = useMemo(() => {
     if (sampleCount < 2) return null
     try {
@@ -174,7 +189,8 @@ export default function LivePage() {
     } catch {
       return null
     }
-  }, [sampleCount])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qualityTick])
 
   async function handleFinish() {
     const samples = samplesRef.current
