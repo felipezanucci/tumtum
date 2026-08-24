@@ -110,6 +110,30 @@ repeat with the **Amazfit Bip 6** in broadcast mode.
 **Limitation to state plainly:** Android only. iPhone users fall back to file
 import until Phase 3 lands.
 
+#### Result — 2026-08-24, Samsung Galaxy A17 + Polar H10
+
+| Check | Result |
+|---|---|
+| Frame decoding | 539 real GATT frames from the Polar replayed through the parser: **100% agreement** with `tumtum_ble.py`, including all 835 R-R intervals |
+| Live capture | Connected on the first try; heart rate, R-R intervals and signal quality all live on screen |
+| Cadence | **240 readings in 239 s = 1.004/s** — the 1 Hz target, no gaps |
+| Reconnection | Strap removed mid-session: state went to "Reconectando… tentativa 1" and recovered on its own, the reading count continuing from where it left off |
+| Signal quality verdict | Aprovado (cadence 1.0 s, coverage 85% — the gap being the deliberate disconnection test) |
+| Saving the session | **Blocked**: the API at `tumtum-production.up.railway.app` is unreachable. `NEXT_PUBLIC_API_URL` is correctly configured, so this is the backend being down, not the capture layer |
+
+**Capture is validated. The gate is met on everything the browser controls.**
+What remains for this phase is infrastructure: bringing the backend back up so a
+session can be persisted and run through peak detection.
+
+Three defects the first real device test exposed, all fixed:
+- Tailwind had never compiled in any deployment (no `postcss.config.js`), so
+  the app had always rendered as unstyled HTML.
+- Browsers that expose `navigator.bluetooth` without implementing the chooser
+  (Samsung Internet here) left the UI on "Conectando…" forever with nothing to
+  act on.
+- The elapsed clock restarted on every reconnection: the state callback is
+  captured once by the monitor, so it read a frozen `startedAt`.
+
 ---
 
 ### Phase 2 — Wear OS · weeks 2–4 · in-house with Claude Code
