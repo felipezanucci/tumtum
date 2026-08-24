@@ -138,6 +138,44 @@ série de HR de 1 Hz do SDK quando o PPG bruto não flui.
   reaquisição, não de resposta a pico de esforço; o veredito formal exige o
   protocolo de 2 condições contra o Polar H10.
 
+**Rodada 6 (17:18, spike v6) — protocolo de esforço: a V8 não vê o pico**
+
+Protocolo: repouso → 30s de esforço máximo → sentar imediatamente → repouso.
+Fim do esforço informado pelo operador: **17:22:00**. Sem Polar H10 nesta rodada
+(o evento de esforço serve como referência temporal), 292 leituras de HR
+contínuas a 1 Hz.
+
+| Momento | HR reportado pela V8 |
+|---|---|
+| Durante os 30s de esforço máximo (17:21:20–17:22:00) | **74–79 bpm, plano** — chega a *cair* para 74 |
+| Início da subida | ~17:22:05, já sentado |
+| Primeiro sub-pico | 98 bpm às 17:22:28 (**+28s** após o fim do esforço) |
+| Queda espúria | 95 → 60 bpm entre 17:22:40 e 17:23:00 (**−35 bpm em 20s**, fisiologicamente impossível na recuperação) |
+| Pico máximo | **100 bpm às 17:23:34 — +94s após o fim do esforço** |
+| Taxa máxima de subida | **1,33 BPM/s** (real, medida no Polar em julho: 1,7–2,5 BPM/s) |
+
+Leitura:
+- **Durante o esforço a V8 não registrou absolutamente nada.** Trinta segundos de
+  esforço máximo produziram variação de −4 bpm no valor reportado. É o motion
+  gating operando exatamente como a J-Style descreveu por escrito.
+- **Atraso do pico: +94s** (ou +28s no sub-pico mais caridoso) contra o critério
+  de **≤5s**. Reprovado por uma ordem de grandeza.
+- A **queda espúria de 35 bpm** é nova: o algoritmo perde o sinal e reinicia a
+  reaquisição no meio da recuperação. Isso não aparecia nos testes de julho e
+  agrava o quadro — não é só lentidão, é instabilidade.
+- **Amplitude**: 100 bpm de máximo após 30s de esforço máximo é baixo demais para
+  ser verdade; sem o Polar nesta rodada não dá para cravar a razão de amplitude,
+  mas a evidência aponta para bem abaixo dos 0,85 exigidos.
+
+**Conclusão para a decisão**: o caminho do BPM do SDK está **reprovado com dado
+próprio**. O SDK entrega o mesmo valor filtrado do app — confirma a resposta da
+Arena de 20/08 e fecha o item 2 da seção 8: **o gating é firmware**.
+
+**PPG bruto**: continua bloqueado. Nas rodadas 5 e 6 (v5 e v6), **zero pacotes**
+em 5 tentativas de sessão AutoHRV; a única captura segue sendo a rajada de 2s da
+rodada 4. Hipótese a testar: o `stop` do toggle desabilita o flag de PPG bruto de
+forma que o `true` seguinte não restaura — a rodada 4 nunca enviou `false`.
+
 **Perguntas cirúrgicas para a Arena (com log em mãos)**
 1. Qual a sequência de comandos correta para manter o stream de PPG bruto
    **contínuo**? O nosso entrega ~2s (≈394 amostras/s) por sessão e depois só
