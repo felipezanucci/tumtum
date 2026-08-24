@@ -101,7 +101,20 @@ public class PPGActivity extends BaseActivity {
 
     private static final long HRV_SESSION_A = 300;
     private static final long HRV_SESSION_B = 50_000;
-    private static final long HR_SESSION = 300;
+
+    /**
+     * Raw PPG was settled on 24/08 (run 7): zero packets across all three probe
+     * configurations and 32 measurement commands. The probe is kept for the
+     * record but switched off, so a recording goes straight to heart rate —
+     * which is what the Polar-referenced effort protocol needs.
+     */
+    private static final boolean PPG_PROBE_ENABLED = false;
+
+    /** Try one long session first; 300s is the length proven to work in run 6. */
+    private static final long HR_SESSION_TRY = 900;
+    private static final long HR_SESSION_SAFE = 300;
+    /** Re-arm this long before the session would expire, to avoid a gap mid-protocol. */
+    private static final long HR_REARM_MARGIN_MS = 20_000;
 
     /** Gap between a stop and the start that follows it. */
     private static final long TOGGLE_GAP_MS = 800;
@@ -128,8 +141,10 @@ public class PPGActivity extends BaseActivity {
     private volatile long recordingStartMs = 0;
     private volatile long hrCount = 0;
     private volatile long lastArmMs = 0;
-    /** 0 = phase A, 1 = phase B, 2 = phase C, 3 = heart-rate fallback. */
+    /** 0 = phase A, 1 = phase B, 2 = phase C, 3 = heart rate. */
     private volatile int probePhase = 0;
+    private volatile long hrSession = HR_SESSION_TRY;
+    private volatile boolean hrSessionProven = false;
     /** Which measurement is armed; drives the on-screen status only. */
     private volatile AutoTestMode mode = AutoTestMode.AutoHRV;
 
@@ -139,7 +154,7 @@ public class PPGActivity extends BaseActivity {
         setContentView(R.layout.activity_ppg);
         ButterKnife.bind(this);
         ppg_ChartsView.setBlankCount(20);
-        info.setText("spike v7 (sonda PPG A/B/C) — pronto");
+        info.setText("spike v8 (protocolo HR + Polar) — pronto");
     }
 
     private void Start() {
@@ -170,23 +185,41 @@ public class PPGActivity extends BaseActivity {
     private void watchdogTick() {
         if (!recording) return;
         long now = System.currentTimeMillis();
-        long elapsed = now - recordingStartMs;
 
-        int want = elapsed < PHASE_A_END_MS ? 0
-                 : elapsed < PHASE_B_END_MS ? 1
-                 : elapsed < PHASE_C_END_MS ? 2 : 3;
-        if (want != probePhase) {
-            enterPhase(want);
-            return;
+        if (PPG_PROBE_ENABLED) {
+            long elapsed = now - recordingStartMs;
+            int want = elapsed < PHASE_A_END_MS ? 0
+                     : elapsed < PHASE_B_END_MS ? 1
+                     : elapsed < PHASE_C_END_MS ? 2 : 3;
+            if (want != probePhase) {
+                enterPhase(want);
+                return;
+            }
+            if (probePhase == 2) return;
+            if (probePhase != 3) {
+                if (now - Math.max(lastPacketMs, lastArmMs) >= PROBE_REARM_MS) armPpg();
+                return;
+            }
         }
 
-        if (probePhase == 3) {
-            if (now - Math.max(lastHrMs, lastArmMs) >= HR_SILENCE_MS) armHeartRate();
+        long silence = now - Math.max(lastHrMs, lastArmMs);
+        if (silence >= HR_SILENCE_MS) {
+            // A session length the firmware refuses looks exactly like silence,
+            // so drop to the length proven in run 6 before blaming the sensor.
+            if (!hrSessionProven && hrSession != HR_SESSION_SAFE) {
+                hrSession = HR_SESSION_SAFE;
+                logEvent("hr_session_fallback_" + HR_SESSION_SAFE, "");
+            }
+            logEvent("watchdog_hr_silence_ms_" + silence, "");
+            armHeartRate();
             return;
         }
-        // Phase C is deliberately left alone: no re-arms at all.
-        if (probePhase == 2) return;
-        if (now - Math.max(lastPacketMs, lastArmMs) >= PROBE_REARM_MS) armPpg();
+        // Re-arm just before the session would expire: an expiry mid-protocol
+        // costs a 9s warm-up and restarts the firmware ramp at the worst moment.
+        if (hrSessionProven && now - lastArmMs >= hrSession * 1000 - HR_REARM_MARGIN_MS) {
+            logEvent("proactive_rearm_before_expiry", "");
+            armHeartRate();
+        }
     }
 
     private void enterPhase(int phase) {
@@ -237,10 +270,10 @@ public class PPGActivity extends BaseActivity {
 
     private void armHeartRate() {
         lastArmMs = System.currentTimeMillis();
-        logEvent("arm_hr_dur_" + HR_SESSION, "");
+        logEvent("arm_hr_dur_" + hrSession, "");
         BleManager.getInstance().offerValue(BleSDK.RealTimeStep(true, true));
         BleManager.getInstance().offerValue(
-                BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHeartRate, HR_SESSION, true));
+                BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHeartRate, hrSession, true));
         BleManager.getInstance().writeValue();
     }
 
@@ -250,7 +283,7 @@ public class PPGActivity extends BaseActivity {
         BleManager.getInstance().offerValue(BleSDK.SetDeviceMeasurementWithType(
                 AutoTestMode.AutoHRV, HRV_SESSION_A, false));
         BleManager.getInstance().offerValue(BleSDK.SetDeviceMeasurementWithType(
-                AutoTestMode.AutoHeartRate, HR_SESSION, false));
+                AutoTestMode.AutoHeartRate, hrSession, false));
         BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(false));
         BleManager.getInstance().writeValue();
     }
@@ -385,12 +418,21 @@ public class PPGActivity extends BaseActivity {
                 lastHrMs = 0;
                 hrCount = 0;
                 lastArmMs = 0;
-                probePhase = 0;
-                mode = AutoTestMode.AutoHRV;
+                hrSession = HR_SESSION_TRY;
+                hrSessionProven = false;
                 recordingStartMs = System.currentTimeMillis();
                 openLogFiles();
-                logEvent("phase_A_start_ppg_ms_0", "");
-                armPpg();
+                if (PPG_PROBE_ENABLED) {
+                    probePhase = 0;
+                    mode = AutoTestMode.AutoHRV;
+                    logEvent("phase_A_start_ppg_ms_0", "");
+                    armPpg();
+                } else {
+                    probePhase = 3;
+                    mode = AutoTestMode.AutoHeartRate;
+                    logEvent("hr_only_run_start", "");
+                    armHeartRate();
+                }
                 Start();
                 break;
             case R.id.end:
@@ -479,10 +521,14 @@ public class PPGActivity extends BaseActivity {
                 if (hrValue > 0) {
                     lastHrMs = System.currentTimeMillis();
                     hrCount++;
+                    hrSessionProven = true;
                 }
                 logEvent("hr", hrValue > 0 ? String.valueOf(hrValue) : "0");
-                final String status = "fase " + phaseName() + " | HR: " + (hrValue > 0 ? hrValue : "--")
-                        + " | PPG: " + packetCount + " pacotes (" + (streamedMs() / 1000) + "s)";
+                final long mins = (System.currentTimeMillis() - recordingStartMs) / 60000;
+                final long secs = ((System.currentTimeMillis() - recordingStartMs) / 1000) % 60;
+                final String status = "HR: " + (hrValue > 0 ? hrValue : "--")
+                        + "   |   " + mins + "min" + (secs < 10 ? "0" : "") + secs
+                        + "   |   " + hrCount + " leituras";
                 runOnUiThread(() -> info.setText(status));
                 break;
             }
