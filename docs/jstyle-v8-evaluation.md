@@ -119,6 +119,25 @@ série de HR de 1 Hz do SDK quando o PPG bruto não flui.
   Corrigido na v5 (o fallback passa a olhar o total de PPG efetivamente
   transmitido).
 
+**Rodada 5 (17:00, spike v5) — a série de HR do SDK e a assinatura do filtro**
+- **Zero pacotes de PPG.** Causa identificada e nossa: o watchdog fazia toggle a
+  cada 6s, e o **warm-up do sensor é de 8–9s** — toda sessão morria antes de o
+  sensor ficar pronto. Explica também por que a rodada 4 capturou a rajada
+  exatamente aos 10s (re-arme mais lento). Corrigido na v6 (watchdog de 30s).
+- **Duração da sessão confirmada em SEGUNDOS**: pedimos 60s e recebemos 9s de
+  warm-up + exatamente 51s de HR a 1 Hz.
+- **A série de HR de 1 Hz do SDK funciona**: bloco contínuo de 51s, sem falhas.
+- **Assinatura do filtro visível no dado do SDK** (achado principal): duas
+  reaquisições de sessão, com o sujeito **em repouso** e batimento real ~77 bpm,
+  começaram em 73 e 67 bpm e **ramparam a 0,50 e 0,59 BPM/s** até o valor
+  verdadeiro. Compare com o relatório de julho: rampa de **0,51 BPM/s** parado,
+  contra subida real de 1,7–2,5 BPM/s medida no Polar H10.
+- **Leitura preliminar do teste decisivo (seção 8, item 2)**: o SDK entrega o
+  **mesmo valor filtrado** que o app — indício forte de que o gating está no
+  firmware, não na camada de aplicação. Ressalva: trata-se de rampa de
+  reaquisição, não de resposta a pico de esforço; o veredito formal exige o
+  protocolo de 2 condições contra o Polar H10.
+
 **Perguntas cirúrgicas para a Arena (com log em mãos)**
 1. Qual a sequência de comandos correta para manter o stream de PPG bruto
    **contínuo**? O nosso entrega ~2s (≈394 amostras/s) por sessão e depois só
