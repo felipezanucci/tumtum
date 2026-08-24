@@ -1,84 +1,79 @@
-# JStyle V8 — Protocolo de Avaliação (Fase 0)
+# J-Style V8 — Status da validação e próximo teste (SDK no Android)
 
-**Objetivo:** decidir se a JStyle (Joint Corp) serve como fornecedora de hardware
-para o Tumtum, usando a pulseira **JCVital V8** como unidade de teste.
+**Última atualização:** 24/08/2026, com base na sessão de validação de 17/08/2026
+(repo local `tumtum-hardware`; relatórios `relatorio_V8.md` e `relatorio_2208A.md`).
 
-**Setup do teste:** Samsung Galaxy A17 (Android) + pulseira JStyle V8 + app do
-fornecedor (JCVital / app indicado pela JStyle) + Tumtum PWA.
+## Status: V8 e 2208A REPROVADOS na validação de hardware
 
-> O Galaxy A17 não tem sensor de frequência cardíaca próprio — toda a medição
-> vem da pulseira. O celular é só o coletor e o ponto de acesso ao Tumtum.
+A validação real dos wristbands J-Style não é feita por importação de arquivo —
+ela roda no repo `tumtum-hardware` (fora deste repo), com Polar H10 como
+referência ECG e o harness `tumtum_ble.py`. Resultados consolidados:
 
----
+- **Fase 0 (inspeção GATT):** ambos reprovados. Nenhum expõe o Heart Rate
+  Service padrão (0x180D); só serviços proprietários (`fff0`/`190e` no V8,
+  mais um terceiro no 2208A). Com o V8 como DUT, `log` conecta mas recebe
+  **0 pacotes** — a série do V8 veio de gravação de tela do app JCVitalPro
+  (modo "GPS Caminhada").
+- **Fase 1 do V8 (3 blocos: 60s repouso / 30s esforço máximo / 90s repouso):**
+  reprovado. Diagnóstico central: **motion gating por acelerômetro no
+  firmware** — parado, o filtro trava a rampa de subida (razão de amplitude
+  0,46–0,64; atraso de pico 23–33s); em movimento, libera (razão 0,87, atraso
+  2–8s) e projeta por cadência, com overshoot na descida. MAE < 2 em regime
+  estável nos 3 blocos: o sensor é bom, o problema é 100% firmware.
+- A condição **parada é eliminatória** para a Tumtum: pico emocional sem
+  movimento corporal é o caso central do produto (show, gol assistido da
+  arquibancada).
 
-## O que estamos medindo
+## Critérios de aprovação (protocolo permanente, 2 condições)
 
-A detecção de picos do Tumtum (ver CLAUDE.md) impõe requisitos duros ao sensor:
+Todo candidato roda o protocolo **parado E em movimento**, contra Polar H10:
 
-| Requisito | Alvo | Mínimo utilizável | Por quê |
-|---|---|---|---|
-| Cadência de amostragem | 1 leitura / 5s | 1 leitura / 30s | Média móvel de 5s + descarte de picos < 5s |
-| Cobertura da sessão | ≥ 80% | ≥ 50% | Baseline rolante de 60s precisa de janela contínua |
-| Duração contínua | ≥ 3h (show inteiro) | ≥ 2h | Evento típico: show ou jogo com prorrogação |
-| Exportação dos dados | CSV/JSON com timestamp + BPM | qualquer arquivo legível | Fase 0 importa por arquivo; Fase 1 usa SDK BLE |
+| Critério | Limite |
+|---|---|
+| Razão de amplitude do pico | ≥ 0,85 |
+| Atraso do pico | ≤ 5s |
+| MAE | ≤ 5 |
+| Transporte | 0x180D presente, ou stream ao vivo ~1Hz via SDK documentado |
 
-A tela **Importar** do Tumtum (`/import`) calcula essas métricas automaticamente
-e dá o veredito: **Aprovado / Limítrofe / Reprovado**.
+## O teste pendente — seção 8: SDK da J-Style no Samsung A17
 
-## Roteiro do teste
+A J-Style respondeu ao e-mail técnico (positiva, sem compromisso) e o **SDK
+Android/iOS está a caminho**. O Samsung Galaxy A17 é o host Android para rodar
+esse SDK (o MacBook Air 2015/Monterey não compila apps iOS/watchOS modernos).
 
-### Preparação (uma vez)
-1. Carregue a V8 por completo e anote o horário de início da carga.
-2. Instale o app da JStyle no A17 e pareie a pulseira.
-3. No app da JStyle, configure a medição contínua de FC no **menor intervalo
-   disponível** (ideal: contínuo ou 5s; anote qual é o mínimo que o app permite).
-4. Confira se o relógio do A17 está em horário automático (o timestamp das
-   leituras depende disso).
-5. Instale o Tumtum PWA no A17 (abra o app no Chrome → menu → "Adicionar à tela
-   inicial") e crie sua conta.
+Quando o SDK chegar:
 
-### Sessão de teste A — bancada (30–60 min)
-Valida o pipeline antes de gastar um evento real.
-1. Use a pulseira por 30–60 min alternando repouso e esforço (subir escada,
-   polichinelos) para forçar picos reais.
-2. Sincronize a pulseira com o app da JStyle.
-3. Exporte os dados de FC do app (CSV ou JSON; se o app só compartilhar via
-   e-mail/planilha, serve também).
-4. No Tumtum: **Importar** → selecione o arquivo → confira o veredito de
-   qualidade → "Ver minha experiência".
-5. **Critério de sucesso:** veredito "Aprovado" e os picos detectados batem com
-   os momentos de esforço.
+1. **Stream ao vivo existe a ~1Hz?** Se sim, substitui a gravação de tela;
+   refazer a Fase 1 com captura automatizada (app de captura Android no A17,
+   gravando no mesmo formato CSV do `tumtum_ble.py`:
+   `timestamp_iso, elapsed_s, source, hr_bpm, rr_ms, contact, raw_hex`).
+2. **Teste decisivo — onde mora o filtro:** protocolo parado capturando pelo
+   SDK, comparando com o valor exibido no app JCVitalPro.
+   - SDK **menos filtrado** que o app ⇒ gating na camada de aplicação ⇒
+     problema contornável sem firmware novo (V8 volta ao jogo).
+   - SDK **idêntico** ao app ⇒ gating no firmware ⇒ decisão fica pendurada na
+     resposta da engenharia da J-Style (customização, provavelmente
+     condicionada a MOQ).
 
-### Sessão de teste B — evento real (jogo ou show)
-1. Repita o fluxo em um evento de verdade, com o evento cadastrado no Tumtum
-   (com linha do tempo: setlist ou gols).
-2. Na importação, vincule ao evento — os picos serão casados com os momentos.
-3. **Critério de sucesso:** curva completa do evento, veredito ≥ "Limítrofe",
-   picos casando com momentos reais, e bateria da V8 sobrevivendo ao evento.
+## Panorama de fornecedores (17/08)
 
-## Scorecard do fornecedor
+| Fornecedor | Status |
+|---|---|
+| J-Style (V8 + 2208A) | Reprovados como estão; aguardando SDK e resposta da engenharia |
+| Veepoo (H Band SDK) | Contato inicial redigido; se confirmar raw PPG/RR, vira candidato principal |
+| Amazfit Bip 6 (Zepp OS 3.0+, broadcast BLE 0x180D) | Candidato nº 1 de prateleira; comprar 1 unidade e rodar o protocolo de 2 modos |
+| Braçadeiras (Chileaf, Verity Sense) | Descartadas por decisão de produto (usabilidade) |
 
-Preencha depois das duas sessões:
+## Relação com este repo (Phase 0 / MVP)
 
-| # | Critério | Peso | Como medir | Nota (0–5) |
-|---|---|---|---|---|
-| 1 | Cadência de FC | Alto | Métrica "Cadência" da tela Importar | |
-| 2 | Cobertura / interrupções | Alto | Métricas "Cobertura" e "Interrupções" | |
-| 3 | Exportação de dados | Alto | Formato, atrito (nº de toques), completude | |
-| 4 | Bateria em sessão longa | Médio | % de bateria antes/depois do evento | |
-| 5 | Conforto e uso em show | Médio | Incomoda? Solta? Chama atenção? | |
-| 6 | Qualidade do app do fornecedor | Baixo | Estabilidade do pareamento e sync | |
-| 7 | SDK/BLE para a Fase 1 | Alto | Docs do SDK, protocolo aberto, custo | (avaliação de mesa) |
+A crise de fornecedor **não bloqueia o piloto** (Caminho 2): o primeiro evento
+real pode rodar com relógios dos próprios fãs (Apple Watch / Wear OS) +
+Amazfit emprestados. Neste repo, isso aparece como:
 
-**Regra de decisão sugerida:** qualquer critério de peso Alto com nota ≤ 2
-desqualifica a V8 para a Fase 1 sem renegociação com o fornecedor.
-
-## Limitações conhecidas da Fase 0
-- A importação é por arquivo — não há sync automático com a V8 (BLE/streaming é
-  Fase 1, fora do escopo do MVP por decisão de projeto).
-- Se o app da JStyle não exportar arquivo nenhum, o teste já responde o critério
-  3 com nota 0 — e vira pergunta comercial para a JStyle: "o SDK dá acesso ao
-  dado bruto?".
-- O veredito de qualidade avalia o **dado exportado**, que pode ser reamostrado
-  pelo app do fornecedor. Se a cadência vier ruim, confirmar com a JStyle qual é
-  a cadência real do sensor via SDK antes de reprovar o hardware.
+- A tela **`/import`** (importação de arquivo com análise de qualidade) serve
+  para dados vindos de wearables dos usuários — Samsung Health, Health
+  Connect, Apple Saúde — não para a validação de hardware da J-Style.
+- O contrato único de BPM do Caminho 2 —
+  `{source, bpm, timestamp, quality}` — é a direção para a ingestão quando
+  houver captura ao vivo; o backend atual (`POST /api/health/sessions`) já
+  recebe séries com essa informação por sessão.
