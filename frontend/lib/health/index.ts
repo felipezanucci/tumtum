@@ -35,3 +35,20 @@ export {
   type QualityReport,
   type QualityVerdict,
 } from './quality'
+
+export {
+  HeartRateMonitor,
+  isWebBluetoothAvailable,
+  parseHeartRateMeasurement,
+  HEART_RATE_SERVICE,
+  HEART_RATE_MEASUREMENT,
+  type BleState,
+  type HRReading,
+} from './ble-heart-rate'
+
+export {
+  saveSnapshot,
+  loadSnapshot,
+  clearSnapshot,
+  type LiveSessionSnapshot,
+} from './live-session-buffer'
