@@ -70,17 +70,43 @@ import butterknife.OnClick;
  *     session before it could produce data (zero PPG packets all run). The
  *     PPG watchdog now waits 30s, and HR sessions are long (300s) because each
  *     re-arm costs a warm-up and restarts the firmware's 0.5 BPM/s ramp.
+ * 10. Raw-PPG probe (24/08 run 7): the run that captured PPG never sent the
+ *     ECG-realtime flag false; the two runs that toggled it captured nothing.
+ *     Start now walks three configurations (see the phase constants) so one
+ *     recording settles whether raw PPG can be sustained at all.
  *
  * Analysis of the resulting CSVs: hardware/jstyle-spike/analyze_ppg.py in the tumtum repo.
  */
 public class PPGActivity extends BaseActivity {
     private static final String TAG = "TumtumSpike";
-    // Session durations in SECONDS — confirmed empirically on 24/08: a 60s
-    // request yielded 9s of warm-up plus exactly 51s of 1 Hz heart rate.
-    // Raw PPG gets a medium session; HR gets a long one because every re-arm
-    // costs a fresh 9s warm-up AND restarts the firmware's 0.5 BPM/s ramp.
-    private static final long MEASUREMENT_TIME_HRV = 120;
-    private static final long MEASUREMENT_TIME_HR = 300;
+    /**
+     * Raw-PPG probe (run 7). Only one configuration ever produced raw PPG: v4's,
+     * which re-armed with start ONLY and never cleared the ECG-realtime flag.
+     * v5/v6 switched to a stop -> start toggle (which sends the flag false) and
+     * captured zero packets across five sessions. This run A/B/Cs it:
+     *
+     *   Phase A  0-75s   exact v4 recipe: 300s session, start-only re-arm every
+     *                    5s, flag never set false. Runs first, on a virgin state.
+     *   Phase B  75-150s vendor demo's own literal duration (50*1000), same
+     *                    start-only re-arm, in case the unit differs for AutoHRV.
+     *   Phase C  150-225s clean stop, then a SINGLE start left completely
+     *                    undisturbed, to test whether the re-arms themselves
+     *                    were interrupting a stream that wanted to keep going.
+     *   Then     falls back to AutoHeartRate so the run still yields a series.
+     */
+    private static final long PHASE_A_END_MS = 75_000;
+    private static final long PHASE_B_END_MS = 150_000;
+    private static final long PHASE_C_END_MS = 225_000;
+    private static final long PROBE_REARM_MS = 5_000;
+
+    private static final long HRV_SESSION_A = 300;
+    private static final long HRV_SESSION_B = 50_000;
+    private static final long HR_SESSION = 300;
+
+    /** Gap between a stop and the start that follows it. */
+    private static final long TOGGLE_GAP_MS = 800;
+    /** In HR mode, re-arm when no non-zero heart rate arrives for this long. */
+    private static final long HR_SILENCE_MS = 25_000;
 
     @BindView(R.id.info)
     TextView info;
@@ -96,27 +122,15 @@ public class PPGActivity extends BaseActivity {
     private boolean recording = false;
     private long packetCount = 0;
     private long sampleCount = 0;
-    /**
-     * Re-arm after this much raw-PPG silence. Must comfortably exceed the
-     * sensor warm-up (measured at 8-9s on 24/08): the 5s threshold of v5 kept
-     * killing each session before the sensor was ready, which is why that run
-     * captured zero PPG packets while v4's slower re-arm captured a burst.
-     */
-    private static final long WATCHDOG_SILENCE_MS = 30_000;
-    /** Gap between the stop and the start of a re-arm toggle. */
-    private static final long TOGGLE_GAP_MS = 800;
-    /** Give the raw-PPG (AutoHRV) path this long before falling back to plain HR. */
-    private static final long HRV_GIVE_UP_MS = 150_000;
-    /** In HR mode, re-arm when no non-zero heart rate arrives for this long. */
-    private static final long HR_SILENCE_MS = 25_000;
     private volatile long lastPacketMs = 0;
     private volatile long firstPacketMs = 0;
-    private volatile long lastArmMs = 0;
     private volatile long lastHrMs = 0;
     private volatile long recordingStartMs = 0;
     private volatile long hrCount = 0;
-    private volatile int lastHr = 0;
-    /** Which measurement the watchdog keeps armed: raw-PPG first, HR fallback. */
+    private volatile long lastArmMs = 0;
+    /** 0 = phase A, 1 = phase B, 2 = phase C, 3 = heart-rate fallback. */
+    private volatile int probePhase = 0;
+    /** Which measurement is armed; drives the on-screen status only. */
     private volatile AutoTestMode mode = AutoTestMode.AutoHRV;
 
     @Override
@@ -125,7 +139,7 @@ public class PPGActivity extends BaseActivity {
         setContentView(R.layout.activity_ppg);
         ButterKnife.bind(this);
         ppg_ChartsView.setBlankCount(20);
-        info.setText("spike v6 (warm-up aware) — pronto");
+        info.setText("spike v7 (sonda PPG A/B/C) — pronto");
     }
 
     private void Start() {
@@ -149,87 +163,101 @@ public class PPGActivity extends BaseActivity {
     }
 
     /**
-     * The device has been seen dropping the raw stream without sending any stop
-     * callback, which starves the callback-driven re-arm. This ticks every second
-     * while recording and re-sends the start commands after WATCHDOG_SILENCE_MS
-     * of silence, surfacing the wait on screen so the operator sees it happening.
+     * Drives the probe: advances through phases A, B and C on elapsed time, and
+     * within a phase re-arms on stream silence (except phase C, which is left
+     * deliberately untouched). After the probe it keeps the HR series alive.
      */
     private void watchdogTick() {
         if (!recording) return;
         long now = System.currentTimeMillis();
+        long elapsed = now - recordingStartMs;
 
-        if (mode == AutoTestMode.AutoHRV) {
-            // The 24/08 run delivered raw PPG for exactly 2s, 59ms after a re-arm,
-            // and then ignored 47 further "start" commands: the device treats a
-            // start as a no-op while it believes a session is running. So re-arm
-            // by toggling stop -> start instead of repeating start.
-            long silence = now - Math.max(lastPacketMs, lastArmMs);
+        int want = elapsed < PHASE_A_END_MS ? 0
+                 : elapsed < PHASE_B_END_MS ? 1
+                 : elapsed < PHASE_C_END_MS ? 2 : 3;
+        if (want != probePhase) {
+            enterPhase(want);
+            return;
+        }
 
-            // Fall back on total PPG yield, not on "never saw a packet": a brief
-            // burst must not strand the run in a mode that yields nothing more.
-            if (now - recordingStartMs > HRV_GIVE_UP_MS && streamedMs() < 20_000) {
-                logEvent("mode_switch_heart_ppg_ms_" + streamedMs(), "");
-                switchToHeartRate();
-                return;
-            }
-            if (silence < WATCHDOG_SILENCE_MS) return;
-            logEvent("watchdog_toggle_after_ms_" + silence, "");
-            toggleRearm();
-            final long silenceS = silence / 1000;
-            runOnUiThread(() -> info.setText("PPG mudo há " + silenceS + "s — toggle stop/start..."));
-        } else {
-            long silence = now - Math.max(lastHrMs, lastArmMs);
-            if (silence < HR_SILENCE_MS) return;
-            logEvent("watchdog_toggle_hr_after_ms_" + silence, "");
-            toggleRearm();
+        if (probePhase == 3) {
+            if (now - Math.max(lastHrMs, lastArmMs) >= HR_SILENCE_MS) armHeartRate();
+            return;
+        }
+        // Phase C is deliberately left alone: no re-arms at all.
+        if (probePhase == 2) return;
+        if (now - Math.max(lastPacketMs, lastArmMs) >= PROBE_REARM_MS) armPpg();
+    }
+
+    private void enterPhase(int phase) {
+        probePhase = phase;
+        logEvent("phase_" + phaseName() + "_start_ppg_ms_" + streamedMs(), "");
+        if (phase == 0 || phase == 1) {
+            armPpg();
+            return;
+        }
+        // Phases C and HR both begin from a clean slate.
+        mode = phase == 3 ? AutoTestMode.AutoHeartRate : AutoTestMode.AutoHRV;
+        cleanStop();
+        if (timer != null && !timer.isShutdown()) {
+            timer.schedule(() -> {
+                if (!recording) return;
+                if (probePhase == 3) armHeartRate();
+                else armPpg();
+            }, TOGGLE_GAP_MS, TimeUnit.MILLISECONDS);
+        }
+        final String label = phase == 3 ? "PPG bloqueado — medindo HR (1Hz)"
+                                        : "fase C: start único, sem re-armes";
+        runOnUiThread(() -> info.setText(label));
+    }
+
+    private String phaseName() {
+        switch (probePhase) {
+            case 0: return "A";
+            case 1: return "B";
+            case 2: return "C";
+            default: return "HR";
         }
     }
 
-    /** Session length to request for the mode currently armed. */
-    private long measurementSeconds() {
-        return mode == AutoTestMode.AutoHRV ? MEASUREMENT_TIME_HRV : MEASUREMENT_TIME_HR;
+    /**
+     * Arm the raw-PPG measurement. Critically, the ECG-realtime flag is only ever
+     * set true here: the one run that produced raw PPG never sent it false.
+     */
+    private void armPpg() {
+        lastArmMs = System.currentTimeMillis();
+        long seconds = probePhase == 1 ? HRV_SESSION_B : HRV_SESSION_A;
+        logEvent("arm_ppg_phase" + phaseName() + "_dur_" + seconds, "");
+        BleManager.getInstance().offerValue(BleSDK.RealTimeStep(true, true));
+        BleManager.getInstance().offerValue(
+                BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHRV, seconds, true));
+        BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(true));
+        BleManager.getInstance().writeValue();
+    }
+
+    private void armHeartRate() {
+        lastArmMs = System.currentTimeMillis();
+        logEvent("arm_hr_dur_" + HR_SESSION, "");
+        BleManager.getInstance().offerValue(BleSDK.RealTimeStep(true, true));
+        BleManager.getInstance().offerValue(
+                BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHeartRate, HR_SESSION, true));
+        BleManager.getInstance().writeValue();
+    }
+
+    /** Stop every measurement mode and clear the raw-PPG flag. */
+    private void cleanStop() {
+        logEvent("clean_stop", "");
+        BleManager.getInstance().offerValue(BleSDK.SetDeviceMeasurementWithType(
+                AutoTestMode.AutoHRV, HRV_SESSION_A, false));
+        BleManager.getInstance().offerValue(BleSDK.SetDeviceMeasurementWithType(
+                AutoTestMode.AutoHeartRate, HR_SESSION, false));
+        BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(false));
+        BleManager.getInstance().writeValue();
     }
 
     /** Milliseconds of raw PPG actually streamed so far this recording. */
     private long streamedMs() {
         return firstPacketMs == 0 ? 0 : lastPacketMs - firstPacketMs;
-    }
-
-    /**
-     * Re-arm as a real toggle: stop the measurement, wait, then start it again.
-     * Repeating start alone was proven to be a no-op on this firmware.
-     */
-    private void toggleRearm() {
-        lastArmMs = System.currentTimeMillis();
-        sendStopCommands();
-        if (timer != null && !timer.isShutdown()) {
-            timer.schedule(() -> {
-                if (recording) sendStartCommands();
-            }, TOGGLE_GAP_MS, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    /** Stop whichever measurement is armed, plus the raw-PPG flag. */
-    private void sendStopCommands() {
-        BleManager.getInstance().offerValue(
-                BleSDK.SetDeviceMeasurementWithType(mode, measurementSeconds(), false));
-        if (mode == AutoTestMode.AutoHRV) {
-            BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(false));
-        }
-        BleManager.getInstance().writeValue();
-    }
-
-    /** Hand the run over to the plain heart-rate measurement. */
-    private void switchToHeartRate() {
-        sendStopCommands();
-        mode = AutoTestMode.AutoHeartRate;
-        lastArmMs = System.currentTimeMillis();
-        if (timer != null && !timer.isShutdown()) {
-            timer.schedule(() -> {
-                if (recording) sendStartCommands();
-            }, TOGGLE_GAP_MS, TimeUnit.MILLISECONDS);
-        }
-        runOnUiThread(() -> info.setText("PPG bruto não sustentou — medindo HR (1Hz)"));
     }
 
     private void openLogFiles() {
@@ -339,20 +367,6 @@ public class PPGActivity extends BaseActivity {
         }
     }
 
-    private void sendStartCommands() {
-        lastArmMs = System.currentTimeMillis();
-        // Keep the 1 Hz real-time stream on: it carries the device HR while a
-        // measurement session is active (field-validated on the A17, 24/08).
-        BleManager.getInstance().offerValue(BleSDK.RealTimeStep(true, true));
-        logEvent("arm_" + mode + "_" + measurementSeconds() + "s", "");
-        BleManager.getInstance().offerValue(
-                BleSDK.SetDeviceMeasurementWithType(mode, measurementSeconds(), true));
-        if (mode == AutoTestMode.AutoHRV) {
-            BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(true));
-        }
-        BleManager.getInstance().writeValue();
-    }
-
     @OnClick({R.id.start, R.id.end})
     public void onViewClicked(View view) {
         switch (view.getId()) {
@@ -370,20 +384,18 @@ public class PPGActivity extends BaseActivity {
                 firstPacketMs = 0;
                 lastHrMs = 0;
                 hrCount = 0;
-                lastHr = 0;
-                recordingStartMs = System.currentTimeMillis();
+                lastArmMs = 0;
+                probePhase = 0;
                 mode = AutoTestMode.AutoHRV;
+                recordingStartMs = System.currentTimeMillis();
                 openLogFiles();
-                sendStartCommands();
+                logEvent("phase_A_start_ppg_ms_0", "");
+                armPpg();
                 Start();
                 break;
             case R.id.end:
                 recording = false;
-                BleManager.getInstance().offerValue(BleSDK.SetDeviceMeasurementWithType(
-                        AutoTestMode.AutoHRV, MEASUREMENT_TIME_HRV, false));
-                BleManager.getInstance().offerValue(BleSDK.SetDeviceMeasurementWithType(
-                        AutoTestMode.AutoHeartRate, MEASUREMENT_TIME_HR, false));
-                BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(false));
+                cleanStop();
                 BleManager.getInstance().offerValue(BleSDK.RealTimeStep(false, false));
                 BleManager.getInstance().writeValue();
                 closeLogFiles();
@@ -431,7 +443,8 @@ public class PPGActivity extends BaseActivity {
                 }
                 final long pc = packetCount;
                 final long sc = sampleCount;
-                runOnUiThread(() -> info.setText("pacotes: " + pc + "  amostras: " + sc));
+                runOnUiThread(() -> info.setText(
+                        "fase " + phaseName() + " | PPG " + pc + " pacotes / " + sc + " amostras"));
                 break;
             }
             case BleConst.MeasurementHrvCallback:
@@ -444,11 +457,12 @@ public class PPGActivity extends BaseActivity {
             case BleConst.StopMeasurementHrvCallback:
             case BleConst.StopMeasurementHeartCallback: {
                 logEvent("device_measurement_stopped_" + dataType, "");
-                // The device ended the measurement session on its own: re-arm so the
-                // raw stream keeps flowing during long soak tests.
-                if (recording) {
-                    logEvent("auto_rearm", "");
-                    sendStartCommands();
+                // The device ended the session itself. Re-arm for every phase
+                // except C, whose whole point is to be left undisturbed.
+                if (recording && probePhase != 2) {
+                    logEvent("auto_rearm_phase" + phaseName(), "");
+                    if (probePhase == 3) armHeartRate();
+                    else armPpg();
                 }
                 break;
             }
@@ -465,12 +479,10 @@ public class PPGActivity extends BaseActivity {
                 if (hrValue > 0) {
                     lastHrMs = System.currentTimeMillis();
                     hrCount++;
-                    lastHr = hrValue;
                 }
                 logEvent("hr", hrValue > 0 ? String.valueOf(hrValue) : "0");
-                final String status = "modo: " + mode + " | HR: " + (hrValue > 0 ? hrValue : "--")
-                        + " | leituras HR: " + hrCount + " | pacotes PPG: " + packetCount
-                        + " (" + (streamedMs() / 1000) + "s)";
+                final String status = "fase " + phaseName() + " | HR: " + (hrValue > 0 ? hrValue : "--")
+                        + " | PPG: " + packetCount + " pacotes (" + (streamedMs() / 1000) + "s)";
                 runOnUiThread(() -> info.setText(status));
                 break;
             }
