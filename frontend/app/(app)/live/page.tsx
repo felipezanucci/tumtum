@@ -79,10 +79,13 @@ export default function LivePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [recovered, setRecovered] = useState<LiveSessionSnapshot | null>(null)
+  const [eventsUnavailable, setEventsUnavailable] = useState(false)
 
   useEffect(() => {
     setSupported(isWebBluetoothAvailable())
-    loadEvents()
+    // Linking a session to an event is optional, and capture works with no
+    // backend at all — so a failed event fetch must not disturb this screen.
+    loadEvents().catch(() => setEventsUnavailable(true))
     const snapshot = loadSnapshot()
     if (snapshot) setRecovered(snapshot)
   }, [loadEvents])
@@ -346,6 +349,12 @@ export default function LivePage() {
                   <label className="mb-1 block text-sm text-tumtum-text-muted" htmlFor="event">
                     Evento (opcional)
                   </label>
+                  {eventsUnavailable && (
+                    <p className="mb-2 text-xs text-amber-400">
+                      Não foi possível carregar os eventos. A captura continua
+                      funcionando; para salvar a sessão é preciso estar conectado.
+                    </p>
+                  )}
                   <select
                     id="event"
                     value={eventId}
