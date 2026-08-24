@@ -54,14 +54,22 @@ import butterknife.OnClick;
  *  6. Share sheet on End: the finished CSVs are offered straight through the
  *     system share dialog (Drive, WhatsApp...), because the Downloads export
  *     proved hard to locate in the field; export errors now surface on screen.
+ *  7. Two-phase run (24/08 field findings): measurement durations are in SECONDS
+ *     (the old 50*1000 was likely rejected), and the 1 Hz RealTimeStep stream is
+ *     rock-solid but only carries HR during an active measurement. Start now arms
+ *     AutoHRV (raw PPG) for 60s; with zero PPG packets it falls back to
+ *     AutoHeartRate and records the 1 Hz SDK heart rate as "hr" events — making
+ *     the SDK-vs-app filter protocol runnable even while raw PPG stays blocked.
  *
  * Analysis of the resulting CSVs: hardware/jstyle-spike/analyze_ppg.py in the tumtum repo.
  */
 public class PPGActivity extends BaseActivity {
     private static final String TAG = "TumtumSpike";
-    // Same magic value the vendor demo uses; the unit (s vs ms) is undocumented,
-    // so long sessions rely on the auto re-arm below rather than on this number.
-    private static final long MEASUREMENT_TIME = 50 * 1000;
+    // The working Real Time Measurement screen passes this in SECONDS (typed into
+    // its EditText, minimum 30). The previous 50*1000 was likely read as a ~14h
+    // session and silently rejected. 300s matches the vendor iOS demo's sessions;
+    // the auto re-arm chains sessions for longer runs.
+    private static final long MEASUREMENT_TIME = 300;
 
     @BindView(R.id.info)
     TextView info;
@@ -79,8 +87,18 @@ public class PPGActivity extends BaseActivity {
     private long sampleCount = 0;
     /** Re-send the start commands after this much stream silence while recording. */
     private static final long WATCHDOG_SILENCE_MS = 5_000;
+    /** Give the raw-PPG (AutoHRV) path this long before falling back to plain HR. */
+    private static final long HRV_GIVE_UP_MS = 60_000;
+    /** In HR mode, re-arm when no non-zero heart rate arrives for this long. */
+    private static final long HR_SILENCE_MS = 15_000;
     private volatile long lastPacketMs = 0;
     private volatile long lastArmMs = 0;
+    private volatile long lastHrMs = 0;
+    private volatile long recordingStartMs = 0;
+    private volatile long hrCount = 0;
+    private volatile int lastHr = 0;
+    /** Which measurement the watchdog keeps armed: raw-PPG first, HR fallback. */
+    private volatile AutoTestMode mode = AutoTestMode.AutoHRV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +106,7 @@ public class PPGActivity extends BaseActivity {
         setContentView(R.layout.activity_ppg);
         ButterKnife.bind(this);
         ppg_ChartsView.setBlankCount(20);
-        info.setText("spike v3 (watchdog + share) — pronto");
+        info.setText("spike v4 (PPG + HR 1Hz) — pronto");
     }
 
     private void Start() {
@@ -120,14 +138,28 @@ public class PPGActivity extends BaseActivity {
     private void watchdogTick() {
         if (!recording) return;
         long now = System.currentTimeMillis();
-        long reference = Math.max(lastPacketMs, lastArmMs);
-        long silence = now - reference;
-        if (silence < WATCHDOG_SILENCE_MS) return;
-        logEvent("watchdog_rearm_after_ms_" + silence, "");
-        lastArmMs = now;
-        sendStartCommands();
-        final long silenceS = silence / 1000;
-        runOnUiThread(() -> info.setText("sem pacotes há " + silenceS + "s — re-armando..."));
+
+        if (mode == AutoTestMode.AutoHRV) {
+            // Two-phase run: give raw PPG a fair window, then fall back to the
+            // plain heart-rate measurement so the run still yields an HR series.
+            if (now - recordingStartMs > HRV_GIVE_UP_MS && packetCount == 0) {
+                mode = AutoTestMode.AutoHeartRate;
+                logEvent("mode_switch_heart_no_ppg_after_ms_" + (now - recordingStartMs), "");
+                sendStartCommands();
+                return;
+            }
+            long silence = now - Math.max(lastPacketMs, lastArmMs);
+            if (silence < WATCHDOG_SILENCE_MS) return;
+            logEvent("watchdog_rearm_after_ms_" + silence, "");
+            sendStartCommands();
+            final long silenceS = silence / 1000;
+            runOnUiThread(() -> info.setText("PPG mudo há " + silenceS + "s — re-armando..."));
+        } else {
+            long silence = now - Math.max(lastHrMs, lastArmMs);
+            if (silence < HR_SILENCE_MS) return;
+            logEvent("watchdog_rearm_hr_after_ms_" + silence, "");
+            sendStartCommands();
+        }
     }
 
     private void openLogFiles() {
@@ -239,9 +271,14 @@ public class PPGActivity extends BaseActivity {
 
     private void sendStartCommands() {
         lastArmMs = System.currentTimeMillis();
+        // Keep the 1 Hz real-time stream on: it carries the device HR while a
+        // measurement session is active (field-validated on the A17, 24/08).
+        BleManager.getInstance().offerValue(BleSDK.RealTimeStep(true, true));
         BleManager.getInstance().offerValue(
-                BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHRV, MEASUREMENT_TIME, true));
-        BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(true));
+                BleSDK.SetDeviceMeasurementWithType(mode, MEASUREMENT_TIME, true));
+        if (mode == AutoTestMode.AutoHRV) {
+            BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(true));
+        }
         BleManager.getInstance().writeValue();
     }
 
@@ -259,6 +296,11 @@ public class PPGActivity extends BaseActivity {
                 packetCount = 0;
                 sampleCount = 0;
                 lastPacketMs = 0;
+                lastHrMs = 0;
+                hrCount = 0;
+                lastHr = 0;
+                recordingStartMs = System.currentTimeMillis();
+                mode = AutoTestMode.AutoHRV;
                 openLogFiles();
                 sendStartCommands();
                 Start();
@@ -267,7 +309,10 @@ public class PPGActivity extends BaseActivity {
                 recording = false;
                 BleManager.getInstance().offerValue(
                         BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHRV, MEASUREMENT_TIME, false));
+                BleManager.getInstance().offerValue(
+                        BleSDK.SetDeviceMeasurementWithType(AutoTestMode.AutoHeartRate, MEASUREMENT_TIME, false));
                 BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(false));
+                BleManager.getInstance().offerValue(BleSDK.RealTimeStep(false, false));
                 BleManager.getInstance().writeValue();
                 closeLogFiles();
                 break;
@@ -332,6 +377,27 @@ public class PPGActivity extends BaseActivity {
                     logEvent("auto_rearm", "");
                     sendStartCommands();
                 }
+                break;
+            }
+            case BleConst.RealTimeStep: {
+                // 1 Hz stream: heartRate is non-zero only while a measurement
+                // session is active — this series IS the SDK-HR protocol data.
+                Map<String, String> map = getData(maps);
+                String hr = map == null ? null : map.get(DeviceKey.HeartRate);
+                int hrValue = 0;
+                try {
+                    hrValue = hr == null ? 0 : (int) Float.parseFloat(hr.trim());
+                } catch (NumberFormatException ignored) {
+                }
+                if (hrValue > 0) {
+                    lastHrMs = System.currentTimeMillis();
+                    hrCount++;
+                    lastHr = hrValue;
+                }
+                logEvent("hr", hrValue > 0 ? String.valueOf(hrValue) : "0");
+                final String status = "modo: " + mode + " | HR: " + (hrValue > 0 ? hrValue : "--")
+                        + " | leituras HR: " + hrCount + " | pacotes PPG: " + packetCount;
+                runOnUiThread(() -> info.setText(status));
                 break;
             }
             default: {
