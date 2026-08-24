@@ -103,12 +103,32 @@ duração da sessão em **segundos** (campo com aviso de mínimo 30s), enquanto 
 descartado. Corrigido na v4 (300s), junto de um modo de fallback que grava a
 série de HR de 1 Hz do SDK quando o PPG bruto não flui.
 
+**Rodada 4 (16:32, spike v4) — o PPG bruto FLUIU**
+- **10 pacotes, 800 amostras, ~394 amostras/s**, forma de onda óptica real e
+  contínua em 8 dos 10 pacotes (o pacote 1 traz ~33 valores de cabeçalho
+  misturados às amostras — o parser do SDK não separa payload de metadados).
+- Durou **exatamente 2,03s**, começando **59ms após um re-arme do watchdog** —
+  e os **47 re-armes seguintes não produziram nada**.
+- Conclusão de protocolo: **o firmware trata "start" como no-op enquanto acredita
+  que há sessão ativa**. Repetir start nunca recupera o stream; é preciso
+  `stop` → pausa → `start` (implementado na v5).
+- 2s é curto demais para extrair BPM: o trecho ainda está no transiente de
+  estabilização do sensor (coerente com o warm-up de ~40s medido em julho).
+- A série de HR não foi capturada: o modo AutoHRV derruba a medição de HR, e o
+  fallback do app exigia "zero pacotes de PPG" — a rajada de 2s bloqueou a troca.
+  Corrigido na v5 (o fallback passa a olhar o total de PPG efetivamente
+  transmitido).
+
 **Perguntas cirúrgicas para a Arena (com log em mãos)**
 1. Qual a sequência de comandos correta para manter o stream de PPG bruto
-   contínuo? O nosso morre após ~2 pacotes sem qualquer callback de encerramento.
+   **contínuo**? O nosso entrega ~2s (≈394 amostras/s) por sessão e depois só
+   volta com um `stop` explícito antes do próximo `start`. Há um modo de stream
+   sustentado, ou a duração da rajada é fixa em firmware?
 2. Qual a unidade e o limite do parâmetro de duração em
-   `SetDeviceMeasurementWithType`?
-3. O `RealTimeStep` só entrega `heartRate` durante sessão de medição ativa e
+   `SetDeviceMeasurementWithType`? Ele governa a duração da rajada de PPG?
+3. O pacote de PPG mistura bytes de cabeçalho às amostras (visto no pacote 1):
+   qual o layout exato do frame e a taxa de amostragem nominal do sensor?
+4. O `RealTimeStep` só entrega `heartRate` durante sessão de medição ativa e
    repete o snapshot de passos — é o comportamento esperado?
 
 ## Panorama de fornecedores (17/08)
