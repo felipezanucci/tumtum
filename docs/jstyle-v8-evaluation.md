@@ -201,6 +201,47 @@ parou de responder até ao `AutoHeartRate` — 19s sem nenhum HR, contra warm-up
 8–9s medido nas rodadas anteriores. Indica degradação do firmware sob comandos
 repetidos, exigindo reset físico.
 
+## Rodada 8 (18:33, spike v8) — protocolo de 2 condições com Polar H10
+
+Protocolo de julho reproduzido: 3 blocos de 60s repouso / 30s esforço máximo /
+90s recuperação **sentado**, com Polar H10 (ECG) como referência gravado pelo
+`tumtum_ble.py` no Mac, e a série de 1 Hz do SDK do V8 gravada em paralelo no
+A17 (um único Start cobrindo os três blocos). Alinhamento pelos **relógios
+absolutos** dos dois aparelhos — deliberadamente não se usou minimização de MAE,
+que absorveria no "offset" justamente o atraso a ser medido.
+
+| Bloco | Baseline | Pico Polar | Pico V8 | Atraso | Razão de amplitude | MAE |
+|---|---|---|---|---|---|---|
+| 1 | 80,9 | **129** | 108 | **+42s** | **0,56** | **19,1** |
+| 2 | 78,1 | **136** | 92 | n/d* | **0,24** | **17,3** |
+| 3 | 87,7 | **138** | 97 | n/d* | **0,21** | **16,1** |
+| **Média** | | | | | **0,34** | **17,5** |
+
+\* Nos blocos 2 e 3 a métrica de atraso pico-a-pico é inválida: o V8 nunca
+rastreou a subida, então o horário do seu máximo é ruído, não resposta. Métrica
+robusta substituta — **tempo para atingir metade da excursão real**:
+
+| Bloco | Polar cruza | V8 cruza | Atraso | Erro máximo |
+|---|---|---|---|---|
+| 1 | 18:34:50 | 18:35:44 | **+54s** | −47 bpm |
+| 2 | 18:40:07 | **nunca** | — | −45 bpm |
+| 3 | 18:45:21 | **nunca** | — | −47 bpm |
+
+**Comportamento observado (bloco 1, ilustrativo):** durante os 30s de esforço o
+Polar sobe de 81 → 128 bpm; o V8 vai de 78 → 82. Quando o Polar já está em plena
+recuperação (89 bpm), o V8 finalmente sobe até 107 — e passa a **superestimar em
++18 a +27 bpm**. Ou seja: cego durante o pico, e errado na direção oposta depois.
+
+**Resultado contra os três critérios do protocolo permanente:**
+
+| Critério | Limite | Medido | |
+|---|---|---|---|
+| Razão de amplitude | ≥ 0,85 | **0,34** (0,21–0,56) | ❌ |
+| Atraso do pico | ≤ 5s | **+42s a +54s**, ou nunca | ❌ |
+| MAE | ≤ 5 | **17,5** (16,1–19,1) | ❌ |
+
+**Os três critérios reprovados, nos três blocos, contra referência ECG.**
+
 ## Veredito da avaliação (24/08)
 
 | Caminho | Status |
@@ -208,8 +249,9 @@ repetidos, exigindo reset físico.
 | **A — BPM processado (firmware/SDK)** | **Reprovado com dado próprio.** Atraso de pico +94s (critério ≤5s), nenhuma resposta durante 30s de esforço máximo, queda espúria de 35 bpm na recuperação. O SDK entrega o mesmo valor filtrado do app: **o gating é firmware**, fechando o item 2 da seção 8. |
 | **B — PPG bruto** | **Não demonstrável com o SDK entregue.** Três configurações, 32 comandos, zero pacotes. |
 
-Falta apenas, para o relatório formal, a razão de amplitude e o MAE contra o
-Polar H10 — o protocolo de 2 condições com referência.
+**A avaliação está completa.** O protocolo com Polar H10 (rodada 8) fechou os
+três critérios: razão de amplitude 0,34, atraso de +42s a +54s (ou pico nunca
+alcançado), MAE 17,5. Nada pendente do lado técnico.
 
 **Perguntas cirúrgicas para a Arena (com log em mãos)**
 1. Qual a sequência de comandos correta para manter o stream de PPG bruto
