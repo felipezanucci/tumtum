@@ -66,6 +66,51 @@ fechar com a J-Style e negociar o pacote de integração (US$ 15k viram item de
 negociação). Vermelho em qualquer um ⇒ levar os números à Arena e acelerar a
 Veepoo.
 
+## Bancada de 24/08 — Samsung A17 (spike v1→v4)
+
+Primeira execução do spike com o A17 como host. O PPG bruto **não fluiu**, mas
+a rodada produziu achados de protocolo que valem para a negociação:
+
+**Stream de PPG bruto (AutoHRV + `setECGRealtimeDuringHRVEnabled`)**
+- Rodada 1: exatamente **2 pacotes (160 amostras de PPG válidas)** 2,1s após o
+  Start, depois **silêncio total por 38s** — sem nenhum callback de encerramento
+  do dispositivo, o que impediu o re-arme orientado a callback de disparar.
+- Rodadas seguintes: **zero pacotes**, mesmo com watchdog re-armando a cada 5s
+  (~50 re-armes numa rodada de 4 min). A pulseira **ignora o comando em
+  silêncio** — não recusa, não responde.
+- Pulseira no pulso em todas as rodadas: a detecção de uso não explica o
+  comportamento.
+
+**Stream de 1 Hz (`RealTimeStep`) — o achado positivo**
+- **241 callbacks em 4 minutos, mediana de 1,004s entre pacotes, zero
+  interrupções.** O transporte a ~1 Hz prometido pela J-Style existe e é
+  estável — atende ao critério de transporte do protocolo de validação.
+- Porém `heartRate=0` em todos os 241 pacotes: o stream só carrega batimento
+  enquanto uma **sessão de medição está ativa**, e o comando de HRV do spike
+  derrubava a medição de HR.
+- Os passos ficaram **congelados em 143** durante toda a rodada, inclusive
+  durante esforço físico real — o stream parece repetir um snapshot em vez de
+  atualizar ao vivo sem sessão ativa. Confirmar com a J-Style.
+
+**Canal de comandos**: íntegro. `Get Battery Level` respondeu
+(`batteryLevel=88, VoltageValue=578`) e `Real Time Measurement` mediu batimento
+(77–78 bpm) — logo, a conexão BLE e o SDK funcionam; o problema é específico da
+sessão de medição do PPG bruto.
+
+**Causa provável identificada no código do demo**: a tela que funciona passa a
+duração da sessão em **segundos** (campo com aviso de mínimo 30s), enquanto o
+`PPGActivity` passava `50 * 1000` — plausivelmente lido como pedido de ~14h e
+descartado. Corrigido na v4 (300s), junto de um modo de fallback que grava a
+série de HR de 1 Hz do SDK quando o PPG bruto não flui.
+
+**Perguntas cirúrgicas para a Arena (com log em mãos)**
+1. Qual a sequência de comandos correta para manter o stream de PPG bruto
+   contínuo? O nosso morre após ~2 pacotes sem qualquer callback de encerramento.
+2. Qual a unidade e o limite do parâmetro de duração em
+   `SetDeviceMeasurementWithType`?
+3. O `RealTimeStep` só entrega `heartRate` durante sessão de medição ativa e
+   repete o snapshot de passos — é o comportamento esperado?
+
 ## Panorama de fornecedores (17/08)
 
 | Fornecedor | Status |
