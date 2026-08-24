@@ -176,6 +176,41 @@ em 5 tentativas de sessão AutoHRV; a única captura segue sendo a rajada de 2s 
 rodada 4. Hipótese a testar: o `stop` do toggle desabilita o flag de PPG bruto de
 forma que o `true` seguinte não restaura — a rodada 4 nunca enviou `false`.
 
+**Rodada 7 (17:57, spike v7) — sonda A/B/C: o PPG bruto não é reproduzível**
+
+Experimento controlado, três configurações numa gravação de 246s, com reset
+físico da pulseira antes. Sujeito em pé, parado, sem esforço (irrelevante para
+um resultado de zero pacotes: ausência total de dados é falha de protocolo, não
+de qualidade de sinal).
+
+| Fase | Configuração | Comandos | Pacotes PPG |
+|---|---|---|---|
+| A (75s) | receita exata da v4: sessão 300s, re-arme só com *start* a cada 5s, flag **nunca** posto em `false` | 15 | **0** |
+| B (75s) | duração literal do demo do fornecedor (`50*1000`), mesmo re-arme | 15 | **0** |
+| C (75s) | parada limpa + **um único start**, 75s sem qualquer interferência | 1 | **0** |
+| HR (21s) | fallback `AutoHeartRate` 300s | 1 | — (HR também ficou em 0) |
+
+**Conclusão: zero pacotes de PPG bruto em 32 comandos de medição e três
+configurações independentes.** A hipótese do flag `false` está descartada: a
+fase A replicou a v4 byte a byte, em estado virgem, e não produziu nada. A
+rajada de 2s da rodada 4 **não é reproduzível** com nenhuma sequência de
+comandos que se consiga montar a partir do SDK entregue.
+
+Achado secundário (sugestivo, janela curta): após os 32 comandos, o dispositivo
+parou de responder até ao `AutoHeartRate` — 19s sem nenhum HR, contra warm-up de
+8–9s medido nas rodadas anteriores. Indica degradação do firmware sob comandos
+repetidos, exigindo reset físico.
+
+## Veredito da avaliação (24/08)
+
+| Caminho | Status |
+|---|---|
+| **A — BPM processado (firmware/SDK)** | **Reprovado com dado próprio.** Atraso de pico +94s (critério ≤5s), nenhuma resposta durante 30s de esforço máximo, queda espúria de 35 bpm na recuperação. O SDK entrega o mesmo valor filtrado do app: **o gating é firmware**, fechando o item 2 da seção 8. |
+| **B — PPG bruto** | **Não demonstrável com o SDK entregue.** Três configurações, 32 comandos, zero pacotes. |
+
+Falta apenas, para o relatório formal, a razão de amplitude e o MAE contra o
+Polar H10 — o protocolo de 2 condições com referência.
+
 **Perguntas cirúrgicas para a Arena (com log em mãos)**
 1. Qual a sequência de comandos correta para manter o stream de PPG bruto
    **contínuo**? O nosso entrega ~2s (≈394 amostras/s) por sessão e depois só
