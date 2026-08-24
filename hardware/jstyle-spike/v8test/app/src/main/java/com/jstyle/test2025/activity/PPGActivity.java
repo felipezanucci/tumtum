@@ -60,16 +60,21 @@ import butterknife.OnClick;
  *     AutoHRV (raw PPG) for 60s; with zero PPG packets it falls back to
  *     AutoHeartRate and records the 1 Hz SDK heart rate as "hr" events — making
  *     the SDK-vs-app filter protocol runnable even while raw PPG stays blocked.
+ *  8. Toggle re-arm (24/08 run 4): raw PPG flowed for exactly 2s starting 59ms
+ *     after a re-arm, then 47 further "start" commands were ignored — the
+ *     firmware no-ops a start while it believes a session is active. Re-arming
+ *     now sends stop, waits, and starts again, and the HR fallback triggers on
+ *     total PPG yield rather than on having never seen a packet.
  *
  * Analysis of the resulting CSVs: hardware/jstyle-spike/analyze_ppg.py in the tumtum repo.
  */
 public class PPGActivity extends BaseActivity {
     private static final String TAG = "TumtumSpike";
-    // The working Real Time Measurement screen passes this in SECONDS (typed into
-    // its EditText, minimum 30). The previous 50*1000 was likely read as a ~14h
-    // session and silently rejected. 300s matches the vendor iOS demo's sessions;
-    // the auto re-arm chains sessions for longer runs.
-    private static final long MEASUREMENT_TIME = 300;
+    // Seconds (the working Real Time Measurement screen types this in, min 30).
+    // Kept short so a session expires on its own rather than blocking re-arms:
+    // the 24/08 run showed the device ignoring "start" while a 300s session was
+    // still nominally active.
+    private static final long MEASUREMENT_TIME = 60;
 
     @BindView(R.id.info)
     TextView info;
@@ -85,13 +90,16 @@ public class PPGActivity extends BaseActivity {
     private boolean recording = false;
     private long packetCount = 0;
     private long sampleCount = 0;
-    /** Re-send the start commands after this much stream silence while recording. */
+    /** Re-arm after this much stream silence while recording. */
     private static final long WATCHDOG_SILENCE_MS = 5_000;
+    /** Gap between the stop and the start of a re-arm toggle. */
+    private static final long TOGGLE_GAP_MS = 800;
     /** Give the raw-PPG (AutoHRV) path this long before falling back to plain HR. */
-    private static final long HRV_GIVE_UP_MS = 60_000;
+    private static final long HRV_GIVE_UP_MS = 90_000;
     /** In HR mode, re-arm when no non-zero heart rate arrives for this long. */
     private static final long HR_SILENCE_MS = 15_000;
     private volatile long lastPacketMs = 0;
+    private volatile long firstPacketMs = 0;
     private volatile long lastArmMs = 0;
     private volatile long lastHrMs = 0;
     private volatile long recordingStartMs = 0;
@@ -106,7 +114,7 @@ public class PPGActivity extends BaseActivity {
         setContentView(R.layout.activity_ppg);
         ButterKnife.bind(this);
         ppg_ChartsView.setBlankCount(20);
-        info.setText("spike v4 (PPG + HR 1Hz) — pronto");
+        info.setText("spike v5 (toggle re-arm) — pronto");
     }
 
     private void Start() {
@@ -140,26 +148,72 @@ public class PPGActivity extends BaseActivity {
         long now = System.currentTimeMillis();
 
         if (mode == AutoTestMode.AutoHRV) {
-            // Two-phase run: give raw PPG a fair window, then fall back to the
-            // plain heart-rate measurement so the run still yields an HR series.
-            if (now - recordingStartMs > HRV_GIVE_UP_MS && packetCount == 0) {
-                mode = AutoTestMode.AutoHeartRate;
-                logEvent("mode_switch_heart_no_ppg_after_ms_" + (now - recordingStartMs), "");
-                sendStartCommands();
+            // The 24/08 run delivered raw PPG for exactly 2s, 59ms after a re-arm,
+            // and then ignored 47 further "start" commands: the device treats a
+            // start as a no-op while it believes a session is running. So re-arm
+            // by toggling stop -> start instead of repeating start.
+            long silence = now - Math.max(lastPacketMs, lastArmMs);
+
+            // Fall back on total PPG yield, not on "never saw a packet": a brief
+            // burst must not strand the run in a mode that yields nothing more.
+            if (now - recordingStartMs > HRV_GIVE_UP_MS && streamedMs() < 20_000) {
+                logEvent("mode_switch_heart_ppg_ms_" + streamedMs(), "");
+                switchToHeartRate();
                 return;
             }
-            long silence = now - Math.max(lastPacketMs, lastArmMs);
             if (silence < WATCHDOG_SILENCE_MS) return;
-            logEvent("watchdog_rearm_after_ms_" + silence, "");
-            sendStartCommands();
+            logEvent("watchdog_toggle_after_ms_" + silence, "");
+            toggleRearm();
             final long silenceS = silence / 1000;
-            runOnUiThread(() -> info.setText("PPG mudo há " + silenceS + "s — re-armando..."));
+            runOnUiThread(() -> info.setText("PPG mudo há " + silenceS + "s — toggle stop/start..."));
         } else {
             long silence = now - Math.max(lastHrMs, lastArmMs);
             if (silence < HR_SILENCE_MS) return;
-            logEvent("watchdog_rearm_hr_after_ms_" + silence, "");
-            sendStartCommands();
+            logEvent("watchdog_toggle_hr_after_ms_" + silence, "");
+            toggleRearm();
         }
+    }
+
+    /** Milliseconds of raw PPG actually streamed so far this recording. */
+    private long streamedMs() {
+        return firstPacketMs == 0 ? 0 : lastPacketMs - firstPacketMs;
+    }
+
+    /**
+     * Re-arm as a real toggle: stop the measurement, wait, then start it again.
+     * Repeating start alone was proven to be a no-op on this firmware.
+     */
+    private void toggleRearm() {
+        lastArmMs = System.currentTimeMillis();
+        sendStopCommands();
+        if (timer != null && !timer.isShutdown()) {
+            timer.schedule(() -> {
+                if (recording) sendStartCommands();
+            }, TOGGLE_GAP_MS, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /** Stop whichever measurement is armed, plus the raw-PPG flag. */
+    private void sendStopCommands() {
+        BleManager.getInstance().offerValue(
+                BleSDK.SetDeviceMeasurementWithType(mode, MEASUREMENT_TIME, false));
+        if (mode == AutoTestMode.AutoHRV) {
+            BleManager.getInstance().offerValue(BleSDK.setECGRealtimeDuringHRVEnabled(false));
+        }
+        BleManager.getInstance().writeValue();
+    }
+
+    /** Hand the run over to the plain heart-rate measurement. */
+    private void switchToHeartRate() {
+        sendStopCommands();
+        mode = AutoTestMode.AutoHeartRate;
+        lastArmMs = System.currentTimeMillis();
+        if (timer != null && !timer.isShutdown()) {
+            timer.schedule(() -> {
+                if (recording) sendStartCommands();
+            }, TOGGLE_GAP_MS, TimeUnit.MILLISECONDS);
+        }
+        runOnUiThread(() -> info.setText("PPG bruto não sustentou — medindo HR (1Hz)"));
     }
 
     private void openLogFiles() {
@@ -296,6 +350,7 @@ public class PPGActivity extends BaseActivity {
                 packetCount = 0;
                 sampleCount = 0;
                 lastPacketMs = 0;
+                firstPacketMs = 0;
                 lastHrMs = 0;
                 hrCount = 0;
                 lastHr = 0;
@@ -331,6 +386,7 @@ public class PPGActivity extends BaseActivity {
                 String ppg = map.get(DeviceKey.arrayPpgRawData);
                 String packetId = map.get(DeviceKey.packetID);
                 if (ppg == null) break;
+                if (firstPacketMs == 0) firstPacketMs = now;
                 lastPacketMs = now;
                 packetCount++;
                 String[] samples = ppg.split(",");
@@ -396,7 +452,8 @@ public class PPGActivity extends BaseActivity {
                 }
                 logEvent("hr", hrValue > 0 ? String.valueOf(hrValue) : "0");
                 final String status = "modo: " + mode + " | HR: " + (hrValue > 0 ? hrValue : "--")
-                        + " | leituras HR: " + hrCount + " | pacotes PPG: " + packetCount;
+                        + " | leituras HR: " + hrCount + " | pacotes PPG: " + packetCount
+                        + " (" + (streamedMs() / 1000) + "s)";
                 runOnUiThread(() -> info.setText(status));
                 break;
             }
