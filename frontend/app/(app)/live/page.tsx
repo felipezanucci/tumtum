@@ -33,6 +33,26 @@ import { Nav } from '@/components/layout'
 /** How often the in-memory session is mirrored to localStorage. */
 const SNAPSHOT_INTERVAL_MS = 10_000
 
+/**
+ * Event mode exists because a browser cannot capture Bluetooth with the screen
+ * off — Android freezes the page — so at a six-hour event the screen is lit the
+ * whole night and battery becomes the thing that ends the capture.
+ *
+ * It does not touch the data. Every reading is still stored; only the display
+ * stops redrawing for a screen nobody is watching. On a black canvas over an
+ * OLED panel, unlit pixels cost nothing, which is why the mode goes almost
+ * entirely dark rather than merely simpler.
+ */
+const QUIET_DISPLAY_MS = 5_000
+const QUIET_CLOCK_MS = 30_000
+/**
+ * Leaving event mode is a press and hold, not a tap. The phone spends the night
+ * in a pocket, and a tap-anywhere exit would drop back to the full screen —
+ * where the next accidental touch could land on "Encerrar e ver minha
+ * experiência" and end the capture for good.
+ */
+const QUIET_EXIT_HOLD_MS = 1_200
+
 const stateLabels: Record<BleState, string> = {
   unsupported: 'Não suportado',
   idle: 'Desconectado',
@@ -66,6 +86,8 @@ export default function LivePage() {
 
   const monitorRef = useRef<HeartRateMonitor | null>(null)
   const wakeLockRef = useRef<WakeLockSentinel | null>(null)
+  /** Whether a capture is running and therefore still wants the screen held. */
+  const wantsWakeLockRef = useRef(false)
   const samplesRef = useRef<HRSample[]>([])
   const lastSnapshotRef = useRef(0)
   /** Mirrors the selection so the capture callback never reads a stale value. */
@@ -86,6 +108,11 @@ export default function LivePage() {
   const [eventsUnavailable, setEventsUnavailable] = useState(false)
   const [browserWarning, setBrowserWarning] = useState<string | null>(null)
   const [chooserStuck, setChooserStuck] = useState(false)
+  const [quiet, setQuiet] = useState(false)
+  const [holdingExit, setHoldingExit] = useState(false)
+  const quietRef = useRef(false)
+  const lastDisplayRef = useRef(0)
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setSupported(isWebBluetoothAvailable())
@@ -100,21 +127,32 @@ export default function LivePage() {
   // Drives the elapsed-time readout without re-rendering on every BLE packet.
   useEffect(() => {
     if (!startedAt) return
-    const id = setInterval(() => setNow(Date.now()), 1000)
+    const id = setInterval(() => setNow(Date.now()), quiet ? QUIET_CLOCK_MS : 1000)
     return () => clearInterval(id)
-  }, [startedAt])
+  }, [startedAt, quiet])
 
   useEffect(() => {
     eventIdRef.current = eventId
   }, [eventId])
 
+  // The capture callback is captured once, so it reads the mode through a ref.
+  useEffect(() => {
+    quietRef.current = quiet
+  }, [quiet])
+
   const handleReading = useCallback(
     (reading: HRReading) => {
+      // The sample is always kept. What follows only decides how often the
+      // screen is asked to redraw.
       samplesRef.current.push({ time: reading.time, bpm: reading.bpm })
-      setLastReading(reading)
-      setSampleCount(samplesRef.current.length)
 
       const nowMs = Date.now()
+      if (!quietRef.current || nowMs - lastDisplayRef.current >= QUIET_DISPLAY_MS) {
+        lastDisplayRef.current = nowMs
+        setLastReading(reading)
+        setSampleCount(samplesRef.current.length)
+      }
+
       if (nowMs - lastSnapshotRef.current >= SNAPSHOT_INTERVAL_MS) {
         lastSnapshotRef.current = nowMs
         saveSnapshot({
@@ -134,6 +172,7 @@ export default function LivePage() {
    * on a table during an event.
    */
   async function acquireWakeLock() {
+    wantsWakeLockRef.current = true
     try {
       if ('wakeLock' in navigator) {
         wakeLockRef.current = await navigator.wakeLock.request('screen')
@@ -144,6 +183,7 @@ export default function LivePage() {
   }
 
   function releaseWakeLock() {
+    wantsWakeLockRef.current = false
     wakeLockRef.current?.release().catch(() => undefined)
     wakeLockRef.current = null
   }
@@ -223,6 +263,20 @@ export default function LivePage() {
     }
   }
 
+  function startExitHold() {
+    setHoldingExit(true)
+    holdTimerRef.current = setTimeout(() => {
+      setHoldingExit(false)
+      setQuiet(false)
+    }, QUIET_EXIT_HOLD_MS)
+  }
+
+  function cancelExitHold() {
+    setHoldingExit(false)
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
+    holdTimerRef.current = null
+  }
+
   function handleDiscardRecovered() {
     clearSnapshot()
     setRecovered(null)
@@ -238,10 +292,32 @@ export default function LivePage() {
     setRecovered(null)
   }
 
+  /**
+   * A screen wake lock does not survive the page being hidden: the Screen Wake
+   * Lock spec releases it whenever the document's visibility changes to hidden,
+   * and nothing takes it back. So one glance at a message during an event used
+   * to end the capture — the lock was gone, the screen slept a minute later,
+   * and Android froze the tab with the Bluetooth connection inside it. The
+   * capture only asked for the lock once, when the sensor connected.
+   */
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState !== 'visible') return
+      if (!wantsWakeLockRef.current) return
+      if (wakeLockRef.current && !wakeLockRef.current.released) return
+      acquireWakeLock().catch(() => undefined)
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+    // acquireWakeLock only touches refs, so it never goes stale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     return () => {
       monitorRef.current?.disconnect().catch(() => undefined)
       releaseWakeLock()
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
     }
   }, [])
 
@@ -256,6 +332,36 @@ export default function LivePage() {
 
   const capturing = state === 'connected' || state === 'reconnecting'
   const elapsed = startedAt ? (now - Date.parse(startedAt)) / 1000 : 0
+
+  // Almost nothing is drawn here on purpose: on an OLED panel an unlit pixel
+  // draws no power, and the readout that remains is dim so the phone can sit in
+  // a pocket or on a table without lighting up a room.
+  if (quiet && capturing) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-tumtum-black px-6">
+        <div className="text-6xl font-hero tabular-nums text-tumtum-muted">
+          {lastReading ? lastReading.bpm : '--'}
+        </div>
+        <div className="mt-2 text-xs text-tumtum-muted/60">bpm</div>
+        <div className="mt-10 text-xs text-tumtum-muted/60">
+          {startedAt ? formatDuration(elapsed) : '--'} · {sampleCount.toLocaleString('pt-BR')} leituras
+        </div>
+        {state === 'reconnecting' && (
+          <div className="mt-6 text-xs text-amber-500/70">reconectando…</div>
+        )}
+        <button
+          type="button"
+          onPointerDown={startExitHold}
+          onPointerUp={cancelExitHold}
+          onPointerLeave={cancelExitHold}
+          onPointerCancel={cancelExitHold}
+          className="mt-16 rounded-lg px-6 py-3 text-xs text-tumtum-muted/40"
+        >
+          {holdingExit ? 'segure…' : 'segure para sair do modo evento'}
+        </button>
+      </main>
+    )
+  }
 
   return (
     <>
@@ -394,6 +500,16 @@ export default function LivePage() {
                       <li>Permita <strong>Dispositivos por perto</strong> para o navegador.</li>
                     </ul>
                   </div>
+                )}
+
+                {capturing && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => setQuiet(true)}
+                    className="mt-6 w-full"
+                  >
+                    Modo evento — economizar bateria
+                  </Button>
                 )}
 
                 {!capturing && (

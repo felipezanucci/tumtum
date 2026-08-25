@@ -44,7 +44,14 @@ export default function EventsPage() {
       <Nav />
       <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-4xl px-4 py-8">
-          <h1 className="mb-6 text-3xl font-bold text-tumtum-white">Eventos</h1>
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <h1 className="text-3xl font-hero text-tumtum-white">Eventos</h1>
+            <Link href="/events/novo">
+              <span className="shrink-0 rounded-lg bg-tumtum-lime px-4 py-2 text-sm font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow">
+                Novo evento
+              </span>
+            </Link>
+          </div>
 
           {/* Filters */}
           <div className="mb-6 flex flex-col gap-3 sm:flex-row">
