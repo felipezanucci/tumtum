@@ -183,9 +183,14 @@ do not change), WORKING (current recommendation, still being refined) or NEVER
 
 The wordmark reads **TUMTUM**, uppercase, in Chosmos. The **official vector is
 the only acceptable production source** — a screenshot, a raster export or an
-AI-generated approximation is not a master. Approved colour versions: black,
-white, Acid Lime, Toxic Yellow. Never stretch, compress, slant, redraw the
-letters, or alter the silhouette.
+AI-generated approximation is not a master. Never stretch, compress, slant,
+redraw the letters, or alter the silhouette.
+
+**Approved finishes: black, white, or an approved graphic version** (the
+mutation skins — zebra, inflável, cromado and so on). **The Acid Lime and Toxic
+Yellow wordmarks are forbidden** — a correction to manual v0.1, which still
+lists them among the institutional versions. The accents colour the interface
+around the logo, never the logo itself.
 
 ### Name
 
