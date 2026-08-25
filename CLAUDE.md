@@ -201,19 +201,35 @@ shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link),
 Input: HR data array [{ time, bpm }], event timeline [{ time, label }]
 
 1. Smooth: 5-second moving average on BPM values
-2. Baseline: 60-second centered rolling mean
-3. Std dev: 60-second centered rolling standard deviation
-4. Z-score: (smoothed_bpm - baseline) / std for each point
+2. Baseline: 300-second centered rolling mean
+3. Std dev: 300-second centered rolling standard deviation
+4. Z-score: (smoothed_bpm - baseline) / std for each point, with two guards:
+   - std <= 1.0 → z = deviation / 10 when the deviation is positive, else 0
+     (a very steady rest period would otherwise divide by near-zero and
+     manufacture huge z-scores)
+   - deviation > 30 bpm → z is at least deviation / 15 (an absolute rise that
+     large is always significant, even when the spike inflates its own window)
 5. Threshold: mark points where z-score > 2.0 as "elevated"
 6. Group: consecutive elevated points → "peak region"
 7. Filter: peak regions < 5 seconds are discarded (noise)
 8. Extract: peak_bpm = max(region), peak_time = timestamp of max
 9. Merge: peaks within 30 seconds of each other → keep highest
-10. Rank: by magnitude (z-score × duration_seconds)
-11. Match: top N peaks → nearest event_timeline entry (±60s window)
+10. Rank: by magnitude (z-score × duration_seconds), keep the top 20
+11. Match: ranked peaks → nearest event_timeline entry (±60s window)
 
 Output: [{ timestamp, bpm, duration, magnitude, matched_label }]
 ```
+
+**The 300-second window is deliberate.** A 60-second baseline is narrow enough
+that a peak sits inside its own reference window and raises the very mean it is
+measured against, which suppresses exactly the rises we exist to detect. The
+guards in step 4 exist for the same reason from the other direction.
+
+These numbers are the interface, not trivia: a validation protocol has to be
+designed against them. A 7-minute two-effort test is not obviously safe against
+a 5-minute window — it was checked by simulation before being run on a person.
+The values live in `detect_peaks()` in `backend/app/services/peak_detection.py`;
+change them there and here together.
 
 ## Key external APIs
 
