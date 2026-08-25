@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **parked, not closed**. Both candidate bands failed validation; continuous raw PPG needs firmware customization at USD 15k NRE / 5,000 MOQ — premature for Phase 0. Awaiting their answer on a pilot batch. |
-| **Path 2 — fans' own watches** | **Phase 1 validated in the field.** Live heart rate over Web Bluetooth, 1.004 readings/s, self-healing reconnection, R-R intervals. |
+| **Path 2 — fans' own watches** | **Phase 1 validated in the field, and now hardened for a six-hour event.** Live heart rate over Web Bluetooth, 1.004 readings/s, reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
@@ -38,9 +38,86 @@ the linked documents — this file is the index and the reasoning, not a diary.
 8. **Confirm Railway actually redeploys on a push to `main`.** The GitHub
    Actions deploy job has never worked (see below), so this has always been
    implicit. Verify before relying on it.
-9. **CI and deploy cleanup** — no ESLint config, no `test` script, 25
-   unformatted backend files, and a `Deploy` workflow that has failed 12/12
-   times. All pre-date this work; all worth one dedicated PR.
+9. ~~**CI and deploy cleanup**~~ — done 2026-08-25 (#12), and the backend half
+   finished 2026-08-25 (#20): its test step ended in `|| echo "No tests found
+   yet"`, so nothing there could ever turn a check red.
+10. **Realness Festival, 2026-08-29** — a six-hour drag festival in São Paulo,
+    and the first capture longer than a few minutes. Prepared; see below. What
+    is left is Felipe's: create the event, rehearse for five minutes at home
+    recording on both the Polar app and TumTum, and send the Polar CSV so the
+    importer can be checked against a file the device actually wrote rather
+    than one reproduced from its documented shape.
+11. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
+    changed. If it fails on festival cellular nothing is lost — the snapshot
+    survives and the button can be pressed again — so chunking it was judged
+    not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-25 — preparing for six hours, and what that exposed
+
+A six-hour festival on 29 August became the first capture longer than a few
+minutes, and asking what would survive it turned up six defects. Every one had
+been there since the feature was built; none had been reached by a test lasting
+minutes.
+
+**A browser cannot capture Bluetooth with the screen off.** Android freezes the
+page and the connection goes with it. That is a platform limit, not something to
+engineer around in Phase 0 — the real fix is a native or Wear OS capture, which
+is Phase 2 of the roadmap. What follows is everything that limit implies.
+
+**The wake lock was taken once and never taken back.** The Screen Wake Lock spec
+releases it whenever the document becomes hidden, so glancing at a message
+during an event silently ended the capture a minute later, when the screen slept
+and the tab froze. This could not be reproduced here — headless Chromium does
+not change visibility state when a tab is backgrounded, and the CDP command that
+would force it has been removed — so the fix rests on the spec and wants
+confirming on the phone.
+
+**Event mode** cuts the screen to near-black and throttles the redraw: 43,200
+renders over six hours down to 5,039. No reading is dropped; only the drawing
+stops. Leaving it is a press and hold, because the phone spends the night in a
+pocket and a tap-anywhere exit would drop back to the full screen, where the
+next accidental touch could land on "Encerrar" and end the capture for good.
+
+**A successful capture could not be opened.** Nothing downsampled the series, so
+21,600 readings went to the phone as a megabyte of JSON and became one smoothed
+SVG path — for a chart a thousand pixels wide. Now thinned to ~1,800 points,
+keeping each bucket's minimum and maximum rather than sampling evenly: peaks are
+stored separately and drawn on top, so an even sample could have drawn a lower
+summit than the marker standing on it.
+
+**The Polar app is the only capture path with none of our constraints** — it is
+native and needs no screen — and its export could not be imported at all. The
+parser accepted the first header row whose labels looked plausible, and a Polar
+file opens with a summary block whose columns are named "Start time" and
+"Average heart rate (bpm)". A header is now judged by what it yields: the
+candidate whose rows parse in the longest unbroken run wins, because readings
+are written one after another and a summary block is one row and then something
+else. Polar also counts samples from zero, so elapsed times are anchored to the
+date and start time above them.
+
+That makes the plan for Saturday **both at once**: Polar Flow recording the
+night as the guarantee, TumTum running as the experiment. It also produces
+something we have never had — our capture and a reference device over the same
+six hours, to compare.
+
+**An expired account looked signed in.** The screen checked that a token
+existed, not that it worked. They last 24 hours, so one saved days before an
+event still reads as an account, and the capture would only discover otherwise
+at the save — the one moment with something to lose. It now asks the server, and
+treats only a refusal as signed out, since capture needs no backend at all. A
+token valid at the door can still expire by the encore, so the screen reads the
+expiry the token carries and says so before the capture starts.
+
+**Reconnection gave up after eight attempts**, about 2.2 minutes. On a crowded
+floor that ended the night. It now keeps trying every 30 seconds, indefinitely.
+
+**A general lesson worth keeping.** Five of these six were invisible at the
+scale we had tested at, and each was found by asking what six hours would do
+rather than by running six hours. Cheap arithmetic on a real duration — renders,
+bytes, points, token lifetime — found more than any amount of using the app for
+two minutes would have.
 
 ---
 
