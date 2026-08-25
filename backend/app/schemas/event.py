@@ -3,6 +3,12 @@ from datetime import date, datetime, time
 
 from pydantic import BaseModel, Field
 
+# A field called `date` hides the type called `date`. In `x: T = v` Python
+# stores the value before evaluating the annotation, so by the time
+# `date | None` is read, `date` is already the None just assigned — which the
+# create schema never hit only because its `date` field has no default.
+EventDate = date
+
 # --- Event ---
 
 
@@ -17,6 +23,26 @@ class EventCreateRequest(BaseModel):
     end_time: time | None = None
     event_type: str = Field(..., pattern="^(concert|sports|festival)$")
     external_id: str | None = None
+    cover_image_url: str | None = None
+
+
+class EventUpdateRequest(BaseModel):
+    """Every field optional: a correction usually touches one of them.
+
+    `None` means "leave this alone" rather than "clear this", which is the
+    right trade here — the fields people clear are rare and the fields people
+    fix are common.
+    """
+
+    name: str | None = None
+    subtitle: str | None = None
+    venue: str | None = None
+    city: str | None = None
+    country: str | None = None
+    date: EventDate | None = None
+    start_time: time | None = None
+    end_time: time | None = None
+    event_type: str | None = Field(None, pattern="^(concert|sports|festival)$")
     cover_image_url: str | None = None
 
 

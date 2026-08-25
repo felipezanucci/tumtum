@@ -14,6 +14,7 @@ from app.schemas.event import (
     EventCreateRequest,
     EventDetailResponse,
     EventResponse,
+    EventUpdateRequest,
     TimelineEntryCreate,
     TimelineEntryResponse,
 )
@@ -29,6 +30,38 @@ async def create_event(
 ):
     event = Event(**body.model_dump())
     db.add(event)
+    await db.flush()
+    return event
+
+
+@router.patch("/{event_id}", response_model=EventResponse)
+async def update_event(
+    event_id: uuid.UUID,
+    body: EventUpdateRequest,
+    _: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Correct an event someone already created.
+
+    There was no way to do this at all: an event typed with the wrong date
+    could only be abandoned and typed again, leaving the wrong one in the list
+    on the night it mattered. A wrong date is not cosmetic — it is what ties a
+    capture to the moments inside an event.
+
+    Events are shared between everyone attending them, so any signed-in person
+    can fix one. That is the right trade while the people using this can be
+    counted, and it wants revisiting before it cannot.
+    """
+    result = await db.execute(select(Event).where(Event.id == event_id))
+    event = result.scalar_one_or_none()
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado"
+        )
+
+    changes = body.model_dump(exclude_unset=True, exclude_none=True)
+    for field, value in changes.items():
+        setattr(event, field, value)
     await db.flush()
     return event
 

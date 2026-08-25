@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useEventStore } from '@/lib/stores/useEventStore'
 import { demo } from '@/lib/api'
 import { TimelineBar } from '@/components/hr'
@@ -98,6 +99,14 @@ export default function EventDetailPage() {
             {event.city && <span>{event.city}{event.country ? `, ${event.country}` : ''}</span>}
             <span>📅 {formattedDate}</span>
           </div>
+
+          {/* The date and the times are what tie a capture to the moments of a
+              night, so getting at them has to be one tap from the event. */}
+          <Link href={`/events/${event.id}/editar`}>
+            <Button variant="secondary" size="sm" className="mt-4">
+              Editar evento
+            </Button>
+          </Link>
 
           {/* Simulate CTA */}
           <div className="mt-8 rounded-xl border border-tumtum-border bg-tumtum-surface p-6">
