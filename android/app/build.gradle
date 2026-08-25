@@ -1,0 +1,39 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'cc.tumtum.capture'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'cc.tumtum.capture'
+        // Android 8. Anything older cannot hold a foreground service the way
+        // a six-hour capture needs.
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '0.1'
+    }
+
+    buildTypes {
+        debug {
+            // The pilot installs this by hand, so a debug build is the product.
+            applicationIdSuffix '.debug'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+// No dependencies on purpose. Everything here is in the Android framework, so
+// there is no version matrix to get wrong and nothing to break on an upgrade.
+dependencies {}

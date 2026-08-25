@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The MVP v0.1 palette. Black is the canvas, Acid Lime carries emphasis. -->
+<resources>
+    <color name="tumtum_black">#FF000000</color>
+    <color name="tumtum_white">#FFFFFFFF</color>
+    <color name="tumtum_lime">#FFC6FF00</color>
+    <color name="tumtum_muted">#FF8A8A8A</color>
+</resources>

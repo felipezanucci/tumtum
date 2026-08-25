@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TumTum</string>
+    <string name="capture_channel_name">Captura em andamento</string>
+    <string name="capture_notification_title">TumTum está gravando</string>
+</resources>
