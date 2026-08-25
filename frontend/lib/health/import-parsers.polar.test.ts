@@ -98,3 +98,63 @@ Time,HR (bpm)
     expect(r.samples.map((s) => s.bpm)).toEqual([85, 86, 88])
   })
 })
+
+/**
+ * The structure of a real Polar Flow export, checked against one on 2026-08-25.
+ * The personal fields a real file carries — name, height, weight, HR max — are
+ * replaced here: this repository has no business holding someone's health data
+ * to prove a parser works, and none of it is what the parser reads.
+ */
+const POLAR_FLOW_EXPORT = `Name,Sport,Date,Start time,Duration,Total distance (km),Average heart rate (bpm),Average speed (km/h),Max speed (km/h),Average pace (min/km),Max pace (min/km),Calories,Fat percentage of calories(%),Carbohydrate percentage of calories(%),Protein percentage of calories(%),Average cadence (rpm),Average stride length (cm),Running index,Training load,Ascent (m),Descent (m),Average power (W),Max power (W),Notes,Height (cm),Weight (kg),HR max,HR sit,VO2max
+Test User  testuser,RUNNING,2026-08-25,15:55:59,00:02:31,0.00,75,0.0,,00:00,,6,66,,,,,,,,,,,,,,,,
+
+Sample rate,Time,HR (bpm),Speed (km/h),Pace (min/km),Cadence,Altitude (m),Stride length (m),Distances (m),Temperatures (C),Power (W)
+1,00:00:00,76,0.0,00:00,,,,0.00,,
+,00:00:01,76,0.0,00:00,,,,0.00,,
+,00:00:02,75,0.0,00:00,,,,0.00,,
+,00:01:00,80,0.0,00:00,,,,0.00,,
+,00:02:32,79,0.0,00:00,,,,1.13,,
+`
+
+describe('a real Polar Flow export', () => {
+  it('reads every sample row and discards none', () => {
+    const r = parseHRFile('PolarFlow_20260825_155559.CSV', POLAR_FLOW_EXPORT)
+    expect(r.samples).toHaveLength(5)
+    expect(r.discarded).toBe(0)
+    expect(r.samples.map((s) => s.bpm)).toEqual([76, 76, 75, 80, 79])
+  })
+
+  it('anchors the elapsed times to the session start, in local time', () => {
+    const r = parseHRFile('PolarFlow_20260825_155559.CSV', POLAR_FLOW_EXPORT)
+    const first = new Date(r.samples[0].time)
+    expect(first.getHours()).toBe(15)
+    expect(first.getMinutes()).toBe(55)
+    expect(first.getSeconds()).toBe(59)
+    expect(first.getDate()).toBe(25)
+
+    // 15:55:59 plus the last row's 00:02:32.
+    const last = new Date(r.samples[4].time)
+    expect(last.getHours()).toBe(15)
+    expect(last.getMinutes()).toBe(58)
+    expect(last.getSeconds()).toBe(31)
+  })
+
+  it('takes the start time by column name, not by whichever clock comes first', () => {
+    // Duration reads exactly like a clock too. Putting it first must not move
+    // the whole session to five past midnight.
+    const swapped = POLAR_FLOW_EXPORT.replace(
+      'Date,Start time,Duration',
+      'Date,Duration,Start time',
+    ).replace('2026-08-25,15:55:59,00:02:31', '2026-08-25,00:02:31,15:55:59')
+
+    const r = parseHRFile('swapped.CSV', swapped)
+    expect(new Date(r.samples[0].time).getHours()).toBe(15)
+  })
+
+  it('is not fooled by the summary block above the samples', () => {
+    // Row 1 matches on "Start time" and "Average heart rate (bpm)".
+    const r = parseHRFile('PolarFlow.CSV', POLAR_FLOW_EXPORT)
+    expect(r.warnings.join(' ')).toContain('"Time"')
+    expect(r.warnings.join(' ')).toContain('"HR (bpm)"')
+  })
+})
