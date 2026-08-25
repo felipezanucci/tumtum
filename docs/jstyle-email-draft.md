@@ -1,4 +1,6 @@
-# Draft email to J-Style (Arena Lee) — 2026-08-24
+# Draft emails to J-Style (Arena Lee)
+
+## 1. Test results — sent 2026-08-24
 
 Context and numbers: `docs/jstyle-v8-evaluation.md`.
 Review before sending; adjust the closing paragraph to how hard you want to push.
@@ -86,6 +88,78 @@ options, and I would rather know that quickly than keep both of us busy.
 
 Happy to share our full test data and the instrumented app if your engineering
 team wants to reproduce any of this.
+
+Best regards,
+Felipe Zanucci
+Tumtum
+
+
+---
+
+## 2. Reply to the customization offer — draft, 2026-08-25
+
+**Her answer, in short:** the standard V8 SDK does not support continuous raw
+streaming; that requires dedicated firmware customization. Terms offered:
+**NRE USD 15,000, MOQ 5,000 units** — covering SDK/API licensing, protocol
+documentation, firmware support, and integration assistance. She proposes
+defining sampling rate, packet format, streaming duration and data handling
+with their engineering team before finalising scope, and notes our 2-second
+observation reflects the standard firmware rather than a hardware limit.
+
+**Why this draft says no for now:** at roughly USD 40–80 per unit, a 5,000-unit
+MOQ is USD 200,000–400,000 of inventory plus the NRE — committed *before* the
+Phase 0 hypothesis is validated. Firmware customization also runs 2–4 months,
+past the pilot. The two questions below are the ones worth asking before
+parking this.
+
+---
+
+**Subject:** Re: V8 validation results — next steps
+
+Hi Arena,
+
+Thank you for the clear answer. Confirming that continuous raw PPG requires
+dedicated firmware — rather than an SDK command we had simply missed — closes
+the technical question for us. You have now been direct with us twice, and it
+has saved us real time both times.
+
+We agree with your reading of the results: the sensor itself performed well,
+with a mean absolute error under 2 bpm against our Polar H10 reference in
+steady state. The constraint is firmware, not hardware.
+
+On the commercial terms, let me be equally direct about where we are.
+
+Tumtum is pre-launch. We run our first pilot events this quarter, using
+participants' existing watches as the heart-rate source, specifically so that
+we can validate demand before committing to hardware. A 5,000-unit MOQ is far
+beyond what this stage can absorb. That is not a comment on your pricing: it is
+that the commitment would come before the validation that would justify it.
+
+I would rather find a path than close the conversation, so two questions:
+
+1. **Is a pilot batch possible?** In the range of 50–100 units carrying the
+   customized firmware, at a correspondingly higher unit price. Putting a
+   working continuous-raw-PPG device on real users at a real event is exactly
+   what would justify a volume order afterwards — and it would let your
+   engineering team validate the customization in the field before a production
+   run.
+
+2. **Can the NRE be credited against a future volume order?** If we fund the
+   USD 15,000 now and the pilot succeeds, having that amount applied to the
+   first production order would make the decision considerably easier to
+   defend.
+
+If either is workable, I am ready to define the technical scope with your
+engineering team — sampling rate, packet format, session duration and the
+data-handling requirements you mentioned. We already have a validation protocol
+and an instrumented Android app that could serve as the acceptance test for the
+customization, and I would be glad to share both.
+
+If neither is possible at this stage, I understand completely. In that case I
+would like to keep the door open. When we have validated demand and are ready
+to commit to volume, J-Style is the supplier we would come back to first — you
+have been straight with us at every step, and that counts for a great deal in a
+decision like this one.
 
 Best regards,
 Felipe Zanucci

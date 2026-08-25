@@ -189,6 +189,33 @@ family.
 
 ---
 
+## 6b. Vendor's answer (2026-08-25)
+
+J-Style confirmed our findings in writing: the **standard V8 SDK does not
+support continuous raw-data streaming**, and the ~2 s burst we measured reflects
+the standard firmware rather than a hardware limit. Continuous raw PPG requires
+**dedicated firmware customization**, offered as:
+
+| Term | |
+|---|---|
+| NRE | **USD 15,000** — SDK/API licensing, protocol documentation, firmware support, integration assistance |
+| **MOQ** | **5,000 units** |
+
+They propose defining sampling rate, packet format, streaming duration and
+data-handling requirements with their engineering team before finalising scope.
+
+**Assessment.** The decisive number is the MOQ, not the NRE. At roughly
+USD 40–80 per unit that is **USD 200,000–400,000 of inventory**, committed
+before Phase 0 has validated that people want to see and share their heart rate
+at events. Firmware customization also runs 2–4 months, past the pilot, and the
+continuous-streaming firmware does not exist yet — so technical risk survives
+the payment until an acceptance test proves otherwise.
+
+**Position taken:** park, do not close. Two questions asked before archiving —
+whether a 50–100 unit pilot batch with the customized firmware is possible at a
+higher unit price, and whether the NRE can be credited against a future volume
+order. Draft in `docs/jstyle-email-draft.md`.
+
 ## 7. Implications
 
 - The **hardware supplier decision is unblocked**: J-Style is out unless the
