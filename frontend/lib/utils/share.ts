@@ -25,6 +25,33 @@ export function canNativeShare(): boolean {
 export async function nativeShare(data: ShareData): Promise<boolean> {
   if (!canNativeShare()) return false
 
+  // Share the picture, not a link to it. Instagram and TikTok take an image;
+  // handed a URL they have nothing to post. The card is the whole point of
+  // sharing, so a link-only share is a share that mostly does not happen.
+  if (data.imageUrl) {
+    const file = await fetchAsFile(data.imageUrl)
+    if (file) {
+      // Not every target accepts files alongside a url, so offer the richest
+      // payload the browser will confirm it can handle, then step down.
+      const payloads = [
+        { files: [file], title: data.title, text: data.text, url: data.url },
+        { files: [file], title: data.title, text: data.text },
+        { files: [file] },
+      ]
+      for (const payload of payloads) {
+        if (!navigator.canShare?.(payload)) continue
+        try {
+          await navigator.share(payload)
+          return true
+        } catch (error) {
+          // A cancelled sheet is a decision, not a failure to fall back from.
+          if (error instanceof DOMException && error.name === 'AbortError') return false
+          break
+        }
+      }
+    }
+  }
+
   try {
     await navigator.share({
       title: data.title,
@@ -35,6 +62,20 @@ export async function nativeShare(data: ShareData): Promise<boolean> {
   } catch {
     // User cancelled or share failed
     return false
+  }
+}
+
+/** Download an image so it can be handed to the share sheet as a file. */
+async function fetchAsFile(url: string): Promise<File | null> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) return null
+    const blob = await response.blob()
+    if (!blob.type.startsWith('image/')) return null
+    return new File([blob], 'tumtum.png', { type: blob.type })
+  } catch {
+    // Offline, or the image host refused us. The link share still works.
+    return null
   }
 }
 

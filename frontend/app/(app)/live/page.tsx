@@ -326,6 +326,18 @@ export default function LivePage() {
   useEffect(() => {
     function handleVisibility() {
       if (document.visibilityState !== 'visible') return
+
+      // Show the truth the instant someone looks. Android freezes the page's
+      // timers in the background, and in event mode the clock only ticks every
+      // 30 seconds, so returning to the app used to show a reading count and an
+      // elapsed time frozen up to half a minute in the past. The capture was
+      // running the whole time — but from the outside a live capture and a dead
+      // one looked exactly the same, which is not a thing to wonder about in
+      // the middle of an event.
+      setNow(Date.now())
+      setSampleCount(samplesRef.current.length)
+      lastDisplayRef.current = Date.now()
+
       if (!wantsWakeLockRef.current) return
       if (wakeLockRef.current && !wakeLockRef.current.released) return
       acquireWakeLock().catch(() => undefined)

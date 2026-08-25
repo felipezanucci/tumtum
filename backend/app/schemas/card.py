@@ -27,7 +27,10 @@ class CardResponse(BaseModel):
 
 
 class ShareRequest(BaseModel):
-    platform: str = Field(..., pattern="^(instagram|tiktok|x|whatsapp|link)$")
+    # "native" is the system share sheet: the person picked an app inside it
+    # and the page is never told which, so recording a guess would be worse
+    # than recording that we do not know.
+    platform: str = Field(..., pattern="^(instagram|tiktok|x|whatsapp|link|native)$")
 
 
 class ShareResponse(BaseModel):

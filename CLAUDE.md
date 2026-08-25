@@ -142,7 +142,7 @@ peaks: id (uuid PK), session_id (FK), timestamp, bpm, duration_seconds, magnitud
 cards: id (uuid PK), user_id (FK), session_id (FK), peak_id (FK), card_type (solo|comparison), image_url, video_url, metadata (jsonb), created_at
 
 -- Share tracking
-shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link), shared_at
+shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link|native), shared_at
 ```
 
 ## Brand identity
