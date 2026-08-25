@@ -10,11 +10,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **parked, not closed**. Both candidate bands failed validation; continuous raw PPG needs firmware customization at USD 15k NRE / 5,000 MOQ — premature for Phase 0. Awaiting their answer on a pilot batch. |
-| **Path 2 — fans' own watches** | **Phase 1 validated in the field, and now hardened for a six-hour event.** Live heart rate over Web Bluetooth, 1.004 readings/s, reconnection that never gives up, R-R intervals. |
+| **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
-| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas. Shared links open a public page and render a preview. |
+| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture. Sharing opens the system sheet **with the image attached**. |
+| **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. |
 | **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
 
 ### Open items
@@ -47,10 +48,67 @@ the linked documents — this file is the index and the reasoning, not a diary.
     recording on both the Polar app and TumTum, and send the Polar CSV so the
     importer can be checked against a file the device actually wrote rather
     than one reproduced from its documented shape.
-11. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
+11. **The screen wake lock is the one fix still unconfirmed.** It cannot be
+    reproduced here and the rehearsal did not isolate it: the phone was being
+    handled throughout. What was confirmed is that a capture survives leaving
+    the app and coming back. What is still untested is the screen staying lit
+    on its own.
+12. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-25 — the phone answers back
+
+The rehearsal on the A17 found four defects in an afternoon. Not one would have
+been found by any amount of reasoning here, and the two that mattered most were
+both cases of the app **lying about its own state** rather than failing.
+
+**A control that never fired.** Leaving event mode took four or five attempts.
+The exit listened for `pointerleave` and cancelled the hold there, and a finger
+held for over a second always wanders — the target was 37px tall. Reproduced by
+driving a pointer with drift: at 15px both old and new fire, at 40px only the
+new one does, which is exactly "sometimes it works". The control now captures
+the pointer, and it is a 160px circle with a ring that fills, because the old
+one gave no sign it had been pressed: a silently cancelled hold and a hold that
+never registered looked identical.
+
+**A capture that looked dead and was not.** Returning to the app showed a frozen
+elapsed time and reading count, reported as the capture stopping in the
+background. It had not: 1,504 readings in 1,504 seconds over the whole session,
+where a minute in another app would have cost sixty. Android freezes a
+background page's timers, and event mode ticks every 30 seconds — that is where
+the redraw saving comes from — so returning showed values up to half a minute
+old. Both now refresh the instant the page becomes visible. **The capture was
+never the problem; being unable to tell a live one from a dead one is.**
+
+**A share that carried everything except the card.** The platform list rendered
+below a portrait card, off the bottom of a phone screen, so the button appeared
+inert. On a phone there was nothing to show anyway — every entry opened the same
+system sheet. It now opens that sheet directly, and hands it the image: it had
+been sharing a link, and Instagram given a URL has nothing to post.
+
+**A card three hours wrong.** A moment felt at 16h31 read "19h31". Stored in UTC
+correctly, formatted straight out of it — on the one line that gets posted
+publicly. It also would have put a festival ending after midnight UTC on the
+wrong day.
+
+**The Polar fallback is real.** A genuine export imports: 153 readings, none
+discarded, and the average computed matches the average Polar wrote into the
+file header — a check that the right column was read, not merely a column. The
+file also showed the anchor logic was right by luck: it took the first cell
+resembling a clock, and `Duration` (00:02:31) resembles one as much as `Start
+time` does. Now read by column name. Beat → Flow sync turns out to be manual,
+which is worth knowing on a Saturday rather than a Sunday.
+
+**A working rule, learned three times.** Three separate pieces of work missed
+their merge because a pull request was opened, merged within minutes, and then
+pushed to. Editing the merged request's description to describe the new work
+made it worse: a merged record claiming content it did not have. **Push
+everything first, open the request last, and anything pushed afterwards gets a
+new request — never an edit to an old one.**
 
 ---
 

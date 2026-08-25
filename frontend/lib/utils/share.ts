@@ -31,11 +31,15 @@ export async function nativeShare(data: ShareData): Promise<boolean> {
   if (data.imageUrl) {
     const file = await fetchAsFile(data.imageUrl)
     if (file) {
-      // Not every target accepts files alongside a url, so offer the richest
-      // payload the browser will confirm it can handle, then step down.
+      // Deliberately no `url` key. Handed both a file and a url, Android
+      // builds a "share a link, with a picture" sheet — it offers to copy the
+      // image with the link, and the apps it lists are the ones that take
+      // links. Instagram and WhatsApp want a picture. The link still travels,
+      // inside the text, where an app that reads captions will show it.
+      const withLink = data.url ? `${data.text} ${data.url}` : data.text
       const payloads = [
-        { files: [file], title: data.title, text: data.text, url: data.url },
-        { files: [file], title: data.title, text: data.text },
+        { files: [file], text: withLink },
+        { files: [file], text: data.text },
         { files: [file] },
       ]
       for (const payload of payloads) {
