@@ -48,7 +48,14 @@ export default function Nav() {
   return (
     <nav className="sticky top-0 z-40 border-b border-tumtum-border bg-tumtum-black/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
+        {/*
+          Home, from inside the app, is the app — not the front door. This
+          wordmark pointed at "/", the public landing page, so tapping it while
+          signed in and halfway through a session dropped you onto a page
+          asking you to create an account. Nav only ever renders inside the
+          authenticated area, so its home is the events list.
+        */}
+        <Link href="/events" className="flex shrink-0 items-center gap-2">
           <Wordmark className="h-5 w-auto text-tumtum-white" />
         </Link>
 
