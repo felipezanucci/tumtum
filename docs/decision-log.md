@@ -10,6 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **parked, not closed**. Both candidate bands failed validation; continuous raw PPG needs firmware customization at USD 15k NRE / 5,000 MOQ — premature for Phase 0. Awaiting their answer on a pilot batch. |
+| **Android app (hybrid)** | **Born and field-tested in one evening.** Native capture — foreground service, screen off, pocket — with the site's screens framed inside for experience, card and sharing. First hands-on completed the full cycle; the six-hour sleep test is the gate that remains. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
@@ -57,6 +58,57 @@ the linked documents — this file is the index and the reasoning, not a diary.
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-25 (night) — the hypothesis is reframed, and an app is born from it
+
+**The question changed shape.** Planning a bigger test began as a supplier
+question — which bands to buy — and ended somewhere better: the hypothesis is
+not "does capture work" but **"do people find the delivery valuable"** — do
+they open their night, light up, and share it unprompted. Capture is the
+input, and every minute a participant spends nursing a phone contaminates the
+measurement of the thing that matters. Ten Verity Senses at ~R$1k each were
+considered and rejected: R$10k to validate a product whose Phase 0 premise is
+*no custom hardware* validates the wrong thing.
+
+**The zero-cost path exists but its friction lands in the wrong place.**
+People's own watches record offline for free, and the importer already reads
+their exports — but Apple Health exports the person's entire health archive
+(measured: DOMParser at 200 MB takes ~10 s on a server and likely kills a
+phone tab), and the friction arrives on the morning after, exactly where the
+delight was supposed to be. That argument — Felipe's — is what justified the
+app.
+
+**The app was built in one evening because its scope refused everything else.**
+A recorder, not an app: connect, capture with the screen dark, upload. Four
+Kotlin files, zero runtime dependencies, the parser proven by ten CI tests
+that need no device, and the BLE client a faithful port of the web one —
+carrying every lesson the web version paid for (reconnection that never gives
+up, elapsed-time offsets, the non-standard-sensor dead end). The CI pipeline
+the J-Style spike left behind builds the APK; installation is by file.
+
+**The full experience lives inside the app without being built twice.** The
+"complete experience" requirement is met the hybrid way: ending a capture
+opens the site's own screens — curve, peaks, card, share — framed in a
+WebView with the native token handed over. One product, one brain, two
+shells. Rebuilding those screens natively would mean fixing every one of
+today's fourteen web defects twice, forever.
+
+**The first hands-on found three defects in twenty minutes, all one family.**
+A first-launch crash (Android 14 refuses a connectedDevice foreground service
+before the Bluetooth permission exists — the service now starts with the
+capture, not the app); the upload's outcome overwritten one frame after being
+written, so a successful send read as a dead button; and a sessions count
+with no sessions list, so a person could not confirm their capture arrived.
+The ninth, tenth and eleventh cases of the day's one bug class: **the app
+stating something false about its own state.** A crash reporter now turns the
+next silent death into a sentence on screen.
+
+**What gates the pilot on this path:** the six-hour sleep test — does Samsung
+let the service live through a night — and Health Connect, which is what
+removes the export friction for people with watches. Both are next, neither
+is before Saturday.
 
 ---
 

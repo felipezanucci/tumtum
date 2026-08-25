@@ -8,6 +8,38 @@ The core product loop is: wear a device (or connect existing wearable) → atten
 
 Future feature: artists and athletes can also share their heart rate, enabling fans to compare their heartbeat with their favorite performer ("I was 78% in sync with Chris Martin during A Sky Full of Stars").
 
+## Continuity — read this first in a new session
+
+This project is built across many chat sessions, and the memory between them
+is **`docs/decision-log.md`**. Before doing anything substantial, read it:
+the "Where things stand" table at the top is the current state, the "Open
+items" list is what is pending, and the dated entries carry the reasoning
+behind every decision — including the failures, which are the expensive part
+to relearn.
+
+Standing instruction from the founder: **keep recording**. Every significant
+decision, defect, measurement or reversal goes into the decision log, newest
+first, in the same style — what was decided, why, and what it cost to learn.
+The log is the index and the reasoning; deep detail lives in the documents it
+links.
+
+The other durable documents:
+
+| file | what it holds |
+|---|---|
+| `docs/decision-log.md` | **The memory.** Start here |
+| `docs/path-2-roadmap.md` | The fans'-own-watches strategy, phase by phase |
+| `docs/jstyle-v8-evaluation.md` | Everything learned about the J-Style bands |
+| `shared/brand/README.md` | Brand implementation details beyond this file |
+
+One working rule the log records, learned three times: push everything first,
+open the pull request last, and anything pushed after a PR is merged gets a
+new PR — never an edit to a merged one. And the bug class to watch for, found
+eleven times in one day: **the app stating something false about its own
+state** — a control with no feedback, a stale display, a message describing
+the wrong condition. None break anything, none show up in tests, all surface
+only in a real person's hands.
+
 ## Current phase
 
 **Phase 0 — MVP (no custom hardware)**. We use existing wearables (Apple Watch, Fitbit, Garmin, Galaxy Watch) via Apple HealthKit and Google Health Connect APIs. The goal is to validate the hypothesis: do people want to see and share how their heart reacted during events?
@@ -103,6 +135,11 @@ tumtum-app/
 │   ├── tests/
 │   ├── requirements.txt
 │   └── Dockerfile
+│
+├── android/                  # Native capture app (hybrid: native BLE capture,
+│   └── app/                  #   the site's screens in a WebView for the rest)
+│
+├── docs/                     # Decision log and durable research documents
 │
 ├── shared/                   # Shared assets
 │   └── brand/                # Logo, fonts, brand guidelines
