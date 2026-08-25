@@ -12,7 +12,13 @@ const instrumentSans = Instrument_Sans({
   display: 'swap',
 })
 
+// Next allows no free exports from a layout, so this stays local.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tumtum.cc'
+
 export const metadata: Metadata = {
+  // Open Graph images must be absolute. Without this Next emits a relative
+  // path and every shared link arrives with no preview at all.
+  metadataBase: new URL(SITE_URL),
   title: 'TumTum — Sinta o evento',
   description: 'Descubra como seu coração reage nos momentos mais emocionantes. Conecte seu wearable, vá a um evento e compartilhe a emoção.',
   manifest: '/manifest.json',
@@ -21,6 +27,15 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'TumTum',
   },
+  openGraph: {
+    type: 'website',
+    siteName: 'TumTum',
+    locale: 'pt_BR',
+    title: 'TumTum — Sinta o evento',
+    description:
+      'Descubra como seu coração reagiu nos momentos que mais mexeram com você.',
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
 export const viewport: Viewport = {

@@ -324,6 +324,16 @@ export interface ShareData {
   shared_at: string
 }
 
+export interface PublicCardData {
+  id: string
+  event_name: string
+  event_date: string
+  peak_bpm: number
+  moment_label: string | null
+  moment_time: string | null
+  user_name: string
+}
+
 export const cards = {
   create: (data: {
     session_id: string
@@ -341,6 +351,14 @@ export const cards = {
   get: (cardId: string) => request<CardData>(`/api/cards/${cardId}`),
 
   getImageUrl: (cardId: string) => `${API_BASE}/api/cards/${cardId}/image`,
+
+  /** Landscape variant, sized for the link-preview slot rather than a Story. */
+  getPreviewImageUrl: (cardId: string) =>
+    `${API_BASE}/api/cards/${cardId}/image?format=og`,
+
+  /** Read a shared card without signing in. Returns only what the image shows. */
+  getPublic: (cardId: string) =>
+    request<PublicCardData>(`/api/cards/${cardId}/public`),
 
   delete: (cardId: string) =>
     request<void>(`/api/cards/${cardId}`, { method: 'DELETE' }),
