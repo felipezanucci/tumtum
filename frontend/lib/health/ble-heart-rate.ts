@@ -147,8 +147,20 @@ export class HeartRateMonitor {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private stopped = false
 
-  /** Give up after this many consecutive failures. */
-  private static readonly MAX_RECONNECT_ATTEMPTS = 12
+  /**
+   * Reconnection never gives up while a capture is running.
+   *
+   * The ladder below backs off quickly for the first few failures — a stumble,
+   * a pocket, a moment of interference. After that it settles into a slow
+   * steady retry rather than stopping: at a six-hour event the strap goes out
+   * of range whenever its owner walks away from the phone, and giving up after
+   * about two minutes would end the capture on the first trip to the bar.
+   *
+   * The slow interval is deliberate. Scanning costs battery, and battery is the
+   * binding constraint on a long night.
+   */
+  private static readonly FAST_RECONNECT_ATTEMPTS = 8
+  private static readonly SLOW_RECONNECT_MS = 30_000
 
   constructor(private readonly handlers: MonitorHandlers) {}
 
@@ -240,14 +252,19 @@ export class HeartRateMonitor {
   private scheduleReconnect(): void {
     if (this.stopped) return
 
-    if (this.reconnectAttempts >= HeartRateMonitor.MAX_RECONNECT_ATTEMPTS) {
-      this.setState('error', 'Não foi possível reconectar ao sensor.')
-      return
-    }
-
-    const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 15_000)
+    const fast = this.reconnectAttempts < HeartRateMonitor.FAST_RECONNECT_ATTEMPTS
+    const delay = fast
+      ? Math.min(1000 * 2 ** this.reconnectAttempts, 15_000)
+      : HeartRateMonitor.SLOW_RECONNECT_MS
     this.reconnectAttempts += 1
-    this.setState('reconnecting', `tentativa ${this.reconnectAttempts}`)
+
+    // Say plainly that it is still trying, so a glance at the phone is enough.
+    this.setState(
+      'reconnecting',
+      fast
+        ? `tentativa ${this.reconnectAttempts}`
+        : 'procurando o sensor — a captura continua',
+    )
 
     this.reconnectTimer = setTimeout(() => {
       this.openStream().catch(() => this.scheduleReconnect())
