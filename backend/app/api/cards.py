@@ -8,17 +8,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import get_current_user
 from app.core.database import get_db
 from app.models.card import Card, Share
-from app.models.hr_data import HRData
 from app.models.hr_session import HRSession
 from app.models.peak import Peak
 from app.models.user import User
 from app.schemas.card import (
     CardCreateRequest,
     CardResponse,
+    PublicCardResponse,
     ShareRequest,
     ShareResponse,
 )
-from app.services.card_generator import generate_solo_card
+from app.services.card_generator import generate_moment_card
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
 
@@ -74,11 +74,9 @@ async def create_card(
         if tl_entry:
             matched_label = tl_entry.label
 
-    # Fetch HR data for mini curve
-    data_result = await db.execute(
-        select(HRData).where(HRData.session_id == body.session_id).order_by(HRData.time)
-    )
-    hr_data = [{"time": d.time, "bpm": d.bpm} for d in data_result.scalars().all()]
+    # Card 01 carries no chart, so the session's readings are not loaded here.
+    # They were: every point of a four-hour capture, fetched to be discarded.
+    # Card 03 ("Minha noite") will need them, and can fetch them then.
 
     # Generate card image
     peak_bpm = peak.bpm if peak else (session.max_bpm or 100)
@@ -97,16 +95,16 @@ async def create_card(
             event_name = event.name
             event_date = event.date.strftime("%d/%m/%Y")
 
+    moment_time = peak.timestamp.strftime("%Hh%M") if peak else None
+
     try:
-        image_bytes = generate_solo_card(
+        image_bytes = generate_moment_card(
             user_name=user.name,
             event_name=event_name,
             event_date=event_date,
             peak_bpm=peak_bpm,
-            avg_bpm=session.avg_bpm or 0,
-            max_bpm=session.max_bpm or 0,
-            matched_label=matched_label,
-            hr_data=hr_data,
+            moment_label=matched_label,
+            moment_time=moment_time,
             format=body.format,
         )
     except Exception as e:
@@ -131,6 +129,7 @@ async def create_card(
             "event_name": event_name,
             "event_date": event_date,
             "matched_label": matched_label,
+            "moment_time": moment_time,
             "user_name": user.name,
             "image_size": len(image_bytes),
         },
@@ -181,14 +180,50 @@ async def get_card(
     return card
 
 
+@router.get("/{card_id}/public", response_model=PublicCardResponse)
+async def get_public_card(card_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    """Read a shared card without signing in.
+
+    Sharing a card is an explicit act, and the link carries an unguessable id.
+    This returns strictly what the image already shows to whoever opens it —
+    no owner id, no session, no other reading. Anything beyond that would leak
+    health data the person did not choose to publish.
+    """
+    result = await db.execute(select(Card).where(Card.id == card_id))
+    card = result.scalar_one_or_none()
+    if not card:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Card não encontrado"
+        )
+    meta = card.metadata_ or {}
+    return PublicCardResponse(
+        id=card.id,
+        event_name=meta.get("event_name", "Evento"),
+        event_date=meta.get("event_date", ""),
+        peak_bpm=meta.get("peak_bpm", 0),
+        moment_label=meta.get("matched_label"),
+        moment_time=meta.get("moment_time"),
+        user_name=meta.get("user_name", "alguém"),
+    )
+
+
 @router.get("/{card_id}/image")
-async def get_card_image(card_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
-    """Serve the card image. Tries Redis cache first, regenerates if needed."""
-    # Try Redis cache first
+async def get_card_image(
+    card_id: uuid.UUID,
+    format: str | None = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """Serve the card image, public so a shared link can render a preview.
+
+    `format=og` returns the landscape variant built for link previews. The
+    stored 9:16 card is what people post; a preview slot crops it, so the two
+    are cached separately rather than one standing in for the other.
+    """
+    cache_key = f"card:image:{card_id}" + (f":{format}" if format else "")
     try:
         from app.core.redis import redis_client
 
-        image_bytes = await redis_client.get(f"card:image:{card_id}")
+        image_bytes = await redis_client.get(cache_key)
         if image_bytes:
             return Response(content=image_bytes, media_type="image/png")
     except Exception:
@@ -203,16 +238,21 @@ async def get_card_image(card_id: uuid.UUID, db: AsyncSession = Depends(get_db))
         )
 
     meta = card.metadata_ or {}
-    image_bytes = generate_solo_card(
-        user_name=meta.get("user_name", "User"),
+    image_bytes = generate_moment_card(
+        user_name=meta.get("user_name", "alguém"),
         event_name=meta.get("event_name", "Evento"),
         event_date=meta.get("event_date", ""),
         peak_bpm=meta.get("peak_bpm", 100),
-        avg_bpm=meta.get("avg_bpm", 80),
-        max_bpm=meta.get("max_bpm", 100),
-        matched_label=meta.get("matched_label"),
-        format=meta.get("format", "story"),
+        moment_label=meta.get("matched_label"),
+        moment_time=meta.get("moment_time"),
+        format=format or meta.get("format", "story"),
     )
+    try:
+        from app.core.redis import redis_client
+
+        await redis_client.set(cache_key, image_bytes, ex=86400 * 7)
+    except Exception:
+        pass
     return Response(content=image_bytes, media_type="image/png")
 
 

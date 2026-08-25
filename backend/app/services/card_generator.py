@@ -52,6 +52,9 @@ TUMTUM_MUTED = (153, 153, 153)  # white @ 60%
 # Card dimensions
 STORY_SIZE = (1080, 1920)
 FEED_SIZE = (1080, 1080)
+# Link previews are landscape everywhere. A 9:16 card sent to a preview slot
+# gets cropped or shrunk, so shared links get a variant built for the slot.
+OG_SIZE = (1200, 630)
 
 
 BRAND_DIR = Path(__file__).resolve().parent.parent / "assets" / "brand"
@@ -72,6 +75,203 @@ def _paste_wordmark(img: Image.Image, centre_x: int, top: int, height: int) -> N
     width = round(mark.width * height / mark.height)
     mark = mark.resize((width, height), Image.LANCZOS)
     img.paste(mark, (centre_x - width // 2, top), mark)
+
+
+# Share card 01 — "Só o momento". The manual's universal default: the only
+# format that needs nothing but the user's own moment, so it is always
+# available. The data dominates, the wordmark is small and never the subject,
+# and there is no chart — a time series belongs to card 03, "Minha noite".
+MOMENT_COPY = ("EU TAVA TRANQUILO.", "AÍ VEIO ISSO.")
+
+
+def _fit_text(
+    draw: ImageDraw.ImageDraw, text: str, role: str, size: int, max_width: int
+) -> ImageFont.FreeTypeFont:
+    """Shrink until the line fits, so a long artist name never runs off the card."""
+    while size > 12:
+        font = _font(role, size)
+        if draw.textlength(text, font=font) <= max_width:
+            return font
+        size -= 2
+    return _font(role, 12)
+
+
+def generate_moment_card(
+    user_name: str,
+    event_name: str,
+    event_date: str,
+    peak_bpm: int,
+    moment_label: str | None = None,
+    moment_time: str | None = None,
+    format: str = "story",
+) -> bytes:
+    """Build share card 01, "Só o momento".
+
+    Args:
+        user_name: Display name, shown small as attribution
+        event_name: Artist, teams or festival
+        event_date: Already formatted for display
+        peak_bpm: The number the whole card exists to show
+        moment_label: What was happening — a song, a penalty, a goal
+        moment_time: Clock time of the moment, e.g. "22h47"
+        format: "story" (1080x1920), "feed" (1080x1080) or "og" (1200x630)
+    """
+    if format == "og":
+        return _moment_card_landscape(
+            user_name, event_name, event_date, peak_bpm, moment_label, moment_time
+        )
+
+    size = FEED_SIZE if format == "feed" else STORY_SIZE
+    w, h = size
+    img = Image.new("RGB", size, TUMTUM_BLACK)
+    draw = ImageDraw.Draw(img)
+    margin = 72
+    inner = w - margin * 2
+
+    _paste_wordmark(img, w // 2, 72, 30)
+
+    # The copy calibrates the tone; the number carries the card.
+    copy_size = 62 if format == "story" else 48
+    copy_y = 190 if format == "story" else 150
+    for line in MOMENT_COPY:
+        font = _fit_text(draw, line, "hero", copy_size, inner)
+        draw.text((margin, copy_y), line, fill=TUMTUM_WHITE, font=font, anchor="lt")
+        copy_y += round(copy_size * 1.12)
+
+    # The peak, as large as the card can carry it.
+    number = str(peak_bpm)
+    num_size = 460 if format == "story" else 300
+    num_font = _fit_text(draw, number, "hero", num_size, inner)
+    num_y = (h // 2) - (60 if format == "story" else 20)
+    draw.text((w // 2, num_y), number, fill=TUMTUM_LIME, font=num_font, anchor="mm")
+
+    y = draw.textbbox((w // 2, num_y), number, font=num_font, anchor="mm")[3] + 12
+    draw.text(
+        (w // 2, y), "bpm", fill=TUMTUM_YELLOW, font=_font("hero", 46), anchor="mt"
+    )
+    y += 96
+
+    if moment_label:
+        label = f'durante "{moment_label}"'
+        draw.text(
+            (w // 2, y),
+            label,
+            fill=TUMTUM_WHITE,
+            font=_fit_text(draw, label, "body", 40, inner),
+            anchor="mt",
+        )
+        y += 62
+
+    if moment_time:
+        draw.text(
+            (w // 2, y),
+            moment_time,
+            fill=TUMTUM_MUTED,
+            font=_font("body", 32),
+            anchor="mt",
+        )
+
+    # Event context sits at the foot: it identifies the night, it is not the point.
+    foot = h - margin
+    draw.text(
+        (w // 2, foot),
+        f"@{user_name}",
+        fill=TUMTUM_MUTED,
+        font=_font("body", 30),
+        anchor="mb",
+    )
+    foot -= 54
+    if event_date:
+        draw.text(
+            (w // 2, foot),
+            event_date,
+            fill=TUMTUM_MUTED,
+            font=_font("body", 30),
+            anchor="mb",
+        )
+        foot -= 50
+    draw.text(
+        (w // 2, foot),
+        event_name,
+        fill=TUMTUM_WHITE,
+        font=_fit_text(draw, event_name, "headline", 46, inner),
+        anchor="mb",
+    )
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
+
+
+def _moment_card_landscape(
+    user_name: str,
+    event_name: str,
+    event_date: str,
+    peak_bpm: int,
+    moment_label: str | None,
+    moment_time: str | None,
+) -> bytes:
+    """The same moment, laid out for a link preview.
+
+    A 9:16 card dropped into a preview slot is cropped or shrunk by every
+    platform, so this is a separate layout rather than the portrait one
+    squeezed: the stack is measured and centred, which is what keeps 630px of
+    height from collapsing into overlapping text.
+    """
+    w, h = OG_SIZE
+    margin = 56
+    inner = w - margin * 2
+    img = Image.new("RGB", OG_SIZE, TUMTUM_BLACK)
+    draw = ImageDraw.Draw(img)
+
+    _paste_wordmark(img, w // 2, 34, 22)
+
+    copy_font = _font("hero", 30)
+    for i, line in enumerate(MOMENT_COPY):
+        draw.text(
+            (margin, 92 + i * 36), line, fill=TUMTUM_WHITE, font=copy_font, anchor="lt"
+        )
+
+    # Measure the middle stack, then centre it in the space that is left.
+    number = str(peak_bpm)
+    num_font = _fit_text(draw, number, "hero", 190, inner)
+    num_h = draw.textbbox((0, 0), number, font=num_font, anchor="lt")[3]
+    bpm_font = _font("hero", 28)
+    label = f'durante "{moment_label}"' if moment_label else None
+    label_font = _fit_text(draw, label, "body", 26, inner) if label else None
+
+    stack = num_h + 8 + 32 + (34 if label else 0)
+    top = 178 + max(0, (h - 178 - 132 - stack) // 2)
+
+    draw.text((w // 2, top), number, fill=TUMTUM_LIME, font=num_font, anchor="mt")
+    y = top + num_h + 8
+    draw.text((w // 2, y), "bpm", fill=TUMTUM_YELLOW, font=bpm_font, anchor="mt")
+    y += 32
+    if label:
+        draw.text((w // 2, y), label, fill=TUMTUM_WHITE, font=label_font, anchor="mt")
+
+    foot = h - margin
+    context = " · ".join(x for x in (event_date, moment_time) if x)
+    if context:
+        draw.text(
+            (w // 2, foot),
+            context,
+            fill=TUMTUM_MUTED,
+            font=_font("body", 22),
+            anchor="mb",
+        )
+        foot -= 34
+    draw.text(
+        (w // 2, foot),
+        event_name,
+        fill=TUMTUM_WHITE,
+        font=_fit_text(draw, event_name, "headline", 32, inner),
+        anchor="mb",
+    )
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
 
 
 def generate_solo_card(

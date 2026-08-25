@@ -36,9 +36,18 @@ export default function CardsPage() {
 
   async function handleShare(card: CardData, platform: string) {
     const imageUrl = card.image_url ? cards.getImageUrl(card.id) : ''
+    // The person is the subject, and the anatomical heart emoji went: the
+    // manual keeps BPM as a neutral unit and steers the voice away from
+    // anything that reads clinical.
+    const meta = card.metadata as { event_name?: string; peak_bpm?: number; matched_label?: string }
+    const where = meta?.matched_label
+      ? `durante "${meta.matched_label}"`
+      : meta?.event_name
+        ? `em ${meta.event_name}`
+        : 'no evento'
     const shareData = {
-      title: `Minha experiência no ${(card.metadata as any)?.event_name || 'evento'}`,
-      text: `Meu coração chegou a ${(card.metadata as any)?.peak_bpm || '?'} bpm! 🫀`,
+      title: `${meta?.peak_bpm ?? '?'} bpm — TumTum`,
+      text: `Meu coração foi a ${meta?.peak_bpm ?? '?'} ${where}.`,
       url: `${window.location.origin}/cards/${card.id}`,
       imageUrl,
     }

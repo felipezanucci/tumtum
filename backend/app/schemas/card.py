@@ -37,3 +37,19 @@ class ShareResponse(BaseModel):
     shared_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PublicCardResponse(BaseModel):
+    """What a shared card shows to someone who is not signed in.
+
+    Mirrors the image and nothing more. No user_id, no session_id, no other
+    heart-rate reading — a share link publishes one moment, not a person.
+    """
+
+    id: uuid.UUID
+    event_name: str
+    event_date: str
+    peak_bpm: int
+    moment_label: str | None = None
+    moment_time: str | None = None
+    user_name: str
