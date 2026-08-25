@@ -60,15 +60,21 @@ http and an unexpected subdomain are all still rejected.
 **Left alone on purpose:** the domain's MX records point at Google Workspace.
 Anyone tidying "leftover" DNS would take the email down with them.
 
-### One product observation, not a defect
+### One open product question
 
-The two-minute verification capture involved no deliberate effort, and the app
-still reported a peak — 88 bpm, 6 s, just past the 5 s minimum. That is the
-algorithm working correctly on a quiet signal: it finds the largest relative
-rise in whatever it is given. But it means **someone whose heart never really
-moved still gets a "Pico de Emoção"**, which at a real event would ring hollow.
-Worth deciding before the pilot whether a session with no meaningful excursion
-should say so instead.
+The two-minute verification capture reported a peak of 88 bpm lasting 6 s, just
+past the 5 s minimum. The curve shows a real rise of roughly 26 bpm from a
+resting ~62, so this is the detector finding something that genuinely happened —
+standing, moving, the strap settling — not inventing a peak out of a flat line.
+
+It does raise a question the pilot has not answered: **what does the app show
+someone whose heart genuinely does not move all night?** The detector always
+returns the largest relative rise in whatever it is given, so a truly
+uneventful session would still be presented as a "Pico de Emoção". Worth
+deciding before 2026-09-25 whether such a session should say so instead — a
+minimum absolute excursion below which the honest answer is "your heart stayed
+calm tonight". Untested either way; nobody has yet captured a session flat
+enough to find out.
 
 ---
 
