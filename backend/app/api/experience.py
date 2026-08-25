@@ -18,6 +18,7 @@ from app.schemas.event import (
     PeakResponse,
     TimelineEntryResponse,
 )
+from app.services.display_downsample import downsample_for_display
 from app.services.event_correlator import correlate_peaks_to_timeline
 from app.services.peak_detection import detect_peaks
 
@@ -151,11 +152,15 @@ async def get_experience(
             resp.matched_label = tl_map.get(str(peak.timeline_entry_id))
         peak_responses.append(resp)
 
-    # Fetch HR data points for the curve
+    # Fetch HR data points for the curve. A six-hour capture holds ~21,600 of
+    # them, which is about a megabyte of JSON and a single SVG path long enough
+    # to stall a mid-range phone — for a chart a thousand pixels wide. Peaks are
+    # read from their own table above, so thinning this series only affects what
+    # is drawn, never what was detected.
     data_result = await db.execute(
         select(HRData).where(HRData.session_id == session_id).order_by(HRData.time)
     )
-    data_points = data_result.scalars().all()
+    data_points = downsample_for_display(data_result.scalars().all())
 
     return ExperienceResponse(
         session=HRSessionSummary.model_validate(session),

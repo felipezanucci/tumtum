@@ -119,4 +119,6 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: pip install pytest pytest-asyncio httpx
-      - run: pytest tests/ -v --tb=short || echo "No tests found yet"
+      # No `|| echo`: a swallowed failure is a green check that means nothing,
+      # which is how the frontend job stayed green while it was broken.
+      - run: pytest tests/ -v --tb=short
