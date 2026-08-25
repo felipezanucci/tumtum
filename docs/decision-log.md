@@ -12,14 +12,15 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Hardware supplier** | J-Style **parked, not closed**. Both candidate bands failed validation; continuous raw PPG needs firmware customization at USD 15k NRE / 5,000 MOQ — premature for Phase 0. Awaiting their answer on a pilot batch. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field.** Live heart rate over Web Bluetooth, 1.004 readings/s, self-healing reconnection, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
-| **Frontend** | Deployed on Vercel via its native git integration. Preview builds work per branch. |
+| **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
+| **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
+| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas. Shared links open a public page and render a preview. |
 | **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
 
 ### Open items
 
-1. **Merge PR #11.** The frontend half is already live on the preview URL, which
-   is what let the session above be saved. Still queued for `main`: the CORS
-   error trap and the server-side dedupe.
+1. ~~**Merge PR #11**~~ — done, along with #12 through #17. `main` carries
+   everything; nothing is queued.
 2. ~~**End-to-end save test**~~ and ~~**detection accuracy**~~ — both done
    2026-08-25, both passed.
 3. **J-Style reply** — sent 2026-08-25; awaiting their answer on a pilot batch
@@ -29,12 +30,72 @@ the linked documents — this file is the index and the reasoning, not a diary.
 5. ~~**Deployment protection**~~ — resolved 2026-08-25: it was never a
    protection setting, only the wrong URL. The field test runs on
    **https://tumtum.cc**.
-6. **Confirm Railway actually redeploys on a push to `main`.** The GitHub
+6. **Pilot logistics** — who the 3–5 people are, which event, who carries the
+   strap. The product side is closed; what remains is organising.
+7. **Mutation skins** — parked 2026-08-25. Masking a texture inside the master
+   works and is built; the textures need to be fine enough to read inside a
+   letterform. Nothing depends on this.
+8. **Confirm Railway actually redeploys on a push to `main`.** The GitHub
    Actions deploy job has never worked (see below), so this has always been
    implicit. Verify before relying on it.
-7. **CI and deploy cleanup** — no ESLint config, no `test` script, 25
+9. **CI and deploy cleanup** — no ESLint config, no `test` script, 25
    unformatted backend files, and a `Deploy` workflow that has failed 12/12
    times. All pre-date this work; all worth one dedicated PR.
+
+---
+
+## 2026-08-25 — the brand lands, and the share loop turns out to be broken
+
+The MVP v0.1 brand manual arrived and replaced everything visual: black canvas,
+Acid Lime as the primary accent, Toxic Yellow second, Instrument Sans, the
+official Chosmos wordmark. Nothing from the red/cyan palette survived. Adopted
+across 40 files, then the wordmark from the approved vector, checked before use.
+
+**Three things a find-and-replace would have got wrong.** Error styling shared a
+token with brand emphasis — Acid Lime cannot mean "this failed", so failures
+moved to a functional red outside the palette. White on Acid Lime is 1.19:1, so
+every accent surface took black text. And the card's curve fill turned out to be
+a latent bug: drawn with an alpha component onto an RGB surface, where Pillow
+discards it, so the intended 12% wash had always been a solid slab — and
+swapping the palette would have made it tint red, from the red channel of a
+green.
+
+**The mutation skins were rejected on measurement, not taste.** Nine
+auto-traced files, each carrying an opaque cream halo, 271 to 2,569 paths
+against the master's one, and up to 27% proportion drift. Clipping them to the
+master silhouette was tried and cuts the letters apart. The route that works is
+the inverse — mask a letter-free texture inside the master — and it is built and
+verified to zero pixels of deviation. Parked anyway: a texture scaled to cover
+the whole wordmark reads as a blob. `shared/brand/README.md` holds the detail.
+
+### The share link had never worked
+
+Building the link preview surfaced something larger. Every shared card pointed
+at `/cards/{id}` — **a route that did not exist**. A card posted to WhatsApp
+took the person to a login wall. The missing preview was the smaller half of the
+problem.
+
+There is now a public card page, a deliberately narrow public endpoint that
+returns only what the image already shows, and Open Graph metadata pointing at a
+**separate 1200×630 layout** — a 9:16 card dropped into a preview slot is
+cropped by every platform, and squeezing the portrait layout into 630px
+collapsed the text into itself.
+
+### And the card was posting under Instagram's interface
+
+Card 01 was built to the manual — the data dominates, no chart, wordmark small.
+Then a question about sizing prompted a check nobody had run: a Story is
+displayed inside someone else's UI, and the card put its wordmark and its entire
+event footer exactly where the profile header and reply bar sit. Posted, it lost
+the brand, the event, the date and the handle — leaving a number with no context
+on the one surface the product depends on for growth.
+
+### A process note worth keeping
+
+Three separate commits missed their merge today because they were pushed after
+the PR was opened, and the merge took the earlier head. One was only recovered
+from the reflog. **Push, then open the PR** — and after any merge, diff the
+branch against `main` before assuming it landed.
 
 ---
 
