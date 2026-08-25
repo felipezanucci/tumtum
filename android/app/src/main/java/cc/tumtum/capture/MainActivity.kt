@@ -205,9 +205,12 @@ class MainActivity : Activity() {
             runOnUiThread {
                 sending = false
                 result
-                    .onSuccess {
+                    .onSuccess { sessionId ->
                         current.samples.clear()
                         notice = getString(R.string.sent)
+                        // The point of the night: straight to the experience,
+                        // inside the app — no browser, no address bar.
+                        ExperienceActivity.open(this, "/experience?session=" + sessionId)
                     }
                     .onFailure {
                         notice = getString(R.string.send_failed, it.message)
