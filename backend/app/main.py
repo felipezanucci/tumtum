@@ -49,6 +49,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Tumtum API", version="0.1.0", lifespan=lifespan)
 
+# Vercel gives every branch and every commit its own preview domain, so the
+# fixed list cannot cover them. The pattern is scoped to this account's Vercel
+# org ("-felipezanuccis-projects"), which keeps it from matching anyone else's
+# deployments while letting branch previews reach the API.
+VERCEL_PREVIEW_ORIGIN = r"https://tumtum-[a-z0-9-]+-felipezanuccis-projects\.vercel\.app"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -56,6 +62,7 @@ app.add_middleware(
         "https://tumtum.vercel.app",
         "https://tumtum-eight.vercel.app",
     ],
+    allow_origin_regex=VERCEL_PREVIEW_ORIGIN,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

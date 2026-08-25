@@ -21,7 +21,10 @@
   },
   "devDependencies": {
     "@types/node": "25.5.0",
+    "@types/web-bluetooth": "^0.0.21",
+    "autoprefixer": "^10.5.4",
     "eslint": "^8.0.0",
-    "eslint-config-next": "^14.0.0"
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.5.26"
   }
 }
