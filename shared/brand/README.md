@@ -16,11 +16,12 @@ Consumed as:
 
 Nothing may redraw, stretch or slant it.
 
-## `tumtum-wordmark-*.svg` — the nine skins. **Do not ship these.**
+## The nine mutation skins — removed 2026-08-25
 
-Present for reference only. They are not usable and are not valid masters.
+They were briefly in this folder and are gone. Kept here is the measurement,
+so nobody commissions the same thing twice.
 
-Measured 2026-08-25:
+What was wrong with them:
 
 | Check | Master | The nine skins |
 |---|---|---|
@@ -37,7 +38,14 @@ them either. That was tried; it cuts the letters apart.
 
 **The route that works** is the inverse: an image generator produces a square
 full-bleed *texture* containing no letters at all, and the texture is applied
-inside the master letterforms as a mask. The silhouette is then the master's by
-construction and no halo can exist. Neon is the exception — its identity is the
-glow outside the letters, so it belongs in code as a coloured fill plus a
-blurred copy of the master path.
+inside the master letterforms as a mask — `scripts/build_wordmark_skins.py`,
+verified to reproduce the master silhouette to zero pixels. Neon is the
+exception: its identity is the glow outside the letters, so it belongs in code
+as a coloured fill plus a blurred copy of the master path.
+
+**Parked 2026-08-25 before any skin shipped.** The masking works, but a skin is
+only as good as the texture's scale: a pattern sized to cover the whole wordmark
+reads as a blob, because each stripe ends up the size of a letter. The texture
+has to be fine enough to read *inside* a single letterform. Worth revisiting
+after the 2026-09-25 pilot — the manual treats Base/Solid as the institutional
+default, so nothing depends on this.
