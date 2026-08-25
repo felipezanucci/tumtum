@@ -147,18 +147,109 @@ shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link),
 
 ## Brand identity
 
-- **Primary color**: #C0392B (Tumtum red)
-- **Secondary red**: #E74C3C
-- **Accent (artist)**: #00D2FF (cyan — used for artist HR line in comparison cards)
-- **Dark background**: #08080C
-- **Surface**: #111118
-- **Border**: #1A1A24
-- **Text muted**: #6B6B80
-- **Text primary**: #F0F0F5
-- **Logo font**: Georgia, serif — bold, uppercase, letter-spacing 2-3px
-- **Body font**: system-ui, -apple-system, sans-serif
-- **Theme**: Dark mode only (for MVP)
-- **Tone**: Premium, emotional, nocturnal. The app should feel like being at a concert at night.
+Source of truth: **TUMTUM Manual de Marca, MVP v0.1 (2026-08-24)**. It supersedes
+the red/cyan palette and the Georgia wordmark this section used to describe —
+none of those colours survive. The manual marks each rule LOCKED (approved,
+do not change), WORKING (current recommendation, still being refined) or NEVER
+(rejected). Where anything here is thinner than the manual, the manual wins.
+
+### Colour — two neutrals and one acid pair
+
+| Token | Hex | Role |
+|---|---|---|
+| Black | `#000000` | Primary canvas and text |
+| White | `#FFFFFF` | Neutral / inverse |
+| Acid Lime | `#C6FF00` | **Primary accent** |
+| Toxic Yellow | `#EFFF00` | Secondary accent |
+
+- Black and white are the structural neutrals; the accents carry emphasis.
+- Roughly **70% Acid Lime / 30% Toxic Yellow** in accent use. A working balance,
+  not a layout quota.
+- Digital default: black canvas, white for supporting information, Acid Lime for
+  the main emphasis, Toxic Yellow as a second explosion.
+- **Never set text in white on Acid Lime or Toxic Yellow** — 1.19:1 and 1.11:1.
+  Black on either is excellent (17.7:1 and 19:1). Lime on yellow is not a pair.
+- Mutation skins may introduce other colours; this palette stays the anchor.
+
+### Type
+
+- **Chosmos** — the TUMTUM wordmark only. Never in UI, body or marketing.
+- **Instrument Sans** (SIL OFL 1.1) — everything else. Bold 700 for hero numbers,
+  Semibold 600 / Bold 700 for headlines, Medium 500 / Semibold 600 for UI labels,
+  Regular 400 for body, tabular figures for aligned data.
+- Do not add a third family.
+
+### Logo
+
+The wordmark reads **TUMTUM**, uppercase, in Chosmos. The **official vector is
+the only acceptable production source** — a screenshot, a raster export or an
+AI-generated approximation is not a master. Approved colour versions: black,
+white, Acid Lime, Toxic Yellow. Never stretch, compress, slant, redraw the
+letters, or alter the silhouette.
+
+### Name
+
+**TumTum** in running text. **TUMTUM** as the wordmark. Never *Tum Tum*,
+*Tumtum* or *tumtum*, except where a technical handle forces another form.
+
+### Voice
+
+- The person is the subject: *"Seu coração foi a 187"*, never *"Detectamos um
+  pico de 187"*.
+- Short. Nobody reads a paragraph in the middle of a crowd.
+- Brazilian Portuguese as spoken, no caricature.
+- Zero medical advice: no diagnosis, no reassurance, no "normal/abnormal".
+- Prefer: batida, momento, noite, galera, junto, sentiu, arrepio, vibe.
+- Use with care: coração, BPM — neutral units, never wrapped in clinical reading.
+- Avoid: **frequência cardíaca as marketing language**, resposta fisiológica,
+  zona, recuperação, performance, diagnóstico. They pull the brand to healthtech.
+
+### Territory: Mutante Pop
+
+The silhouette is fixed; the surface is not. One recognisable structure that
+survives thousands of appearances — ten skins in the MVP kit (Base, Zebra, Neon,
+Cromado, Inflável, Glitter, Iridescente, Pelúcia, Plástico, Borracha). Mutation
+is surface treatment, never redesign.
+
+### NEVER
+
+- ECG, heartbeat or waveform as decoration — identity, logo, pattern, divider,
+  background or generic motion.
+- Making TumTum look like healthtech, fitness or wellness.
+- Letting an image generator redraw the logo.
+- Dropping a club crest, artist logo or tour identity inside the wordmark.
+
+**A real heart-rate line is allowed** when it is the user's own data and the
+chart is product information — specifically the "Minha noite" card and
+community/comparison contexts where the line adds evidence. Simple BPM over
+time, never an ECG trace; Acid Lime for the main emphasis on dark surfaces; no
+heart zones, risk colours, "normal ranges" or recovery scores. The chart answers
+*"when did this happen?"*, never *"what does this mean clinically?"*.
+
+### Share cards — five narratives for one moment
+
+All five are born from the same moment object (event, timestamp, user value,
+context, media, timeline, community and artist data where they exist).
+
+| # | Name | Needs |
+|---|---|---|
+| 01 | Só o momento | Peak, time, moment label, event context. **Always available — the universal default** |
+| 02 | Ver o momento | Licensed event photo/video matched to the moment |
+| 03 | Minha noite | The user's time series with the moment marked |
+| 04 | A galera | A statistically and privately valid collective sample |
+| 05 | Na mesma vibe | Explicit artist/athlete participation and validated sync |
+
+Show only the formats a given moment can actually produce, as visual previews
+rather than labels. Ordering is by rarity and emotional value, not a fixed
+taxonomy.
+
+### Tone
+
+Bold because it was born somewhere loud. Funny about itself, never about the
+user. Takes the person's feeling seriously and never takes the brand seriously.
+Intimate with personal data. When forced to choose between *trustworthy* and
+*fun*, choose fun — except on health-data permission, privacy and consent
+screens, where the brand goes quiet and careful.
 
 ## Coding standards
 
