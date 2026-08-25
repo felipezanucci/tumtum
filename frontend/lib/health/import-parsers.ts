@@ -214,6 +214,141 @@ function detectDelimiter(line: string): string {
   return counts[0].count > 0 ? counts[0].delimiter : ','
 }
 
+/** How far into a file a real sample header might still be hiding. */
+const MAX_PREAMBLE_ROWS = 12
+
+/** "01:23:45", "23:45", "1:23:45.500" — an offset from the start, not a clock time. */
+function parseElapsedSeconds(raw: string): number | null {
+  const value = raw.trim().replace(/^["']|["']$/g, '')
+  const match = /^(?:(\d+):)?(\d{1,2}):(\d{1,2}(?:[.,]\d+)?)$/.exec(value)
+  if (!match) return null
+  const hours = match[1] ? Number(match[1]) : 0
+  const minutes = Number(match[2])
+  const seconds = Number(match[3].replace(',', '.'))
+  if (minutes > 59 || seconds >= 60) return null
+  return hours * 3600 + minutes * 60 + seconds
+}
+
+/**
+ * Find the moment an export's elapsed timestamps are counted from.
+ *
+ * Polar Flow, and every tool shaped like it, writes a metadata block above the
+ * samples — a date on one row, a start time on another — and then counts the
+ * samples from zero. Without that anchor the readings have a shape but no place
+ * on the calendar, which is exactly what correlating them to an event needs.
+ */
+function findElapsedOrigin(
+  preamble: string[][],
+): { millis: number; ambiguousDate: boolean } | null {
+  let date: { year: number; month: number; day: number; ambiguous: boolean } | null = null
+  let timeOfDay: number | null = null
+
+  for (const row of preamble) {
+    for (const cell of row) {
+      const value = cell.trim().replace(/^["']|["']$/g, '')
+      if (!value) continue
+
+      if (!date) {
+        const iso = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(value)
+        if (iso) {
+          date = { year: +iso[1], month: +iso[2], day: +iso[3], ambiguous: false }
+          continue
+        }
+        // "29-08-2026" or "08/29/2026": the day and the month can only be told
+        // apart when one of them is too large to be a month.
+        const parts = /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/.exec(value)
+        if (parts) {
+          const first = +parts[1]
+          const second = +parts[2]
+          const dayFirst = first > 12 || second <= 12
+          date = {
+            year: +parts[3],
+            month: dayFirst ? second : first,
+            day: dayFirst ? first : second,
+            ambiguous: first <= 12 && second <= 12,
+          }
+          continue
+        }
+      }
+
+      if (timeOfDay === null) {
+        const clock = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(value)
+        if (clock && +clock[1] <= 23) {
+          timeOfDay = +clock[1] * 3600 + +clock[2] * 60 + (clock[3] ? +clock[3] : 0)
+        }
+      }
+    }
+  }
+
+  if (!date) return null
+  // Local time: an export written by a phone in São Paulo means São Paulo.
+  const start = new Date(date.year, date.month - 1, date.day, 0, 0, 0, 0)
+  if (Number.isNaN(start.getTime())) return null
+  return {
+    millis: start.getTime() + (timeOfDay ?? 0) * 1000,
+    ambiguousDate: date.ambiguous,
+  }
+}
+
+interface HeaderAttempt {
+  headerIndex: number
+  headers: string[]
+  timeIndex: number
+  bpmIndex: number
+  samples: HRSample[]
+  discarded: number
+  longestRun: number
+  elapsed: boolean
+  ambiguousDate: boolean
+}
+
+/** Read every row below `headerIndex` using the given columns. */
+function readRows(
+  lines: string[],
+  delimiter: string,
+  headerIndex: number,
+  timeIndex: number,
+  bpmIndex: number,
+  origin: number | null,
+): { samples: HRSample[]; discarded: number; longestRun: number } {
+  const samples: HRSample[] = []
+  let discarded = 0
+  // Readings are written one after another; a summary block is one row and
+  // then something else. The longest unbroken run tells the two apart.
+  let longestRun = 0
+  let run = 0
+
+  for (let i = headerIndex + 1; i < lines.length; i += 1) {
+    const cells = splitRow(lines[i], delimiter)
+    if (cells.length <= Math.max(timeIndex, bpmIndex)) {
+      discarded += 1
+      run = 0
+      continue
+    }
+
+    const bpm = normaliseBpm(cells[bpmIndex])
+    const millis =
+      origin === null
+        ? parseTimestamp(cells[timeIndex])
+        : (() => {
+            const elapsed = parseElapsedSeconds(cells[timeIndex])
+            return elapsed === null ? null : origin + elapsed * 1000
+          })()
+
+    if (millis === null || bpm === null) {
+      discarded += 1
+      run = 0
+      continue
+    }
+
+    samples.push({ time: new Date(millis).toISOString(), bpm })
+    run += 1
+    longestRun = Math.max(longestRun, run)
+  }
+
+  return { samples, discarded, longestRun }
+}
+
 function parseCsv(content: string): ParseResult {
   const lines = content
     .split(/\r?\n/)
@@ -225,60 +360,103 @@ function parseCsv(content: string): ParseResult {
 
   const delimiter = detectDelimiter(lines[0])
 
-  // Samsung Health exports start with a metadata line before the real header.
-  let headerIndex = 0
-  let headers = splitRow(lines[0], delimiter)
-  let timeIndex = findColumn(headers, TIME_KEYS)
-  let bpmIndex = findColumn(headers, BPM_KEYS)
-  let isSamsung = false
+  // A header row is not the right header row just because its labels look
+  // right. A Polar Flow export opens with a summary block whose columns are
+  // named "Start time" and "Average heart rate (bpm)" — convincing enough to
+  // match on, and followed by a single row of totals rather than samples. So
+  // every candidate is judged by what it actually yields, and the one that
+  // produces the most readings wins.
+  const attempts: HeaderAttempt[] = []
+  const limit = Math.min(MAX_PREAMBLE_ROWS, lines.length - 1)
 
-  if ((timeIndex === -1 || bpmIndex === -1) && lines.length > 2) {
-    const secondRow = splitRow(lines[1], delimiter)
-    const secondTime = findColumn(secondRow, TIME_KEYS)
-    const secondBpm = findColumn(secondRow, BPM_KEYS)
-    if (secondTime !== -1 && secondBpm !== -1) {
-      headerIndex = 1
-      headers = secondRow
-      timeIndex = secondTime
-      bpmIndex = secondBpm
-      isSamsung = lines[0].toLowerCase().includes('samsung')
+  for (let headerIndex = 0; headerIndex < limit; headerIndex += 1) {
+    const headers = splitRow(lines[headerIndex], delimiter)
+    const timeIndex = findColumn(headers, TIME_KEYS)
+    const bpmIndex = findColumn(headers, BPM_KEYS)
+    if (timeIndex === -1 || bpmIndex === -1) continue
+
+    const absolute = readRows(lines, delimiter, headerIndex, timeIndex, bpmIndex, null)
+    attempts.push({
+      headerIndex,
+      headers,
+      timeIndex,
+      bpmIndex,
+      ...absolute,
+      elapsed: false,
+      ambiguousDate: false,
+    })
+
+    // Timestamps counted from zero need the start moment from the block above.
+    if (absolute.samples.length === 0) {
+      const preamble = lines
+        .slice(0, headerIndex)
+        .map((line) => splitRow(line, delimiter))
+      const origin = findElapsedOrigin(preamble)
+      if (origin) {
+        const relative = readRows(
+          lines,
+          delimiter,
+          headerIndex,
+          timeIndex,
+          bpmIndex,
+          origin.millis,
+        )
+        attempts.push({
+          headerIndex,
+          headers,
+          timeIndex,
+          bpmIndex,
+          ...relative,
+          elapsed: true,
+          ambiguousDate: origin.ambiguousDate,
+        })
+      }
     }
   }
 
-  if (timeIndex === -1 || bpmIndex === -1) {
+  // Longest unbroken run first, then the deeper header: a preamble sits above
+  // its data, so when two candidates read equally well the lower one is the
+  // one describing the samples.
+  const best = attempts.reduce<HeaderAttempt | null>((winner, attempt) => {
+    if (winner === null) return attempt
+    if (attempt.longestRun !== winner.longestRun) {
+      return attempt.longestRun > winner.longestRun ? attempt : winner
+    }
+    return attempt.headerIndex > winner.headerIndex ? attempt : winner
+  }, null)
+
+  if (!best || best.samples.length === 0) {
+    const looked = attempts.length
+      ? attempts
+          .map((a) => `linha ${a.headerIndex + 1}: ${a.headers.map(canonicaliseKey).join(', ')}`)
+          .join(' | ')
+      : splitRow(lines[0], delimiter).map(canonicaliseKey).join(', ')
     throw new ImportParseError(
-      'Não encontrei colunas de horário e batimentos no CSV. ' +
-        `Colunas lidas: ${headers.map(canonicaliseKey).join(', ')}`,
+      'Não encontrei colunas de horário e batimentos com dados no CSV. ' +
+        `Colunas lidas: ${looked}`,
     )
   }
 
-  const samples: HRSample[] = []
-  let discarded = 0
-
-  for (let i = headerIndex + 1; i < lines.length; i += 1) {
-    const cells = splitRow(lines[i], delimiter)
-    if (cells.length <= Math.max(timeIndex, bpmIndex)) {
-      discarded += 1
-      continue
-    }
-
-    const millis = parseTimestamp(cells[timeIndex])
-    const bpm = normaliseBpm(cells[bpmIndex])
-    if (millis === null || bpm === null) {
-      discarded += 1
-      continue
-    }
-
-    samples.push({ time: new Date(millis).toISOString(), bpm })
+  const isSamsung = best.headerIndex > 0 && lines[0].toLowerCase().includes('samsung')
+  const format: ImportFormat = isSamsung ? 'samsung_health_csv' : 'generic_csv'
+  const warnings: string[] = [
+    `Colunas usadas: horário = "${best.headers[best.timeIndex].trim()}", ` +
+      `batimentos = "${best.headers[best.bpmIndex].trim()}".`,
+  ]
+  if (best.elapsed) {
+    warnings.push(
+      'Os horários do arquivo são contados a partir do início, então usei a data ' +
+        'e a hora de início do cabeçalho para situá-los. Confira o horário abaixo.',
+    )
+  }
+  if (best.ambiguousDate) {
+    warnings.push(
+      'A data do arquivo pode ser dia/mês ou mês/dia — não dá para saber pelo ' +
+        'arquivo. Se o dia estiver errado, corrija o período antes de enviar.',
+    )
   }
 
-  const format: ImportFormat = isSamsung ? 'samsung_health_csv' : 'generic_csv'
-  const warnings: string[] = []
-  warnings.push(
-    `Colunas usadas: horário = "${headers[timeIndex].trim()}", batimentos = "${headers[bpmIndex].trim()}".`,
-  )
-
-  return { format, samples, discarded, warnings }
+  return { format, samples: best.samples, discarded: best.discarded, warnings }
 }
 
 /**
