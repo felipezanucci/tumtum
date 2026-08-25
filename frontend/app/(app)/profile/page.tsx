@@ -102,12 +102,17 @@ export default function ProfilePage() {
           {/* Stats */}
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
-              { label: 'Sessões', value: profile.total_sessions },
+              // A count with no list is invisible state; Sessões opens its own.
+              { label: 'Sessões', value: profile.total_sessions, href: '/sessions' },
               { label: 'Eventos', value: profile.total_events },
-              { label: 'Cards', value: profile.total_cards },
+              { label: 'Cards', value: profile.total_cards, href: '/cards' },
               { label: 'Maior BPM', value: profile.highest_bpm ?? '—' },
-            ].map(({ label, value }) => (
-              <Card key={label} className="text-center">
+            ].map(({ label, value, href }) => (
+              <Card
+                key={label}
+                className={`text-center ${href ? 'cursor-pointer transition-colors hover:border-tumtum-lime/50' : ''}`}
+                onClick={href ? () => router.push(href) : undefined}
+              >
                 <p className="text-2xl font-bold text-tumtum-white">{value}</p>
                 <p className="text-xs text-tumtum-muted">{label}</p>
               </Card>
