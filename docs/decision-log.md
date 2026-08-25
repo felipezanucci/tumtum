@@ -26,14 +26,49 @@ the linked documents — this file is the index and the reasoning, not a diary.
    with the NRE credited against a future volume order.
 4. **Veepoo** — contacted 2026-08-18, still the primary alternative if they
    confirm native raw PPG / R-R streaming.
-5. **Deployment protection** — Vercel previews require login. Decide before
-   2026-09-25 whether to disable it or run the field test on production.
+5. ~~**Deployment protection**~~ — resolved 2026-08-25: it was never a
+   protection setting, only the wrong URL. The field test runs on
+   **https://tumtum.cc**.
 6. **Confirm Railway actually redeploys on a push to `main`.** The GitHub
    Actions deploy job has never worked (see below), so this has always been
    implicit. Verify before relying on it.
 7. **CI and deploy cleanup** — no ESLint config, no `test` script, 25
    unformatted backend files, and a `Deploy` workflow that has failed 12/12
    times. All pre-date this work; all worth one dedicated PR.
+
+---
+
+## 2026-08-25 — tumtum.cc is live, and the pilot's last infrastructure item closes
+
+The domain was already owned; it is now pointed at the production deployment,
+apex canonical with `www` redirecting to it. Verified end to end from an
+anonymous tab on the A17: `tumtum.cc` opened with no Vercel login wall, sign-in
+worked, a two-minute capture saved, and the experience view rendered.
+
+**What this settles.** The 2026-09-25 field test needed a URL that 3–5 people
+could open without a Vercel account. Preview URLs are behind Vercel
+authentication by design — that was the friction all day, and it was never a
+protection setting to fight, just the wrong URL. Production was always open.
+
+The apex is canonical deliberately: a shared card link reads `tumtum.cc/cards/…`
+rather than `www.tumtum.cc/cards/…`, and flipping that later would strand every
+link already in circulation.
+
+Backend CORS lists both apex and www. Checked that a lookalike suffix, plain
+http and an unexpected subdomain are all still rejected.
+
+**Left alone on purpose:** the domain's MX records point at Google Workspace.
+Anyone tidying "leftover" DNS would take the email down with them.
+
+### One product observation, not a defect
+
+The two-minute verification capture involved no deliberate effort, and the app
+still reported a peak — 88 bpm, 6 s, just past the 5 s minimum. That is the
+algorithm working correctly on a quiet signal: it finds the largest relative
+rise in whatever it is given. But it means **someone whose heart never really
+moved still gets a "Pico de Emoção"**, which at a real event would ring hollow.
+Worth deciding before the pilot whether a session with no meaningful excursion
+should say so instead.
 
 ---
 
