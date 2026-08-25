@@ -42,7 +42,7 @@ class CaptureService : Service() {
     var state: HeartRateMonitor.State = HeartRateMonitor.State.IDLE
         private set
     var detail: String? = null
-        private set
+        internal set
 
     /** Set by whoever is showing the capture, so the screen can follow it. */
     var listener: (() -> Unit)? = null
@@ -54,7 +54,19 @@ class CaptureService : Service() {
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, buildNotification(null))
+        // From Android 14 a service of type connectedDevice may only go to the
+        // foreground while the app already holds a Bluetooth permission —
+        // otherwise this throws and takes the whole process with it. The caller
+        // asks for the permissions first, and this is the belt to that braces:
+        // a refusal should leave the app standing and able to explain itself.
+        try {
+            startForeground(NOTIFICATION_ID, buildNotification(null))
+        } catch (e: Exception) {
+            detail = "Não consegui manter a captura em segundo plano: ${e.message}"
+            listener?.invoke()
+            stopSelf()
+            return START_NOT_STICKY
+        }
         // If Android kills us for memory, come back. A capture that quietly
         // stopped halfway through a night is the failure this app exists to
         // avoid, and the whole point of holding the samples in a service.
@@ -95,8 +107,12 @@ class CaptureService : Service() {
 
     private fun notifyWatcher() {
         listener?.invoke()
-        getSystemService(NotificationManager::class.java)
-            .notify(NOTIFICATION_ID, buildNotification(lastBpm))
+        // Posting is a status light, not the capture. If notifications are
+        // denied, the readings still matter more than the badge.
+        runCatching {
+            getSystemService(NotificationManager::class.java)
+                .notify(NOTIFICATION_ID, buildNotification(lastBpm))
+        }
     }
 
     private fun buildNotification(bpm: Int?): Notification {

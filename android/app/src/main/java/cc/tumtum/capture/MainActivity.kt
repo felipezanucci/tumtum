@@ -50,10 +50,17 @@ class MainActivity : Activity() {
     private val io = Executors.newSingleThreadExecutor()
     private var sending = false
 
+    /** Set when a scan is waiting for the service to come up. */
+    private var pendingScan = false
+
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             service = (binder as CaptureService.LocalBinder).service.also {
                 it.listener = { runOnUiThread(::render) }
+            }
+            if (pendingScan) {
+                pendingScan = false
+                startScan()
             }
             render()
         }
@@ -74,13 +81,17 @@ class MainActivity : Activity() {
         loginButton = findViewById(R.id.login)
 
         api = TumtumApi(applicationContext)
+        showLastCrashIfAny()
         actionButton.setOnClickListener { onAction() }
         loginButton.setOnClickListener { onLogin() }
         renderAuth()
 
-        val intent = Intent(this, CaptureService::class.java)
-        startForegroundService(intent)
-        bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        // Bind without creating: if a capture is already running this attaches
+        // to it, and if none is, nothing starts. Starting a connectedDevice
+        // foreground service before the Bluetooth permission exists is refused
+        // outright on Android 14 — which crashed the app on its first launch,
+        // before it could ask for anything.
+        bindService(Intent(this, CaptureService::class.java), connection, 0)
     }
 
     override fun onDestroy() {
@@ -103,7 +114,36 @@ class MainActivity : Activity() {
             return
         }
         if (!ensurePermissions()) return
-        startScan()
+        beginCapture()
+    }
+
+    /**
+     * Bring the service up, then scan. In that order: the service is what
+     * survives the screen going off, and there is no point finding a sensor
+     * with nowhere to put its readings.
+     */
+    private fun beginCapture() {
+        val intent = Intent(this, CaptureService::class.java)
+        try {
+            startForegroundService(intent)
+        } catch (e: Exception) {
+            statusView.text = getString(R.string.service_failed, e.message)
+            return
+        }
+        if (service != null) {
+            startScan()
+        } else {
+            pendingScan = true
+            bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    /** Report a previous crash once, then forget it. */
+    private fun showLastCrashIfAny() {
+        val prefs = getSharedPreferences("tumtum", MODE_PRIVATE)
+        val crash = prefs.getString("last_crash", null) ?: return
+        prefs.edit().remove("last_crash").apply()
+        statusView.text = getString(R.string.last_crash, crash)
     }
 
     private fun onLogin() {
@@ -194,8 +234,10 @@ class MainActivity : Activity() {
         permissions: Array<out String>,
         grantResults: IntArray,
     ) {
-        if (requestCode == PERMISSION_REQUEST && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-            startScan()
+        if (requestCode == PERMISSION_REQUEST && grantResults.isNotEmpty() &&
+            grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+        ) {
+            beginCapture()
         } else {
             statusView.text = getString(R.string.needs_bluetooth_permission)
         }
@@ -261,7 +303,14 @@ class MainActivity : Activity() {
     }
 
     private fun render() {
-        val current = service ?: return
+        val current = service
+        if (current == null) {
+            // Nothing captured yet, and nothing running. Not an error state.
+            bpmView.text = "--"
+            actionButton.text = getString(R.string.connect)
+            if (statusView.text.isNullOrEmpty()) statusView.text = getString(R.string.idle)
+            return
+        }
         bpmView.text = current.lastBpm?.toString() ?: "--"
         if (sending) return
         actionButton.text = when (current.state) {

@@ -26,4 +26,6 @@
     <string name="sent">Enviado. Abra tumtum.cc para ver sua experiência.</string>
     <string name="send_failed">Falha ao enviar: %1$s. As leituras continuam aqui — toque de novo.</string>
     <string name="too_few">Poucas leituras para salvar.</string>
+    <string name="service_failed">Não consegui iniciar a captura: %1$s</string>
+    <string name="last_crash">Da última vez eu quebrei aqui: %1$s</string>
 </resources>
