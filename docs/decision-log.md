@@ -20,9 +20,8 @@ the linked documents — this file is the index and the reasoning, not a diary.
 1. **Merge PR #11.** The frontend half is already live on the preview URL, which
    is what let the session above be saved. Still queued for `main`: the CORS
    error trap and the server-side dedupe.
-2. ~~**End-to-end save test**~~ — **done 2026-08-25, passed.** Follow-up: one
-   clean 3-block session to measure peak-detection accuracy, not just that the
-   pipeline runs.
+2. ~~**End-to-end save test**~~ and ~~**detection accuracy**~~ — both done
+   2026-08-25, both passed.
 3. **J-Style reply** — sent 2026-08-25; awaiting their answer on a pilot batch
    with the NRE credited against a future volume order.
 4. **Veepoo** — contacted 2026-08-18, still the primary alternative if they
@@ -49,10 +48,16 @@ experience view with the curve and a card offered.
 of opening Path 2 when J-Style closed, and it is now demonstrated rather than
 assumed.
 
-Still unproven: detection *accuracy* against a known multi-peak protocol. This
-run recovered a partial capture around a single effort, so one peak is the right
-answer for what happened — but it does not test whether the algorithm finds two
-peaks in a clean 3-block run. One clean session before 2026-09-25.
+**Detection accuracy confirmed the same day.** A clean 7-minute two-effort run
+returned exactly two peaks, 136 bpm at 11:22 and 146 bpm at 11:25, matching both
+hand-noted effort endings to the minute. The protocol was designed against the
+detector's real parameters by simulating five candidates 20 times each rather
+than guessing a duration — worth repeating whenever the algorithm's windows
+change, since a 7-minute test against a 300 s baseline window is not obviously
+safe until you check.
+
+**Phase 1 is closed on both counts: the pipeline runs, and the detector is
+calibrated.**
 
 Four defects found and fixed in the process (PR #11). The one worth remembering
 beyond this bug: **a 500 carried no CORS header**, so every server-side error
