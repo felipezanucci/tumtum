@@ -29,6 +29,46 @@ the linked documents — this file is the index and the reasoning, not a diary.
    confirm native raw PPG / R-R streaming.
 5. **Deployment protection** — Vercel previews require login. Decide before
    2026-09-25 whether to disable it or run the field test on production.
+6. **Confirm Railway actually redeploys on a push to `main`.** The GitHub
+   Actions deploy job has never worked (see below), so this has always been
+   implicit. Verify before relying on it.
+7. **CI and deploy cleanup** — no ESLint config, no `test` script, 25
+   unformatted backend files, and a `Deploy` workflow that has failed 12/12
+   times. All pre-date this work; all worth one dedicated PR.
+
+---
+
+## 2026-08-25 — The Deploy workflow has never worked
+
+Merging PR #10 to `main` was supposed to deploy the frontend and the backend.
+The `Deploy` workflow ran and failed — as it has on **every one of its 12 runs
+since April 2026**. Both jobs, every time:
+
+| Job | Failure |
+|---|---|
+| Deploy Frontend (Vercel) | `Input required and not supplied: vercel-token` — the `VERCEL_TOKEN` repository secret was never set |
+| Deploy Backend (Railway) | `Unexpected input(s) 'railway_token'` and `railway: not found` — `bervProject/railway-deploy` changed its interface and no longer takes a token input or ships the CLI |
+
+Neither is a regression. The pipeline was written, committed, and never once
+succeeded.
+
+**What has actually been deploying.** Vercel, through its own GitHub App —
+which is why PR #10 got a working preview URL while the Vercel job in the same
+run was failing. Railway is the open question: yesterday's recovery needed a
+manual redeploy, which suggests its GitHub integration may not be connected at
+all.
+
+**Why this matters beyond tidiness.** Every deploy has been implicit, so
+"merged to main" has never meant "live". That assumption is exactly what would
+break on 2026-09-25 with people standing in a venue.
+
+**Not fixed yet, deliberately.** The Vercel job is redundant with the GitHub App
+and should be deleted rather than repaired. Whether the Railway job should be
+fixed or deleted depends on whether Railway's own GitHub integration is
+connected — something only the Vercel/Railway dashboards can answer. Same
+sitting as the CI cleanup (no ESLint config, no `test` script, 25 unformatted
+backend files), which is red on `main` for reasons that predate any of this
+work.
 
 ---
 
