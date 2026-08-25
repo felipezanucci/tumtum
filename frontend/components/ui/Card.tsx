@@ -9,7 +9,7 @@ export default function Card({ hoverable, className = '', children, ...props }: 
     <div
       className={`
         rounded-xl border border-tumtum-border bg-tumtum-surface p-6
-        ${hoverable ? 'transition-colors duration-150 hover:border-tumtum-text-muted cursor-pointer' : ''}
+        ${hoverable ? 'transition-colors duration-150 hover:border-tumtum-muted cursor-pointer' : ''}
         ${className}
       `}
       {...props}
@@ -29,7 +29,7 @@ function CardHeader({ className = '', children, ...props }: HTMLAttributes<HTMLD
 
 function CardTitle({ className = '', children, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={`text-lg font-semibold text-tumtum-text-primary ${className}`} {...props}>
+    <h3 className={`text-lg font-semibold text-tumtum-white ${className}`} {...props}>
       {children}
     </h3>
   )
@@ -37,7 +37,7 @@ function CardTitle({ className = '', children, ...props }: HTMLAttributes<HTMLHe
 
 function CardContent({ className = '', children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`text-tumtum-text-muted ${className}`} {...props}>
+    <div className={`text-tumtum-muted ${className}`} {...props}>
       {children}
     </div>
   )

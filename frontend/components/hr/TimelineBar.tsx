@@ -20,7 +20,7 @@ export default function TimelineBar({ entries, className = '' }: TimelineBarProp
 
   return (
     <div className={`space-y-1 ${className}`}>
-      <h3 className="mb-3 text-sm font-medium uppercase tracking-wider text-tumtum-text-muted">
+      <h3 className="mb-3 text-sm font-medium uppercase tracking-wider text-tumtum-muted">
         Timeline
       </h3>
       <div className="relative">
@@ -37,14 +37,14 @@ export default function TimelineBar({ entries, className = '' }: TimelineBarProp
 
             return (
               <div key={entry.id} className="relative flex items-start gap-3 pl-1">
-                <div className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-tumtum-border bg-tumtum-dark text-sm">
+                <div className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-tumtum-border bg-tumtum-black text-sm">
                   {icon}
                 </div>
                 <div className="flex-1 pt-1">
-                  <p className="text-sm font-medium text-tumtum-text-primary">
+                  <p className="text-sm font-medium text-tumtum-white">
                     {entry.label}
                   </p>
-                  <p className="text-xs text-tumtum-text-muted">{time}</p>
+                  <p className="text-xs text-tumtum-muted">{time}</p>
                 </div>
               </div>
             )

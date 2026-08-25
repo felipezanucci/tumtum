@@ -31,8 +31,8 @@ export default class ErrorBoundary extends Component<Props, State> {
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
             <div className="mb-4 text-4xl">😵</div>
-            <h2 className="text-xl font-bold text-tumtum-text-primary">Algo deu errado</h2>
-            <p className="mt-2 text-sm text-tumtum-text-muted">
+            <h2 className="text-xl font-bold text-tumtum-white">Algo deu errado</h2>
+            <p className="mt-2 text-sm text-tumtum-muted">
               Ocorreu um erro inesperado. Tente recarregar a página.
             </p>
             <Button

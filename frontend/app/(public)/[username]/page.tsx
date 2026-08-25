@@ -30,7 +30,7 @@ export default function PublicProfilePage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+      <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
         <Loading size="lg" />
       </main>
     )
@@ -38,10 +38,10 @@ export default function PublicProfilePage() {
 
   if (error || !profile) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+      <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
         <div className="text-center">
-          <p className="text-lg text-tumtum-text-primary">Perfil não encontrado</p>
-          <p className="mt-1 text-sm text-tumtum-text-muted">Este usuário não existe ou o perfil é privado.</p>
+          <p className="text-lg text-tumtum-white">Perfil não encontrado</p>
+          <p className="mt-1 text-sm text-tumtum-muted">Este usuário não existe ou o perfil é privado.</p>
         </div>
       </main>
     )
@@ -53,13 +53,13 @@ export default function PublicProfilePage() {
   })
 
   return (
-    <main className="min-h-screen bg-tumtum-dark">
+    <main className="min-h-screen bg-tumtum-black">
       <div className="mx-auto max-w-md px-4 py-12">
         {/* Header */}
         <div className="flex flex-col items-center text-center">
           <Avatar name={profile.name} src={profile.avatar_url} size="lg" />
-          <h1 className="mt-4 text-2xl font-bold text-tumtum-text-primary">{profile.name}</h1>
-          <p className="text-sm text-tumtum-text-muted">Membro desde {memberSince}</p>
+          <h1 className="mt-4 text-2xl font-bold text-tumtum-white">{profile.name}</h1>
+          <p className="text-sm text-tumtum-muted">Membro desde {memberSince}</p>
         </div>
 
         {/* Stats */}
@@ -70,8 +70,8 @@ export default function PublicProfilePage() {
             { label: 'Cards', value: profile.total_cards },
           ].map(({ label, value }) => (
             <Card key={label} className="text-center">
-              <p className="text-xl font-bold text-tumtum-text-primary">{value}</p>
-              <p className="text-xs text-tumtum-text-muted">{label}</p>
+              <p className="text-xl font-bold text-tumtum-white">{value}</p>
+              <p className="text-xs text-tumtum-muted">{label}</p>
             </Card>
           ))}
         </div>
@@ -79,12 +79,11 @@ export default function PublicProfilePage() {
         {/* Branding */}
         <div className="mt-12 text-center">
           <p
-            className="text-sm font-bold uppercase tracking-widest text-tumtum-red"
-            style={{ fontFamily: 'Georgia, serif' }}
+            className="text-sm font-hero uppercase tracking-widest text-tumtum-white"
           >
-            Tumtum
+            TumTum
           </p>
-          <p className="mt-1 text-xs text-tumtum-text-muted">
+          <p className="mt-1 text-xs text-tumtum-muted">
             Sinta o evento. Compartilhe a emoção.
           </p>
         </div>

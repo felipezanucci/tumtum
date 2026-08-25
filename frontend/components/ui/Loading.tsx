@@ -13,7 +13,7 @@ export default function Loading({ size = 'md', className = '' }: LoadingProps) {
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <svg
-        className={`animate-spin text-tumtum-red ${sizeStyles[size]}`}
+        className={`animate-spin text-tumtum-lime ${sizeStyles[size]}`}
         fill="none"
         viewBox="0 0 24 24"
       >

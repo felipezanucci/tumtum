@@ -38,16 +38,16 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-tumtum-dark px-4">
+    <main className="flex min-h-screen items-center justify-center bg-tumtum-black px-4">
       <div className="w-full max-w-md">
         {/* Step: Welcome */}
         {step === 'welcome' && (
           <div className="text-center">
             <div className="mb-6 text-6xl">❤️</div>
-            <h1 className="text-3xl font-bold text-tumtum-text-primary">
-              Bem-vindo ao Tumtum
+            <h1 className="text-3xl font-bold text-tumtum-white">
+              Bem-vindo ao TumTum
             </h1>
-            <p className="mt-3 text-tumtum-text-muted">
+            <p className="mt-3 text-tumtum-muted">
               Descubra como seu coração reage nos momentos mais emocionantes.
               Conecte seu wearable, vá a um evento e veja sua experiência.
             </p>
@@ -60,11 +60,11 @@ export default function OnboardingPage() {
         {/* Step: Connect Wearable */}
         {step === 'wearable' && (
           <div>
-            <h2 className="mb-2 text-2xl font-bold text-tumtum-text-primary">
+            <h2 className="mb-2 text-2xl font-bold text-tumtum-white">
               Conecte seu dispositivo
             </h2>
-            <p className="mb-6 text-sm text-tumtum-text-muted">
-              Escolha o wearable que você usa para monitorar sua frequência cardíaca.
+            <p className="mb-6 text-sm text-tumtum-muted">
+              Escolha o relógio ou a cinta que você já usa.
             </p>
 
             <div className="space-y-3">
@@ -79,16 +79,16 @@ export default function OnboardingPage() {
                     onClick={() => setSelectedProvider(option.id)}
                     className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors ${
                       isSelected
-                        ? 'border-tumtum-red bg-tumtum-red/10'
+                        ? 'border-tumtum-lime bg-tumtum-lime/10'
                         : isDisabled
                         ? 'border-tumtum-border opacity-40 cursor-not-allowed'
-                        : 'border-tumtum-border hover:border-tumtum-text-muted'
+                        : 'border-tumtum-border hover:border-tumtum-muted'
                     }`}
                   >
                     <span className="text-2xl">{option.icon}</span>
                     <div>
-                      <p className="font-medium text-tumtum-text-primary">{option.name}</p>
-                      <p className="text-xs text-tumtum-text-muted">{option.description}</p>
+                      <p className="font-medium text-tumtum-white">{option.name}</p>
+                      <p className="text-xs text-tumtum-muted">{option.description}</p>
                     </div>
                   </button>
                 )
@@ -115,8 +115,8 @@ export default function OnboardingPage() {
         {step === 'ready' && (
           <div className="text-center">
             <div className="mb-6 text-6xl">🎉</div>
-            <h2 className="text-2xl font-bold text-tumtum-text-primary">Tudo pronto!</h2>
-            <p className="mt-3 text-tumtum-text-muted">
+            <h2 className="text-2xl font-bold text-tumtum-white">Tudo pronto!</h2>
+            <p className="mt-3 text-tumtum-muted">
               Agora é só ir a um evento e depois voltar aqui para ver como seu coração reagiu.
             </p>
             <Button onClick={() => router.push('/events')} className="mt-8 w-full" size="lg">
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
             <div
               key={s}
               className={`h-2 w-2 rounded-full transition-colors ${
-                step === s ? 'bg-tumtum-red' : 'bg-tumtum-border'
+                step === s ? 'bg-tumtum-lime' : 'bg-tumtum-border'
               }`}
             />
           ))}

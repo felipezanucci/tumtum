@@ -64,7 +64,7 @@ function ModalHeader({ className = '', children, ...props }: HTMLAttributes<HTML
 
 function ModalTitle({ className = '', children, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h2 className={`text-xl font-semibold text-tumtum-text-primary ${className}`} {...props}>
+    <h2 className={`text-xl font-semibold text-tumtum-white ${className}`} {...props}>
       {children}
     </h2>
   )

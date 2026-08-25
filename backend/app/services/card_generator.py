@@ -9,18 +9,45 @@ Card types:
 """
 
 import io
+from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-# Brand colors
-TUMTUM_RED = (192, 57, 43)  # #C0392B
-TUMTUM_RED_SEC = (231, 76, 60)  # #E74C3C
-TUMTUM_DARK = (8, 8, 12)  # #08080C
-TUMTUM_SURFACE = (17, 17, 24)  # #111118
-TUMTUM_BORDER = (26, 26, 36)  # #1A1A24
-TUMTUM_MUTED = (107, 107, 128)  # #6B6B80
-TUMTUM_TEXT = (240, 240, 245)  # #F0F0F5
-TUMTUM_ACCENT = (0, 210, 255)  # #00D2FF
+FONT_DIR = Path(__file__).resolve().parent.parent / "assets" / "fonts"
+
+# Weights named for the roles the brand manual assigns them.
+_WEIGHTS = {"body": 400, "label": 500, "headline": 600, "hero": 700}
+
+
+def _font(role: str, size: int) -> ImageFont.FreeTypeFont:
+    """Instrument Sans at a brand role, falling back rather than crashing.
+
+    The wordmark is deliberately not special-cased here: it is Chosmos and ships
+    as an official vector. Until that asset exists it is set in Instrument Sans
+    Bold, which is provisional and not brand-correct.
+    """
+    try:
+        return ImageFont.truetype(
+            str(FONT_DIR / f"InstrumentSans-{_WEIGHTS[role]}.ttf"), size
+        )
+    except OSError:
+        return ImageFont.load_default()
+
+
+# Brand manual MVP v0.1: two neutrals and one acid pair. Nothing from the
+# previous red/cyan palette survives.
+TUMTUM_BLACK = (0, 0, 0)  # #000000 — canvas
+TUMTUM_WHITE = (255, 255, 255)  # #FFFFFF — supporting information
+TUMTUM_LIME = (198, 255, 0)  # #C6FF00 — primary accent
+TUMTUM_YELLOW = (239, 255, 0)  # #EFFF00 — secondary accent
+
+# The palette has no greys, so separation on the black canvas comes from white
+# at low alpha rather than from a new hue. Pillow draws without an alpha
+# channel here, so these are the pre-composited equivalents over black.
+TUMTUM_SURFACE = (13, 13, 13)  # white @ 5%
+TUMTUM_BORDER = (36, 36, 36)  # white @ 14%
+TUMTUM_MUTED = (153, 153, 153)  # white @ 60%
+
 
 # Card dimensions
 STORY_SIZE = (1080, 1920)
@@ -55,50 +82,30 @@ def generate_solo_card(
         PNG image bytes
     """
     size = STORY_SIZE if format == "story" else FEED_SIZE
-    img = Image.new("RGB", size, TUMTUM_DARK)
+    img = Image.new("RGB", size, TUMTUM_BLACK)
     draw = ImageDraw.Draw(img)
 
     w, h = size
 
     # Try to load fonts, fallback to default
-    try:
-        font_logo = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", 48
-        )
-        font_large = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 120
-        )
-        font_medium = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 42
-        )
-        font_small = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32
-        )
-        font_label = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28
-        )
-    except OSError:
-        font_logo = ImageFont.load_default()
-        font_large = ImageFont.load_default()
-        font_medium = ImageFont.load_default()
-        font_small = ImageFont.load_default()
-        font_label = ImageFont.load_default()
+    font_logo = _font("hero", 48)
+    font_large = _font("hero", 120)
+    font_medium = _font("hero", 42)
+    font_small = _font("body", 32)
+    font_label = _font("body", 28)
 
-    # Background gradient overlay
-    for y in range(h):
-        alpha = y / h
-        r = int(TUMTUM_DARK[0] * (1 - alpha * 0.3) + TUMTUM_RED[0] * alpha * 0.15)
-        g = int(TUMTUM_DARK[1] * (1 - alpha * 0.3))
-        b = int(TUMTUM_DARK[2] * (1 - alpha * 0.3))
-        draw.line([(0, y), (w, y)], fill=(r, g, b))
+    # The canvas is flat black. The previous version washed a gradient of the
+    # accent across it by mixing only the accent's red channel — harmless while
+    # the accent was red, meaningless once it became lime. Accents concentrate
+    # emphasis in this system; they are not a background wash.
 
     # Logo
-    draw.text((w // 2, 80), "TUMTUM", fill=TUMTUM_RED, font=font_logo, anchor="mt")
+    draw.text((w // 2, 80), "TUMTUM", fill=TUMTUM_WHITE, font=font_logo, anchor="mt")
 
     # Event name
     y_offset = 200 if format == "story" else 160
     draw.text(
-        (w // 2, y_offset), event_name, fill=TUMTUM_TEXT, font=font_medium, anchor="mt"
+        (w // 2, y_offset), event_name, fill=TUMTUM_WHITE, font=font_medium, anchor="mt"
     )
     draw.text(
         (w // 2, y_offset + 60),
@@ -112,15 +119,15 @@ def generate_solo_card(
     if hr_data and len(hr_data) > 5:
         curve_y_start = y_offset + 140
         curve_height = 300 if format == "story" else 200
-        _draw_hr_curve(draw, hr_data, 60, curve_y_start, w - 120, curve_height)
+        _draw_hr_curve(img, draw, hr_data, 60, curve_y_start, w - 120, curve_height)
 
     # Peak BPM highlight
     peak_y = (h // 2) + (100 if format == "story" else 50)
     draw.text(
-        (w // 2, peak_y), str(peak_bpm), fill=TUMTUM_RED, font=font_large, anchor="mm"
+        (w // 2, peak_y), str(peak_bpm), fill=TUMTUM_LIME, font=font_large, anchor="mm"
     )
     draw.text(
-        (w // 2, peak_y + 80), "BPM", fill=TUMTUM_RED_SEC, font=font_medium, anchor="mt"
+        (w // 2, peak_y + 80), "BPM", fill=TUMTUM_YELLOW, font=font_medium, anchor="mt"
     )
 
     # Matched label
@@ -128,7 +135,7 @@ def generate_solo_card(
         draw.text(
             (w // 2, peak_y + 150),
             f'durante "{matched_label}"',
-            fill=TUMTUM_TEXT,
+            fill=TUMTUM_WHITE,
             font=font_small,
             anchor="mt",
         )
@@ -142,7 +149,7 @@ def generate_solo_card(
     stat_width = w // len(stats)
     for i, (label, value) in enumerate(stats):
         x = stat_width * i + stat_width // 2
-        draw.text((x, stats_y), value, fill=TUMTUM_TEXT, font=font_medium, anchor="mt")
+        draw.text((x, stats_y), value, fill=TUMTUM_WHITE, font=font_medium, anchor="mt")
         draw.text(
             (x, stats_y + 55), label, fill=TUMTUM_MUTED, font=font_label, anchor="mt"
         )
@@ -181,41 +188,30 @@ def generate_comparison_card(
     so fans can compare their heartbeats.
     """
     size = STORY_SIZE if format == "story" else FEED_SIZE
-    img = Image.new("RGB", size, TUMTUM_DARK)
+    img = Image.new("RGB", size, TUMTUM_BLACK)
     draw = ImageDraw.Draw(img)
 
     w, h = size
 
-    try:
-        font_logo = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", 48
-        )
-        font_large = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 80
-        )
-        font_medium = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 42
-        )
-        font_small = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32
-        )
-    except OSError:
-        font_logo = font_large = font_medium = font_small = ImageFont.load_default()
+    font_logo = _font("hero", 48)
+    font_large = _font("hero", 120)
+    font_medium = _font("hero", 42)
+    font_small = _font("body", 32)
 
     # Background
     for y in range(h):
         alpha = y / h
-        r = int(TUMTUM_DARK[0] * (1 - alpha * 0.2))
-        g = int(TUMTUM_DARK[1] * (1 - alpha * 0.2))
-        b = int(TUMTUM_DARK[2] * (1 - alpha * 0.2) + 20 * alpha * 0.1)
+        r = int(TUMTUM_BLACK[0] * (1 - alpha * 0.2))
+        g = int(TUMTUM_BLACK[1] * (1 - alpha * 0.2))
+        b = int(TUMTUM_BLACK[2] * (1 - alpha * 0.2) + 20 * alpha * 0.1)
         draw.line([(0, y), (w, y)], fill=(r, g, b))
 
     # Logo
-    draw.text((w // 2, 80), "TUMTUM", fill=TUMTUM_RED, font=font_logo, anchor="mt")
+    draw.text((w // 2, 80), "TUMTUM", fill=TUMTUM_WHITE, font=font_logo, anchor="mt")
 
     # Event
     draw.text(
-        (w // 2, 180), event_name, fill=TUMTUM_TEXT, font=font_medium, anchor="mt"
+        (w // 2, 180), event_name, fill=TUMTUM_WHITE, font=font_medium, anchor="mt"
     )
     draw.text(
         (w // 2, 240), event_date, fill=TUMTUM_MUTED, font=font_small, anchor="mt"
@@ -226,7 +222,7 @@ def generate_comparison_card(
     draw.text(
         (w // 2, center_y - 60),
         f"{sync_percentage}%",
-        fill=TUMTUM_ACCENT,
+        fill=TUMTUM_WHITE,
         font=font_large,
         anchor="mm",
     )
@@ -246,7 +242,7 @@ def generate_comparison_card(
     draw.text(
         (col_left, vs_y),
         str(user_peak_bpm),
-        fill=TUMTUM_RED,
+        fill=TUMTUM_LIME,
         font=font_large,
         anchor="mt",
     )
@@ -261,7 +257,7 @@ def generate_comparison_card(
     draw.text(
         (col_right, vs_y),
         str(artist_peak_bpm),
-        fill=TUMTUM_ACCENT,
+        fill=TUMTUM_WHITE,
         font=font_large,
         anchor="mt",
     )
@@ -292,6 +288,7 @@ def generate_comparison_card(
 
 
 def _draw_hr_curve(
+    img: Image.Image,
     draw: ImageDraw.ImageDraw,
     hr_data: list[dict],
     x_start: int,
@@ -299,7 +296,12 @@ def _draw_hr_curve(
     width: int,
     height: int,
 ) -> None:
-    """Draw a simplified HR curve on the image."""
+    """Draw the user's own beat over time.
+
+    Not an ECG trace: the brand manual allows a time series only when it is the
+    user's real data and the chart is product information, and forbids anything
+    that reads as medical waveform.
+    """
     if len(hr_data) < 2:
         return
 
@@ -319,14 +321,18 @@ def _draw_hr_curve(
         points.append((x, y))
 
     if len(points) >= 2:
-        # Draw filled area
         area_points = [
             *points,
             (points[-1][0], y_start + height),
             (points[0][0], y_start + height),
         ]
-        draw.polygon(area_points, fill=(192, 57, 43, 30))
+        overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        ImageDraw.Draw(overlay).polygon(area_points, fill=(*TUMTUM_LIME, 38))
+        img.alpha_composite(overlay) if img.mode == "RGBA" else img.paste(
+            Image.alpha_composite(img.convert("RGBA"), overlay).convert(img.mode)
+        )
 
-        # Draw line
+        # Redraw on the composited surface: the line is the evidence.
+        draw = ImageDraw.Draw(img)
         for i in range(len(points) - 1):
-            draw.line([points[i], points[i + 1]], fill=TUMTUM_RED, width=3)
+            draw.line([points[i], points[i + 1]], fill=TUMTUM_LIME, width=3)

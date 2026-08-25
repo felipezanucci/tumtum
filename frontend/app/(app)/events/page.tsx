@@ -42,9 +42,9 @@ export default function EventsPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-4xl px-4 py-8">
-          <h1 className="mb-6 text-3xl font-bold text-tumtum-text-primary">Eventos</h1>
+          <h1 className="mb-6 text-3xl font-bold text-tumtum-white">Eventos</h1>
 
           {/* Filters */}
           <div className="mb-6 flex flex-col gap-3 sm:flex-row">
@@ -62,8 +62,8 @@ export default function EventsPage() {
                   onClick={() => setTypeFilter(type)}
                   className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                     typeFilter === type
-                      ? 'bg-tumtum-red text-white'
-                      : 'bg-tumtum-surface text-tumtum-text-muted hover:text-tumtum-text-primary'
+                      ? 'bg-tumtum-lime text-tumtum-black'
+                      : 'bg-tumtum-surface text-tumtum-muted hover:text-tumtum-white'
                   }`}
                 >
                   {type === '' ? 'Todos' : eventTypeLabels[type]}
@@ -77,8 +77,8 @@ export default function EventsPage() {
             <Loading size="lg" className="py-20" />
           ) : eventList.length === 0 ? (
             <div className="py-20 text-center">
-              <p className="text-lg text-tumtum-text-muted">Nenhum evento encontrado</p>
-              <p className="mt-1 text-sm text-tumtum-text-muted">
+              <p className="text-lg text-tumtum-muted">Nenhum evento encontrado</p>
+              <p className="mt-1 text-sm text-tumtum-muted">
                 {search || typeFilter
                   ? 'Tente ajustar os filtros ou buscar por outro termo.'
                   : 'Popule o banco com eventos de demonstração para começar.'}
@@ -99,7 +99,7 @@ export default function EventsPage() {
                 <Link key={event.id} href={`/events/${event.id}`}>
                   <Card hoverable className="h-full">
                     {event.cover_image_url && (
-                      <div className="mb-3 h-32 overflow-hidden rounded-lg bg-tumtum-dark">
+                      <div className="mb-3 h-32 overflow-hidden rounded-lg bg-tumtum-black">
                         <img
                           src={event.cover_image_url}
                           alt={event.name}
@@ -110,13 +110,13 @@ export default function EventsPage() {
                     <Badge variant={eventTypeBadgeVariant[event.event_type] || 'default'}>
                       {eventTypeLabels[event.event_type] || event.event_type}
                     </Badge>
-                    <h3 className="mt-2 text-lg font-semibold text-tumtum-text-primary">
+                    <h3 className="mt-2 text-lg font-semibold text-tumtum-white">
                       {event.name}
                     </h3>
                     {event.subtitle && (
-                      <p className="text-sm text-tumtum-text-muted">{event.subtitle}</p>
+                      <p className="text-sm text-tumtum-muted">{event.subtitle}</p>
                     )}
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-tumtum-text-muted">
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-tumtum-muted">
                       {event.venue && <span>{event.venue}</span>}
                       {event.city && <span>• {event.city}</span>}
                       <span>

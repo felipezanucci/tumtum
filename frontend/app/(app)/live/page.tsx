@@ -56,7 +56,7 @@ const stateVariants: Record<BleState, 'default' | 'success' | 'warning' | 'dange
 const verdictStyles: Record<QualityVerdict, string> = {
   good: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
   marginal: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
-  insufficient: 'border-tumtum-red/50 bg-tumtum-red/10 text-tumtum-red-secondary',
+  insufficient: 'border-red-500/50 bg-red-500/10 text-red-400',
 }
 
 export default function LivePage() {
@@ -260,11 +260,11 @@ export default function LivePage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-2xl px-4 py-8">
-          <h1 className="text-3xl font-bold text-tumtum-text-primary">Captura ao vivo</h1>
-          <p className="mt-2 text-sm text-tumtum-text-muted">
-            Conecte uma cinta ou relógio que transmita frequência cardíaca por Bluetooth
+          <h1 className="text-3xl font-bold text-tumtum-white">Captura ao vivo</h1>
+          <p className="mt-2 text-sm text-tumtum-muted">
+            Conecte uma cinta ou relógio que transmita sua batida por Bluetooth
             e acompanhe seu batimento em tempo real durante o evento.
           </p>
 
@@ -346,15 +346,15 @@ export default function LivePage() {
                     {stateDetail ? ` — ${stateDetail}` : ''}
                   </Badge>
                   {deviceName && (
-                    <span className="text-sm text-tumtum-text-muted">{deviceName}</span>
+                    <span className="text-sm text-tumtum-muted">{deviceName}</span>
                   )}
                 </div>
 
                 <div className="mt-6 text-center">
-                  <div className="text-7xl font-bold tabular-nums text-tumtum-red-secondary">
+                  <div className="text-7xl font-bold tabular-nums text-tumtum-yellow">
                     {lastReading ? lastReading.bpm : '--'}
                   </div>
-                  <div className="mt-1 text-sm text-tumtum-text-muted">bpm</div>
+                  <div className="mt-1 text-sm text-tumtum-muted">bpm</div>
                 </div>
 
                 <dl className="mt-6 grid grid-cols-3 gap-3">
@@ -373,7 +373,7 @@ export default function LivePage() {
                 </dl>
 
                 {lastReading && lastReading.rrIntervalsMs.length > 0 && (
-                  <p className="mt-3 text-center text-xs text-tumtum-text-muted">
+                  <p className="mt-3 text-center text-xs text-tumtum-muted">
                     Intervalos R-R disponíveis ({lastReading.rrIntervalsMs.join(', ')} ms)
                   </p>
                 )}
@@ -424,7 +424,7 @@ export default function LivePage() {
 
               {sampleCount > 0 && (
                 <Card className="mt-4">
-                  <label className="mb-1 block text-sm text-tumtum-text-muted" htmlFor="event">
+                  <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="event">
                     Evento (opcional)
                   </label>
                   {eventsUnavailable && (
@@ -437,7 +437,7 @@ export default function LivePage() {
                     id="event"
                     value={eventId}
                     onChange={(e) => setEventId(e.target.value)}
-                    className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-text-primary focus:border-tumtum-red focus:outline-none"
+                    className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none"
                   >
                     <option value="">Sem evento — só a curva</option>
                     {eventList.map((item) => (
@@ -450,7 +450,7 @@ export default function LivePage() {
               )}
 
               {error && (
-                <p className="mt-4 rounded-lg border border-tumtum-red/40 bg-tumtum-red/10 p-3 text-sm text-tumtum-red-secondary">
+                <p className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
                   {error}
                 </p>
               )}
@@ -475,9 +475,9 @@ export default function LivePage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-tumtum-border bg-tumtum-dark p-3 text-center">
-      <dt className="text-xs text-tumtum-text-muted">{label}</dt>
-      <dd className="mt-1 text-lg font-semibold text-tumtum-text-primary">{value}</dd>
+    <div className="rounded-lg border border-tumtum-border bg-tumtum-black p-3 text-center">
+      <dt className="text-xs text-tumtum-muted">{label}</dt>
+      <dd className="mt-1 text-lg font-semibold text-tumtum-white">{value}</dd>
     </div>
   )
 }

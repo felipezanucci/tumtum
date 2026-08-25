@@ -25,16 +25,15 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-tumtum-dark px-4">
+    <main className="flex min-h-screen items-center justify-center bg-tumtum-black px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1
-            className="text-3xl font-bold uppercase tracking-widest text-tumtum-red"
-            style={{ fontFamily: 'Georgia, serif' }}
+            className="text-3xl font-hero uppercase tracking-widest text-tumtum-white"
           >
-            Tumtum
+            TumTum
           </h1>
-          <p className="mt-2 text-tumtum-text-muted">Faça login para continuar</p>
+          <p className="mt-2 text-tumtum-muted">Faça login para continuar</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,9 +63,9 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-tumtum-text-muted">
+        <p className="mt-6 text-center text-sm text-tumtum-muted">
           Não tem conta?{' '}
-          <Link href="/signup" className="text-tumtum-red hover:underline">
+          <Link href="/signup" className="text-tumtum-lime hover:underline">
             Criar conta
           </Link>
         </p>

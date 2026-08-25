@@ -55,7 +55,7 @@ export default function ProfilePage() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
           <Loading size="lg" />
         </main>
       </>
@@ -72,7 +72,7 @@ export default function ProfilePage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-3xl px-4 py-8">
           {/* Header */}
           <div className="flex items-start gap-6">
@@ -90,12 +90,12 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-tumtum-text-primary">{profile.name}</h1>
+                  <h1 className="text-2xl font-bold text-tumtum-white">{profile.name}</h1>
                   <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>Editar</Button>
                 </div>
               )}
-              <p className="text-sm text-tumtum-text-muted">{profile.email}</p>
-              <p className="text-xs text-tumtum-text-muted">Membro desde {memberSince}</p>
+              <p className="text-sm text-tumtum-muted">{profile.email}</p>
+              <p className="text-xs text-tumtum-muted">Membro desde {memberSince}</p>
             </div>
           </div>
 
@@ -108,24 +108,24 @@ export default function ProfilePage() {
               { label: 'Maior BPM', value: profile.highest_bpm ?? '—' },
             ].map(({ label, value }) => (
               <Card key={label} className="text-center">
-                <p className="text-2xl font-bold text-tumtum-text-primary">{value}</p>
-                <p className="text-xs text-tumtum-text-muted">{label}</p>
+                <p className="text-2xl font-bold text-tumtum-white">{value}</p>
+                <p className="text-xs text-tumtum-muted">{label}</p>
               </Card>
             ))}
           </div>
 
           {/* Wearables */}
           <div className="mt-8">
-            <h2 className="mb-4 text-lg font-semibold text-tumtum-text-primary">
+            <h2 className="mb-4 text-lg font-semibold text-tumtum-white">
               Dispositivos conectados
             </h2>
             {connections.length === 0 ? (
               <Card>
-                <p className="text-sm text-tumtum-text-muted">
+                <p className="text-sm text-tumtum-muted">
                   Nenhum dispositivo conectado.{' '}
                   <button
                     onClick={() => router.push('/onboarding')}
-                    className="text-tumtum-red hover:underline"
+                    className="text-tumtum-lime hover:underline"
                   >
                     Conectar agora
                   </button>
@@ -136,11 +136,11 @@ export default function ProfilePage() {
                 {connections.map((conn) => (
                   <Card key={conn.id} className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-tumtum-text-primary capitalize">
+                      <p className="font-medium text-tumtum-white capitalize">
                         {conn.provider.replace('_', ' ')}
                       </p>
                       {conn.last_sync_at && (
-                        <p className="text-xs text-tumtum-text-muted">
+                        <p className="text-xs text-tumtum-muted">
                           Última sincronia: {new Date(conn.last_sync_at).toLocaleDateString('pt-BR')}
                         </p>
                       )}
@@ -158,7 +158,7 @@ export default function ProfilePage() {
           {recentCards.length > 0 && (
             <div className="mt-8">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-tumtum-text-primary">Cards recentes</h2>
+                <h2 className="text-lg font-semibold text-tumtum-white">Cards recentes</h2>
                 <Button size="sm" variant="ghost" onClick={() => router.push('/cards')}>
                   Ver todos
                 </Button>
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                         className="w-full"
                       />
                     ) : (
-                      <div className="flex aspect-[9/16] items-center justify-center bg-tumtum-surface text-tumtum-text-muted">
+                      <div className="flex aspect-[9/16] items-center justify-center bg-tumtum-surface text-tumtum-muted">
                         🃏
                       </div>
                     )}
