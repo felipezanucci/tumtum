@@ -2,18 +2,18 @@ import uuid
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
-from app.models.user import User
 from app.models.event import Event
 from app.models.event_timeline import EventTimeline
+from app.models.user import User
 from app.schemas.event import (
     EventCreateRequest,
-    EventResponse,
     EventDetailResponse,
+    EventResponse,
     TimelineEntryCreate,
     TimelineEntryResponse,
 )
@@ -47,7 +47,11 @@ async def list_events(
     if q:
         pattern = f"%{q}%"
         query = query.where(
-            or_(Event.name.ilike(pattern), Event.venue.ilike(pattern), Event.subtitle.ilike(pattern))
+            or_(
+                Event.name.ilike(pattern),
+                Event.venue.ilike(pattern),
+                Event.subtitle.ilike(pattern),
+            )
         )
     if event_type:
         query = query.where(Event.event_type == event_type)
@@ -68,11 +72,17 @@ async def get_event(event_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Event).where(Event.id == event_id))
     event = result.scalar_one_or_none()
     if not event:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado"
+        )
     return event
 
 
-@router.post("/{event_id}/timeline", response_model=TimelineEntryResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{event_id}/timeline",
+    response_model=TimelineEntryResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def add_timeline_entry(
     event_id: uuid.UUID,
     body: TimelineEntryCreate,
@@ -82,7 +92,9 @@ async def add_timeline_entry(
     # Verify event exists
     result = await db.execute(select(Event).where(Event.id == event_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado"
+        )
 
     entry = EventTimeline(
         event_id=event_id,

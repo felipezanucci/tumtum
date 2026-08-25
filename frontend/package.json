@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@types/react": "^18.0.0",
@@ -25,6 +27,7 @@
     "autoprefixer": "^10.5.4",
     "eslint": "^8.0.0",
     "eslint-config-next": "^14.0.0",
-    "postcss": "^8.5.26"
+    "postcss": "^8.5.26",
+    "vitest": "^4.1.11"
   }
 }

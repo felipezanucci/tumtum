@@ -4,8 +4,6 @@ Matches detected HR peaks to event timeline entries.
 Each peak is matched to the nearest timeline entry within a ±60 second window.
 """
 
-from datetime import datetime
-
 
 def correlate_peaks_to_timeline(
     peaks: list[dict],

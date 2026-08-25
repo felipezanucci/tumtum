@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, SmallInteger, String, ForeignKey
+from sqlalchemy import DateTime, ForeignKey, SmallInteger, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +20,8 @@ class HRData(Base):
     bpm: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     rr_interval_ms: Mapped[int | None] = mapped_column(SmallInteger)
     motion_level: Mapped[int | None] = mapped_column(SmallInteger)
-    source: Mapped[str | None] = mapped_column(String(50))  # apple_health | google_fit | garmin | fitbit
+    source: Mapped[str | None] = mapped_column(
+        String(50)
+    )  # apple_health | google_fit | garmin | fitbit
 
     session = relationship("HRSession", back_populates="data_points")

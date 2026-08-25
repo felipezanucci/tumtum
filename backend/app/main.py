@@ -6,18 +6,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.config import settings
 from app.api.auth import router as auth_router
-from app.api.health import router as health_router
+from app.api.cards import router as cards_router
+from app.api.demo import router as demo_router
 from app.api.events import router as events_router
 from app.api.experience import router as experience_router
-from app.api.cards import router as cards_router
+from app.api.health import router as health_router
 from app.api.users import router as users_router
-from app.api.demo import router as demo_router
+from app.config import settings
 
 # Sentry error tracking
 if settings.sentry_dsn:
     import sentry_sdk
+
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
         environment=settings.environment,
@@ -28,18 +29,17 @@ if settings.sentry_dsn:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Run migrations on startup using SQLAlchemy directly
-    from sqlalchemy import text
-    from app.core.database import engine, Base
+    from app.core.database import Base, engine
+    from app.models.card import Card, Share  # noqa: F401
+    from app.models.event import Event  # noqa: F401
+    from app.models.event_timeline import EventTimeline  # noqa: F401
+    from app.models.hr_data import HRData  # noqa: F401
+    from app.models.hr_session import HRSession  # noqa: F401
+    from app.models.peak import Peak  # noqa: F401
 
     # Import all models so they register with Base.metadata
     from app.models.user import User  # noqa: F401
     from app.models.wearable_connection import WearableConnection  # noqa: F401
-    from app.models.event import Event  # noqa: F401
-    from app.models.event_timeline import EventTimeline  # noqa: F401
-    from app.models.hr_session import HRSession  # noqa: F401
-    from app.models.hr_data import HRData  # noqa: F401
-    from app.models.peak import Peak  # noqa: F401
-    from app.models.card import Card, Share  # noqa: F401
 
     try:
         async with engine.begin() as conn:

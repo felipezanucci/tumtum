@@ -1,9 +1,10 @@
 import uuid
 from datetime import datetime
+
 from pydantic import BaseModel, Field
 
-
 # --- Wearable Connection ---
+
 
 class WearableConnectRequest(BaseModel):
     provider: str = Field(..., pattern="^(apple_health|google_fit|garmin|fitbit)$")
@@ -22,6 +23,7 @@ class WearableConnectionResponse(BaseModel):
 
 
 # --- HR Data Ingestion ---
+
 
 class HRDataPointInput(BaseModel):
     time: datetime
@@ -70,6 +72,7 @@ class HRSessionDetailResponse(HRSessionResponse):
 
 
 # --- Sync ---
+
 
 class SyncRequest(BaseModel):
     connection_id: uuid.UUID

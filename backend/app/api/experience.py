@@ -6,15 +6,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
-from app.models.user import User
-from app.models.hr_session import HRSession
-from app.models.hr_data import HRData
-from app.models.event import Event
 from app.models.event_timeline import EventTimeline
+from app.models.hr_data import HRData
+from app.models.hr_session import HRSession
 from app.models.peak import Peak
-from app.schemas.event import PeakResponse, ExperienceResponse, HRSessionSummary, TimelineEntryResponse, HRDataPointBrief
-from app.services.peak_detection import detect_peaks
+from app.models.user import User
+from app.schemas.event import (
+    ExperienceResponse,
+    HRDataPointBrief,
+    HRSessionSummary,
+    PeakResponse,
+    TimelineEntryResponse,
+)
 from app.services.event_correlator import correlate_peaks_to_timeline
+from app.services.peak_detection import detect_peaks
 
 router = APIRouter(prefix="/api/experience", tags=["experience"])
 
@@ -28,11 +33,15 @@ async def analyze_session(
     """Run peak detection on an HR session and store results."""
     # Fetch session
     result = await db.execute(
-        select(HRSession).where(HRSession.id == session_id, HRSession.user_id == user.id)
+        select(HRSession).where(
+            HRSession.id == session_id, HRSession.user_id == user.id
+        )
     )
     session = result.scalar_one_or_none()
     if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada"
+        )
 
     # Fetch HR data points
     data_result = await db.execute(
@@ -40,7 +49,10 @@ async def analyze_session(
     )
     data_points = data_result.scalars().all()
     if len(data_points) < 10:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Dados insuficientes para análise")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Dados insuficientes para análise",
+        )
 
     # Fetch event timeline if session is linked to an event
     timeline_entries = []
@@ -54,7 +66,9 @@ async def analyze_session(
 
     # Run peak detection
     hr_data = [{"time": dp.time, "bpm": dp.bpm} for dp in data_points]
-    tl_data = [{"time": e.timestamp, "label": e.label, "id": e.id} for e in timeline_entries]
+    tl_data = [
+        {"time": e.timestamp, "label": e.label, "id": e.id} for e in timeline_entries
+    ]
     detected_peaks = detect_peaks(hr_data, tl_data)
 
     # Correlate peaks to timeline
@@ -102,11 +116,15 @@ async def get_experience(
 ):
     """Get full experience data: session summary, peaks, and timeline."""
     result = await db.execute(
-        select(HRSession).where(HRSession.id == session_id, HRSession.user_id == user.id)
+        select(HRSession).where(
+            HRSession.id == session_id, HRSession.user_id == user.id
+        )
     )
     session = result.scalar_one_or_none()
     if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada"
+        )
 
     # Fetch peaks
     peaks_result = await db.execute(
