@@ -1,7 +1,7 @@
 /**
  * Heart rate data quality analysis.
  *
- * Tumtum's peak detection (see CLAUDE.md) applies a 5-second moving average and
+ * TumTum's peak detection (see CLAUDE.md) applies a 5-second moving average and
  * a 60-second rolling baseline before scoring z-scores. That pipeline only works
  * if the sensor samples continuously and densely enough:
  *
@@ -124,7 +124,7 @@ export function analyseQuality(samples: HRSample[]): QualityReport {
   if (medianIntervalSeconds <= TARGET_INTERVAL_SECONDS) {
     notes.push(
       `Cadência ideal: uma leitura a cada ${medianIntervalSeconds.toFixed(1)}s ` +
-        `(alvo do Tumtum: ${TARGET_INTERVAL_SECONDS}s).`,
+        `(alvo do TumTum: ${TARGET_INTERVAL_SECONDS}s).`,
     )
   } else if (medianIntervalSeconds <= ACCEPTABLE_INTERVAL_SECONDS) {
     notes.push(
@@ -210,7 +210,7 @@ export const VERDICT_LABELS: Record<QualityVerdict, string> = {
 }
 
 export const VERDICT_DESCRIPTIONS: Record<QualityVerdict, string> = {
-  good: 'Os dados atendem ao que a detecção de picos do Tumtum precisa.',
+  good: 'Os dados atendem ao que a detecção de picos do TumTum precisa.',
   marginal: 'Dá para gerar uma curva, mas a detecção de picos fica menos confiável.',
-  insufficient: 'Os dados não sustentam a detecção de picos do Tumtum.',
+  insufficient: 'Os dados não sustentam a detecção de picos do TumTum.',
 }

@@ -75,10 +75,10 @@ export default function CardsPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-4xl px-4 py-8">
           <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-tumtum-text-primary">Seus Cards</h1>
+            <h1 className="text-3xl font-bold text-tumtum-white">Seus Cards</h1>
           </div>
 
           {loading ? (
@@ -86,8 +86,8 @@ export default function CardsPage() {
           ) : cardList.length === 0 ? (
             <div className="py-20 text-center">
               <div className="mb-4 text-5xl">🃏</div>
-              <p className="text-lg text-tumtum-text-muted">Você ainda não criou nenhum card</p>
-              <p className="mt-1 text-sm text-tumtum-text-muted">
+              <p className="text-lg text-tumtum-muted">Você ainda não criou nenhum card</p>
+              <p className="mt-1 text-sm text-tumtum-muted">
                 Vá para a aba Experiência e gere um card de um evento.
               </p>
             </div>
@@ -118,13 +118,13 @@ export default function CardsPage() {
                     </div>
 
                     {meta?.event_name && (
-                      <p className="mt-2 font-medium text-tumtum-text-primary">{meta.event_name}</p>
+                      <p className="mt-2 font-medium text-tumtum-white">{meta.event_name}</p>
                     )}
                     {meta?.peak_bpm && (
-                      <p className="text-sm text-tumtum-text-muted">Pico: {meta.peak_bpm} bpm</p>
+                      <p className="text-sm text-tumtum-muted">Pico: {meta.peak_bpm} bpm</p>
                     )}
 
-                    <p className="mt-1 text-xs text-tumtum-text-muted">
+                    <p className="mt-1 text-xs text-tumtum-muted">
                       {new Date(card.created_at).toLocaleDateString('pt-BR')}
                     </p>
 
@@ -156,8 +156,8 @@ export default function CardsPage() {
 
                     {/* Share menu */}
                     {shareMenuId === card.id && (
-                      <div className="mt-3 rounded-lg border border-tumtum-border bg-tumtum-dark p-3">
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-tumtum-text-muted">
+                      <div className="mt-3 rounded-lg border border-tumtum-border bg-tumtum-black p-3">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-tumtum-muted">
                           Compartilhar em
                         </p>
                         <div className="flex flex-wrap gap-2">
@@ -165,7 +165,7 @@ export default function CardsPage() {
                             <button
                               key={platform}
                               onClick={() => handleShare(card, platform)}
-                              className="rounded-lg bg-tumtum-surface px-3 py-1.5 text-xs text-tumtum-text-primary transition-colors hover:bg-tumtum-border"
+                              className="rounded-lg bg-tumtum-surface px-3 py-1.5 text-xs text-tumtum-white transition-colors hover:bg-tumtum-border"
                             >
                               {platform === 'link' && copied ? 'Copiado!' : platformLabels[platform]}
                             </button>

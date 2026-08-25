@@ -10,7 +10,7 @@ import { Nav } from '@/components/layout'
 
 export default function ExperiencePage() {
   return (
-    <Suspense fallback={<><Nav /><main className="flex min-h-screen items-center justify-center bg-tumtum-dark"><Loading size="lg" /></main></>}>
+    <Suspense fallback={<><Nav /><main className="flex min-h-screen items-center justify-center bg-tumtum-black"><Loading size="lg" /></main></>}>
       <ExperienceContent />
     </Suspense>
   )
@@ -35,12 +35,12 @@ function ExperienceContent() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-tumtum-text-primary">
+            <h1 className="text-2xl font-bold text-tumtum-white">
               Nenhuma sessão selecionada
             </h1>
-            <p className="mt-2 text-tumtum-text-muted">
+            <p className="mt-2 text-tumtum-muted">
               Selecione um evento para ver sua experiência.
             </p>
           </div>
@@ -53,7 +53,7 @@ function ExperienceContent() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
           <Loading size="lg" />
         </main>
       </>
@@ -64,8 +64,8 @@ function ExperienceContent() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
-          <p className="text-tumtum-text-muted">Dados não encontrados.</p>
+        <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
+          <p className="text-tumtum-muted">Dados não encontrados.</p>
         </main>
       </>
     )
@@ -96,18 +96,18 @@ function ExperienceContent() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-5xl px-4 py-8">
           {/* Header */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-tumtum-text-primary">
+              <h1 className="text-3xl font-bold text-tumtum-white">
                 Sua Experiência
               </h1>
-              <div className="mt-2 flex flex-wrap gap-4 text-sm text-tumtum-text-muted">
+              <div className="mt-2 flex flex-wrap gap-4 text-sm text-tumtum-muted">
                 {session.avg_bpm && <span>Média: {session.avg_bpm} bpm</span>}
                 {session.max_bpm && (
-                  <span className="text-tumtum-red">Máx: {session.max_bpm} bpm</span>
+                  <span className="text-tumtum-lime">Máx: {session.max_bpm} bpm</span>
                 )}
                 {session.min_bpm && <span>Mín: {session.min_bpm} bpm</span>}
                 {session.data_quality_score !== null && (
@@ -134,19 +134,19 @@ function ExperienceContent() {
               height={350}
               animated
             />
-            <p className="mt-2 text-center text-xs text-tumtum-text-muted">
-              Curva de frequência cardíaca durante o evento
+            <p className="mt-2 text-center text-xs text-tumtum-muted">
+              Sua batida ao longo da noite
             </p>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Peaks */}
             <div className="lg:col-span-2">
-              <h2 className="mb-4 text-lg font-semibold text-tumtum-text-primary">
+              <h2 className="mb-4 text-lg font-semibold text-tumtum-white">
                 Seus Picos de Emoção
               </h2>
               {peaks.length === 0 ? (
-                <p className="text-tumtum-text-muted">Nenhum pico detectado ainda. Analise a sessão primeiro.</p>
+                <p className="text-tumtum-muted">Nenhum pico detectado ainda. Analise a sessão primeiro.</p>
               ) : (
                 <div className="space-y-3">
                   {peaks.map((peak) => (

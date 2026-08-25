@@ -38,7 +38,7 @@ export default function EventDetailPage() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
+        <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
           <Loading size="lg" />
         </main>
       </>
@@ -49,8 +49,8 @@ export default function EventDetailPage() {
     return (
       <>
         <Nav />
-        <main className="flex min-h-screen items-center justify-center bg-tumtum-dark">
-          <p className="text-tumtum-text-muted">Evento não encontrado.</p>
+        <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
+          <p className="text-tumtum-muted">Evento não encontrado.</p>
         </main>
       </>
     )
@@ -67,7 +67,7 @@ export default function EventDetailPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-4xl px-4 py-8">
           {/* Cover */}
           {event.cover_image_url && (
@@ -88,12 +88,12 @@ export default function EventDetailPage() {
               ? 'Esporte'
               : 'Festival'}
           </Badge>
-          <h1 className="text-3xl font-bold text-tumtum-text-primary">{event.name}</h1>
+          <h1 className="text-3xl font-bold text-tumtum-white">{event.name}</h1>
           {event.subtitle && (
-            <p className="mt-1 text-lg text-tumtum-text-muted">{event.subtitle}</p>
+            <p className="mt-1 text-lg text-tumtum-muted">{event.subtitle}</p>
           )}
 
-          <div className="mt-4 flex flex-wrap gap-4 text-sm text-tumtum-text-muted">
+          <div className="mt-4 flex flex-wrap gap-4 text-sm text-tumtum-muted">
             {event.venue && <span>📍 {event.venue}</span>}
             {event.city && <span>{event.city}{event.country ? `, ${event.country}` : ''}</span>}
             <span>📅 {formattedDate}</span>
@@ -101,11 +101,11 @@ export default function EventDetailPage() {
 
           {/* Simulate CTA */}
           <div className="mt-8 rounded-xl border border-tumtum-border bg-tumtum-surface p-6">
-            <h2 className="text-lg font-semibold text-tumtum-text-primary">
+            <h2 className="text-lg font-semibold text-tumtum-white">
               Simular Experiência
             </h2>
-            <p className="mt-1 text-sm text-tumtum-text-muted">
-              Veja como seria sua experiência nesse evento com dados simulados de frequência cardíaca.
+            <p className="mt-1 text-sm text-tumtum-muted">
+              Veja como seria sua noite nesse evento, com dados de exemplo.
             </p>
             <Button
               className="mt-4"

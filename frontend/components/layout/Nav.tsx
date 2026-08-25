@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Wordmark } from '@/components/brand'
 import { usePathname } from 'next/navigation'
 
 const navLinks = [
@@ -15,15 +16,10 @@ export default function Nav() {
   const pathname = usePathname()
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-tumtum-border bg-tumtum-dark/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-40 border-b border-tumtum-border bg-tumtum-black/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span
-            className="text-xl font-bold uppercase tracking-widest text-tumtum-red"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Tumtum
-          </span>
+          <Wordmark className="h-5 w-auto text-tumtum-white" />
         </Link>
 
         <div className="flex items-center gap-3 overflow-x-auto sm:gap-6">
@@ -33,8 +29,8 @@ export default function Nav() {
               href={href}
               className={`shrink-0 whitespace-nowrap text-sm transition-colors ${
                 pathname?.startsWith(href)
-                  ? 'font-medium text-tumtum-text-primary'
-                  : 'text-tumtum-text-muted hover:text-tumtum-text-primary'
+                  ? 'font-medium text-tumtum-white'
+                  : 'text-tumtum-muted hover:text-tumtum-white'
               }`}
             >
               {label}

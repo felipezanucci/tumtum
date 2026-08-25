@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Wordmark } from '@/components/brand'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -26,16 +27,11 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-tumtum-dark px-4">
+    <main className="flex min-h-screen items-center justify-center bg-tumtum-black px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1
-            className="text-3xl font-bold uppercase tracking-widest text-tumtum-red"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Tumtum
-          </h1>
-          <p className="mt-2 text-tumtum-text-muted">Crie sua conta e sinta o evento</p>
+          <Wordmark className="h-8 w-auto text-tumtum-white" />
+          <p className="mt-2 text-tumtum-muted">Crie sua conta e sinta o evento</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,9 +70,9 @@ export default function SignupPage() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-tumtum-text-muted">
+        <p className="mt-6 text-center text-sm text-tumtum-muted">
           Já tem conta?{' '}
-          <Link href="/login" className="text-tumtum-red hover:underline">
+          <Link href="/login" className="text-tumtum-lime hover:underline">
             Fazer login
           </Link>
         </p>

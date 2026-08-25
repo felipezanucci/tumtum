@@ -4,7 +4,7 @@
  * Phase 0 has no cloud path for Android HR data: Health Connect is an on-device
  * API with no REST surface, and the Google Fit REST API is being turned down.
  * Until a native bridge exists, the only way to get REAL heart rate data from an
- * Android device into Tumtum is a file export from the vendor app.
+ * Android device into TumTum is a file export from the vendor app.
  *
  * These parsers are deliberately format-tolerant because every wearable vendor
  * exports something slightly different. Supported inputs:
@@ -437,8 +437,8 @@ export function parseHRFile(fileName: string, content: string): ParseResult {
 
   if (samples.length === 0) {
     throw new ImportParseError(
-      `Nenhuma leitura de frequência cardíaca encontrada em "${fileName}". ` +
-        'Confira se o arquivo exportado contém batimentos com horário.',
+      `Nenhuma batida encontrada em "${fileName}". ` +
+        'Confira se o arquivo exportado tem batidas com horário.',
     )
   }
 

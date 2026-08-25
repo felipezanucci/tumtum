@@ -1,11 +1,11 @@
 {
-  "name": "Tumtum",
-  "short_name": "Tumtum",
+  "name": "TumTum",
+  "short_name": "TumTum",
   "description": "Sinta o evento. Compartilhe a emoção.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#08080C",
-  "theme_color": "#C0392B",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {

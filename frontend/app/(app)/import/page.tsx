@@ -38,7 +38,7 @@ const formatLabels: Record<ParseResult['format'], string> = {
 const verdictStyles: Record<QualityVerdict, string> = {
   good: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
   marginal: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
-  insufficient: 'border-tumtum-red/50 bg-tumtum-red/10 text-tumtum-red-secondary',
+  insufficient: 'border-red-500/50 bg-red-500/10 text-red-400',
 }
 
 /** Convert epoch millis to the "YYYY-MM-DDTHH:mm" value a datetime-local input expects. */
@@ -178,14 +178,14 @@ export default function ImportPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-tumtum-dark">
+      <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-2xl px-4 py-8">
-          <h1 className="text-3xl font-bold text-tumtum-text-primary">
+          <h1 className="text-3xl font-bold text-tumtum-white">
             Importar batimentos
           </h1>
-          <p className="mt-2 text-sm text-tumtum-text-muted">
+          <p className="mt-2 text-sm text-tumtum-muted">
             Envie o arquivo exportado do app do seu dispositivo para ver sua curva real
-            de frequência cardíaca. Aceita CSV, JSON e a exportação do Apple Saúde.
+            com suas batidas. Aceita CSV, JSON e a exportação do Apple Saúde.
           </p>
 
           {/* Step 1 — file */}
@@ -194,12 +194,12 @@ export default function ImportPage() {
               <Card.Title>1. Escolha o arquivo</Card.Title>
             </Card.Header>
 
-            <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-tumtum-border px-4 py-8 text-center transition-colors hover:border-tumtum-text-muted">
+            <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-tumtum-border px-4 py-8 text-center transition-colors hover:border-tumtum-muted">
               <span className="text-3xl">📂</span>
-              <span className="mt-3 text-sm font-medium text-tumtum-text-primary">
+              <span className="mt-3 text-sm font-medium text-tumtum-white">
                 {fileName ?? 'Toque para selecionar'}
               </span>
-              <span className="mt-1 text-xs text-tumtum-text-muted">
+              <span className="mt-1 text-xs text-tumtum-muted">
                 .csv, .tsv, .json ou .xml
               </span>
               <input
@@ -217,7 +217,7 @@ export default function ImportPage() {
             )}
 
             {parseError && (
-              <p className="mt-4 rounded-lg border border-tumtum-red/40 bg-tumtum-red/10 p-3 text-sm text-tumtum-red-secondary">
+              <p className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
                 {parseError}
               </p>
             )}
@@ -226,12 +226,12 @@ export default function ImportPage() {
               <div className="mt-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="accent">{formatLabels[parseResult.format]}</Badge>
-                  <span className="text-sm text-tumtum-text-muted">
+                  <span className="text-sm text-tumtum-muted">
                     {parseResult.samples.length.toLocaleString('pt-BR')} leituras
                   </span>
                 </div>
                 {parseResult.warnings.map((warning) => (
-                  <p key={warning} className="text-xs text-tumtum-text-muted">
+                  <p key={warning} className="text-xs text-tumtum-muted">
                     {warning}
                   </p>
                 ))}
@@ -248,14 +248,14 @@ export default function ImportPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm text-tumtum-text-muted" htmlFor="event">
+                  <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="event">
                     Evento (opcional)
                   </label>
                   <select
                     id="event"
                     value={eventId}
                     onChange={(e) => handleEventChange(e.target.value)}
-                    className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-text-primary focus:border-tumtum-red focus:outline-none"
+                    className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none"
                   >
                     <option value="">Sem evento — só a curva</option>
                     {eventList.map((item) => (
@@ -264,7 +264,7 @@ export default function ImportPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-tumtum-text-muted">
+                  <p className="mt-1 text-xs text-tumtum-muted">
                     Vincular a um evento é o que permite casar seus picos com os momentos
                     (músicas, gols) da linha do tempo.
                   </p>
@@ -272,7 +272,7 @@ export default function ImportPage() {
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm text-tumtum-text-muted" htmlFor="start">
+                    <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="start">
                       Início
                     </label>
                     <input
@@ -280,11 +280,11 @@ export default function ImportPage() {
                       type="datetime-local"
                       value={startInput}
                       onChange={(e) => setStartInput(e.target.value)}
-                      className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-text-primary focus:border-tumtum-red focus:outline-none"
+                      className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm text-tumtum-text-muted" htmlFor="end">
+                    <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="end">
                       Fim
                     </label>
                     <input
@@ -292,7 +292,7 @@ export default function ImportPage() {
                       type="datetime-local"
                       value={endInput}
                       onChange={(e) => setEndInput(e.target.value)}
-                      className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-text-primary focus:border-tumtum-red focus:outline-none"
+                      className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none"
                     />
                   </div>
                 </div>
@@ -340,7 +340,7 @@ export default function ImportPage() {
 
               <ul className="mt-4 space-y-2">
                 {report.notes.map((note) => (
-                  <li key={note} className="flex gap-2 text-sm text-tumtum-text-muted">
+                  <li key={note} className="flex gap-2 text-sm text-tumtum-muted">
                     <span aria-hidden="true">•</span>
                     <span>{note}</span>
                   </li>
@@ -353,7 +353,7 @@ export default function ImportPage() {
           {parseResult && (
             <div className="mt-6">
               {uploadError && (
-                <p className="mb-3 rounded-lg border border-tumtum-red/40 bg-tumtum-red/10 p-3 text-sm text-tumtum-red-secondary">
+                <p className="mb-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
                   {uploadError}
                 </p>
               )}
@@ -366,7 +366,7 @@ export default function ImportPage() {
               >
                 {uploading ? 'Processando...' : 'Ver minha experiência'}
               </Button>
-              <p className="mt-2 text-center text-xs text-tumtum-text-muted">
+              <p className="mt-2 text-center text-xs text-tumtum-muted">
                 {windowSamples.length.toLocaleString('pt-BR')} leituras serão enviadas.
               </p>
             </div>
@@ -379,10 +379,10 @@ export default function ImportPage() {
 
 function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-tumtum-border bg-tumtum-dark p-3">
-      <dt className="text-xs text-tumtum-text-muted">{label}</dt>
-      <dd className="mt-1 text-lg font-semibold text-tumtum-text-primary">{value}</dd>
-      {hint && <p className="text-xs text-tumtum-text-muted">{hint}</p>}
+    <div className="rounded-lg border border-tumtum-border bg-tumtum-black p-3">
+      <dt className="text-xs text-tumtum-muted">{label}</dt>
+      <dd className="mt-1 text-lg font-semibold text-tumtum-white">{value}</dd>
+      {hint && <p className="text-xs text-tumtum-muted">{hint}</p>}
     </div>
   )
 }
