@@ -99,8 +99,20 @@ async def create_hr_session(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # hr_data is keyed by (time, session_id), so two readings sharing a
+    # timestamp would abort the whole insert. A client that rounds or replays
+    # timestamps can produce those, and losing a four-hour capture to one
+    # repeated instant is never the right trade: keep the first, drop the rest.
+    seen: set[datetime] = set()
+    unique_points = []
+    for dp in body.data_points:
+        if dp.time in seen:
+            continue
+        seen.add(dp.time)
+        unique_points.append(dp)
+
     # Compute stats from data points
-    bpm_values = [dp.bpm for dp in body.data_points]
+    bpm_values = [dp.bpm for dp in unique_points]
     avg_bpm = round(sum(bpm_values) / len(bpm_values)) if bpm_values else None
     max_bpm = max(bpm_values) if bpm_values else None
     min_bpm = min(bpm_values) if bpm_values else None
@@ -135,7 +147,7 @@ async def create_hr_session(
             motion_level=dp.motion_level,
             source=dp.source,
         )
-        for dp in body.data_points
+        for dp in unique_points
     ]
     db.add_all(data_points)
     await db.flush()

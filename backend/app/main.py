@@ -1,7 +1,10 @@
+import traceback
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
 from app.api.auth import router as auth_router
@@ -56,6 +59,33 @@ app = FastAPI(title="Tumtum API", version="0.1.0", lifespan=lifespan)
 VERCEL_PREVIEW_ORIGIN = (
     r"https://tumtum-[a-z0-9-]+-felipezanuccis-projects\.vercel\.app"
 )
+
+
+class CatchUnhandledErrors(BaseHTTPMiddleware):
+    """Return unhandled errors as a normal response, from inside the CORS layer.
+
+    Starlette's own 500 is produced outside every user middleware, so it carries
+    no Access-Control-Allow-Origin. The browser then refuses the response and
+    the fetch rejects, which the frontend can only report as "the server is
+    unreachable" — a crash disguised as an outage. Trapping the exception here,
+    inside CORSMiddleware, means the 500 travels back out through it and the
+    client sees what actually went wrong.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        try:
+            return await call_next(request)
+        except Exception:
+            traceback.print_exc()
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "Erro interno do servidor."},
+            )
+
+
+# Added before CORSMiddleware so CORS ends up outermost: Starlette treats the
+# most recently added middleware as the outer one.
+app.add_middleware(CatchUnhandledErrors)
 
 app.add_middleware(
     CORSMiddleware,

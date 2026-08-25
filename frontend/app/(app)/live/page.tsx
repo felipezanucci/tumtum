@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useEventStore } from '@/lib/stores/useEventStore'
 import { useHRStore } from '@/lib/stores/useHRStore'
 import {
@@ -244,6 +245,15 @@ export default function LivePage() {
     }
   }, [])
 
+  // Saving needs an account, but nothing on this page used to check for one.
+  // A capture could run for a whole concert and only fail at the very end,
+  // which is the worst possible moment to learn about it.
+  const authToken = useAuthStore((s) => s.token)
+  const [signedIn, setSignedIn] = useState<boolean | null>(null)
+  useEffect(() => {
+    setSignedIn(Boolean(authToken ?? window.localStorage.getItem('access_token')))
+  }, [authToken])
+
   const capturing = state === 'connected' || state === 'reconnecting'
   const elapsed = startedAt ? (now - Date.parse(startedAt)) / 1000 : 0
 
@@ -257,6 +267,27 @@ export default function LivePage() {
             Conecte uma cinta ou relógio que transmita frequência cardíaca por Bluetooth
             e acompanhe seu batimento em tempo real durante o evento.
           </p>
+
+          {signedIn === false && (
+            <Card className="mt-6 border-amber-500/50">
+              <Card.Header>
+                <Card.Title>Entre na sua conta antes de capturar</Card.Title>
+              </Card.Header>
+              <Card.Content>
+                <p>
+                  A captura funciona sem conta, mas o salvamento não. Sem entrar,
+                  você só descobriria isso no fim do evento.
+                </p>
+                <p className="mt-3">
+                  Seus dados ficam guardados neste navegador enquanto isso — se já
+                  capturou algo, entre na conta e volte aqui para recuperar.
+                </p>
+              </Card.Content>
+              <Link href="/login">
+                <Button className="mt-4 w-full">Entrar na minha conta</Button>
+              </Link>
+            </Card>
+          )}
 
           {supported === null && (
             <div className="mt-8 flex justify-center">

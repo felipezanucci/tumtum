@@ -37,6 +37,12 @@ async function request<T>(
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ detail: 'Erro desconhecido' }))
+    // FastAPI answers a missing or expired token with the English string
+    // "Not authenticated", which reached the user verbatim and explained
+    // nothing about what to do next.
+    if (response.status === 401) {
+      throw new ApiError(401, 'Sua sessão expirou. Entre na sua conta para continuar.')
+    }
     throw new ApiError(response.status, body.detail || 'Erro desconhecido')
   }
 

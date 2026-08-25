@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  /* Android Chrome reloads the page on a downward swipe at the top of the
+     scroll area. During a live capture that drops the Bluetooth connection and
+     restarts the session — one stray thumb at a concert costs the show. */
+  overscroll-behavior-y: contain;
+}
+
 body {
   font-family: system-ui, -apple-system, sans-serif;
+  overscroll-behavior-y: contain;
 }
