@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { ApiError, auth, millisUntilTokenExpiry } from '@/lib/api'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useEventStore } from '@/lib/stores/useEventStore'
 import { useHRStore } from '@/lib/stores/useHRStore'
@@ -52,6 +53,13 @@ const QUIET_CLOCK_MS = 30_000
  * experiência" and end the capture for good.
  */
 const QUIET_EXIT_HOLD_MS = 1_200
+
+/**
+ * Warn when a token would expire inside a long capture. Comfortably longer
+ * than an event, because the cost of re-entering an account before starting is
+ * nothing and the cost of discovering it at the end is the whole night.
+ */
+const TOKEN_RENEWAL_WARNING_MS = 8 * 60 * 60 * 1000
 
 const stateLabels: Record<BleState, string> = {
   unsupported: 'Não suportado',
@@ -324,10 +332,36 @@ export default function LivePage() {
   // Saving needs an account, but nothing on this page used to check for one.
   // A capture could run for a whole concert and only fail at the very end,
   // which is the worst possible moment to learn about it.
+  //
+  // Holding a token is not the same as holding a valid one. They last 24
+  // hours, so one saved a few days before an event still looks like an account
+  // here, and the capture would only discover otherwise when it was saved.
   const authToken = useAuthStore((s) => s.token)
   const [signedIn, setSignedIn] = useState<boolean | null>(null)
+  const [tokenExpiringSoon, setTokenExpiringSoon] = useState(false)
   useEffect(() => {
-    setSignedIn(Boolean(authToken ?? window.localStorage.getItem('access_token')))
+    const stored = authToken ?? window.localStorage.getItem('access_token')
+    if (!stored) {
+      setSignedIn(false)
+      return
+    }
+    const left = millisUntilTokenExpiry(stored)
+    setTokenExpiringSoon(left !== null && left > 0 && left < TOKEN_RENEWAL_WARNING_MS)
+    let cancelled = false
+    auth
+      .me()
+      .then(() => {
+        if (!cancelled) setSignedIn(true)
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        // Only a refusal means signed out. Capture needs no backend at all, so
+        // a server that cannot be reached right now must not block the night.
+        setSignedIn(!(err instanceof ApiError && err.status === 401))
+      })
+    return () => {
+      cancelled = true
+    }
   }, [authToken])
 
   const capturing = state === 'connected' || state === 'reconnecting'
@@ -391,6 +425,29 @@ export default function LivePage() {
               </Card.Content>
               <Link href="/login">
                 <Button className="mt-4 w-full">Entrar na minha conta</Button>
+              </Link>
+            </Card>
+          )}
+
+          {signedIn !== false && tokenExpiringSoon && !capturing && (
+            <Card className="mt-6 border-amber-500/50">
+              <Card.Header>
+                <Card.Title>Entre de novo antes de começar</Card.Title>
+              </Card.Header>
+              <Card.Content>
+                <p>
+                  Seu acesso vence em menos de oito horas, ou seja, pode vencer no
+                  meio de um evento longo. A captura continuaria, mas o salvamento
+                  falharia no fim.
+                </p>
+                <p className="mt-3">
+                  Sair e entrar de novo agora leva dez segundos e resolve.
+                </p>
+              </Card.Content>
+              <Link href="/login">
+                <Button variant="secondary" className="mt-4 w-full">
+                  Entrar de novo
+                </Button>
               </Link>
             </Card>
           )}
