@@ -53,6 +53,8 @@ const QUIET_CLOCK_MS = 30_000
  * experiência" and end the capture for good.
  */
 const QUIET_EXIT_HOLD_MS = 1_200
+const EXIT_RING_RADIUS = 54
+const EXIT_RING_LENGTH = 2 * Math.PI * EXIT_RING_RADIUS
 
 /**
  * Warn when a token would expire inside a long capture. Comfortably longer
@@ -118,6 +120,7 @@ export default function LivePage() {
   const [chooserStuck, setChooserStuck] = useState(false)
   const [quiet, setQuiet] = useState(false)
   const [holdingExit, setHoldingExit] = useState(false)
+  const [confirmingFinish, setConfirmingFinish] = useState(false)
   const quietRef = useRef(false)
   const lastDisplayRef = useRef(0)
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -268,14 +271,26 @@ export default function LivePage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao salvar a sessão.')
       setSaving(false)
+      setConfirmingFinish(false)
     }
   }
 
-  function startExitHold() {
+  function startExitHold(event: React.PointerEvent<HTMLButtonElement>) {
+    // Hold on to this pointer even if the finger drifts off the button. A press
+    // held for over a second always moves a little, and letting the pointer go
+    // used to cancel the hold with nothing on screen to say why.
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      // Capture is an optimisation here, not a requirement.
+    }
     setHoldingExit(true)
     holdTimerRef.current = setTimeout(() => {
       setHoldingExit(false)
       setQuiet(false)
+      // Confirm in the hand: the screen is about to change brightness in a
+      // dark room, and a buzz says it worked before the eyes adjust.
+      navigator.vibrate?.(40)
     }, QUIET_EXIT_HOLD_MS)
   }
 
@@ -383,15 +398,53 @@ export default function LivePage() {
         {state === 'reconnecting' && (
           <div className="mt-6 text-xs text-amber-500/70">reconectando…</div>
         )}
+        {/*
+          Big enough to find without looking, and it shows the hold filling.
+          The first version was a line of 10px text at 40% opacity that gave no
+          sign it had been pressed, so a hold that was silently cancelled and a
+          hold that was never registered looked exactly the same.
+
+          `touchAction: none` keeps the browser from reading the press as the
+          start of a scroll and cancelling the pointer partway through.
+        */}
         <button
           type="button"
           onPointerDown={startExitHold}
           onPointerUp={cancelExitHold}
-          onPointerLeave={cancelExitHold}
           onPointerCancel={cancelExitHold}
-          className="mt-16 rounded-lg px-6 py-3 text-xs text-tumtum-muted/40"
+          style={{ touchAction: 'none' }}
+          className="relative mt-12 flex h-40 w-40 items-center justify-center rounded-full"
+          aria-label="Segure para sair do modo evento"
         >
-          {holdingExit ? 'segure…' : 'segure para sair do modo evento'}
+          <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 120 120">
+            <circle
+              cx="60"
+              cy="60"
+              r={EXIT_RING_RADIUS}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-tumtum-muted/25"
+            />
+            <circle
+              cx="60"
+              cy="60"
+              r={EXIT_RING_RADIUS}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray={EXIT_RING_LENGTH}
+              strokeDashoffset={holdingExit ? 0 : EXIT_RING_LENGTH}
+              style={{
+                transition: `stroke-dashoffset ${holdingExit ? QUIET_EXIT_HOLD_MS : 200}ms linear`,
+              }}
+              className="text-tumtum-lime"
+            />
+          </svg>
+          <span className="px-6 text-center text-sm text-tumtum-muted">
+            {holdingExit ? 'segurando…' : 'segure para sair'}
+          </span>
         </button>
       </main>
     )
@@ -628,15 +681,47 @@ export default function LivePage() {
                 </p>
               )}
 
-              {sampleCount > 0 && (
+              {/*
+                One tap used to end a capture that could be hours old. A phone
+                spends an event in a pocket, and this is the only control on
+                the screen whose cost is the whole night, so it asks first.
+              */}
+              {sampleCount > 0 && !confirmingFinish && (
                 <Button
-                  onClick={handleFinish}
+                  onClick={() => setConfirmingFinish(true)}
                   loading={saving}
                   size="lg"
                   className="mt-6 w-full"
                 >
                   {saving ? 'Salvando...' : 'Encerrar e ver minha experiência'}
                 </Button>
+              )}
+
+              {sampleCount > 0 && confirmingFinish && (
+                <Card className="mt-6 border-tumtum-lime/50">
+                  <Card.Header>
+                    <Card.Title>Encerrar a captura?</Card.Title>
+                  </Card.Header>
+                  <Card.Content>
+                    <p>
+                      São {formatDuration(elapsed)} e{' '}
+                      {sampleCount.toLocaleString('pt-BR')} leituras. Depois de
+                      encerrar, o sensor é desconectado e a captura não continua.
+                    </p>
+                  </Card.Content>
+                  <div className="mt-4 flex gap-3">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setConfirmingFinish(false)}
+                      className="flex-1"
+                    >
+                      Continuar capturando
+                    </Button>
+                    <Button onClick={handleFinish} loading={saving} className="flex-1">
+                      {saving ? 'Salvando...' : 'Encerrar'}
+                    </Button>
+                  </div>
+                </Card>
               )}
             </>
           )}
