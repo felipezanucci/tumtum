@@ -19,6 +19,8 @@ export default function CardsPage() {
   const [loading, setLoading] = useState(true)
   const [shareMenuId, setShareMenuId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  /** Building the image file to hand over takes a moment on a slow connection. */
+  const [sharingId, setSharingId] = useState<string | null>(null)
 
   useEffect(() => {
     loadCards()
@@ -31,6 +33,29 @@ export default function CardsPage() {
       setCardList(data)
     } finally {
       setLoading(false)
+    }
+  }
+
+  /**
+   * A card is portrait and fills a phone, so a list of platforms rendered under
+   * it landed below the fold: the button appeared to do nothing at all.
+   *
+   * On a phone there was nothing worth showing anyway. Every entry in that list
+   * opened the same system sheet, which already lists Instagram, WhatsApp and
+   * TikTok — the real ones, not links that approximate them. So the button now
+   * opens that sheet directly, and the list stays for browsers that have no
+   * sheet of their own, where the per-platform links genuinely differ.
+   */
+  async function handleSharePressed(card: CardData) {
+    if (!canNativeShare()) {
+      setShareMenuId(shareMenuId === card.id ? null : card.id)
+      return
+    }
+    setSharingId(card.id)
+    try {
+      await handleShare(card, 'native')
+    } finally {
+      setSharingId(null)
     }
   }
 
@@ -58,7 +83,7 @@ export default function CardsPage() {
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
       }
-    } else if (canNativeShare()) {
+    } else if (platform === 'native' || canNativeShare()) {
       await nativeShare(shareData)
     } else {
       const url = getShareUrl(platform as any, shareData)
@@ -141,7 +166,8 @@ export default function CardsPage() {
                     <div className="mt-4 flex gap-2">
                       <Button
                         size="sm"
-                        onClick={() => setShareMenuId(shareMenuId === card.id ? null : card.id)}
+                        onClick={() => handleSharePressed(card)}
+                        loading={sharingId === card.id}
                         disabled={card.status !== 'ready'}
                       >
                         Compartilhar
@@ -165,7 +191,10 @@ export default function CardsPage() {
 
                     {/* Share menu */}
                     {shareMenuId === card.id && (
-                      <div className="mt-3 rounded-lg border border-tumtum-border bg-tumtum-black p-3">
+                      <div
+                        ref={(node) => node?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })}
+                        className="mt-3 rounded-lg border border-tumtum-lime/50 bg-tumtum-black p-3"
+                      >
                         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-tumtum-muted">
                           Compartilhar em
                         </p>

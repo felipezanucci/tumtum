@@ -19,6 +19,7 @@ from app.schemas.card import (
     ShareResponse,
 )
 from app.services.card_generator import generate_moment_card
+from app.services.local_time import format_moment_time
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
 
@@ -95,7 +96,7 @@ async def create_card(
             event_name = event.name
             event_date = event.date.strftime("%d/%m/%Y")
 
-    moment_time = peak.timestamp.strftime("%Hh%M") if peak else None
+    moment_time = format_moment_time(peak.timestamp) if peak else None
 
     try:
         image_bytes = generate_moment_card(
