@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Wordmark } from '@/components/brand'
 import { useParams } from 'next/navigation'
 import { users, type PublicProfile } from '@/lib/api'
 import { Avatar, Card, Loading } from '@/components/ui'
@@ -78,11 +79,7 @@ export default function PublicProfilePage() {
 
         {/* Branding */}
         <div className="mt-12 text-center">
-          <p
-            className="text-sm font-hero uppercase tracking-widest text-tumtum-white"
-          >
-            TumTum
-          </p>
+          <Wordmark className="h-4 w-auto text-tumtum-white" />
           <p className="mt-1 text-xs text-tumtum-muted">
             Sinta o evento. Compartilhe a emoção.
           </p>

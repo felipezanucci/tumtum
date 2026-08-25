@@ -54,6 +54,26 @@ STORY_SIZE = (1080, 1920)
 FEED_SIZE = (1080, 1080)
 
 
+BRAND_DIR = Path(__file__).resolve().parent.parent / "assets" / "brand"
+
+
+def _paste_wordmark(img: Image.Image, centre_x: int, top: int, height: int) -> None:
+    """Stamp the official wordmark, scaled by height so the shape never changes.
+
+    The manual forbids redrawing, stretching or slanting it, and forbids the
+    Acid Lime and Toxic Yellow versions — so this pastes the white master and
+    nothing recolours it. If the asset is missing the card simply carries no
+    wordmark, which is better than substituting a lookalike.
+    """
+    try:
+        mark = Image.open(BRAND_DIR / "tumtum-wordmark-white.png").convert("RGBA")
+    except OSError:
+        return
+    width = round(mark.width * height / mark.height)
+    mark = mark.resize((width, height), Image.LANCZOS)
+    img.paste(mark, (centre_x - width // 2, top), mark)
+
+
 def generate_solo_card(
     user_name: str,
     event_name: str,
@@ -88,7 +108,6 @@ def generate_solo_card(
     w, h = size
 
     # Try to load fonts, fallback to default
-    font_logo = _font("hero", 48)
     font_large = _font("hero", 120)
     font_medium = _font("hero", 42)
     font_small = _font("body", 32)
@@ -100,7 +119,7 @@ def generate_solo_card(
     # emphasis in this system; they are not a background wash.
 
     # Logo
-    draw.text((w // 2, 80), "TUMTUM", fill=TUMTUM_WHITE, font=font_logo, anchor="mt")
+    _paste_wordmark(img, w // 2, 72, 34)
 
     # Event name
     y_offset = 200 if format == "story" else 160
@@ -193,7 +212,6 @@ def generate_comparison_card(
 
     w, h = size
 
-    font_logo = _font("hero", 48)
     font_large = _font("hero", 120)
     font_medium = _font("hero", 42)
     font_small = _font("body", 32)
@@ -207,7 +225,7 @@ def generate_comparison_card(
         draw.line([(0, y), (w, y)], fill=(r, g, b))
 
     # Logo
-    draw.text((w // 2, 80), "TUMTUM", fill=TUMTUM_WHITE, font=font_logo, anchor="mt")
+    _paste_wordmark(img, w // 2, 72, 34)
 
     # Event
     draw.text(

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Wordmark } from '@/components/brand'
 
 export default function LandingPage() {
   return (
@@ -11,11 +12,7 @@ export default function LandingPage() {
         </div>
 
         <div className="relative z-10">
-          <h1
-            className="text-5xl font-hero uppercase tracking-widest text-tumtum-white sm:text-7xl"
-          >
-            TumTum
-          </h1>
+          <Wordmark className="mx-auto h-14 w-auto text-tumtum-white sm:h-20" />
           <p className="mt-4 text-xl text-tumtum-white sm:text-2xl">
             Sinta o evento. Compartilhe a emoção.
           </p>
@@ -142,11 +139,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-tumtum-border py-8 text-center">
-        <p
-          className="text-sm font-hero uppercase tracking-widest text-tumtum-white"
-        >
-          TumTum
-        </p>
+        <Wordmark className="mx-auto h-4 w-auto text-tumtum-white" />
         <p className="mt-2 text-xs text-tumtum-muted">
           &copy; {new Date().getFullYear()} TumTum. Todos os direitos reservados.
         </p>

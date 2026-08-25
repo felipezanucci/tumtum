@@ -1,6 +1,7 @@
 'use client'
 
 import type { Peak } from '@/lib/api'
+import { Wordmark } from '@/components/brand'
 
 interface SoloCardProps {
   eventName: string
@@ -30,11 +31,7 @@ export default function SoloCard({
     >
       <div className="flex h-full flex-col items-center justify-between p-8">
         {/* Logo */}
-        <h2
-          className="text-xl font-hero uppercase tracking-widest text-tumtum-white"
-        >
-          TumTum
-        </h2>
+        <Wordmark className="h-5 w-auto text-tumtum-white" />
 
         {/* Event info */}
         <div className="text-center">

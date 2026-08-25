@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Wordmark } from '@/components/brand'
 import { usePathname } from 'next/navigation'
 
 const navLinks = [
@@ -18,13 +19,7 @@ export default function Nav() {
     <nav className="sticky top-0 z-40 border-b border-tumtum-border bg-tumtum-black/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          {/* PROVISIONAL. The wordmark is Chosmos and ships as an official
-              vector; nothing may redraw it, so this stands in until the asset
-              arrives. Colour is correct either way: white or black only —
-              the Acid Lime and Toxic Yellow wordmarks are forbidden. */}
-          <span className="text-xl font-hero uppercase tracking-widest text-tumtum-white">
-            TUMTUM
-          </span>
+          <Wordmark className="h-5 w-auto text-tumtum-white" />
         </Link>
 
         <div className="flex items-center gap-3 overflow-x-auto sm:gap-6">

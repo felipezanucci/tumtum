@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Wordmark } from '@/components/brand'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -29,11 +30,7 @@ export default function SignupPage() {
     <main className="flex min-h-screen items-center justify-center bg-tumtum-black px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1
-            className="text-3xl font-hero uppercase tracking-widest text-tumtum-white"
-          >
-            TumTum
-          </h1>
+          <Wordmark className="h-8 w-auto text-tumtum-white" />
           <p className="mt-2 text-tumtum-muted">Crie sua conta e sinta o evento</p>
         </div>
 

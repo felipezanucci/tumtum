@@ -1,5 +1,7 @@
 'use client'
 
+import { Wordmark } from '@/components/brand'
+
 interface ComparisonCardProps {
   eventName: string
   eventDate: string
@@ -28,11 +30,7 @@ export default function ComparisonCard({
     >
       <div className="flex h-full flex-col items-center justify-between p-8">
         {/* Logo */}
-        <h2
-          className="text-xl font-hero uppercase tracking-widest text-tumtum-white"
-        >
-          TumTum
-        </h2>
+        <Wordmark className="h-5 w-auto text-tumtum-white" />
 
         {/* Event */}
         <div className="text-center">
