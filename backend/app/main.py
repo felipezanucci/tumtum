@@ -53,7 +53,9 @@ app = FastAPI(title="Tumtum API", version="0.1.0", lifespan=lifespan)
 # fixed list cannot cover them. The pattern is scoped to this account's Vercel
 # org ("-felipezanuccis-projects"), which keeps it from matching anyone else's
 # deployments while letting branch previews reach the API.
-VERCEL_PREVIEW_ORIGIN = r"https://tumtum-[a-z0-9-]+-felipezanuccis-projects\.vercel\.app"
+VERCEL_PREVIEW_ORIGIN = (
+    r"https://tumtum-[a-z0-9-]+-felipezanuccis-projects\.vercel\.app"
+)
 
 app.add_middleware(
     CORSMiddleware,
