@@ -10,6 +10,16 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Whether a 401 body carries FastAPI's default text rather than a reason of
+ * its own. Anything the API bothered to write is better than a guess.
+ */
+function isGenericAuthFailure(detail: unknown): boolean {
+  if (typeof detail !== 'string') return true
+  const text = detail.trim().toLowerCase()
+  return text === '' || text === 'not authenticated' || text === 'erro desconhecido'
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -39,8 +49,12 @@ async function request<T>(
     const body = await response.json().catch(() => ({ detail: 'Erro desconhecido' }))
     // FastAPI answers a missing or expired token with the English string
     // "Not authenticated", which reached the user verbatim and explained
-    // nothing about what to do next.
-    if (response.status === 401) {
+    // nothing about what to do next. Only that one gets replaced: a 401 also
+    // means a wrong email or password, and this used to overwrite the server's
+    // own "Email ou senha incorretos" with a claim about an expired session —
+    // telling someone who mistyped a letter to sign in again, which they were
+    // already trying to do.
+    if (response.status === 401 && isGenericAuthFailure(body.detail)) {
       throw new ApiError(401, 'Sua sessão expirou. Entre na sua conta para continuar.')
     }
     throw new ApiError(response.status, body.detail || 'Erro desconhecido')
