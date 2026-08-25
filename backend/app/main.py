@@ -91,6 +91,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "https://tumtum.cc",
+        "https://www.tumtum.cc",
         "https://tumtum.vercel.app",
         "https://tumtum-eight.vercel.app",
     ],
