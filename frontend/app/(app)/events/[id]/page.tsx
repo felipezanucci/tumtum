@@ -8,6 +8,7 @@ import { demo } from '@/lib/api'
 import { TimelineBar } from '@/components/hr'
 import { Badge, Button, Loading } from '@/components/ui'
 import { Nav } from '@/components/layout'
+import { formatDateOnly } from '@/lib/utils/dates'
 
 export default function EventDetailPage() {
   const params = useParams()
@@ -58,7 +59,7 @@ export default function EventDetailPage() {
   }
 
   const event = currentEvent
-  const formattedDate = new Date(event.date).toLocaleDateString('pt-BR', {
+  const formattedDate = formatDateOnly(event.date, {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
