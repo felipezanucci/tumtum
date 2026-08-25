@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TumTum</string>
+    <string name="capture_channel_name">Captura em andamento</string>
+    <string name="capture_notification_title">TumTum está gravando</string>
+    <string name="capture_notification_waiting">Procurando batida…</string>
+
+    <string name="connect">Conectar sensor</string>
+    <string name="stop">Encerrar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="idle">Coloque a cinta e toque em conectar.</string>
+    <string name="searching">Procurando sensor…</string>
+    <string name="connecting">Conectando…</string>
+    <string name="reconnecting">Reconectando…</string>
+    <string name="readings">%1$d leituras</string>
+    <string name="failed">Não deu certo.</string>
+    <string name="scan_failed">A busca falhou (código %1$d).</string>
+    <string name="needs_bluetooth_permission">Preciso da permissão de Bluetooth para achar o sensor.</string>
+    <string name="turn_bluetooth_on">Ligue o Bluetooth para continuar.</string>
+    <string name="email">Email</string>
+    <string name="password">Senha</string>
+    <string name="sign_in">Entrar</string>
+    <string name="signing_in">Entrando…</string>
+    <string name="finish_and_send">Encerrar e enviar</string>
+    <string name="sending">Enviando %1$d leituras…</string>
+    <string name="sent">Enviado. Abra tumtum.cc para ver sua experiência.</string>
+    <string name="send_failed">Falha ao enviar: %1$s. As leituras continuam aqui — toque de novo.</string>
+    <string name="too_few">Poucas leituras para salvar.</string>
+    <string name="service_failed">Não consegui iniciar a captura: %1$s</string>
+    <string name="last_crash">Da última vez eu quebrei aqui: %1$s</string>
+</resources>
