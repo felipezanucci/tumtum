@@ -217,6 +217,15 @@ function detectDelimiter(line: string): string {
 /** How far into a file a real sample header might still be hiding. */
 const MAX_PREAMBLE_ROWS = 12
 
+/** Column names that mean "the session began at", not "the session lasted". */
+const ORIGIN_TIME_KEYS = [
+  'start_time',
+  'starttime',
+  'hora_de_inicio',
+  'horario_de_inicio',
+  'hora_inicio',
+]
+
 /** "01:23:45", "23:45", "1:23:45.500" — an offset from the start, not a clock time. */
 function parseElapsedSeconds(raw: string): number | null {
   const value = raw.trim().replace(/^["']|["']$/g, '')
@@ -242,6 +251,22 @@ function findElapsedOrigin(
 ): { millis: number; ambiguousDate: boolean } | null {
   let date: { year: number; month: number; day: number; ambiguous: boolean } | null = null
   let timeOfDay: number | null = null
+
+  // Read by column name where the preamble names its columns. A Polar file
+  // carries both "Start time" (15:55:59) and "Duration" (00:02:31), and both
+  // look exactly like a clock — taking whichever appears first only works
+  // while the vendor keeps that column order.
+  for (let i = 0; i + 1 < preamble.length; i += 1) {
+    const at = findColumn(preamble[i], ORIGIN_TIME_KEYS)
+    if (at === -1) continue
+    const clock = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(
+      (preamble[i + 1][at] ?? '').trim().replace(/^["']|["']$/g, ''),
+    )
+    if (clock && +clock[1] <= 23) {
+      timeOfDay = +clock[1] * 3600 + +clock[2] * 60 + (clock[3] ? +clock[3] : 0)
+      break
+    }
+  }
 
   for (const row of preamble) {
     for (const cell of row) {
