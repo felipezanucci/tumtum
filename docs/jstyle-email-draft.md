@@ -96,7 +96,7 @@ Tumtum
 
 ---
 
-## 2. Reply to the customization offer — draft, 2026-08-25
+## 2. Reply to the customization offer — sent 2026-08-25
 
 **Her answer, in short:** the standard V8 SDK does not support continuous raw
 streaming; that requires dedicated firmware customization. Terms offered:
@@ -106,15 +106,88 @@ defining sampling rate, packet format, streaming duration and data handling
 with their engineering team before finalising scope, and notes our 2-second
 observation reflects the standard firmware rather than a hardware limit.
 
-**Why this draft says no for now:** at roughly USD 40–80 per unit, a 5,000-unit
+**Why this reply says no for now:** at roughly USD 40–80 per unit, a 5,000-unit
 MOQ is USD 200,000–400,000 of inventory plus the NRE — committed *before* the
 Phase 0 hypothesis is validated. Firmware customization also runs 2–4 months,
 past the pilot. The two questions below are the ones worth asking before
-parking this.
+parking this. Sent 2026-08-25.
 
 ---
 
+**Sent as follows.** Felipe tightened the draft below: the two questions were
+kept as written, the "if neither is possible" paragraph was dropped, and the
+ask was restated once at the end as a single combined proposal — pilot batch
+*and* NRE credit together, rather than two separate doors. Dropping the
+graceful exit is deliberate: it leaves the offer on the table instead of
+handing over a way to decline it.
+
 **Subject:** Re: V8 validation results — next steps
+
+Hi Arena,
+
+Thank you for the clear answer. Confirming that continuous raw PPG requires
+dedicated firmware — rather than an SDK command we had simply missed — closes
+the technical question for us. You have now been direct with us twice, and it
+has saved us real time both times.
+
+We agree with your reading of the results: the sensor itself performed well,
+with a mean absolute error under 2 bpm against our Polar H10 reference in
+steady state. The constraint is firmware, not hardware.
+
+On the commercial terms, let me be equally direct about where we are.
+
+Tumtum is pre-launch. We run our first pilot events this quarter, using
+participants' existing watches as the heart-rate source, specifically so that
+we can validate demand before committing to hardware. A 5,000-unit MOQ is far
+beyond what this stage can absorb. That is not a comment on your pricing: it is
+that the commitment would come before the validation that would justify it.
+
+I would rather find a path, so two questions:
+
+1. **Is a pilot batch possible?** In the range of 50–100 units carrying the
+   customized firmware, at a correspondingly higher unit price. Putting a
+   working continuous-raw-PPG device on real users at a real event is exactly
+   what would justify a volume order afterwards — and it would let your
+   engineering team validate the customization in the field before a production
+   run.
+
+2. **Can the NRE be credited against a future volume order?** If we fund the
+   USD 15,000 now and the pilot succeeds, having that amount applied to the
+   first production order would make the decision considerably easier to
+   defend.
+
+Would it be possible for us to move forward on this basis — starting with a
+smaller pilot batch of 50–100 units with the customized firmware, and with the
+USD 15,000 NRE credited toward a future production order if the pilot is
+successful?
+
+Please let me know if this could be workable on your side.
+
+Best regards,
+Felipe
+
+---
+
+### What we are waiting on
+
+An answer to the combined proposal. Three outcomes and what each means:
+
+| Her answer | What we do |
+|---|---|
+| Pilot batch **and** NRE credit accepted | Define the technical scope with their engineering team; the V8 re-enters the hardware plan for Phase 1, behind the 25/09 pilot, not in front of it |
+| Pilot batch only, no credit | Still workable — the batch is the expensive part to walk away from, not the NRE |
+| Neither | J-Style stays parked, not closed. Veepoo remains the alternative; we come back when demand is validated and volume is defensible |
+
+Nothing in the 2026-09-25 pilot depends on this answer. Path 2 carries it.
+
+---
+
+### The draft this replaced
+
+Kept for the record — the version that offered a graceful exit.
+
+**Subject:** Re: V8 validation results — next steps
+
 
 Hi Arena,
 

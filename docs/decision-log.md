@@ -23,7 +23,8 @@ the linked documents — this file is the index and the reasoning, not a diary.
    test requires.
 2. **End-to-end save test** — capture → session → peak detection → card, now
    that the backend is back.
-3. **J-Style reply** — awaiting their answer on a pilot batch and NRE credit.
+3. **J-Style reply** — sent 2026-08-25; awaiting their answer on a pilot batch
+   with the NRE credited against a future volume order.
 4. **Veepoo** — contacted 2026-08-18, still the primary alternative if they
    confirm native raw PPG / R-R streaming.
 5. **Deployment protection** — Vercel previews require login. Decide before
@@ -44,7 +45,12 @@ technical risk survives payment until an acceptance test proves otherwise.
 
 Two questions asked before archiving: whether a 50–100 unit pilot batch with the
 custom firmware is possible, and whether the NRE can be credited against a
-future volume order.
+future volume order. **The reply went out on 2026-08-25**, putting both as a
+single combined proposal rather than two separate doors, and deliberately
+omitting the graceful-exit paragraph from the draft — so the offer stays on the
+table instead of handing over a way to decline it. Awaiting her answer.
+
+Nothing in the 2026-09-25 pilot depends on that answer. Path 2 carries it.
 
 → `docs/jstyle-v8-evaluation.md` §6b · `docs/jstyle-email-draft.md`
 
