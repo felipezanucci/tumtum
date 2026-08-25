@@ -6,6 +6,7 @@ import { useEventStore } from '@/lib/stores/useEventStore'
 import { demo } from '@/lib/api'
 import { Card, Badge, Button, Loading, Input } from '@/components/ui'
 import { Nav } from '@/components/layout'
+import { formatDateOnly } from '@/lib/utils/dates'
 
 const eventTypeLabels: Record<string, string> = {
   concert: 'Show',
@@ -128,7 +129,7 @@ export default function EventsPage() {
                       {event.city && <span>• {event.city}</span>}
                       <span>
                         •{' '}
-                        {new Date(event.date).toLocaleDateString('pt-BR', {
+                        {formatDateOnly(event.date, {
                           day: '2-digit',
                           month: 'short',
                           year: 'numeric',
