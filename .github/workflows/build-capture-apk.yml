@@ -24,11 +24,18 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Build debug APK
+      # The parser is the one piece provable without a phone or a sensor, so
+      # it is proven before anything is packaged. No `|| true` here: a
+      # swallowed failure is a green check that means nothing.
+      - name: Run unit tests
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Name the APK after the commit that built it
         run: |

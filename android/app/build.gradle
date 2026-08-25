@@ -34,6 +34,9 @@ android {
     }
 }
 
-// No dependencies on purpose. Everything here is in the Android framework, so
-// there is no version matrix to get wrong and nothing to break on an upgrade.
-dependencies {}
+// Nothing at runtime on purpose: everything the app uses is in the Android
+// framework, so there is no version matrix to get wrong and nothing to break
+// on an upgrade. JUnit is test-only and never ships in the APK.
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
