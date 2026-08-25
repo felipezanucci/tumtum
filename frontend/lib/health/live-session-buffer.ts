@@ -11,7 +11,14 @@
 import type { HRSample } from './import-parsers'
 
 const STORAGE_KEY = 'tumtum:live-session'
-const SCHEMA_VERSION = 1
+/**
+ * v1 stored whole-second offsets, which collapsed samples that arrived less
+ * than a second apart onto the same timestamp. `hr_data` is keyed by
+ * (time, session_id), so a recovered session with any such collision was
+ * rejected by the database. v2 stores milliseconds. v1 payloads are still
+ * readable — a session captured before this fix must not become unsaveable.
+ */
+const SCHEMA_VERSION = 2
 
 export interface LiveSessionSnapshot {
   startedAt: string
@@ -26,8 +33,10 @@ interface StoredSnapshot {
   deviceName: string | null
   eventId: string | null
   t0: number
-  /** Whole seconds elapsed since t0, one per sample. */
-  offsets: number[]
+  /** v1 only: whole seconds elapsed since t0, one per sample. */
+  offsets?: number[]
+  /** v2: milliseconds elapsed since t0, one per sample. */
+  offsetsMs?: number[]
   bpms: number[]
 }
 
@@ -42,7 +51,7 @@ export function saveSnapshot(snapshot: LiveSessionSnapshot): void {
     deviceName: snapshot.deviceName,
     eventId: snapshot.eventId,
     t0,
-    offsets: snapshot.samples.map((s) => Math.round((Date.parse(s.time) - t0) / 1000)),
+    offsetsMs: snapshot.samples.map((s) => Date.parse(s.time) - t0),
     bpms: snapshot.samples.map((s) => s.bpm),
   }
 
@@ -68,13 +77,27 @@ export function loadSnapshot(): LiveSessionSnapshot | null {
 
   try {
     const stored = JSON.parse(raw) as StoredSnapshot
-    if (stored.v !== SCHEMA_VERSION || !Array.isArray(stored.bpms)) return null
+    if (stored.v > SCHEMA_VERSION || !Array.isArray(stored.bpms)) return null
     if (stored.bpms.length === 0) return null
 
-    const samples: HRSample[] = stored.bpms.map((bpm, i) => ({
-      time: new Date(stored.t0 + (stored.offsets[i] ?? i) * 1000).toISOString(),
-      bpm,
-    }))
+    // v2 carries milliseconds; v1 carries seconds and needs scaling.
+    const offsetsMs = stored.offsetsMs
+      ? stored.offsetsMs
+      : (stored.offsets ?? []).map((o) => o * 1000)
+
+    // A v1 payload can hold repeated offsets. Keeping both would be rejected by
+    // the (time, session_id) key, losing the whole session to save one reading,
+    // so collisions collapse to their first sample.
+    const seen = new Set<number>()
+    const samples: HRSample[] = []
+    stored.bpms.forEach((bpm, i) => {
+      const ms = stored.t0 + (offsetsMs[i] ?? i * 1000)
+      if (seen.has(ms)) return
+      seen.add(ms)
+      samples.push({ time: new Date(ms).toISOString(), bpm })
+    })
+    if (samples.length === 0) return null
+
     return {
       startedAt: stored.startedAt,
       deviceName: stored.deviceName,

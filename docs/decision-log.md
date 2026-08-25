@@ -17,18 +17,86 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ### Open items
 
-1. **Merge this branch to `main`.** Needed for two reasons: the CORS fix that
-   allows Vercel preview origins only reaches the deployed backend from `main`,
-   and the production URL has no Vercel login wall — which the 3–5 person field
-   test requires.
-2. **End-to-end save test** — capture → session → peak detection → card, now
-   that the backend is back.
+1. **Merge PR #11.** The frontend half is already live on the preview URL, which
+   is what let the session above be saved. Still queued for `main`: the CORS
+   error trap and the server-side dedupe.
+2. ~~**End-to-end save test**~~ — **done 2026-08-25, passed.** Follow-up: one
+   clean 3-block session to measure peak-detection accuracy, not just that the
+   pipeline runs.
 3. **J-Style reply** — sent 2026-08-25; awaiting their answer on a pilot batch
    with the NRE credited against a future volume order.
 4. **Veepoo** — contacted 2026-08-18, still the primary alternative if they
    confirm native raw PPG / R-R streaming.
 5. **Deployment protection** — Vercel previews require login. Decide before
    2026-09-25 whether to disable it or run the field test on production.
+6. **Confirm Railway actually redeploys on a push to `main`.** The GitHub
+   Actions deploy job has never worked (see below), so this has always been
+   implicit. Verify before relying on it.
+7. **CI and deploy cleanup** — no ESLint config, no `test` script, 25
+   unformatted backend files, and a `Deploy` workflow that has failed 12/12
+   times. All pre-date this work; all worth one dedicated PR.
+
+---
+
+## 2026-08-25 — Path 2 phase 1 gate: met
+
+A session went end to end on the deployed app: Polar H10 → Web Bluetooth
+capture (306 readings, 100% coverage, quality Aprovado) → crash recovery from
+localStorage → save → peak detection (**1 peak, 145 bpm at 10:29, 30 s**) →
+experience view with the curve and a card offered.
+
+**The pilot no longer depends on a hardware supplier.** That was the whole point
+of opening Path 2 when J-Style closed, and it is now demonstrated rather than
+assumed.
+
+Still unproven: detection *accuracy* against a known multi-peak protocol. This
+run recovered a partial capture around a single effort, so one peak is the right
+answer for what happened — but it does not test whether the algorithm finds two
+peaks in a clean 3-block run. One clean session before 2026-09-25.
+
+Four defects found and fixed in the process (PR #11). The one worth remembering
+beyond this bug: **a 500 carried no CORS header**, so every server-side error
+this app has ever produced reached the user as "the server is unreachable" —
+including this one, which sent the investigation to the wrong layer for a while.
+Starlette raises its 500 outside all user middleware; a catch-all
+`exception_handler` does not fix it, because that is served outside CORS too.
+The trap has to be a middleware registered before `CORSMiddleware`.
+
+→ `docs/path-2-roadmap.md` phase 1 · PR #11
+
+---
+
+## 2026-08-25 — The Deploy workflow has never worked
+
+Merging PR #10 to `main` was supposed to deploy the frontend and the backend.
+The `Deploy` workflow ran and failed — as it has on **every one of its 12 runs
+since April 2026**. Both jobs, every time:
+
+| Job | Failure |
+|---|---|
+| Deploy Frontend (Vercel) | `Input required and not supplied: vercel-token` — the `VERCEL_TOKEN` repository secret was never set |
+| Deploy Backend (Railway) | `Unexpected input(s) 'railway_token'` and `railway: not found` — `bervProject/railway-deploy` changed its interface and no longer takes a token input or ships the CLI |
+
+Neither is a regression. The pipeline was written, committed, and never once
+succeeded.
+
+**What has actually been deploying.** Vercel, through its own GitHub App —
+which is why PR #10 got a working preview URL while the Vercel job in the same
+run was failing. Railway is the open question: yesterday's recovery needed a
+manual redeploy, which suggests its GitHub integration may not be connected at
+all.
+
+**Why this matters beyond tidiness.** Every deploy has been implicit, so
+"merged to main" has never meant "live". That assumption is exactly what would
+break on 2026-09-25 with people standing in a venue.
+
+**Not fixed yet, deliberately.** The Vercel job is redundant with the GitHub App
+and should be deleted rather than repaired. Whether the Railway job should be
+fixed or deleted depends on whether Railway's own GitHub integration is
+connected — something only the Vercel/Railway dashboards can answer. Same
+sitting as the CI cleanup (no ESLint config, no `test` script, 25 unformatted
+backend files), which is red on `main` for reasons that predate any of this
+work.
 
 ---
 
