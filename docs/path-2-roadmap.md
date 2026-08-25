@@ -134,6 +134,45 @@ Three defects the first real device test exposed, all fixed:
 - The elapsed clock restarted on every reconnection: the state callback is
   captured once by the monitor, so it read a frozen `startedAt`.
 
+#### Result — 2026-08-25, the chain closes end to end
+
+The blocked row above is now green. On the same A17 and Polar H10, on the
+deployed app, a session went the whole way through:
+
+| Stage | Result |
+|---|---|
+| Capture | 306 readings, 5min32s, 70–145 bpm, coverage 100%, cadence 1.0 s, quality **Aprovado** |
+| Crash recovery | Session restored from the localStorage snapshot after a page reload mid-capture |
+| Save | Persisted through `POST /api/health/sessions` |
+| Peak detection | **1 peak: 145 bpm at 10:29, 30 s duration** |
+| Experience view | Curve rendered, avg 91 / max 145 / min 70, quality 100%, card generation offered |
+
+**The gate is met.** Sensor → capture → save → peak detection → visualisation
+works on a real phone with a real strap, with no native code and no supplier.
+
+**What this run does not yet prove.** The session came from a crash-recovered
+partial capture around a single effort block, not a clean 3-block protocol, so
+the detected peak matches the one effort performed — but peak *detection
+accuracy* against a known multi-peak protocol is still unmeasured. The
+amplitude/delay/MAE criteria were validated for the Polar as a source on
+2026-08-24; what remains untested is whether the algorithm finds the right
+number of peaks in a full 3-block run. Worth one clean session before
+2026-09-25.
+
+Four more defects this run exposed, all fixed (PR #11):
+- `/live` never checked for a signed-in user: a capture could run for a whole
+  event and only fail at the save. Now stated on arrival, and 401s speak
+  Portuguese instead of returning FastAPI's `Not authenticated`.
+- The recovery snapshot stored whole-second offsets, so readings under a second
+  apart collapsed onto one timestamp. `hr_data` is keyed by
+  `(time, session_id)`, so the insert was rejected and the session lost. In
+  simulation, 174 of 200 realistic captures carried at least one collision.
+- **Every backend 500 had been reaching users as "the server is unreachable."**
+  Starlette raises its 500 outside all user middleware, so the response carried
+  no CORS header, the browser refused it, and `fetch` rejected. The error trap
+  now sits inside the CORS layer.
+- Pull-to-refresh reloaded the page mid-capture and dropped the sensor.
+
 ---
 
 ### Phase 2 — Wear OS · weeks 2–4 · in-house with Claude Code
