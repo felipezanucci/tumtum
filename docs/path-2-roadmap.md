@@ -150,14 +150,26 @@ deployed app, a session went the whole way through:
 **The gate is met.** Sensor → capture → save → peak detection → visualisation
 works on a real phone with a real strap, with no native code and no supplier.
 
-**What this run does not yet prove.** The session came from a crash-recovered
-partial capture around a single effort block, not a clean 3-block protocol, so
-the detected peak matches the one effort performed — but peak *detection
-accuracy* against a known multi-peak protocol is still unmeasured. The
-amplitude/delay/MAE criteria were validated for the Polar as a source on
-2026-08-24; what remains untested is whether the algorithm finds the right
-number of peaks in a full 3-block run. Worth one clean session before
-2026-09-25.
+**Detection accuracy — measured 2026-08-25, same day.** The open question above
+is now closed. A clean 7-minute two-effort protocol was designed against the
+detector's real parameters (`baseline_window_sec = 300`, not the 60 s in
+CLAUDE.md) by simulating five candidate protocols 20 times each; the chosen one
+recovered the right peak count in 20/20 runs with peaks landing within 1 s of
+each effort's end. Run on the A17 with the Polar H10:
+
+| | Noted by hand | Detected |
+|---|---|---|
+| Effort 1 ended | 11:22 | **136 bpm at 11:22**, 42 s |
+| Effort 2 ended | 11:25 | **146 bpm at 11:25**, 44 s |
+
+Criteria fixed before the run: exactly two peaks, each matching the noted time.
+**Both met.** The notes are minute-resolution, so this establishes agreement to
+the minute rather than the ±10 s originally proposed — sufficient for the
+question asked, which was whether the algorithm finds the right number of peaks
+and places them correctly.
+
+The ranking is by magnitude rather than chronology, which is why the 146 bpm
+peak is listed first.
 
 Four more defects this run exposed, all fixed (PR #11):
 - `/live` never checked for a signed-in user: a capture could run for a whole
