@@ -286,6 +286,27 @@ export const events = {
       body: JSON.stringify(data),
     }),
 
+  /** Correct an event. Only the fields sent are changed. */
+  update: (
+    id: string,
+    data: Partial<{
+      name: string
+      event_type: string
+      date: string
+      subtitle: string
+      venue: string
+      city: string
+      country: string
+      start_time: string
+      end_time: string
+      cover_image_url: string
+    }>,
+  ) =>
+    request<TumtumEvent>(`/api/events/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
   list: (params?: {
     q?: string
     event_type?: string
