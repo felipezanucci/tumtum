@@ -8,6 +8,32 @@ import { HRCurve, PeakMarker, TimelineBar } from '@/components/hr'
 import { Button, Loading } from '@/components/ui'
 import { Nav } from '@/components/layout'
 
+
+/**
+ * The detection compares every moment to the five minutes around it — see the
+ * peak detection spec in CLAUDE.md. A capture shorter than that window has
+ * nothing for a rise to stand out against, so finding nothing is the correct
+ * answer rather than a failure.
+ *
+ * The screen used to say "analyse the session first" in both cases, which was
+ * never true by the time anyone read it: the analysis runs the moment a
+ * capture is saved.
+ */
+const BASELINE_WINDOW_SECONDS = 300
+
+function noPeaksMessage(session: { start_time: string; end_time: string }): string {
+  const seconds = (Date.parse(session.end_time) - Date.parse(session.start_time)) / 1000
+  if (Number.isFinite(seconds) && seconds < BASELINE_WINDOW_SECONDS) {
+    const minutes = Math.max(1, Math.round(seconds / 60))
+    return (
+      `Esta captura tem ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}. ` +
+      'Para um momento se destacar, ele precisa dos cinco minutos ao redor ' +
+      'para comparar — numa noite inteira sobra.'
+    )
+  }
+  return 'Nenhum momento se destacou aqui. Sua batida seguiu no mesmo ritmo.'
+}
+
 export default function ExperiencePage() {
   return (
     <Suspense fallback={<><Nav /><main className="flex min-h-screen items-center justify-center bg-tumtum-black"><Loading size="lg" /></main></>}>
@@ -146,7 +172,7 @@ function ExperienceContent() {
                 Seus Picos de Emoção
               </h2>
               {peaks.length === 0 ? (
-                <p className="text-tumtum-muted">Nenhum pico detectado ainda. Analise a sessão primeiro.</p>
+                <p className="text-tumtum-muted">{noPeaksMessage(session)}</p>
               ) : (
                 <div className="space-y-3">
                   {peaks.map((peak) => (
