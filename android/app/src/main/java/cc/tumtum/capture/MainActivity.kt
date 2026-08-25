@@ -20,7 +20,9 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.ParcelUuid
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
+import java.util.concurrent.Executors
 
 /**
  * One screen: connect, watch it capture, stop.
@@ -38,6 +40,15 @@ class MainActivity : Activity() {
     private lateinit var bpmView: TextView
     private lateinit var statusView: TextView
     private lateinit var actionButton: Button
+    private lateinit var emailField: EditText
+    private lateinit var passwordField: EditText
+    private lateinit var loginButton: Button
+
+    private lateinit var api: TumtumApi
+
+    /** Login and upload block on the network; neither may run on this thread. */
+    private val io = Executors.newSingleThreadExecutor()
+    private var sending = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -58,8 +69,14 @@ class MainActivity : Activity() {
         bpmView = findViewById(R.id.bpm)
         statusView = findViewById(R.id.status)
         actionButton = findViewById(R.id.action)
+        emailField = findViewById(R.id.email)
+        passwordField = findViewById(R.id.password)
+        loginButton = findViewById(R.id.login)
 
+        api = TumtumApi(applicationContext)
         actionButton.setOnClickListener { onAction() }
+        loginButton.setOnClickListener { onLogin() }
+        renderAuth()
 
         val intent = Intent(this, CaptureService::class.java)
         startForegroundService(intent)
@@ -71,20 +88,83 @@ class MainActivity : Activity() {
         // Unbinding does not stop the service: that is the point. The capture
         // outlives this screen, and outlives the screen being off.
         runCatching { unbindService(connection) }
+        io.shutdown()
         super.onDestroy()
     }
 
     private fun onAction() {
+        if (sending) return
         val running = service?.state == HeartRateMonitor.State.CONNECTED ||
             service?.state == HeartRateMonitor.State.RECONNECTING
         if (running || scanning) {
             stopScan()
             service?.stopCapture()
-            render()
+            finishAndSend()
             return
         }
         if (!ensurePermissions()) return
         startScan()
+    }
+
+    private fun onLogin() {
+        val email = emailField.text.toString().trim()
+        val password = passwordField.text.toString()
+        if (email.isEmpty() || password.isEmpty()) return
+        loginButton.isEnabled = false
+        loginButton.text = getString(R.string.signing_in)
+        io.execute {
+            val result = runCatching { api.login(email, password) }
+            runOnUiThread {
+                loginButton.isEnabled = true
+                loginButton.text = getString(R.string.sign_in)
+                result.onFailure { statusView.text = it.message }
+                renderAuth()
+            }
+        }
+    }
+
+    /** The login row exists only until there is a token; then it gets out of the way. */
+    private fun renderAuth() {
+        val gone = if (api.signedIn) android.view.View.GONE else android.view.View.VISIBLE
+        emailField.visibility = gone
+        passwordField.visibility = gone
+        loginButton.visibility = gone
+        actionButton.visibility = if (api.signedIn) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    /**
+     * Ending a capture uploads it. On failure nothing is lost: the samples
+     * stay in the service, the button stays on screen, and pressing it again
+     * retries — festival cellular fails often enough that retry has to be the
+     * design, not the exception.
+     */
+    private fun finishAndSend() {
+        val current = service ?: return
+        val startedAt = current.firstReadingAt()
+        if (startedAt == null || current.samples.size < 10) {
+            statusView.text = getString(R.string.too_few)
+            render()
+            return
+        }
+        sending = true
+        statusView.text = getString(R.string.sending, current.samples.size)
+        val snapshot = current.samples.toList()
+        val name = "Sensor BLE"
+        io.execute {
+            val result = runCatching { api.uploadSession(startedAt, snapshot, name) }
+            runOnUiThread {
+                sending = false
+                result
+                    .onSuccess {
+                        current.samples.clear()
+                        statusView.text = getString(R.string.sent)
+                    }
+                    .onFailure {
+                        statusView.text = getString(R.string.send_failed, it.message)
+                    }
+                render()
+            }
+        }
     }
 
     /**
@@ -183,10 +263,11 @@ class MainActivity : Activity() {
     private fun render() {
         val current = service ?: return
         bpmView.text = current.lastBpm?.toString() ?: "--"
+        if (sending) return
         actionButton.text = when (current.state) {
             HeartRateMonitor.State.CONNECTED,
             HeartRateMonitor.State.RECONNECTING,
-            HeartRateMonitor.State.CONNECTING -> getString(R.string.stop)
+            HeartRateMonitor.State.CONNECTING -> getString(R.string.finish_and_send)
             else -> getString(R.string.connect)
         }
         statusView.text = when (current.state) {

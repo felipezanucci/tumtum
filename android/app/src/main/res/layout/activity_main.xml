@@ -7,6 +7,36 @@
     android:background="@color/tumtum_black"
     android:padding="24dp">
 
+    <EditText
+        android:id="@+id/email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/email"
+        android:inputType="textEmailAddress"
+        android:textColor="@color/tumtum_white"
+        android:textColorHint="@color/tumtum_muted"
+        android:backgroundTint="@color/tumtum_muted" />
+
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/password"
+        android:inputType="textPassword"
+        android:textColor="@color/tumtum_white"
+        android:textColorHint="@color/tumtum_muted"
+        android:backgroundTint="@color/tumtum_muted" />
+
+    <Button
+        android:id="@+id/login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/sign_in"
+        android:textColor="@color/tumtum_black"
+        android:backgroundTint="@color/tumtum_lime" />
+
     <TextView
         android:id="@+id/bpm"
         android:layout_width="wrap_content"

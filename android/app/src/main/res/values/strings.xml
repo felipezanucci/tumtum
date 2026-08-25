@@ -17,4 +17,13 @@
     <string name="scan_failed">A busca falhou (código %1$d).</string>
     <string name="needs_bluetooth_permission">Preciso da permissão de Bluetooth para achar o sensor.</string>
     <string name="turn_bluetooth_on">Ligue o Bluetooth para continuar.</string>
+    <string name="email">Email</string>
+    <string name="password">Senha</string>
+    <string name="sign_in">Entrar</string>
+    <string name="signing_in">Entrando…</string>
+    <string name="finish_and_send">Encerrar e enviar</string>
+    <string name="sending">Enviando %1$d leituras…</string>
+    <string name="sent">Enviado. Abra tumtum.cc para ver sua experiência.</string>
+    <string name="send_failed">Falha ao enviar: %1$s. As leituras continuam aqui — toque de novo.</string>
+    <string name="too_few">Poucas leituras para salvar.</string>
 </resources>
