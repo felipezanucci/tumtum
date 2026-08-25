@@ -56,6 +56,14 @@ FEED_SIZE = (1080, 1080)
 # gets cropped or shrunk, so shared links get a variant built for the slot.
 OG_SIZE = (1200, 630)
 
+# A Story is posted inside someone else's interface. The profile header covers
+# the top of the frame and the reply bar the bottom, so anything placed there is
+# simply not seen — including, before this, the wordmark and the whole event
+# footer. The exact overlay differs between Instagram, TikTok and WhatsApp, so
+# these are deliberately conservative.
+STORY_SAFE_TOP = 250
+STORY_SAFE_BOTTOM = 340
+
 
 BRAND_DIR = Path(__file__).resolve().parent.parent / "assets" / "brand"
 
@@ -128,11 +136,18 @@ def generate_moment_card(
     margin = 72
     inner = w - margin * 2
 
-    _paste_wordmark(img, w // 2, 72, 30)
+    # A feed post owns its whole frame; a Story does not.
+    safe_top = STORY_SAFE_TOP if format == "story" else 64
+    safe_bottom = STORY_SAFE_BOTTOM if format == "story" else 64
+
+    # Sitting flush against the safe line reads as cut the moment another app
+    # draws its overlay a few pixels lower, so everything keeps a margin.
+    breathe = 28
+    _paste_wordmark(img, w // 2, safe_top + breathe, 30)
 
     # The copy calibrates the tone; the number carries the card.
     copy_size = 62 if format == "story" else 48
-    copy_y = 190 if format == "story" else 150
+    copy_y = safe_top + breathe + (110 if format == "story" else 86)
     for line in MOMENT_COPY:
         font = _fit_text(draw, line, "hero", copy_size, inner)
         draw.text((margin, copy_y), line, fill=TUMTUM_WHITE, font=font, anchor="lt")
@@ -142,7 +157,9 @@ def generate_moment_card(
     number = str(peak_bpm)
     num_size = 460 if format == "story" else 300
     num_font = _fit_text(draw, number, "hero", num_size, inner)
-    num_y = (h // 2) - (60 if format == "story" else 20)
+    # Centre the number in what is left between the copy and the footer, so it
+    # sits in the part of the frame the viewer actually sees.
+    num_y = (copy_y + (h - safe_bottom - breathe - 190)) // 2
     draw.text((w // 2, num_y), number, fill=TUMTUM_LIME, font=num_font, anchor="mm")
 
     y = draw.textbbox((w // 2, num_y), number, font=num_font, anchor="mm")[3] + 12
@@ -171,8 +188,9 @@ def generate_moment_card(
             anchor="mt",
         )
 
-    # Event context sits at the foot: it identifies the night, it is not the point.
-    foot = h - margin
+    # Event context sits at the foot: it identifies the night, it is not the
+    # point — but it has to be above the reply bar to be read at all.
+    foot = h - safe_bottom - breathe
     draw.text(
         (w // 2, foot),
         f"@{user_name}",
