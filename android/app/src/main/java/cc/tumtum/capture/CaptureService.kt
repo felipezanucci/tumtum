@@ -37,6 +37,9 @@ class CaptureService : Service() {
     private var startedAtElapsed: Long = 0
 
     val samples = mutableListOf<Sample>()
+    /** Which sensor this capture is reading, once one is connected. */
+    var deviceName: String? = null
+        private set
     var lastBpm: Int? = null
         private set
     var state: HeartRateMonitor.State = HeartRateMonitor.State.IDLE
@@ -92,9 +95,14 @@ class CaptureService : Service() {
             onState = { next, why ->
                 state = next
                 detail = why
+                // The name can arrive with the connection, not the scan.
+                monitor?.deviceName?.let { deviceName = it }
                 notifyWatcher()
             },
-        ).also { it.connect(device) }
+        ).also {
+            it.connect(device)
+            deviceName = it.deviceName
+        }
     }
 
     fun stopCapture() {

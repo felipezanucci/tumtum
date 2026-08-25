@@ -50,6 +50,15 @@ class MainActivity : Activity() {
     private val io = Executors.newSingleThreadExecutor()
     private var sending = false
 
+    /**
+     * A result that must outlive the next render. "Enviado" was being written
+     * to the status line and overwritten one frame later by render(), whose
+     * idle branch says "put the strap on and start again" — so a successful
+     * upload and a dead button looked identical. Ninth case of the same bug
+     * class today: the app stating something false about its own state.
+     */
+    private var notice: String? = null
+
     /** Set when a scan is waiting for the service to come up. */
     private var pendingScan = false
 
@@ -113,6 +122,7 @@ class MainActivity : Activity() {
             finishAndSend()
             return
         }
+        notice = null
         if (!ensurePermissions()) return
         beginCapture()
     }
@@ -195,12 +205,15 @@ class MainActivity : Activity() {
             runOnUiThread {
                 sending = false
                 result
-                    .onSuccess {
+                    .onSuccess { sessionId ->
                         current.samples.clear()
-                        statusView.text = getString(R.string.sent)
+                        notice = getString(R.string.sent)
+                        // The point of the night: straight to the experience,
+                        // inside the app — no browser, no address bar.
+                        ExperienceActivity.open(this, "/experience?session=" + sessionId)
                     }
                     .onFailure {
-                        statusView.text = getString(R.string.send_failed, it.message)
+                        notice = getString(R.string.send_failed, it.message)
                     }
                 render()
             }
@@ -308,7 +321,9 @@ class MainActivity : Activity() {
             // Nothing captured yet, and nothing running. Not an error state.
             bpmView.text = "--"
             actionButton.text = getString(R.string.connect)
-            if (statusView.text.isNullOrEmpty()) statusView.text = getString(R.string.idle)
+            statusView.text = notice
+                ?: statusView.text.takeIf { !it.isNullOrEmpty() }
+                ?: getString(R.string.idle)
             return
         }
         bpmView.text = current.lastBpm?.toString() ?: "--"
@@ -319,10 +334,13 @@ class MainActivity : Activity() {
             HeartRateMonitor.State.CONNECTING -> getString(R.string.finish_and_send)
             else -> getString(R.string.connect)
         }
-        statusView.text = when (current.state) {
+        statusView.text = notice ?: when (current.state) {
             HeartRateMonitor.State.CONNECTING -> getString(R.string.connecting)
             HeartRateMonitor.State.CONNECTED ->
-                getString(R.string.readings, current.samples.size)
+                // Name the sensor: connection is silent and first-match by
+                // design, so the screen has to say what it latched onto.
+                listOfNotNull(current.deviceName, getString(R.string.readings, current.samples.size))
+                    .joinToString(" · ")
             HeartRateMonitor.State.RECONNECTING -> getString(R.string.reconnecting)
             HeartRateMonitor.State.ERROR -> current.detail ?: getString(R.string.failed)
             else -> getString(R.string.idle)

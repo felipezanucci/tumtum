@@ -7,6 +7,13 @@
     android:background="@color/tumtum_black"
     android:padding="24dp">
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="48dp"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/wordmark" />
+
     <EditText
         android:id="@+id/email"
         android:layout_width="match_parent"
