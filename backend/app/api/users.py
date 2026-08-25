@@ -1,13 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
-from app.models.user import User
-from app.models.hr_session import HRSession
 from app.models.card import Card
-from app.schemas.user import UserProfileResponse, UserUpdateRequest, PublicProfileResponse
+from app.models.hr_session import HRSession
+from app.models.user import User
+from app.schemas.user import (
+    PublicProfileResponse,
+    UserProfileResponse,
+    UserUpdateRequest,
+)
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -93,7 +97,9 @@ async def get_public_profile(
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado"
+        )
 
     stats = await _get_user_stats(db, user.id)
     return PublicProfileResponse(

@@ -5,8 +5,7 @@ API docs: https://api.setlist.fm/docs/1.0/index.html
 Rate limit: 2 requests/second.
 """
 
-import asyncio
-from datetime import datetime, timezone
+from datetime import datetime
 
 import httpx
 
@@ -107,32 +106,42 @@ def parse_setlist_to_timeline(
                 minute=current_time.minute,
             )
             from datetime import timedelta
+
             current_time += timedelta(minutes=5)
 
-            timeline.append({
-                "timestamp": current_time,
-                "label": "Encore",
-                "entry_type": "encore",
-                "metadata": None,
-            })
+            timeline.append(
+                {
+                    "timestamp": current_time,
+                    "label": "Encore",
+                    "entry_type": "encore",
+                    "metadata": None,
+                }
+            )
 
         for song in setlist_set.get("song", []):
             song_name = song.get("name", "Unknown")
             if not song_name:
                 continue
 
-            timeline.append({
-                "timestamp": current_time,
-                "label": song_name,
-                "entry_type": "song_start",
-                "metadata": {
-                    "cover": song.get("cover", {}).get("name") if song.get("cover") else None,
-                    "with": song.get("with", {}).get("name") if song.get("with") else None,
-                    "info": song.get("info"),
-                },
-            })
+            timeline.append(
+                {
+                    "timestamp": current_time,
+                    "label": song_name,
+                    "entry_type": "song_start",
+                    "metadata": {
+                        "cover": song.get("cover", {}).get("name")
+                        if song.get("cover")
+                        else None,
+                        "with": song.get("with", {}).get("name")
+                        if song.get("with")
+                        else None,
+                        "info": song.get("info"),
+                    },
+                }
+            )
 
             from datetime import timedelta
+
             current_time += timedelta(seconds=song_delta)
 
     return timeline

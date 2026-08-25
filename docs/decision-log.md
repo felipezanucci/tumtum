@@ -90,13 +90,14 @@ all.
 "merged to main" has never meant "live". That assumption is exactly what would
 break on 2026-09-25 with people standing in a venue.
 
-**Not fixed yet, deliberately.** The Vercel job is redundant with the GitHub App
-and should be deleted rather than repaired. Whether the Railway job should be
-fixed or deleted depends on whether Railway's own GitHub integration is
-connected — something only the Vercel/Railway dashboards can answer. Same
-sitting as the CI cleanup (no ESLint config, no `test` script, 25 unformatted
-backend files), which is red on `main` for reasons that predate any of this
-work.
+**Resolved 2026-08-25, later the same day.** The Railway dashboard settled the
+open question: its deployment of the PR #10 merge is listed as **"via GitHub"**,
+so Railway's own integration works and the Actions job was never needed.
+Vercel's job was redundant with its GitHub App the same way. `deploy.yml` is
+**deleted** — repairing a pipeline that duplicates two working integrations, and
+that has never once succeeded, would only give us a second thing to keep alive.
+
+The CI cleanup landed with it. See the entry above.
 
 ---
 

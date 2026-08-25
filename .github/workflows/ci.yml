@@ -70,7 +70,11 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: pip install ruff mypy
+      # Pinned: Ruff's default rule set widens between releases, so an
+      # unpinned linter turned an untouched commit from clean to a hundred
+      # findings overnight. Bumping this is a deliberate act, with the
+      # findings reviewed. The rules themselves live in backend/pyproject.toml.
+      - run: pip install ruff==0.15.8 mypy
       - run: ruff check app/
       - run: ruff format --check app/
 

@@ -17,7 +17,7 @@ window (300s) is needed so that peaks don't contaminate their own baseline. The 
 logic is otherwise identical to the spec.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from math import sqrt
 
 
@@ -97,13 +97,15 @@ def detect_peaks(
 
         peak_z = max(region_zscores) if region_zscores else 0
 
-        peaks.append({
-            "timestamp": times[abs_idx],
-            "bpm": int(bpms[abs_idx]),
-            "duration_seconds": region["duration_seconds"],
-            "z_score": peak_z,
-            "magnitude": peak_z * region["duration_seconds"],
-        })
+        peaks.append(
+            {
+                "timestamp": times[abs_idx],
+                "bpm": int(bpms[abs_idx]),
+                "duration_seconds": region["duration_seconds"],
+                "z_score": peak_z,
+                "magnitude": peak_z * region["duration_seconds"],
+            }
+        )
 
     # Step 9: Merge peaks within merge_window_sec — keep highest
     peaks = _merge_peaks(peaks, merge_window_sec)
@@ -122,22 +124,12 @@ def _sliding_window_mean(
 ) -> list[float]:
     """Compute a time-based moving average using a sliding window (O(n))."""
     n = len(values)
-    result = [0.0] * n
     half_window = window_seconds / 2.0
-    left = 0
-    window_sum = 0.0
-    window_count = 0
 
-    for right in range(n):
-        # Expand window to include current point
-        window_sum += values[right]
-        window_count += 1
-
-        # Find the center point this window corresponds to
-        # We build windows centered on each point
-        pass
-
-    # Simpler approach: for each point, use two pointers
+    # An abandoned first attempt used to accumulate a running sum here before
+    # being discarded a few lines below — a full pass over every sample, twice
+    # per analysis, whose result was never read. The two-pointer walk is the
+    # real implementation.
     left = 0
     right = 0
     result = []
@@ -213,11 +205,13 @@ def _group_regions(
                 i += 1
             end_idx = i - 1
             duration = (times[end_idx] - times[start_idx]).total_seconds()
-            regions.append({
-                "start_idx": start_idx,
-                "end_idx": end_idx,
-                "duration_seconds": int(max(duration, 1)),
-            })
+            regions.append(
+                {
+                    "start_idx": start_idx,
+                    "end_idx": end_idx,
+                    "duration_seconds": int(max(duration, 1)),
+                }
+            )
         else:
             i += 1
     return regions

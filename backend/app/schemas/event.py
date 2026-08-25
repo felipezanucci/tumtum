@@ -1,9 +1,10 @@
 import uuid
-from datetime import date, time, datetime
+from datetime import date, datetime, time
+
 from pydantic import BaseModel, Field
 
-
 # --- Event ---
+
 
 class EventCreateRequest(BaseModel):
     name: str
@@ -47,10 +48,13 @@ class EventSearchQuery(BaseModel):
 
 # --- Event Timeline ---
 
+
 class TimelineEntryCreate(BaseModel):
     timestamp: datetime
     label: str
-    entry_type: str = Field(..., pattern="^(song_start|goal|halftime|encore|highlight)$")
+    entry_type: str = Field(
+        ..., pattern="^(song_start|goal|halftime|encore|highlight)$"
+    )
     metadata: dict | None = None
 
 
@@ -70,6 +74,7 @@ class EventDetailResponse(EventResponse):
 
 
 # --- Peak ---
+
 
 class PeakResponse(BaseModel):
     id: uuid.UUID

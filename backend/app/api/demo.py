@@ -4,10 +4,10 @@ These endpoints allow testing the full Tumtum flow without real wearable devices
 They should be disabled or restricted in production.
 """
 
-import uuid
-import random
 import math
-from datetime import datetime, date, time, timedelta, timezone
+import random
+import uuid
+from datetime import date, datetime, time, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -15,15 +15,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
-from app.models.user import User
 from app.models.event import Event
 from app.models.event_timeline import EventTimeline
-from app.models.hr_session import HRSession
 from app.models.hr_data import HRData
+from app.models.hr_session import HRSession
 from app.models.peak import Peak
-from app.schemas.event import ExperienceResponse, HRSessionSummary, PeakResponse, TimelineEntryResponse, HRDataPointBrief
-from app.services.peak_detection import detect_peaks
+from app.models.user import User
+from app.schemas.event import (
+    ExperienceResponse,
+    HRDataPointBrief,
+    HRSessionSummary,
+    PeakResponse,
+    TimelineEntryResponse,
+)
 from app.services.event_correlator import correlate_peaks_to_timeline
+from app.services.peak_detection import detect_peaks
 
 router = APIRouter(prefix="/api/demo", tags=["demo"])
 
@@ -205,7 +211,10 @@ async def seed_database(db: AsyncSession = Depends(get_db)):
     # Check if events already exist
     result = await db.execute(select(Event).limit(1))
     if result.scalar_one_or_none():
-        return {"message": "Database já possui eventos. Seed ignorado.", "events_created": 0}
+        return {
+            "message": "Database já possui eventos. Seed ignorado.",
+            "events_created": 0,
+        }
 
     created_events = []
     for ev_data in SEED_EVENTS:
@@ -234,10 +243,14 @@ async def seed_database(db: AsyncSession = Depends(get_db)):
 
         created_events.append({"id": str(event.id), "name": ev_data["name"]})
 
-    return {"message": f"{len(created_events)} eventos criados com sucesso!", "events": created_events}
+    return {
+        "message": f"{len(created_events)} eventos criados com sucesso!",
+        "events": created_events,
+    }
 
 
 # ── Simulate experience ──────────────────────────────────────────────
+
 
 def _generate_realistic_hr(
     start_time: datetime,
@@ -333,7 +346,7 @@ def _generate_realistic_hr(
         noise = random.gauss(0, 2.5)
         bpm = max(55, min(200, bpm + noise))
 
-        data.append({"time": t, "bpm": int(round(bpm))})
+        data.append({"time": t, "bpm": round(bpm)})
 
     return data
 
@@ -352,10 +365,14 @@ async def simulate_experience(
     result = await db.execute(select(Event).where(Event.id == event_id))
     event = result.scalar_one_or_none()
     if not event:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado"
+        )
 
     tl_result = await db.execute(
-        select(EventTimeline).where(EventTimeline.event_id == event_id).order_by(EventTimeline.timestamp)
+        select(EventTimeline)
+        .where(EventTimeline.event_id == event_id)
+        .order_by(EventTimeline.timestamp)
     )
     timeline_entries = tl_result.scalars().all()
 
@@ -374,23 +391,34 @@ async def simulate_experience(
 
     # Delete any existing session for this user+event (so we can re-simulate)
     old_sessions = await db.execute(
-        select(HRSession).where(HRSession.user_id == user.id, HRSession.event_id == event_id)
+        select(HRSession).where(
+            HRSession.user_id == user.id, HRSession.event_id == event_id
+        )
     )
     for old_session in old_sessions.scalars().all():
         # Delete associated peaks
-        old_peaks = await db.execute(select(Peak).where(Peak.session_id == old_session.id))
+        old_peaks = await db.execute(
+            select(Peak).where(Peak.session_id == old_session.id)
+        )
         for p in old_peaks.scalars().all():
             await db.delete(p)
         # Delete associated HR data
-        old_data = await db.execute(select(HRData).where(HRData.session_id == old_session.id))
+        old_data = await db.execute(
+            select(HRData).where(HRData.session_id == old_session.id)
+        )
         for d in old_data.scalars().all():
             await db.delete(d)
         await db.delete(old_session)
     await db.flush()
 
     # Generate realistic HR data
-    tl_for_gen = [{"time": e.timestamp, "label": e.label, "entry_type": e.entry_type} for e in timeline_entries]
-    hr_data = _generate_realistic_hr(start_dt, duration_minutes, tl_for_gen, event.event_type)
+    tl_for_gen = [
+        {"time": e.timestamp, "label": e.label, "entry_type": e.entry_type}
+        for e in timeline_entries
+    ]
+    hr_data = _generate_realistic_hr(
+        start_dt, duration_minutes, tl_for_gen, event.event_type
+    )
 
     # Compute stats
     bpm_values = [d["bpm"] for d in hr_data]
@@ -427,7 +455,9 @@ async def simulate_experience(
     await db.flush()
 
     # Run peak detection
-    tl_data = [{"time": e.timestamp, "label": e.label, "id": e.id} for e in timeline_entries]
+    tl_data = [
+        {"time": e.timestamp, "label": e.label, "id": e.id} for e in timeline_entries
+    ]
     detected_peaks = detect_peaks(hr_data, tl_data)
 
     # Correlate peaks to timeline

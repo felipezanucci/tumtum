@@ -33,7 +33,7 @@ def generate_card_async(card_id: str, card_type: str, params: dict) -> dict:
     This task will be activated in Phase 1 when we add video generation.
     """
     # Import here to avoid circular imports in Celery worker
-    from app.services.card_generator import generate_solo_card, generate_comparison_card
+    from app.services.card_generator import generate_comparison_card, generate_solo_card
 
     if card_type == "solo":
         image_bytes = generate_solo_card(**params)

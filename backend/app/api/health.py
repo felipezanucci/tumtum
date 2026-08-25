@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -7,18 +7,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
+from app.models.hr_data import HRData
+from app.models.hr_session import HRSession
 from app.models.user import User
 from app.models.wearable_connection import WearableConnection
-from app.models.hr_session import HRSession
-from app.models.hr_data import HRData
 from app.schemas.health import (
-    WearableConnectRequest,
-    WearableConnectionResponse,
     HRSessionCreateRequest,
-    HRSessionResponse,
     HRSessionDetailResponse,
+    HRSessionResponse,
     SyncRequest,
     SyncStatusResponse,
+    WearableConnectionResponse,
+    WearableConnectRequest,
 )
 
 router = APIRouter(prefix="/api/health", tags=["health"])
@@ -26,7 +26,12 @@ router = APIRouter(prefix="/api/health", tags=["health"])
 
 # --- Wearable Connections ---
 
-@router.post("/wearables", response_model=WearableConnectionResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/wearables",
+    response_model=WearableConnectionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def connect_wearable(
     body: WearableConnectRequest,
     user: User = Depends(get_current_user),
@@ -85,7 +90,9 @@ async def disconnect_wearable(
     )
     connection = result.scalar_one_or_none()
     if not connection:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conexão não encontrada")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Conexão não encontrada"
+        )
 
     connection.status = "revoked"
     await db.flush()
@@ -93,7 +100,10 @@ async def disconnect_wearable(
 
 # --- HR Data Ingestion ---
 
-@router.post("/sessions", response_model=HRSessionResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/sessions", response_model=HRSessionResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_hr_session(
     body: HRSessionCreateRequest,
     user: User = Depends(get_current_user),
@@ -175,11 +185,15 @@ async def get_hr_session(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(HRSession).where(HRSession.id == session_id, HRSession.user_id == user.id)
+        select(HRSession).where(
+            HRSession.id == session_id, HRSession.user_id == user.id
+        )
     )
     session = result.scalar_one_or_none()
     if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada"
+        )
 
     data_result = await db.execute(
         select(HRData).where(HRData.session_id == session_id).order_by(HRData.time)
@@ -189,6 +203,7 @@ async def get_hr_session(
 
 
 # --- Sync ---
+
 
 @router.post("/sync", response_model=SyncStatusResponse)
 async def trigger_sync(
@@ -205,7 +220,10 @@ async def trigger_sync(
     )
     connection = result.scalar_one_or_none()
     if not connection:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conexão não encontrada ou inativa")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conexão não encontrada ou inativa",
+        )
 
     # Dispatch async sync task
     from app.services.health_sync import sync_health_data
@@ -218,7 +236,7 @@ async def trigger_sync(
         end_time=body.end_time,
     )
 
-    connection.last_sync_at = datetime.now(timezone.utc)
+    connection.last_sync_at = datetime.now(UTC)
     await db.flush()
 
     return SyncStatusResponse(

@@ -5,7 +5,7 @@ API docs: https://www.api-football.com/documentation-v3
 Rate limit: 100 requests/day (free tier).
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 
@@ -99,20 +99,22 @@ def parse_fixture_to_timeline(
     try:
         kickoff = datetime.fromisoformat(kickoff_str.replace("Z", "+00:00"))
     except (ValueError, AttributeError):
-        kickoff = datetime.now(timezone.utc)
+        kickoff = datetime.now(UTC)
 
     timeline = []
 
     # Kickoff
-    timeline.append({
-        "timestamp": kickoff,
-        "label": "Início do Jogo",
-        "entry_type": "highlight",
-        "metadata": {
-            "home": fixture.get("teams", {}).get("home", {}).get("name"),
-            "away": fixture.get("teams", {}).get("away", {}).get("name"),
-        },
-    })
+    timeline.append(
+        {
+            "timestamp": kickoff,
+            "label": "Início do Jogo",
+            "entry_type": "highlight",
+            "metadata": {
+                "home": fixture.get("teams", {}).get("home", {}).get("name"),
+                "away": fixture.get("teams", {}).get("away", {}).get("name"),
+            },
+        }
+    )
 
     from datetime import timedelta
 
@@ -132,30 +134,47 @@ def parse_fixture_to_timeline(
                 label = f"⚽ Gol contra — {player} ({team})"
             elif "penalty" in detail.lower():
                 label = f"⚽ Gol de pênalti — {player} ({team})"
-            timeline.append({
-                "timestamp": event_time,
-                "label": label,
-                "entry_type": "goal",
-                "metadata": {"player": player, "team": team, "detail": detail, "elapsed": elapsed},
-            })
+            timeline.append(
+                {
+                    "timestamp": event_time,
+                    "label": label,
+                    "entry_type": "goal",
+                    "metadata": {
+                        "player": player,
+                        "team": team,
+                        "detail": detail,
+                        "elapsed": elapsed,
+                    },
+                }
+            )
 
         elif event_type == "card":
             card_type = "Amarelo" if "yellow" in detail.lower() else "Vermelho"
-            timeline.append({
-                "timestamp": event_time,
-                "label": f"🟨 Cartão {card_type} — {player} ({team})" if card_type == "Amarelo"
-                else f"🟥 Cartão {card_type} — {player} ({team})",
-                "entry_type": "highlight",
-                "metadata": {"player": player, "team": team, "card": card_type, "elapsed": elapsed},
-            })
+            timeline.append(
+                {
+                    "timestamp": event_time,
+                    "label": f"🟨 Cartão {card_type} — {player} ({team})"
+                    if card_type == "Amarelo"
+                    else f"🟥 Cartão {card_type} — {player} ({team})",
+                    "entry_type": "highlight",
+                    "metadata": {
+                        "player": player,
+                        "team": team,
+                        "card": card_type,
+                        "elapsed": elapsed,
+                    },
+                }
+            )
 
     # Halftime (at 45 minutes)
-    timeline.append({
-        "timestamp": kickoff + timedelta(minutes=45),
-        "label": "Intervalo",
-        "entry_type": "halftime",
-        "metadata": None,
-    })
+    timeline.append(
+        {
+            "timestamp": kickoff + timedelta(minutes=45),
+            "label": "Intervalo",
+            "entry_type": "halftime",
+            "metadata": None,
+        }
+    )
 
     # Sort by timestamp
     timeline.sort(key=lambda x: x["timestamp"])

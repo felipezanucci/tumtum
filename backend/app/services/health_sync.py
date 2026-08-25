@@ -9,14 +9,14 @@ Future phases will add server-side OAuth sync for Garmin and Fitbit.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.wearable_connection import WearableConnection
-from app.models.hr_session import HRSession
 from app.models.hr_data import HRData
+from app.models.hr_session import HRSession
+from app.models.wearable_connection import WearableConnection
 
 
 async def sync_health_data(
@@ -69,9 +69,7 @@ async def _sync_google_fit(
             "https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate",
             headers={"Authorization": f"Bearer {connection.access_token}"},
             json={
-                "aggregateBy": [
-                    {"dataTypeName": "com.google.heart_rate.bpm"}
-                ],
+                "aggregateBy": [{"dataTypeName": "com.google.heart_rate.bpm"}],
                 "bucketByTime": {"durationMillis": 5000},  # 5-second buckets
                 "startTimeMillis": start_ms,
                 "endTimeMillis": end_ms,
@@ -91,7 +89,9 @@ async def _sync_google_fit(
     if not data_points:
         return 0
 
-    return await _ingest_data_points(db, user_id, connection, start_time, end_time, data_points)
+    return await _ingest_data_points(
+        db, user_id, connection, start_time, end_time, data_points
+    )
 
 
 async def _sync_garmin(
@@ -128,10 +128,12 @@ def _parse_google_fit_response(data: dict) -> list[dict]:
                 for value in point.get("value", []):
                     bpm = value.get("fpVal")
                     if bpm and 30 <= bpm <= 250:
-                        points.append({
-                            "time": datetime.fromtimestamp(start_ms / 1000, tz=timezone.utc),
-                            "bpm": round(bpm),
-                        })
+                        points.append(
+                            {
+                                "time": datetime.fromtimestamp(start_ms / 1000, tz=UTC),
+                                "bpm": round(bpm),
+                            }
+                        )
     return points
 
 
@@ -169,5 +171,5 @@ async def _ingest_data_points(
     ]
     db.add_all(hr_records)
 
-    connection.last_sync_at = datetime.now(timezone.utc)
+    connection.last_sync_at = datetime.now(UTC)
     return len(hr_records)
