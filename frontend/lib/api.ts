@@ -82,6 +82,34 @@ export const auth = {
   me: () => request<UserResponse>('/api/auth/me'),
 }
 
+/**
+ * Read how long a stored token has left, without verifying it.
+ *
+ * Tokens last 24 hours, which is shorter than the gap between deciding to
+ * capture an event and the event ending. One that is valid when a six-hour
+ * capture starts can expire before it is saved — and the save is the moment
+ * when there is finally something to lose. Only the server can say whether a
+ * token is genuine; this just reads the expiry it carries, which is enough to
+ * warn someone before they start.
+ *
+ * Returns milliseconds remaining, or null when the token carries no readable
+ * expiry — in which case there is nothing to warn about.
+ */
+export function millisUntilTokenExpiry(token: string, now = Date.now()): number | null {
+  const payload = token.split('.')[1]
+  if (!payload) return null
+  try {
+    // JWT uses base64url, which atob does not accept.
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
+    const claims = JSON.parse(atob(padded))
+    if (typeof claims.exp !== 'number') return null
+    return claims.exp * 1000 - now
+  } catch {
+    return null
+  }
+}
+
 // --- Health ---
 
 export interface WearableConnection {
