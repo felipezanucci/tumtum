@@ -3,4 +3,18 @@
     <string name="app_name">TumTum</string>
     <string name="capture_channel_name">Captura em andamento</string>
     <string name="capture_notification_title">TumTum está gravando</string>
+    <string name="capture_notification_waiting">Procurando batida…</string>
+
+    <string name="connect">Conectar sensor</string>
+    <string name="stop">Encerrar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="idle">Coloque a cinta e toque em conectar.</string>
+    <string name="searching">Procurando sensor…</string>
+    <string name="connecting">Conectando…</string>
+    <string name="reconnecting">Reconectando…</string>
+    <string name="readings">%1$d leituras</string>
+    <string name="failed">Não deu certo.</string>
+    <string name="scan_failed">A busca falhou (código %1$d).</string>
+    <string name="needs_bluetooth_permission">Preciso da permissão de Bluetooth para achar o sensor.</string>
+    <string name="turn_bluetooth_on">Ligue o Bluetooth para continuar.</string>
 </resources>
