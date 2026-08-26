@@ -65,11 +65,8 @@ the linked documents — this file is the index and the reasoning, not a diary.
     on its own.
 12. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
     `WAITLIST_ADMIN_EMAILS` is set, `/admin/waitlist` makes the list readable,
-    `oi@tumtum.cc` is confirmed working, and all five social accounts exist and
-    are linked. The one thing worth a second look: the Facebook handle is
-    `tumtum.ccc`, with three c's, unlike every other account — given by Felipe
-    and used as given, but it is the kind of detail that is either deliberate
-    (the two-c name was taken) or a typo nobody would notice.
+    `oi@tumtum.cc` is confirmed working, and all five social accounts exist,
+    are linked, and were checked in a browser.
 13. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
@@ -95,9 +92,10 @@ as canonical profile URLs instead.
 Verified in a browser rather than by reading the source: all five render, and
 their `href` values are the canonical ones with `rel="noopener noreferrer"`.
 
-**Left as given, but noted:** the Facebook handle is `tumtum.ccc`, three c's,
-unlike every other account. Either the two-c name was taken or it is a typo,
-and only Felipe can say which.
+**The Facebook handle really is `tumtum.ccc`, with three c's** — confirmed by
+Felipe: the two-c name was already taken. Recorded because it looks exactly
+like a typo, and the next person to notice it will otherwise "fix" it into a
+dead link.
 
 ---
 
