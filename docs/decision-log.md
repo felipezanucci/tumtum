@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **parked, not closed**. Both candidate bands failed validation; continuous raw PPG needs firmware customization at USD 15k NRE / 5,000 MOQ — premature for Phase 0. Awaiting their answer on a pilot batch. |
-| **Android app (hybrid)** | **Born and field-tested in one evening.** Native capture — foreground service, screen off, pocket — with the site's screens framed inside for experience, card and sharing. First hands-on completed the full cycle; the six-hour sleep test is the gate that remains. |
+| **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
@@ -58,6 +58,34 @@ the linked documents — this file is the index and the reasoning, not a diary.
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — the night answers: 26,999 of 27,000
+
+The sleep test the whole Android path was gated on. Strap on at 22:50 with 17
+readings and 94% battery, phone dark on the nightstand, no charger. At 06:20:
+**27,016 readings and 87%.** That is 26,999 readings in 27,000 seconds —
+99.996%, one per second for seven and a half hours with the screen off — and
+under 1% of battery per hour, so a six-hour festival costs about 6%.
+
+**The biggest risk of the Android path died overnight.** Samsung's app-killing
+— aggressive, undocumented, the thing that could only be tested by living
+through a night — did not touch a connectedDevice foreground service. The
+same capture in the browser requires the screen lit end to end; this ran dark
+in a bedroom on a three-day-old codebase.
+
+One navigation trap surfaced before bed and is now closed: the site's "Ao
+vivo" tab, reached from inside the app's WebView, is a dead end — a WebView
+has no Web Bluetooth, so that page could only say "your browser can't do
+this" about the one thing the surrounding app does natively. The frame now
+closes itself on that route, landing on the native capture screen.
+
+The morning closed the last gate: the ~27,000-point upload (≈1.6 MB) landed,
+the backend scored the night **quality 100%** — no gaps in 7.5 hours — and
+the display downsampling built for exactly this size drew 23:00 to 06:00
+in-app without strain. Min 49, max 102, average 63: a night of sleep, read at
+one beat per second by a three-day-old app. Still open: Health Connect.
 
 ---
 
