@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { ApiError, waitlist, type WaitlistEntry } from '@/lib/api'
-import { Loading } from '@/components/ui'
+import { Loading, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { toCsv } from '@/lib/utils/csv'
 
@@ -36,6 +36,7 @@ function formatWhen(iso: string): string {
 export default function WaitlistAdminPage() {
   const [entries, setEntries] = useState<WaitlistEntry[] | null>(null)
   const [denied, setDenied] = useState(false)
+  const [needsSignIn, setNeedsSignIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -45,6 +46,10 @@ export default function WaitlistAdminPage() {
       .catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 403) {
           setDenied(true)
+          return
+        }
+        if (err instanceof ApiError && err.status === 401) {
+          setNeedsSignIn(true)
           return
         }
         setError(err instanceof Error ? err.message : 'Não foi possível carregar.')
@@ -88,13 +93,15 @@ export default function WaitlistAdminPage() {
             </div>
           )}
 
+          {needsSignIn && <SignInRequired what="a lista" />}
+
           {error && (
             <p className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
               {error}
             </p>
           )}
 
-          {!entries && !denied && !error && (
+          {!entries && !denied && !needsSignIn && !error && (
             <div className="mt-10 flex justify-center">
               <Loading />
             </div>

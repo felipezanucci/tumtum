@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { cards, type CardData } from '@/lib/api'
-import { Button, Card, Loading, Badge } from '@/components/ui'
+import { ApiError, cards, type CardData } from '@/lib/api'
+import { Button, Card, Loading, Badge, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { nativeShare, canNativeShare, getShareUrl, copyToClipboard, downloadImage } from '@/lib/utils/share'
 
@@ -17,6 +17,7 @@ const platformLabels: Record<string, string> = {
 export default function CardsPage() {
   const [cardList, setCardList] = useState<CardData[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<Error | null>(null)
   const [shareMenuId, setShareMenuId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   /** Building the image file to hand over takes a moment on a slow connection. */
@@ -28,9 +29,15 @@ export default function CardsPage() {
 
   async function loadCards() {
     setLoading(true)
+    setLoadError(null)
     try {
       const data = await cards.list()
       setCardList(data)
+    } catch (error) {
+      // Without this the list stays empty and the page reads as "you have no
+      // cards" — a claim about the person's gallery, made when the request
+      // was refused. The two have to look different.
+      setLoadError(error instanceof Error ? error : new Error('Falhou'))
     } finally {
       setLoading(false)
     }
@@ -115,7 +122,13 @@ export default function CardsPage() {
             <h1 className="text-3xl font-bold text-tumtum-white">Seus Cards</h1>
           </div>
 
-          {loading ? (
+          {loadError instanceof ApiError && loadError.status === 401 ? (
+            <SignInRequired what="seus cards" />
+          ) : loadError ? (
+            <p className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
+              {loadError.message}
+            </p>
+          ) : loading ? (
             <Loading size="lg" className="py-20" />
           ) : cardList.length === 0 ? (
             <div className="py-20 text-center">

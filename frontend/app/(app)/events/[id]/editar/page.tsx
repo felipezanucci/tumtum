@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 import { Nav } from '@/components/layout'
-import { Loading } from '@/components/ui'
+import { Loading, SignInRequired } from '@/components/ui'
 import { EventForm, type EventFormValues, toApiTime } from '@/components/events/EventForm'
-import { events, type TumtumEvent } from '@/lib/api'
+import { ApiError, events, type TumtumEvent } from '@/lib/api'
 
 /**
  * Correct an event someone already created.
@@ -22,15 +22,33 @@ export default function EditEventPage() {
   const params = useParams<{ id: string }>()
   const [event, setEvent] = useState<TumtumEvent | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [needsSignIn, setNeedsSignIn] = useState(false)
 
   useEffect(() => {
     events
       .get(params.id)
       .then(setEvent)
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : 'Não foi possível carregar o evento.'),
-      )
+      .catch((err: unknown) => {
+        if (err instanceof ApiError && err.status === 401) {
+          setNeedsSignIn(true)
+          return
+        }
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar o evento.')
+      })
   }, [params.id])
+
+  if (needsSignIn) {
+    return (
+      <>
+        <Nav />
+        <main className="min-h-screen bg-tumtum-black">
+          <div className="mx-auto max-w-lg px-4 py-8">
+            <SignInRequired what="este evento" />
+          </div>
+        </main>
+      </>
+    )
+  }
 
   if (error) {
     return (
