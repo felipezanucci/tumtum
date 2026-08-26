@@ -63,16 +63,41 @@ the linked documents — this file is the index and the reasoning, not a diary.
     handled throughout. What was confirmed is that a capture survives leaving
     the app and coming back. What is still untested is the screen staying lit
     on its own.
-12. **Waitlist follow-ups.** ~~`WAITLIST_ADMIN_EMAILS`~~ set 2026-08-26, and
-    `/admin/waitlist` now makes the list readable. **Still open:** the social
-    handles on the landing footer (`instagram.com/tumtum.cc`,
-    `tiktok.com/@tumtum.cc`) and `oi@tumtum.cc` need to be confirmed or
-    corrected before the page is promoted anywhere — a link to an account that
-    does not exist is the same defect as the form that did nothing.
+12. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
+    `WAITLIST_ADMIN_EMAILS` is set, `/admin/waitlist` makes the list readable,
+    `oi@tumtum.cc` is confirmed working, and all five social accounts exist and
+    are linked. The one thing worth a second look: the Facebook handle is
+    `tumtum.ccc`, with three c's, unlike every other account — given by Felipe
+    and used as given, but it is the kind of detail that is either deliberate
+    (the two-c name was taken) or a typo nobody would notice.
 13. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — the footer stops guessing
+
+All five accounts are real, so all five are linked: Instagram, TikTok, X,
+Facebook, LinkedIn. Three of them had been **dropped** rather than shipped
+pointing at a platform's home page — the same defect as the form that did
+nothing, and dropping them was the right call while their existence was
+unknown. `oi@tumtum.cc` is confirmed to receive.
+
+**The URLs were cleaned before use.** The links arrived carrying share tokens
+from Felipe's own session — `?igsi=MXZoYmkxdnV6c2l4eQ==` on Instagram,
+`?_r=1&_t=ZS-99DCJup2BCS` on TikTok. Those identify the device that generated
+the share. They work, so pasting them would have looked fine and shipped a
+personal identifier into a public page that gets crawled and archived. Stored
+as canonical profile URLs instead.
+
+Verified in a browser rather than by reading the source: all five render, and
+their `href` values are the canonical ones with `rel="noopener noreferrer"`.
+
+**Left as given, but noted:** the Facebook handle is `tumtum.ccc`, three c's,
+unlike every other account. Either the two-c name was taken or it is a typo,
+and only Felipe can say which.
 
 ---
 
