@@ -13,7 +13,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. Launcher icon confirmed on the A17 as the TUMTUM wordmark on black. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
-| **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is now a real landing page** — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
+| **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture. Sharing opens the system sheet **with the image attached**. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
@@ -44,9 +44,11 @@ the linked documents — this file is the index and the reasoning, not a diary.
 7. **Mutation skins** — parked 2026-08-25. Masking a texture inside the master
    works and is built; the textures need to be fine enough to read inside a
    letterform. Nothing depends on this.
-8. **Confirm Railway actually redeploys on a push to `main`.** The GitHub
-   Actions deploy job has never worked (see below), so this has always been
-   implicit. Verify before relying on it.
+8. ~~**Confirm Railway actually redeploys on a push to `main`.**~~ Answered
+   2026-08-26: **it does.** `/api/waitlist/count` went from `Not Found` to
+   `{"total":0}` across the #38 merge with nobody touching the dashboard. The
+   GitHub Actions deploy job still does not work and still is not what deploys
+   this; Railway's own git integration is.
 9. ~~**CI and deploy cleanup**~~ — done 2026-08-25 (#12), and the backend half
    finished 2026-08-25 (#20): its test step ended in `|| echo "No tests found
    yet"`, so nothing there could ever turn a check red.
@@ -61,15 +63,84 @@ the linked documents — this file is the index and the reasoning, not a diary.
     handled throughout. What was confirmed is that a capture survives leaving
     the app and coming back. What is still untested is the screen staying lit
     on its own.
-12. **Waitlist follow-ups.** `WAITLIST_ADMIN_EMAILS` has to be set on Railway
-    before anyone can read the list — until it is, the endpoint is closed to
-    everyone, including Felipe. The social handles on the landing footer
-    (`instagram.com/tumtum.cc`, `tiktok.com/@tumtum.cc`) and `oi@tumtum.cc`
-    need to be confirmed or corrected before the page is promoted anywhere.
+12. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
+    `WAITLIST_ADMIN_EMAILS` is set, `/admin/waitlist` makes the list readable,
+    `oi@tumtum.cc` is confirmed working, and all five social accounts exist,
+    are linked, and were checked in a browser.
 13. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — the footer stops guessing
+
+All five accounts are real, so all five are linked: Instagram, TikTok, X,
+Facebook, LinkedIn. Three of them had been **dropped** rather than shipped
+pointing at a platform's home page — the same defect as the form that did
+nothing, and dropping them was the right call while their existence was
+unknown. `oi@tumtum.cc` is confirmed to receive.
+
+**The URLs were cleaned before use.** The links arrived carrying share tokens
+from Felipe's own session — `?igsi=MXZoYmkxdnV6c2l4eQ==` on Instagram,
+`?_r=1&_t=ZS-99DCJup2BCS` on TikTok. Those identify the device that generated
+the share. They work, so pasting them would have looked fine and shipped a
+personal identifier into a public page that gets crawled and archived. Stored
+as canonical profile URLs instead.
+
+Verified in a browser rather than by reading the source: all five render, and
+their `href` values are the canonical ones with `rel="noopener noreferrer"`.
+
+**The Facebook handle really is `tumtum.ccc`, with three c's** — confirmed by
+Felipe: the two-c name was already taken. Recorded because it looks exactly
+like a typo, and the next person to notice it will otherwise "fix" it into a
+dead link.
+
+---
+
+## 2026-08-26 — the landing goes live, and Railway's deploy question finally has an answer
+
+The whole public loop was exercised on the real deployment, by Felipe, from a
+phone: the landing page renders on tumtum.cc, an address typed into the form
+was accepted, and `/api/waitlist/count` went **0 → 1**. Page, form, API,
+table and the Vercel↔Railway link, all confirmed together rather than
+separately.
+
+**Open item 8 is closed: Railway does redeploy on a push to `main`.** It had
+been open for days marked "always implicit, never verified", because the
+GitHub Actions deploy job has never worked and nobody had checked what was
+standing in for it. The test was free once the endpoint existed —
+`/api/waitlist/count` answered `Not Found` before the merge and `{"total":0}`
+after it, with nobody touching the Railway dashboard in between. A new
+endpoint is a better probe than a dashboard: it can only answer if the running
+code is the merged code.
+
+`WAITLIST_ADMIN_EMAILS` is set on the service. Worth remembering about
+Railway's UI: a new variable is **staged**, not applied — it sits behind
+"Apply 1 change / Deploy" until confirmed. Setting it and walking away leaves
+it not set.
+
+**And a gap of my own, now closed.** The read endpoint shipped without a way to
+reach it. It needs an `Authorization` header, so the one person the list exists
+for could not open it in a browser — a feature its only intended user cannot
+use is not shipped, whatever the API says. `/admin/waitlist` is that page:
+the list, a count, and a CSV export.
+
+It is deliberately **not in the navigation.** Access is decided by the server
+against `waitlist_admin_emails`, and the frontend has no way to know the
+answer in advance, so a link in the bar would be a control that fails for
+almost everyone who sees it — the house bug wearing a different hat. Felipe
+reaches it by URL. If that becomes annoying, the fix is a flag on the profile
+response and a conditional link, not an unconditional one.
+
+The 403 says so in words rather than rendering an empty table, because an
+empty table would claim "nobody signed up" when it means "you may not look" —
+two very different facts that look identical.
+
+CSV escaping moved to `lib/utils/csv.ts` with six tests. An unescaped comma in
+a field does not fail loudly; it shifts one row's columns and surfaces days
+later looking like a data problem.
 
 ---
 
