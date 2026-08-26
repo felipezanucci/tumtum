@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **parked, not closed**. Both candidate bands failed validation; continuous raw PPG needs firmware customization at USD 15k NRE / 5,000 MOQ — premature for Phase 0. Awaiting their answer on a pilot batch. |
-| **Android app (hybrid)** | **The sleep test passed.** 26,999 readings in 27,000 seconds — 99.996%, one per second for 7.5 hours with the screen off — on 7% of battery. Samsung did not kill the service. The capture path for the pilot is open; what remains is the ~27k-point upload and Health Connect. |
+| **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
@@ -81,8 +81,11 @@ has no Web Bluetooth, so that page could only say "your browser can't do
 this" about the one thing the surrounding app does natively. The frame now
 closes itself on that route, landing on the native capture screen.
 
-Still open on this path: the ~27,000-point upload (the morning's own data is
-the test), and Health Connect for people with watches instead of straps.
+The morning closed the last gate: the ~27,000-point upload (≈1.6 MB) landed,
+the backend scored the night **quality 100%** — no gaps in 7.5 hours — and
+the display downsampling built for exactly this size drew 23:00 to 06:00
+in-app without strain. Min 49, max 102, average 63: a night of sleep, read at
+one beat per second by a three-day-old app. Still open: Health Connect.
 
 ---
 
