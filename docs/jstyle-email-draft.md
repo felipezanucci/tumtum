@@ -301,15 +301,30 @@ Founder, TumTum
 > Rules this draft follows, from what this project has learned:
 > - **No invented numbers.** Every figure below is measured and is in the
 >   decision log. No market sizing, no unit projections, no revenue claims.
-> - **Say plainly that demand is not yet validated.** That is the whole point
->   of Phase 0, and pretending otherwise would poison the relationship the
->   first time a forecast missed.
+> - ~~**Say plainly that demand is not yet validated.**~~ **Felipe cut this
+>   before sending** — first the sentence "and I am not going to invent it",
+>   then the whole "What I cannot tell you yet" paragraph. The letter below is
+>   the sent version, without it. The reasoning on both sides is in the
+>   decision log; the short form is that a letter meant to be forwarded inside
+>   J-Style should not carry the one sentence that kills it on the way. If
+>   Arena asks about demand directly, the cut paragraph is the answer — it is
+>   preserved below.
 > - **Reframe the pilot batch as shared technical de-risking.** The firmware
 >   question is unresolved: their current processing gates amplitude rises
 >   when the wearer is still, which is exactly our use case. If custom
 >   firmware does not remove that, the units fail our acceptance test — and
 >   discovering that at 3,000 units is a far more expensive failure for them
 >   than at 50.
+>
+> **The cut paragraph, kept for reference** — do not send it unsolicited, but
+> if Arena presses on demand, this is the honest answer and it should be used
+> rather than a forecast:
+>
+> > **What I cannot tell you yet.** I do not have demand data. Nobody outside
+> > our tests has used this product. That is the honest reason I could not
+> > sign a 3,000-unit commitment: not the price, and not doubt about J-Style —
+> > I simply do not yet know if I would be ordering 3,000 of something people
+> > want.
 
 Dear Arena,
 
@@ -346,11 +361,6 @@ one on many people — which is where a hardware partner matters, and why I
 came to you rather than to a consumer brand. The interesting version of this
 is not selling bands one at a time; it is an artist, a club or a festival
 handing them out.
-
-**What I cannot tell you yet.** I do not have demand data. Nobody outside our
-tests has used this product. That is the honest reason I could not sign a
-3,000-unit commitment: not the price, and not doubt about J-Style — I simply
-do not yet know if I would be ordering 3,000 of something people want.
 
 **Where you could genuinely help.** There is one open technical question that
 neither of us has answered, and it is the reason I keep asking about a small

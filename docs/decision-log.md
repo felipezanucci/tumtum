@@ -83,10 +83,19 @@ and constrained by three rules this project has paid to learn:
    false positives across 7.5 hours of sleep, two peaks found in a two-effort
    test. No market sizing, no unit projections, no revenue. A forecast that
    misses once costs more credibility than it ever bought.
-2. **Say plainly that demand is unvalidated.** "Nobody outside our tests has
-   used this product" is in the letter, in those words. It is also the honest
-   answer to why 3,000 units cannot be signed — and it is more persuasive than
-   a hedge, because it explains the refusal without impugning their terms.
+2. ~~**Say plainly that demand is unvalidated.**~~ **Cut before sending, by
+   Felipe, in two steps** — first the sentence "and I am not going to invent
+   it", then the whole "What I cannot tell you yet" paragraph. The drafted
+   argument was that conceding "nobody outside our tests has used this
+   product" is unanswerable and explains the refusal without impugning their
+   terms. Felipe's call was that a letter written to be forwarded inside
+   J-Style should not hand the reader the sentence that kills it. Both
+   readings are defensible; the founder's is the one that ships, and it is
+   recorded here so the trade-off is visible if the reply lands badly.
+   **What this costs:** the sent letter no longer explains *why* 3,000 units
+   were declined. Draft 3 already did, so Arena is not left guessing — but if
+   she asks again, the answer is the cut paragraph, and it should be given
+   rather than improvised into a forecast.
 3. **Reframe the small batch as *their* risk reduction.** This is the real
    move. The open question — does the customized Raw PPG firmware remove the
    motion-conditioned processing that clamped amplitude while stationary? —
