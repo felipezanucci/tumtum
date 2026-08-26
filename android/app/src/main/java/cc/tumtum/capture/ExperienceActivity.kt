@@ -42,12 +42,21 @@ class ExperienceActivity : Activity() {
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                // The site's "Ao vivo" is a dead end inside this frame — a
-                // WebView has no Web Bluetooth, so that page can only say "your
-                // browser can't do this" about the one thing the app around it
-                // does natively. Found on the first night: tapping Ao vivo in
-                // the nav stranded the person one screen away from the real
-                // capture. It now closes the frame, landing exactly there.
+                // The site's browser capture screen is a dead end inside this
+                // frame — a WebView has no Web Bluetooth, so that page can only
+                // say "your browser can't do this" about the one thing the app
+                // around it does natively. Found on the first night: tapping
+                // "Ao vivo" in the nav stranded the person one screen away from
+                // the real capture. It now closes the frame, landing exactly
+                // there.
+                //
+                // That nav item has since been removed entirely — capture is
+                // this app's job, and the browser could never be a fallback for
+                // it anyway (the H10's two BLE connections are already taken by
+                // this app and by Polar's own during an event). This stays as
+                // the second net: the route still exists, and anything that
+                // reaches it from inside the frame lands on the native screen
+                // rather than on an apology.
                 if (request.url.host == Uri.parse(WEB_URL).host && request.url.path == "/live") {
                     finish()
                     return true

@@ -16,7 +16,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture. Sharing opens the system sheet **with the image attached**. |
-| **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. |
+| **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
 | **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
 
 ### Open items
@@ -65,6 +65,45 @@ the linked documents — this file is the index and the reasoning, not a diary.
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — the browser capture path is retired
+
+Felipe's call, three days before the festival: now that the Android app
+exists, the site is no longer a capture route. **"Ao vivo" is out of the
+navigation.**
+
+**The distinction that matters:** the site is not being dropped — it *is* the
+app. Events, cards, sessions and profile all render in the WebView; only BLE
+capture is native. What was retired is one screen, `/live`, and the Web
+Bluetooth path behind it.
+
+**It was never a working fallback, which is the real argument.** A Polar H10
+accepts two simultaneous BLE connections. During an event both are already
+spoken for — the app, and Polar's own app running in parallel as the reference
+recording. A browser would be the third and would not connect. So "Ao vivo"
+was not a spare route that we chose not to use; it was a route that could only
+fail, sitting in the menu under the most confident label in the bar, waiting
+for someone in a dark crowd to tap it looking for the capture screen.
+
+*(The two-connection limit is the H10's documented behaviour and matches what
+Felipe hit in practice when only Polar Beat would take the second slot. It has
+not been measured by us. Worth confirming in the rehearsal, since the
+festival plan depends on app and Polar Flow coexisting.)*
+
+**What changed, and what deliberately did not.** The nav item is gone, and the
+sessions empty state — which told people to "Conecte um sensor em Ao vivo" —
+now points at the Android app instead. That second edit is the whole bug class
+this project keeps finding: remove the destination, leave the sign, and the
+app is lying about itself again.
+
+The `/live` route itself was **kept**. Deleting a working screen three days
+before the only six-hour test buys nothing and risks something; it is simply
+no longer advertised. `ExperienceActivity` still intercepts it inside the
+WebView and drops back to the native capture screen, which stays as the second
+net. Revisit deleting it after the festival, when the cost of being wrong is
+an ordinary week.
 
 ---
 
