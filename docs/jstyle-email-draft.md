@@ -249,33 +249,36 @@ Tumtum
 > door, anchor the timeline to our pilot, and plant the acceptance-criteria
 > flag for any future contract.
 
-Hi,
+Dear Arena team,
 
-Thank you — we appreciate the movement on the MOQ and the thought behind
-the rebate structure. Reducing the commitment from 5,000 to 3,000 units is
-a genuine step, and the cumulative-order rebate tells us you see long-term
-potential in this project. So do we.
+Thank you for the detailed reply, and for taking our situation seriously.
+Reducing the MOQ from 5,000 to 3,000 units is a genuine step, and the
+cumulative-order rebate tells us you see long-term potential in this
+project. We see it too, and we value the effort you have put into finding
+a structure that could work for both sides.
 
-That said, we are going to hold on the customized Raw PPG project for now.
+After careful consideration, we have decided to put the customized Raw PPG
+project on hold for now — a question of timing rather than of your terms.
 Our September pilot runs on existing consumer devices precisely so that we
-can validate market demand before committing to custom hardware. A 3,000-unit
-commitment with the full NRE upfront is a production-scale decision, and we
-will not make it before the pilot gives us real demand data — that would not
-be good for either side.
+can validate real market demand before committing to custom hardware. A
+3,000-unit commitment with the full NRE upfront is a production-scale
+decision, and making it before the pilot gives us demand data would not be
+responsible on our side — nor, we believe, good for the partnership.
 
-Two things so we can move quickly when the time comes:
+Two questions, so that we can move quickly when the time comes:
 
-1. Could you confirm how long the 3,000-unit MOQ and the rebate structure
-   remain valid?
-2. When we do move forward, firmware acceptance criteria will matter to us
-   as much as price: our validation protocol tests amplitude response with
-   the wearer stationary, which is where the current firmware clamps rises.
-   It would help to know whether the customized Raw PPG firmware removes
-   the motion-conditioned gating entirely.
+1. Could you let us know how long the 3,000-unit MOQ and the rebate
+   structure remain valid?
+2. When we move forward, firmware acceptance criteria will matter to us as
+   much as commercial terms. Our validation protocol tests amplitude
+   response with the wearer stationary — the condition where the current
+   firmware limits rises. Could you confirm whether the customized Raw PPG
+   firmware removes the motion-conditioned processing entirely?
 
-We expect to have pilot results in October and will come back to you with
-volume planning if the data supports it.
+We expect pilot results in October and will come back to you with volume
+planning if the data supports it. We appreciate the relationship we have
+built so far and hope to continue it at the right moment.
 
 Best regards,
 Felipe Zanucci
-TumTum
+Founder, TumTum
