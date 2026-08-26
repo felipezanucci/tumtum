@@ -16,7 +16,19 @@ class Settings(BaseSettings):
     # Phase 0 runs on São Paulo events; when events carry their own timezone
     # this becomes a per-event value rather than a setting.
     display_timezone: str = "America/Sao_Paulo"
+    # Who may read the public waitlist. Comma-separated emails; empty means
+    # nobody, which is the safe default — the list is other people's contact
+    # details, and "any signed-in user" is not an access rule for that.
+    waitlist_admin_emails: str = ""
     environment: str = "development"
+
+    @property
+    def waitlist_admins(self) -> set[str]:
+        return {
+            email.strip().lower()
+            for email in self.waitlist_admin_emails.split(",")
+            if email.strip()
+        }
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

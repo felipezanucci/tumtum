@@ -32,9 +32,12 @@ The other durable documents:
 | `docs/jstyle-v8-evaluation.md` | Everything learned about the J-Style bands |
 | `shared/brand/README.md` | Brand implementation details beyond this file |
 
-One working rule the log records, learned three times: push everything first,
+One working rule the log records, learned four times: push everything first,
 open the pull request last, and anything pushed after a PR is merged gets a
-new PR — never an edit to a merged one. And the bug class to watch for, found
+new PR — never an edit to a merged one. The fourth time proved that knowing
+the rule is not what fixes it: **do not open the PR until the work is finished
+and pushed**, and if one is already open with more commits coming, say so in
+its description so it does not get merged early. And the bug class to watch for, found
 eleven times in one day: **the app stating something false about its own
 state** — a control with no feedback, a stale display, a message describing
 the wrong condition. None break anything, none show up in tests, all surface
@@ -95,6 +98,7 @@ tumtum-app/
 │   │   ├── ui/               # Base UI components (Button, Card, Input...)
 │   │   ├── hr/               # Heart rate specific (HRCurve, PeakMarker...)
 │   │   ├── cards/            # Share card templates (SoloCard, ComparisonCard)
+│   │   ├── marketing/        # Public landing only — never used inside the app
 │   │   └── layout/           # Layout components (Nav, Footer, Sidebar)
 │   ├── lib/
 │   │   ├── api.ts            # Backend API client
@@ -180,6 +184,11 @@ cards: id (uuid PK), user_id (FK), session_id (FK), peak_id (FK), card_type (sol
 
 -- Share tracking
 shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link|native), shared_at
+
+-- Public waitlist (landing page). Email and nothing else: the page promises
+-- "a gente só usa seu e-mail pra te avisar dos próximos eventos", and a column
+-- we do not have is a promise we cannot accidentally break.
+waitlist_entries: id (uuid PK), email (unique), source, created_at
 ```
 
 ## Brand identity

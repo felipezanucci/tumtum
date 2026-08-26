@@ -59,7 +59,7 @@ export default function SessionsPage() {
 
           {sessions && sessions.length === 0 && (
             <p className="mt-6 text-tumtum-muted">
-              Nenhuma sessão ainda. Conecte um sensor em Ao vivo e capture a primeira.
+              Nenhuma sessão ainda. Abra o app TumTum no Android, conecte seu sensor e capture a primeira.
             </p>
           )}
 

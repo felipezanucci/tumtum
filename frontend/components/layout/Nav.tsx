@@ -6,9 +6,24 @@ import { usePathname } from 'next/navigation'
 
 import { Wordmark } from '@/components/brand'
 
+/**
+ * "Ao vivo" — the browser capture screen — is deliberately absent.
+ *
+ * Capture is the Android app's job now, and the browser cannot be a fallback
+ * for it even in principle: a Polar H10 accepts two simultaneous BLE
+ * connections, and during an event both are already spoken for by the app and
+ * by Polar's own app running in parallel as the reference recording. A third
+ * would not connect. Leaving "Ao vivo" in the menu therefore offered a route
+ * that could only fail — and offered it under the most confident label in the
+ * bar, to someone standing in a dark crowd looking for the capture screen.
+ *
+ * The route itself still exists and still works in a plain browser; it is
+ * simply no longer advertised. `ExperienceActivity` also intercepts it inside
+ * the app's WebView and drops back to the native capture screen, which stays
+ * as the second net.
+ */
 const navLinks = [
   { href: '/events', label: 'Eventos' },
-  { href: '/live', label: 'Ao vivo' },
   { href: '/import', label: 'Importar' },
   { href: '/cards', label: 'Cards' },
   { href: '/profile', label: 'Perfil' },
