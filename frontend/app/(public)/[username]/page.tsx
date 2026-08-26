@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+
 import { Wordmark } from '@/components/brand'
 import { useParams } from 'next/navigation'
-import { users, type PublicProfile } from '@/lib/api'
+import { ApiError, users, type PublicProfile } from '@/lib/api'
 import { Avatar, Card, Loading } from '@/components/ui'
 
 export default function PublicProfilePage() {
@@ -12,7 +14,11 @@ export default function PublicProfilePage() {
 
   const [profile, setProfile] = useState<PublicProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  // Three outcomes, not two. "Não existe" and "não consegui perguntar" look
+  // identical on screen and are completely different facts — the second one
+  // rendered as the first is the app claiming something it never checked.
+  const [missing, setMissing] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -20,8 +26,12 @@ export default function PublicProfilePage() {
       try {
         const data = await users.getPublicProfile(userId)
         setProfile(data)
-      } catch {
-        setError(true)
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) {
+          setMissing(true)
+        } else {
+          setFailed(true)
+        }
       } finally {
         setLoading(false)
       }
@@ -37,12 +47,41 @@ export default function PublicProfilePage() {
     )
   }
 
-  if (error || !profile) {
+  if (failed) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-tumtum-black">
-        <div className="text-center">
-          <p className="text-lg text-tumtum-white">Perfil não encontrado</p>
-          <p className="mt-1 text-sm text-tumtum-muted">Este usuário não existe ou o perfil é privado.</p>
+      <main className="flex min-h-screen items-center justify-center bg-tumtum-black px-4">
+        <div className="max-w-sm text-center">
+          <p className="text-lg text-tumtum-white">Não deu pra carregar</p>
+          <p className="mt-1 text-sm text-tumtum-muted">
+            A gente não conseguiu falar com o servidor agora. Isso não quer
+            dizer que a página não exista — tenta de novo daqui a pouco.
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-block text-sm text-tumtum-lime hover:underline"
+          >
+            Ir para a página inicial
+          </Link>
+        </div>
+      </main>
+    )
+  }
+
+  if (missing || !profile) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-tumtum-black px-4">
+        <div className="max-w-sm text-center">
+          <p className="text-lg text-tumtum-white">Nada por aqui</p>
+          <p className="mt-1 text-sm text-tumtum-muted">
+            Este endereço não é de ninguém — pode ser um perfil que não existe,
+            ou uma página que a TumTum não tem.
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-block text-sm text-tumtum-lime hover:underline"
+          >
+            Ir para a página inicial
+          </Link>
         </div>
       </main>
     )

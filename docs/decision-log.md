@@ -88,6 +88,45 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-26 — "perfil não encontrado" for a page that was not a profile
+
+Felipe opened `tumtum.cc/esqueci-senha` before the page had shipped and got
+**"Perfil não encontrado — Este usuário não existe ou o perfil é privado."**
+The `[username]` route had caught the path and concluded that `esqueci-senha`
+was a person who does not exist.
+
+**A correction to my own first reading.** I said any wrong address on the site
+would claim a person does not exist. That was too strong: Next gives real
+routes priority over dynamic ones, so once `/esqueci-senha` existed it won.
+What Felipe saw was correct behaviour for a page that genuinely was not there.
+
+But the message still cost real time, because it was a **plausible** wrong
+answer. It did not say "this page does not exist" — it made a confident claim
+about a user nobody had asked about, and anyone reading it would go looking at
+profiles. A wrong answer that sounds like an answer is worse than an error.
+
+**The actual defect, and it is the rule again.** `catch { setError(true) }`
+caught everything, so a network failure and a genuine 404 rendered the same
+sentence. "Este usuário não existe" when the server could not be reached is the
+app asserting something it never checked — the twelfth lesson, one route over.
+
+Three outcomes now, in three sets of words:
+
+| what happened | what it says |
+|---|---|
+| API answered 404 | "Nada por aqui" — the address belongs to nobody |
+| API unreachable | "Não deu pra carregar… isso não quer dizer que a página não exista" |
+| Unmatched path (2+ segments) | the new `app/not-found.tsx`, same voice |
+
+There was **no `not-found.tsx` at all** before this — an unknown multi-segment
+path fell through to Next's default page: unbranded, in English, with nowhere
+to go. Every one of the four now offers a way back to the landing page, which
+none of them did.
+
+Driven in a browser, all four cases.
+
+---
+
 ## 2026-08-26 — TumTum can send mail, and passwords can be recovered
 
 Resend, on the subdomain `mail.tumtum.cc`. **Domain verified in six
