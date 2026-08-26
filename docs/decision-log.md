@@ -73,6 +73,33 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-26 — the merge race, a fourth time
+
+PR #37 was merged at `43d4db4`, two commits in. Four more had already been
+written by then and landed after: the paragraph cut from the Arena letter, the
+log entries, the retirement of the browser capture path, and the entire landing
+page. Its description described all of it. None of it was in it.
+
+Fixed the only way a merged PR can be: #37's description trimmed back to the
+two commits it actually carries, with the correction stated at the top rather
+than quietly, and **PR #38** opened for the rest. A merged pull request is
+finished; it cannot absorb later work.
+
+**The fourth time is the interesting one.** The rule — push everything first,
+open the pull request last — has been in `CLAUDE.md` since the third. It was
+written down, it was read, and it failed anyway, which means it is not a rule
+problem. The failure needs two parties to arrive in the wrong order: the PR
+gets opened while work continues, and the merge lands while more is still
+coming. Writing "be careful" on one side of that does not synchronise it.
+
+What actually removes it is not opening the PR until the work is finished and
+pushed — not "mostly finished", *finished* — and, when a PR is already open and
+more commits are coming, saying so in the description so the other side knows
+not to merge yet. Both of those are mechanical. The instruction to remember was
+the part that kept failing.
+
+---
+
 ## 2026-08-26 — the site becomes the shop window, and the form that did nothing
 
 Felipe's framing: *"o site pode ser apenas um instrumento de informação e
