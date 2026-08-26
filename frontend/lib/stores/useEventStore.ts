@@ -15,6 +15,7 @@ interface EventState {
   eventList: TumtumEvent[]
   eventsLoading: boolean
   currentEvent: EventDetail | null
+  eventsError: Error | null
   loadEvents: (params?: {
     q?: string
     event_type?: string
@@ -34,14 +35,21 @@ interface EventState {
 export const useEventStore = create<EventState>((set) => ({
   // Events
   eventList: [],
+  eventsError: null,
   eventsLoading: false,
   currentEvent: null,
 
   loadEvents: async (params) => {
-    set({ eventsLoading: true })
+    set({ eventsLoading: true, eventsError: null })
     try {
       const eventList = await events.list(params)
       set({ eventList })
+    } catch (error) {
+      // Swallowing this used to leave eventList empty, and the page says
+      // "Nenhum evento encontrado" when the list is empty — so a refused
+      // request rendered as "you have no events". The failure has to survive
+      // for the page to tell the two apart.
+      set({ eventsError: error instanceof Error ? error : new Error('Falhou') })
     } finally {
       set({ eventsLoading: false })
     }

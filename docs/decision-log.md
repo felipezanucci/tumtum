@@ -58,19 +58,159 @@ the linked documents — this file is the index and the reasoning, not a diary.
     recording on both the Polar app and TumTum, and send the Polar CSV so the
     importer can be checked against a file the device actually wrote rather
     than one reproduced from its documented shape.
-11. **The screen wake lock is the one fix still unconfirmed.** It cannot be
+11. **Password reset does not exist and is blocked on an email provider.**
+    Nothing in the backend can send email. Until one is chosen and
+    `tumtum.cc` is verified with it, a forgotten password means a lost
+    account — which is why signup now has a reveal toggle and a confirmation
+    field. Related and queued with it: `auth.py` compares email addresses
+    case-sensitively, so `Felipe@` and `felipe@` are different accounts. The
+    fix is normalisation plus a migration of existing rows, not a change to
+    make days before a field test.
+12. **An audit of every empty state is worth doing** after the festival. Two
+    were found lying on 2026-08-26 by pulling one thread; nobody has checked
+    the rest. The rule: an empty state is a claim about the world, so any list
+    that can fail to load must distinguish "nothing there" from "I could not
+    ask".
+13. **The screen wake lock is the one fix still unconfirmed.** It cannot be
     reproduced here and the rehearsal did not isolate it: the phone was being
     handled throughout. What was confirmed is that a capture survives leaving
     the app and coming back. What is still untested is the screen staying lit
     on its own.
-12. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
+14. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
     `WAITLIST_ADMIN_EMAILS` is set, `/admin/waitlist` makes the list readable,
     `oi@tumtum.cc` is confirmed working, and all five social accounts exist,
     are linked, and were checked in a browser.
-13. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
+15. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — the waitlist learns who people are
+
+The list collected an address and nothing else, which is enough to send a
+message and not enough to write one. Felipe's point: *"precisamos de nome e
+sobrenome das pessoas pra podermos nos comunicar com eles da melhor maneira."*
+A mail that opens "Prezado usuário" is a mail from a company that does not know
+you, and this product's whole voice is the opposite of that.
+
+`first_name` and `last_name`, from the landing form through to the CSV. Still
+nothing else — no phone, no birthday, no device. The page promises "a gente só
+usa seu e-mail pra te avisar dos próximos eventos", and every column we do not
+add is a promise we cannot break by accident later.
+
+**Nullable, deliberately.** Entries collected before the form asked have no
+name, and the alternative to nullable is inventing one. The admin list omits the
+name line for those rather than rendering an empty heading, and a repeat
+submission now *fills in* a name we are missing — someone who signed up before
+the field existed and comes back with a name is telling us something we did not
+know. It never overwrites a name already held.
+
+**Names are tidied, not corrected.** `normalize_name` trims and collapses
+internal whitespace and stops there. Capitalisation is not ours to fix: "de
+Souza", "McDonald" and "van der Berg" are spelled the way their owners spell
+them, and a title-casing helper would quietly rename people. Four tests hold
+that line, because it is the kind of "improvement" that looks like a bug fix.
+
+The three validation messages name the missing field one at a time rather than
+saying "preencha tudo" — being told which field is missing is the difference
+between fixing it and hunting for it.
+
+Driven in a browser: each empty field produces its own message, and the
+confirmation reads *"A gente te chama quando a TumTum chegar num evento perto
+de você, Felipe."* The name is used one second after being given, which is the
+argument for asking for it.
+
+---
+
+## 2026-08-26 — the admin account, and what the signup form was hiding
+
+**The waitlist chain is closed and proven.** Felipe registered `felipe@tumtum.cc`,
+pointed `WAITLIST_ADMIN_EMAILS` at it, and `/admin/waitlist` renders the list.
+His personal account still gets the 403, which is what he wanted: **the
+contact details of other people sit behind an account that is not his
+personal identity.** That is a posture decision, not a configuration one, and
+it is the right one — worth keeping as the platform grows rather than
+collapsing back into "the founder's login can see everything".
+
+Two things surfaced while checking that the account could even be created.
+
+**1. Registration and login compare the address exactly as typed.** No
+normalisation anywhere in `auth.py`, and the `users.email` column is a plain
+`String`. So `Felipe@tumtum.cc` and `felipe@tumtum.cc` are two different
+accounts, and an Android keyboard capitalises the first letter by default. The
+same trap `services/waitlist.py` was written to avoid, still wide open one
+table over. The admin gate itself is safe — it lowercases both sides — so the
+failure mode is "cannot log in", not "cannot read the list".
+
+**Not fixed, deliberately.** Lowercasing on the way in would orphan any
+existing row whose stored address carries a capital, so the real fix is
+normalisation plus a migration of what is already there. That is not a
+three-days-before-the-festival change. Queued.
+
+**2. There is no password reset, and no way to build one.** The backend has no
+email capability at all — no SMTP, no provider, nothing in `requirements.txt`.
+So "esqueci minha senha" cannot be built until an email provider is chosen and
+its domain verified on `tumtum.cc`.
+
+That absence changes what the signup form is. **A password typed with a typo
+today is not a failed login — it is a permanently unreachable account**, since
+nothing can recover it. So the reveal toggle and the confirmation field are not
+polish: right now they are the entire recovery mechanism. Both shipped, on
+signup and login, and driven in a browser: the toggle reveals and re-hides, it
+does not submit the form (a bare `<button>` inside a form does — an eye icon
+that signed you up would have been memorable), mismatched confirmations disable
+the button, and matching ones release it.
+
+---
+
+## 2026-08-26 — the twelfth time, and the worst one yet
+
+Felipe opened `/admin/waitlist` on his laptop and got a red box: *"Sua sessão
+expirou. Entre na sua conta para continuar."* — an instruction with nothing to
+act on. Told to sign in, on a page offering no way to sign in.
+
+Pulling that thread found something much worse two screens away. **`/events`
+and `/cards` had no error handling at all on load.** `loadEvents` used
+`try/finally` with no `catch`, so a refused request left the list empty — and
+an empty list renders as **"Nenhum evento encontrado"**. The app was making a
+claim about the person's own data when it had simply failed to ask.
+
+**Measured, not reasoned.** Both versions were built and driven in a browser
+with every `/api/**` call forced to 401:
+
+| under a 401 | before | after |
+|---|---|---|
+| `/events` | "Nenhum evento encontrado" **+ an offer to load demo events** | sign-in prompt, working button |
+| `/cards` | "Você ainda não criou nenhum card" | sign-in prompt, working button |
+| `/sessions` | red box, no way out | sign-in prompt, working button |
+| `/admin/waitlist` | red box, no way out | sign-in prompt, working button |
+
+The demo-seeding offer is the part that turns this from embarrassing into
+dangerous, and it was not noticed until the before-state was actually rendered.
+**Saturday's failure mode was sitting right there:** token expires during a
+six-hour festival, Felipe opens Eventos, the app says his event does not exist
+and invites him to populate the database with demo data. Over the real one.
+
+`SignInRequired` also says *less* than the wording it replaces, deliberately. A
+401 means the request carried no valid token, which is as often "this browser
+never signed in" as "your session expired" — exactly what happened here, a
+laptop after a phone. Asserting expiry in that case is the same defect one
+level down: the app confidently wrong about its own state while sounding
+precise.
+
+**Twelve.** Every one found by a person using the thing, none by a test. What
+is new this time is the shape: the first eleven were the app lying about a
+control or a display. These two lied about *the user's data*, which is worse,
+because a person has no way to know it is untrue. A stale timer looks wrong. An
+empty list looks true.
+
+The lesson worth carrying: **an empty state is a claim.** "Nenhum evento
+encontrado" asserts something about the world, and any code path that can reach
+it without having actually looked is a lie waiting for a bad afternoon. Every
+list that can fail to load needs to tell "nothing there" apart from "I could
+not ask".
 
 ---
 

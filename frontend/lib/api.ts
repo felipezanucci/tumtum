@@ -482,10 +482,15 @@ export interface WaitlistJoinResult {
 
 export const waitlist = {
   /** Public: no account exists yet at the point someone asks to be told. */
-  join: (email: string, source?: string) =>
+  join: (entry: {
+    email: string
+    first_name?: string
+    last_name?: string
+    source?: string
+  }) =>
     request<WaitlistJoinResult>('/api/waitlist', {
       method: 'POST',
-      body: JSON.stringify({ email, source }),
+      body: JSON.stringify(entry),
     }),
 
   count: () => request<{ total: number }>('/api/waitlist/count'),
@@ -496,6 +501,8 @@ export const waitlist = {
 
 export interface WaitlistEntry {
   email: string
+  first_name: string | null
+  last_name: string | null
   source: string | null
   created_at: string
 }

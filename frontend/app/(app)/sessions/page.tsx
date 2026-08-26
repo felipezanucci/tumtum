@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-import { health, type HRSession } from '@/lib/api'
-import { Badge, Card, Loading } from '@/components/ui'
+import { ApiError, health, type HRSession } from '@/lib/api'
+import { Badge, Card, Loading, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { formatDuration } from '@/lib/health/quality'
 
@@ -20,6 +20,7 @@ import { formatDuration } from '@/lib/health/quality'
 export default function SessionsPage() {
   const [sessions, setSessions] = useState<HRSession[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [needsSignIn, setNeedsSignIn] = useState(false)
 
   useEffect(() => {
     health
@@ -30,9 +31,13 @@ export default function SessionsPage() {
           [...list].sort((a, b) => Date.parse(b.start_time) - Date.parse(a.start_time)),
         ),
       )
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : 'Não foi possível carregar.'),
-      )
+      .catch((err: unknown) => {
+        if (err instanceof ApiError && err.status === 401) {
+          setNeedsSignIn(true)
+          return
+        }
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar.')
+      })
   }, [])
 
   return (
@@ -45,13 +50,15 @@ export default function SessionsPage() {
             Cada captura que chegou até aqui, a mais recente primeiro.
           </p>
 
+          {needsSignIn && <SignInRequired what="suas sessões" />}
+
           {error && (
             <p className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
               {error}
             </p>
           )}
 
-          {!sessions && !error && (
+          {!sessions && !error && !needsSignIn && (
             <div className="mt-10 flex justify-center">
               <Loading />
             </div>

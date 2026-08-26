@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useEventStore } from '@/lib/stores/useEventStore'
-import { demo } from '@/lib/api'
-import { Card, Badge, Button, Loading, Input } from '@/components/ui'
+import { ApiError, demo } from '@/lib/api'
+import { Card, Badge, Button, Loading, Input, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { formatDateOnly } from '@/lib/utils/dates'
 
@@ -21,7 +21,7 @@ const eventTypeBadgeVariant: Record<string, 'default' | 'accent' | 'success'> = 
 }
 
 export default function EventsPage() {
-  const { eventList, eventsLoading, loadEvents } = useEventStore()
+  const { eventList, eventsLoading, eventsError, loadEvents } = useEventStore()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('')
   const [seeding, setSeeding] = useState(false)
@@ -81,7 +81,13 @@ export default function EventsPage() {
           </div>
 
           {/* Event List */}
-          {eventsLoading ? (
+          {eventsError instanceof ApiError && eventsError.status === 401 ? (
+            <SignInRequired what="seus eventos" />
+          ) : eventsError ? (
+            <p className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
+              {eventsError.message}
+            </p>
+          ) : eventsLoading ? (
             <Loading size="lg" className="py-20" />
           ) : eventList.length === 0 ? (
             <div className="py-20 text-center">

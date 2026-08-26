@@ -5,7 +5,7 @@ import { Wordmark } from '@/components/brand'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
-import { Button, Input } from '@/components/ui'
+import { Button, Input, PasswordInput } from '@/components/ui'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -42,13 +42,13 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Input
+          <PasswordInput
             label="Senha"
-            type="password"
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="current-password"
           />
 
           {error && (

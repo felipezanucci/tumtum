@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { ApiError, waitlist, type WaitlistEntry } from '@/lib/api'
-import { Loading } from '@/components/ui'
+import { Loading, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { toCsv } from '@/lib/utils/csv'
 
@@ -21,6 +21,11 @@ import { toCsv } from '@/lib/utils/csv'
  * which would say "nobody signed up" when it means "you may not look".
  */
 
+/** Empty for the entries collected before the form asked for a name. */
+function fullName(entry: WaitlistEntry): string {
+  return [entry.first_name, entry.last_name].filter(Boolean).join(' ')
+}
+
 function formatWhen(iso: string): string {
   const parsed = new Date(iso)
   if (Number.isNaN(parsed.getTime())) return iso
@@ -36,6 +41,7 @@ function formatWhen(iso: string): string {
 export default function WaitlistAdminPage() {
   const [entries, setEntries] = useState<WaitlistEntry[] | null>(null)
   const [denied, setDenied] = useState(false)
+  const [needsSignIn, setNeedsSignIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -45,6 +51,10 @@ export default function WaitlistAdminPage() {
       .catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 403) {
           setDenied(true)
+          return
+        }
+        if (err instanceof ApiError && err.status === 401) {
+          setNeedsSignIn(true)
           return
         }
         setError(err instanceof Error ? err.message : 'Não foi possível carregar.')
@@ -57,8 +67,14 @@ export default function WaitlistAdminPage() {
     // cleanup of an object URL that would otherwise leak on every click.
     const link = document.createElement('a')
     const csv = toCsv(
-      ['email', 'origem', 'cadastrado_em'],
-      entries.map((entry) => [entry.email, entry.source ?? '', entry.created_at]),
+      ['nome', 'sobrenome', 'email', 'origem', 'cadastrado_em'],
+      entries.map((entry) => [
+        entry.first_name ?? '',
+        entry.last_name ?? '',
+        entry.email,
+        entry.source ?? '',
+        entry.created_at,
+      ]),
     )
     link.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`
     link.download = 'tumtum-lista-de-espera.csv'
@@ -88,13 +104,15 @@ export default function WaitlistAdminPage() {
             </div>
           )}
 
+          {needsSignIn && <SignInRequired what="a lista" />}
+
           {error && (
             <p className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
               {error}
             </p>
           )}
 
-          {!entries && !denied && !error && (
+          {!entries && !denied && !needsSignIn && !error && (
             <div className="mt-10 flex justify-center">
               <Loading />
             </div>
@@ -132,7 +150,12 @@ export default function WaitlistAdminPage() {
                     key={entry.email}
                     className="rounded-lg border border-tumtum-border bg-tumtum-surface px-4 py-3"
                   >
-                    <p className="break-all font-label text-tumtum-white">
+                    {fullName(entry) && (
+                      <p className="font-headline text-tumtum-white">
+                        {fullName(entry)}
+                      </p>
+                    )}
+                    <p className="break-all font-label text-tumtum-muted">
                       {entry.email}
                     </p>
                     <p className="mt-1 text-xs text-tumtum-muted tabular-nums">
