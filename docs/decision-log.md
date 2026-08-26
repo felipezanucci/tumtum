@@ -58,24 +58,73 @@ the linked documents — this file is the index and the reasoning, not a diary.
     recording on both the Polar app and TumTum, and send the Polar CSV so the
     importer can be checked against a file the device actually wrote rather
     than one reproduced from its documented shape.
-11. **An audit of every empty state is worth doing** after the festival. Two
+11. **Password reset does not exist and is blocked on an email provider.**
+    Nothing in the backend can send email. Until one is chosen and
+    `tumtum.cc` is verified with it, a forgotten password means a lost
+    account — which is why signup now has a reveal toggle and a confirmation
+    field. Related and queued with it: `auth.py` compares email addresses
+    case-sensitively, so `Felipe@` and `felipe@` are different accounts. The
+    fix is normalisation plus a migration of existing rows, not a change to
+    make days before a field test.
+12. **An audit of every empty state is worth doing** after the festival. Two
     were found lying on 2026-08-26 by pulling one thread; nobody has checked
     the rest. The rule: an empty state is a claim about the world, so any list
     that can fail to load must distinguish "nothing there" from "I could not
     ask".
-12. **The screen wake lock is the one fix still unconfirmed.** It cannot be
+13. **The screen wake lock is the one fix still unconfirmed.** It cannot be
     reproduced here and the rehearsal did not isolate it: the phone was being
     handled throughout. What was confirmed is that a capture survives leaving
     the app and coming back. What is still untested is the screen staying lit
     on its own.
-13. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
+14. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
     `WAITLIST_ADMIN_EMAILS` is set, `/admin/waitlist` makes the list readable,
     `oi@tumtum.cc` is confirmed working, and all five social accounts exist,
     are linked, and were checked in a browser.
-14. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
+15. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — the admin account, and what the signup form was hiding
+
+**The waitlist chain is closed and proven.** Felipe registered `felipe@tumtum.cc`,
+pointed `WAITLIST_ADMIN_EMAILS` at it, and `/admin/waitlist` renders the list.
+His personal account still gets the 403, which is what he wanted: **the
+contact details of other people sit behind an account that is not his
+personal identity.** That is a posture decision, not a configuration one, and
+it is the right one — worth keeping as the platform grows rather than
+collapsing back into "the founder's login can see everything".
+
+Two things surfaced while checking that the account could even be created.
+
+**1. Registration and login compare the address exactly as typed.** No
+normalisation anywhere in `auth.py`, and the `users.email` column is a plain
+`String`. So `Felipe@tumtum.cc` and `felipe@tumtum.cc` are two different
+accounts, and an Android keyboard capitalises the first letter by default. The
+same trap `services/waitlist.py` was written to avoid, still wide open one
+table over. The admin gate itself is safe — it lowercases both sides — so the
+failure mode is "cannot log in", not "cannot read the list".
+
+**Not fixed, deliberately.** Lowercasing on the way in would orphan any
+existing row whose stored address carries a capital, so the real fix is
+normalisation plus a migration of what is already there. That is not a
+three-days-before-the-festival change. Queued.
+
+**2. There is no password reset, and no way to build one.** The backend has no
+email capability at all — no SMTP, no provider, nothing in `requirements.txt`.
+So "esqueci minha senha" cannot be built until an email provider is chosen and
+its domain verified on `tumtum.cc`.
+
+That absence changes what the signup form is. **A password typed with a typo
+today is not a failed login — it is a permanently unreachable account**, since
+nothing can recover it. So the reveal toggle and the confirmation field are not
+polish: right now they are the entire recovery mechanism. Both shipped, on
+signup and login, and driven in a browser: the toggle reveals and re-hides, it
+does not submit the form (a bare `<button>` inside a form does — an eye icon
+that signed you up would have been memorable), mismatched confirmations disable
+the button, and matching ones release it.
 
 ---
 
