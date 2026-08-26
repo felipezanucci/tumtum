@@ -347,11 +347,10 @@ came to you rather than to a consumer brand. The interesting version of this
 is not selling bands one at a time; it is an artist, a club or a festival
 handing them out.
 
-**What I cannot tell you yet.** I do not have demand data, and I am not going
-to invent it. Nobody outside our tests has used this product. That is the
-honest reason I could not sign a 3,000-unit commitment: not the price, and
-not doubt about J-Style — I simply do not yet know if I would be ordering
-3,000 of something people want.
+**What I cannot tell you yet.** I do not have demand data. Nobody outside our
+tests has used this product. That is the honest reason I could not sign a
+3,000-unit commitment: not the price, and not doubt about J-Style — I simply
+do not yet know if I would be ordering 3,000 of something people want.
 
 **Where you could genuinely help.** There is one open technical question that
 neither of us has answered, and it is the reason I keep asking about a small
