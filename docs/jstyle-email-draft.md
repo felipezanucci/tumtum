@@ -282,3 +282,103 @@ built so far and hope to continue it at the right moment.
 Best regards,
 Felipe Zanucci
 Founder, TumTum
+
+---
+
+## Draft 4 — answering Arena's request for "more vision" (2026-08-26)
+
+> Context: after Draft 3 declined on timing, Arena replied: *"Could you share
+> with us more vision about this project? I'm trying to reevaluate this case
+> and figure out if there's anything i can help with."*
+>
+> Reading: they reopened a case they had already countered on. "Reevaluate"
+> plus "anything I can help with" usually means the person wants material to
+> justify a smaller deal internally. So the reply has to give them something
+> they can forward — a picture of where this goes, evidence that we are real,
+> and a specific, defensible reason why a small first batch is in **J-Style's**
+> interest, not only ours.
+>
+> Rules this draft follows, from what this project has learned:
+> - **No invented numbers.** Every figure below is measured and is in the
+>   decision log. No market sizing, no unit projections, no revenue claims.
+> - **Say plainly that demand is not yet validated.** That is the whole point
+>   of Phase 0, and pretending otherwise would poison the relationship the
+>   first time a forecast missed.
+> - **Reframe the pilot batch as shared technical de-risking.** The firmware
+>   question is unresolved: their current processing gates amplitude rises
+>   when the wearer is still, which is exactly our use case. If custom
+>   firmware does not remove that, the units fail our acceptance test — and
+>   discovering that at 3,000 units is a far more expensive failure for them
+>   than at 50.
+
+Dear Arena,
+
+Thank you — I appreciate you reopening this. Here is the fuller picture.
+
+**What TumTum is.** People go to concerts and football matches and feel
+something they cannot show anyone afterwards. TumTum captures heart rate
+during a live event, aligns it to the event's own timeline — the song that
+was playing, the minute of the goal — and turns the biggest moment into a
+card the person shares on social media. Not fitness, not health tracking.
+The product is the memory and the story, and the heart rate is the evidence
+that it was real. Our first market is Brazil: São Paulo concerts and
+football.
+
+**Where we are.** We are in Phase 0, deliberately built on the watches and
+straps people already own, because the only thing worth validating right now
+is whether people want this at all. The full loop is working and has been
+tested in the field, not just in a lab:
+
+- A capture running overnight recorded **26,999 of 27,000 expected readings —
+  99.996%** — with the phone screen off, using 7% of the battery.
+- That capture uploaded and rendered end to end at 100% data quality.
+- Our peak-detection algorithm was validated in both directions: it found
+  both effort peaks in a controlled two-effort test, and produced **zero
+  false positives across 7.5 hours of sleep**.
+- Our first six-hour live capture is this Saturday, at a festival in São
+  Paulo, and a structured pilot follows on 25 September.
+
+**Where it goes.** If Phase 0 shows people share these cards, the constraint
+becomes obvious: the experience only works for people who already own a
+compatible device, and at a concert that is a small fraction of the crowd.
+Phase 1 is a TumTum band cheap enough and simple enough that an event can put
+one on many people — which is where a hardware partner matters, and why I
+came to you rather than to a consumer brand. The interesting version of this
+is not selling bands one at a time; it is an artist, a club or a festival
+handing them out.
+
+**What I cannot tell you yet.** I do not have demand data, and I am not going
+to invent it. Nobody outside our tests has used this product. That is the
+honest reason I could not sign a 3,000-unit commitment: not the price, and
+not doubt about J-Style — I simply do not yet know if I would be ordering
+3,000 of something people want.
+
+**Where you could genuinely help.** There is one open technical question that
+neither of us has answered, and it is the reason I keep asking about a small
+batch. Your current firmware conditions its heart-rate output on motion, and
+in our testing that suppressed real amplitude rises when the wearer was
+standing still. A concert audience is standing still. Our acceptance
+protocol tests exactly that condition, and it is eliminatory for us.
+
+So the question that decides everything is: **does the customized Raw PPG
+firmware remove that motion-conditioned processing entirely?**
+
+Nobody can answer that from a datasheet — it has to be measured on real
+units. If we find out at 3,000 units that it does not, that is a bad outcome
+for J-Style as much as for me: a large order that fails acceptance, an
+unhappy customer, and a partnership that ends on a dispute. If we find out at
+50 units, it is a Tuesday, and either we fix the firmware together or we part
+on good terms.
+
+That is the whole argument for a small first batch. It is not a discount
+request — I am happy to pay a per-unit premium that reflects a small run.
+It is a request to answer the technical question before either of us commits
+to a number.
+
+If a small engineering-sample batch is possible on any terms, I would like to
+move on it. If it truly is not, tell me plainly and I will plan around it —
+and I will come back to you after the pilot with real demand data either way.
+
+Best regards,
+Felipe Zanucci
+Founder, TumTum

@@ -9,7 +9,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 | Track | Status |
 |---|---|
-| **Hardware supplier** | J-Style **parked, not closed** — their counter is on the table. Pilot batch refused; MOQ cut 5,000 → 3,000; NRE stays US$ 15k with a rebate ladder that only pays back from 10,000 cumulative units. Decision deferred to Phase 1, after the September pilot. Draft reply in `docs/jstyle-email-draft.md`. |
+| **Hardware supplier** | J-Style **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", which is an opening: Draft 4 in `docs/jstyle-email-draft.md` argues the small batch as *their* risk reduction on the unanswered firmware question. No NRE and no volume before the pilot. |
 | **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
@@ -25,8 +25,11 @@ the linked documents — this file is the index and the reasoning, not a diary.
    everything; nothing is queued.
 2. ~~**End-to-end save test**~~ and ~~**detection accuracy**~~ — both done
    2026-08-25, both passed.
-3. **J-Style reply** — sent 2026-08-25; awaiting their answer on a pilot batch
-   with the NRE credited against a future volume order.
+3. **J-Style** — the decline was sent 2026-08-26 and Arena reopened the case
+   the same day asking for the project's vision. Draft 4 answers it and puts
+   the pilot batch back on the table as shared technical de-risking. Awaiting
+   their reply; the firmware question (does custom Raw PPG remove the
+   motion-conditioned clamp?) is the one that decides everything.
 4. **Veepoo** — contacted 2026-08-18, still the primary alternative if they
    confirm native raw PPG / R-R streaming.
 5. ~~**Deployment protection**~~ — resolved 2026-08-25: it was never a
@@ -58,6 +61,49 @@ the linked documents — this file is the index and the reasoning, not a diary.
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — Arena reopens the case and asks for the vision
+
+Hours after the decline was sent, Arena wrote back: *"Could you share with us
+more vision about this project? I'm trying to reevaluate this case and figure
+out if there's anything i can help with."*
+
+**A refusal that reopens itself is not a refusal.** The 50–100 unit batch had
+already been refused once, formally. "Reevaluate" and "anything I can help
+with" are the words of someone who wants material to argue a smaller deal
+internally — the ask is for something forwardable, not for reassurance.
+
+So the reply (Draft 4, `docs/jstyle-email-draft.md`) is built to be forwarded,
+and constrained by three rules this project has paid to learn:
+
+1. **No invented numbers.** Every figure in it is measured and recorded here:
+   26,999/27,000 readings overnight, 7% battery, 100% upload quality, zero
+   false positives across 7.5 hours of sleep, two peaks found in a two-effort
+   test. No market sizing, no unit projections, no revenue. A forecast that
+   misses once costs more credibility than it ever bought.
+2. **Say plainly that demand is unvalidated.** "Nobody outside our tests has
+   used this product" is in the letter, in those words. It is also the honest
+   answer to why 3,000 units cannot be signed — and it is more persuasive than
+   a hedge, because it explains the refusal without impugning their terms.
+3. **Reframe the small batch as *their* risk reduction.** This is the real
+   move. The open question — does the customized Raw PPG firmware remove the
+   motion-conditioned processing that clamped amplitude while stationary? —
+   cannot be answered from a datasheet. If the answer turns out to be no at
+   3,000 units, J-Style eats a failed acceptance, a refund fight and a dead
+   partnership. At 50 units it is a Tuesday. The letter also offers a per-unit
+   premium for a small run, which removes "this is a disguised discount
+   request" as a reading.
+
+The vision itself is stated once and concretely: the Phase 1 buyer is not a
+consumer buying one band, it is an artist, a club or a festival putting bands
+on many people at once — which is why a manufacturing partner matters here and
+a consumer brand would not.
+
+**Unchanged:** no NRE is paid, and no volume is committed, before the pilot
+answers the Phase 0 question and before the validation protocol — stationary
+condition eliminatory — is written into the contract as acceptance criteria.
 
 ---
 
