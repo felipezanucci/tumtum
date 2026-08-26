@@ -34,6 +34,8 @@ class ExperienceActivity : Activity() {
 
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
+        // The page prefers this over its fallback platform list; see ShareBridge.
+        web.addJavascriptInterface(ShareBridge(this), "TumTumAndroid")
 
         val token = TumtumApi(applicationContext).token
         val target = intent.getStringExtra(EXTRA_URL) ?: WEB_URL

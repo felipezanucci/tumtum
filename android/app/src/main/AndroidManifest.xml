@@ -46,6 +46,13 @@
             android:name=".ExperienceActivity"
             android:exported="false" />
 
+        <!-- Read-only door through which the share sheet reaches a card. -->
+        <provider
+            android:name=".CardProvider"
+            android:authorities="cc.tumtum.capture.cards"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
         <service
             android:name=".CaptureService"
             android:exported="false"
