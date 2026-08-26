@@ -237,3 +237,45 @@ decision like this one.
 Best regards,
 Felipe Zanucci
 Tumtum
+
+---
+
+## Draft 3 — reply to Arena's 3,000-MOQ / rebate counter (2026-08-26)
+
+> Context: Arena refused the 50–100 unit pilot batch, countered with MOQ
+> 3,000 and an NRE rebate ladder starting at 10,000 cumulative units. The
+> decision log records why this is declined on timing, not price. Goals of
+> this reply: acknowledge the genuine movement, decline without closing the
+> door, anchor the timeline to our pilot, and plant the acceptance-criteria
+> flag for any future contract.
+
+Hi,
+
+Thank you — we appreciate the movement on the MOQ and the thought behind
+the rebate structure. Reducing the commitment from 5,000 to 3,000 units is
+a genuine step, and the cumulative-order rebate tells us you see long-term
+potential in this project. So do we.
+
+That said, we are going to hold on the customized Raw PPG project for now.
+Our September pilot runs on existing consumer devices precisely so that we
+can validate market demand before committing to custom hardware. A 3,000-unit
+commitment with the full NRE upfront is a production-scale decision, and we
+will not make it before the pilot gives us real demand data — that would not
+be good for either side.
+
+Two things so we can move quickly when the time comes:
+
+1. Could you confirm how long the 3,000-unit MOQ and the rebate structure
+   remain valid?
+2. When we do move forward, firmware acceptance criteria will matter to us
+   as much as price: our validation protocol tests amplitude response with
+   the wearer stationary, which is where the current firmware clamps rises.
+   It would help to know whether the customized Raw PPG firmware removes
+   the motion-conditioned gating entirely.
+
+We expect to have pilot results in October and will come back to you with
+volume planning if the data supports it.
+
+Best regards,
+Felipe Zanucci
+TumTum

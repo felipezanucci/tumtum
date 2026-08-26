@@ -9,7 +9,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 | Track | Status |
 |---|---|
-| **Hardware supplier** | J-Style **parked, not closed**. Both candidate bands failed validation; continuous raw PPG needs firmware customization at USD 15k NRE / 5,000 MOQ — premature for Phase 0. Awaiting their answer on a pilot batch. |
+| **Hardware supplier** | J-Style **parked, not closed** — their counter is on the table. Pilot batch refused; MOQ cut 5,000 → 3,000; NRE stays US$ 15k with a rebate ladder that only pays back from 10,000 cumulative units. Decision deferred to Phase 1, after the September pilot. Draft reply in `docs/jstyle-email-draft.md`. |
 | **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
@@ -58,6 +58,38 @@ the linked documents — this file is the index and the reasoning, not a diary.
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — Arena counters, and the calendar answers for us
+
+Arena's reply to the pilot-batch request arrived. The actual ask — 50–100
+units with raw-PPG firmware — was refused. The counter: MOQ cut from 5,000 to
+3,000 (a real concession, and still 30–60× the requested pilot), NRE held at
+US$ 15,000, softened by a cumulative-order rebate — 20% back at each of
+10k/20k/30k/40k units, the remainder at 50k.
+
+**The rebate refunds money exactly in the scenarios where it isn't needed.**
+Order only the 3,000 and stop: nothing back. Reach 10,000: US$ 3k back.
+At 50,000 units the NRE is fully refunded — and irrelevant. The risk stays
+whole on our side; the structure is polished, the concession thin.
+
+**Declined for now — on timing, not price.** Since this negotiation began,
+the hypothesis was reframed (validate the *delivery*, with no custom
+hardware — the standing Phase 0 premise) and the Android app proved overnight
+capture on hardware people already own. The September pilot was explicitly
+decoupled from the supplier decision on 08-17. There is no hardware decision
+to make until the pilot answers the Phase 0 question; paying US$ 15k plus a
+3,000-unit commitment now would fund firmware that has not yet proven it
+fixes the stationary-clamp defect that failed both bands — the product's
+core case, and the eliminatory line of the validation protocol.
+
+**Kept for later:** the 50,000-unit rebate ladder reveals how much Arena
+believes the relationship could be worth — leverage for a Phase 1
+negotiation, alongside Veepoo and any other supplier competing by then. If
+talks resume, firmware acceptance criteria (the validation protocol, with
+the stationary condition eliminatory) go in the contract before any NRE is
+paid. Reply draft: `docs/jstyle-email-draft.md`.
 
 ---
 
