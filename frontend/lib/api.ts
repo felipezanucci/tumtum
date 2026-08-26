@@ -489,6 +489,15 @@ export const waitlist = {
     }),
 
   count: () => request<{ total: number }>('/api/waitlist/count'),
+
+  /** Restricted to the accounts named in the API's waitlist_admin_emails. */
+  list: () => request<WaitlistEntry[]>('/api/waitlist'),
+}
+
+export interface WaitlistEntry {
+  email: string
+  source: string | null
+  created_at: string
 }
 
 export const users = {
