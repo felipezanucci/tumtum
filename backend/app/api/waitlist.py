@@ -19,7 +19,9 @@ from app.services.waitlist import normalize_email
 router = APIRouter(prefix="/api/waitlist", tags=["waitlist"])
 
 
-@router.post("", response_model=WaitlistJoinResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=WaitlistJoinResponse, status_code=status.HTTP_201_CREATED
+)
 async def join_waitlist(
     body: WaitlistJoinRequest,
     db: AsyncSession = Depends(get_db),
