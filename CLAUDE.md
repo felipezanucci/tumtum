@@ -38,10 +38,16 @@ new PR — never an edit to a merged one. The fourth time proved that knowing
 the rule is not what fixes it: **do not open the PR until the work is finished
 and pushed**, and if one is already open with more commits coming, say so in
 its description so it does not get merged early. And the bug class to watch for, found
-eleven times in one day: **the app stating something false about its own
+twelve times in two days: **the app stating something false about its own
 state** — a control with no feedback, a stale display, a message describing
 the wrong condition. None break anything, none show up in tests, all surface
 only in a real person's hands.
+
+The twelfth was the worst and generalises the rest: **an empty state is a
+claim.** `/events` had no error handling on load, so a refused request left the
+list empty and the page announced "Nenhum evento encontrado" — then offered to
+seed demo data over the real event. Any list that can fail to load must tell
+"nothing there" apart from "I could not ask".
 
 ## Current phase
 

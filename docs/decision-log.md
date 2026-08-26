@@ -58,19 +58,73 @@ the linked documents — this file is the index and the reasoning, not a diary.
     recording on both the Polar app and TumTum, and send the Polar CSV so the
     importer can be checked against a file the device actually wrote rather
     than one reproduced from its documented shape.
-11. **The screen wake lock is the one fix still unconfirmed.** It cannot be
+11. **An audit of every empty state is worth doing** after the festival. Two
+    were found lying on 2026-08-26 by pulling one thread; nobody has checked
+    the rest. The rule: an empty state is a claim about the world, so any list
+    that can fail to load must distinguish "nothing there" from "I could not
+    ask".
+12. **The screen wake lock is the one fix still unconfirmed.** It cannot be
     reproduced here and the rehearsal did not isolate it: the phone was being
     handled throughout. What was confirmed is that a capture survives leaving
     the app and coming back. What is still untested is the screen staying lit
     on its own.
-12. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
+13. ~~**Waitlist follow-ups.**~~ All closed 2026-08-26.
     `WAITLIST_ADMIN_EMAILS` is set, `/admin/waitlist` makes the list readable,
     `oi@tumtum.cc` is confirmed working, and all five social accounts exist,
     are linked, and were checked in a browser.
-13. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
+14. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — the twelfth time, and the worst one yet
+
+Felipe opened `/admin/waitlist` on his laptop and got a red box: *"Sua sessão
+expirou. Entre na sua conta para continuar."* — an instruction with nothing to
+act on. Told to sign in, on a page offering no way to sign in.
+
+Pulling that thread found something much worse two screens away. **`/events`
+and `/cards` had no error handling at all on load.** `loadEvents` used
+`try/finally` with no `catch`, so a refused request left the list empty — and
+an empty list renders as **"Nenhum evento encontrado"**. The app was making a
+claim about the person's own data when it had simply failed to ask.
+
+**Measured, not reasoned.** Both versions were built and driven in a browser
+with every `/api/**` call forced to 401:
+
+| under a 401 | before | after |
+|---|---|---|
+| `/events` | "Nenhum evento encontrado" **+ an offer to load demo events** | sign-in prompt, working button |
+| `/cards` | "Você ainda não criou nenhum card" | sign-in prompt, working button |
+| `/sessions` | red box, no way out | sign-in prompt, working button |
+| `/admin/waitlist` | red box, no way out | sign-in prompt, working button |
+
+The demo-seeding offer is the part that turns this from embarrassing into
+dangerous, and it was not noticed until the before-state was actually rendered.
+**Saturday's failure mode was sitting right there:** token expires during a
+six-hour festival, Felipe opens Eventos, the app says his event does not exist
+and invites him to populate the database with demo data. Over the real one.
+
+`SignInRequired` also says *less* than the wording it replaces, deliberately. A
+401 means the request carried no valid token, which is as often "this browser
+never signed in" as "your session expired" — exactly what happened here, a
+laptop after a phone. Asserting expiry in that case is the same defect one
+level down: the app confidently wrong about its own state while sounding
+precise.
+
+**Twelve.** Every one found by a person using the thing, none by a test. What
+is new this time is the shape: the first eleven were the app lying about a
+control or a display. These two lied about *the user's data*, which is worse,
+because a person has no way to know it is untrue. A stale timer looks wrong. An
+empty list looks true.
+
+The lesson worth carrying: **an empty state is a claim.** "Nenhum evento
+encontrado" asserts something about the world, and any code path that can reach
+it without having actually looked is a lie waiting for a bad afternoon. Every
+list that can fail to load needs to tell "nothing there" apart from "I could
+not ask".
 
 ---
 
