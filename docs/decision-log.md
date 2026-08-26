@@ -87,6 +87,43 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-26 — the waitlist learns who people are
+
+The list collected an address and nothing else, which is enough to send a
+message and not enough to write one. Felipe's point: *"precisamos de nome e
+sobrenome das pessoas pra podermos nos comunicar com eles da melhor maneira."*
+A mail that opens "Prezado usuário" is a mail from a company that does not know
+you, and this product's whole voice is the opposite of that.
+
+`first_name` and `last_name`, from the landing form through to the CSV. Still
+nothing else — no phone, no birthday, no device. The page promises "a gente só
+usa seu e-mail pra te avisar dos próximos eventos", and every column we do not
+add is a promise we cannot break by accident later.
+
+**Nullable, deliberately.** Entries collected before the form asked have no
+name, and the alternative to nullable is inventing one. The admin list omits the
+name line for those rather than rendering an empty heading, and a repeat
+submission now *fills in* a name we are missing — someone who signed up before
+the field existed and comes back with a name is telling us something we did not
+know. It never overwrites a name already held.
+
+**Names are tidied, not corrected.** `normalize_name` trims and collapses
+internal whitespace and stops there. Capitalisation is not ours to fix: "de
+Souza", "McDonald" and "van der Berg" are spelled the way their owners spell
+them, and a title-casing helper would quietly rename people. Four tests hold
+that line, because it is the kind of "improvement" that looks like a bug fix.
+
+The three validation messages name the missing field one at a time rather than
+saying "preencha tudo" — being told which field is missing is the difference
+between fixing it and hunting for it.
+
+Driven in a browser: each empty field produces its own message, and the
+confirmation reads *"A gente te chama quando a TumTum chegar num evento perto
+de você, Felipe."* The name is used one second after being given, which is the
+argument for asking for it.
+
+---
+
 ## 2026-08-26 — the admin account, and what the signup form was hiding
 
 **The waitlist chain is closed and proven.** Felipe registered `felipe@tumtum.cc`,

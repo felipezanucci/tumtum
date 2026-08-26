@@ -5,6 +5,8 @@ from pydantic import BaseModel, EmailStr, Field
 
 class WaitlistJoinRequest(BaseModel):
     email: EmailStr
+    first_name: str | None = Field(default=None, max_length=100)
+    last_name: str | None = Field(default=None, max_length=100)
     source: str | None = Field(default=None, max_length=100)
 
 
@@ -25,6 +27,8 @@ class WaitlistCountResponse(BaseModel):
 
 class WaitlistEntryResponse(BaseModel):
     email: str
+    first_name: str | None
+    last_name: str | None
     source: str | None
     created_at: datetime
 

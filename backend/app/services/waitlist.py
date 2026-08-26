@@ -21,3 +21,21 @@ def normalize_email(raw: str) -> str:
     row rather than a person who cannot sign up.
     """
     return raw.strip().lower()
+
+
+def normalize_name(raw: str | None) -> str | None:
+    """A name as typed, with the typing tidied away.
+
+    Trims and collapses runs of whitespace, so "  Felipe   Zanucci " and
+    "Felipe Zanucci" are stored the same. Nothing else: capitalisation is not
+    ours to correct. "de Souza", "McDonald" and "van der Berg" are all spelled
+    the way their owner spells them, and a title-casing helper would quietly
+    rename people.
+
+    Returns None for anything that was only whitespace — an empty string in a
+    name column is a value that means "nothing", which is what None is for.
+    """
+    if raw is None:
+        return None
+    cleaned = " ".join(raw.split())
+    return cleaned or None

@@ -14,7 +14,7 @@ from app.schemas.waitlist import (
     WaitlistJoinRequest,
     WaitlistJoinResponse,
 )
-from app.services.waitlist import normalize_email
+from app.services.waitlist import normalize_email, normalize_name
 
 router = APIRouter(prefix="/api/waitlist", tags=["waitlist"])
 
@@ -39,13 +39,29 @@ async def join_waitlist(
     """
     email = normalize_email(body.email)
 
+    first_name = normalize_name(body.first_name)
+    last_name = normalize_name(body.last_name)
+
     existing = await db.execute(
         select(WaitlistEntry).where(WaitlistEntry.email == email)
     )
-    if existing.scalar_one_or_none() is not None:
+    already = existing.scalar_one_or_none()
+    if already is not None:
+        # Someone who signed up before the form asked for a name, and has now
+        # given one, is telling us something we did not know. Fill the gaps —
+        # but never overwrite a name we already hold with a blank.
+        if first_name and not already.first_name:
+            already.first_name = first_name
+        if last_name and not already.last_name:
+            already.last_name = last_name
         return WaitlistJoinResponse(email=email, already_joined=True)
 
-    entry = WaitlistEntry(email=email, source=body.source)
+    entry = WaitlistEntry(
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        source=body.source,
+    )
     db.add(entry)
     try:
         await db.flush()

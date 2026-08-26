@@ -26,7 +26,12 @@ type State =
  * message, not a red one — the person wanted to be on the list and they are.
  * A failure keeps what they typed and says the server was the problem.
  */
+const FIELD =
+  'min-w-[220px] flex-1 rounded-full border-2 border-tumtum-black bg-transparent px-[22px] py-3.5 text-base text-tumtum-black outline-none placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-tumtum-black focus-visible:ring-offset-2 focus-visible:ring-offset-tumtum-lime disabled:opacity-60'
+
 export function WaitlistForm({ source }: { source?: string }) {
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [state, setState] = useState<State>({ kind: 'idle' })
 
@@ -38,14 +43,32 @@ export function WaitlistForm({ source }: { source?: string }) {
     if (sending) return
 
     const trimmed = email.trim()
+    const first = firstName.trim()
+    const last = lastName.trim()
+
+    // Named separately rather than as one "preencha tudo": being told which
+    // field is missing is the difference between fixing it and hunting for it.
+    if (!first) {
+      setState({ kind: 'failed', message: 'Escreve seu nome primeiro.' })
+      return
+    }
+    if (!last) {
+      setState({ kind: 'failed', message: 'Falta o sobrenome.' })
+      return
+    }
     if (!trimmed) {
-      setState({ kind: 'failed', message: 'Escreve seu e-mail primeiro.' })
+      setState({ kind: 'failed', message: 'Falta o e-mail.' })
       return
     }
 
     setState({ kind: 'sending' })
     try {
-      const result = await waitlist.join(trimmed, source)
+      const result = await waitlist.join({
+        email: trimmed,
+        first_name: first,
+        last_name: last,
+        source,
+      })
       setState({ kind: result.already_joined ? 'already' : 'joined' })
     } catch (error) {
       const message =
@@ -66,7 +89,9 @@ export function WaitlistForm({ source }: { source?: string }) {
         </p>
         <p className="mt-3 text-[15px] text-black/60">
           {state.kind === 'joined'
-            ? 'A gente te chama quando a TumTum chegar num evento perto de você.'
+            ? `A gente te chama quando a TumTum chegar num evento perto de você${
+                firstName.trim() ? `, ${firstName.trim()}` : ''
+              }.`
             : 'Nada mudou, e é uma boa notícia: a gente já sabe onde te achar.'}
         </p>
       </div>
@@ -76,6 +101,37 @@ export function WaitlistForm({ source }: { source?: string }) {
   return (
     <form className="mt-11 max-w-[520px]" onSubmit={submit} noValidate>
       <div className="flex flex-wrap gap-3">
+        <input
+          type="text"
+          name="given-name"
+          autoComplete="given-name"
+          placeholder="Nome"
+          aria-label="Seu nome"
+          value={firstName}
+          disabled={sending}
+          onChange={(event) => {
+            setFirstName(event.target.value)
+            if (state.kind === 'failed') setState({ kind: 'idle' })
+          }}
+          className={FIELD}
+        />
+        <input
+          type="text"
+          name="family-name"
+          autoComplete="family-name"
+          placeholder="Sobrenome"
+          aria-label="Seu sobrenome"
+          value={lastName}
+          disabled={sending}
+          onChange={(event) => {
+            setLastName(event.target.value)
+            if (state.kind === 'failed') setState({ kind: 'idle' })
+          }}
+          className={FIELD}
+        />
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-3">
         <input
           type="email"
           name="email"
@@ -89,7 +145,7 @@ export function WaitlistForm({ source }: { source?: string }) {
             setEmail(event.target.value)
             if (state.kind === 'failed') setState({ kind: 'idle' })
           }}
-          className="min-w-[220px] flex-1 rounded-full border-2 border-tumtum-black bg-transparent px-[22px] py-3.5 text-base text-tumtum-black outline-none placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-tumtum-black focus-visible:ring-offset-2 focus-visible:ring-offset-tumtum-lime disabled:opacity-60"
+          className={FIELD}
         />
         <button
           type="submit"

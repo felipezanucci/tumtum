@@ -24,3 +24,27 @@ def test_leaves_the_address_otherwise_intact():
 
 def test_already_normal_addresses_are_unchanged():
     assert normalize_email("felipe@gmail.com") == "felipe@gmail.com"
+
+
+from app.services.waitlist import normalize_name
+
+
+def test_name_collapses_the_spaces_people_type():
+    assert normalize_name("  Felipe   Zanucci ") == "Felipe Zanucci"
+
+
+def test_name_leaves_capitalisation_alone():
+    # Title-casing would rename people: "de Souza" is not "De Souza", and
+    # "McDonald" is not "Mcdonald".
+    assert normalize_name("de Souza") == "de Souza"
+    assert normalize_name("McDonald") == "McDonald"
+
+
+def test_blank_name_becomes_none():
+    # An empty string in a name column is a value that means "nothing".
+    assert normalize_name("   ") is None
+    assert normalize_name("") is None
+
+
+def test_missing_name_stays_missing():
+    assert normalize_name(None) is None
