@@ -32,6 +32,7 @@ async def send_email(*, to: str, subject: str, html: str, text: str) -> None:
             json={
                 "from": settings.email_from,
                 "to": [to],
+                "reply_to": settings.email_reply_to,
                 "subject": subject,
                 "html": html,
                 # Some clients, and some corporate filters, only ever see this.

@@ -23,7 +23,13 @@ class Settings(BaseSettings):
     # Resend. Empty means the app cannot send mail, and every path that needs
     # to says so out loud rather than pretending it sent something.
     resend_api_key: str = ""
-    email_from: str = "TumTum <oi@updates.tumtum.cc>"
+    # Must sit on the domain verified with Resend — `mail.tumtum.cc`. Sending
+    # from anywhere else is refused.
+    email_from: str = "TumTum <oi@mail.tumtum.cc>"
+    # Replies go somewhere a person reads. `mail.tumtum.cc` only sends; a
+    # reply to it would vanish, and someone who answers "não fui eu que pedi"
+    # deserves to reach a human rather than a black hole.
+    email_reply_to: str = "oi@tumtum.cc"
     # Where a reset link points. The API and the site are different hosts, so
     # this cannot be derived from the request.
     site_url: str = "https://tumtum.cc"

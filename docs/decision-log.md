@@ -59,8 +59,8 @@ the linked documents — this file is the index and the reasoning, not a diary.
     importer can be checked against a file the device actually wrote rather
     than one reproduced from its documented shape.
 11. ~~**Password reset does not exist.**~~ Built 2026-08-26 on Resend, via
-    `updates.tumtum.cc`. **Needs `RESEND_API_KEY` set on Railway, and
-    `EMAIL_FROM` matching the verified subdomain**, or every send fails —
+    `mail.tumtum.cc`, which is the default in `config.py` — so **only
+    `RESEND_API_KEY` needs setting on Railway**. Without it every send fails —
     loudly in the logs, silently to the person, since the reply is identical
     either way by design. **Still open and related:** `auth.py` compares email
     addresses case-sensitively, so `Felipe@` and `felipe@` are different
@@ -90,7 +90,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ## 2026-08-26 — TumTum can send mail, and passwords can be recovered
 
-Resend, on the subdomain `updates.tumtum.cc`. **Domain verified in six
+Resend, on the subdomain `mail.tumtum.cc`. **Domain verified in six
 minutes** — added 16:25, DNS verified 16:29, verified 16:31 — which is unusual
 for GoDaddy and means the records went in correctly the first time.
 
@@ -142,8 +142,13 @@ Twelve tests on the token rules, and the whole flow driven in a browser —
 request, missing token, mismatched confirmation, success, token stored,
 redirect.
 
-**Still needed before it works in production:** `RESEND_API_KEY` on Railway,
-and `EMAIL_FROM` matching the verified subdomain exactly.
+**Replies reach a person.** `mail.tumtum.cc` only sends — a reply to it would
+vanish. `reply_to` points at `oi@tumtum.cc`, which receives, so someone
+answering "não fui eu que pedi isso" reaches a human instead of a black hole.
+That is the difference between a security notice and a robot.
+
+**Still needed before it works in production:** `RESEND_API_KEY` on Railway.
+Everything else defaults correctly.
 
 ---
 
