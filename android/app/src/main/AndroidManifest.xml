@@ -28,6 +28,8 @@
 
     <application
         android:name=".TumtumApp"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:allowBackup="false">
@@ -45,6 +47,13 @@
         <activity
             android:name=".ExperienceActivity"
             android:exported="false" />
+
+        <!-- Read-only door through which the share sheet reaches a card. -->
+        <provider
+            android:name=".CardProvider"
+            android:authorities="cc.tumtum.capture.cards"
+            android:exported="false"
+            android:grantUriPermissions="true" />
 
         <service
             android:name=".CaptureService"

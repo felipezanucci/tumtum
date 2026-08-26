@@ -15,7 +15,24 @@ export interface ShareData {
 /**
  * Check if Web Share API is available (typically mobile browsers).
  */
+declare global {
+  interface Window {
+    /**
+     * Present only inside the TumTum Android app's WebView. A WebView has no
+     * navigator.share, so without this the page falls back to the platform
+     * list — a dead end inside the one place that can open the real Android
+     * share sheet natively. The app injects this bridge; the page prefers it.
+     */
+    TumTumAndroid?: { shareImage(imageUrl: string, text: string): void }
+  }
+}
+
+function androidBridge() {
+  return typeof window !== 'undefined' ? window.TumTumAndroid : undefined
+}
+
 export function canNativeShare(): boolean {
+  if (androidBridge()?.shareImage) return true
   return typeof navigator !== 'undefined' && !!navigator.share
 }
 
@@ -24,6 +41,16 @@ export function canNativeShare(): boolean {
  */
 export async function nativeShare(data: ShareData): Promise<boolean> {
   if (!canNativeShare()) return false
+
+  // Inside the app, hand the whole thing to Android: it downloads the image
+  // and opens the system sheet with the picture attached — the same outcome
+  // the Web Share path below builds by hand, without needing an API the
+  // WebView does not have.
+  const bridge = androidBridge()
+  if (bridge?.shareImage) {
+    bridge.shareImage(data.imageUrl ?? '', [data.text, data.url].filter(Boolean).join(' '))
+    return true
+  }
 
   // Share the picture, not a link to it. Instagram and TikTok take an image;
   // handed a URL they have nothing to post. The card is the whole point of
