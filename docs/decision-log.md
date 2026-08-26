@@ -13,7 +13,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. Launcher icon confirmed on the A17 as the TUMTUM wordmark on black. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
-| **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
+| **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is now a real landing page** — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture. Sharing opens the system sheet **with the image attached**. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
@@ -61,10 +61,81 @@ the linked documents — this file is the index and the reasoning, not a diary.
     handled throughout. What was confirmed is that a capture survives leaving
     the app and coming back. What is still untested is the screen staying lit
     on its own.
-12. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
+12. **Waitlist follow-ups.** `WAITLIST_ADMIN_EMAILS` has to be set on Railway
+    before anyone can read the list — until it is, the endpoint is closed to
+    everyone, including Felipe. The social handles on the landing footer
+    (`instagram.com/tumtum.cc`, `tiktok.com/@tumtum.cc`) and `oi@tumtum.cc`
+    need to be confirmed or corrected before the page is promoted anywhere.
+13. **The end-of-night upload is 1.33 MB in a single request.** Measured, not
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — the site becomes the shop window, and the form that did nothing
+
+Felipe's framing: *"o site pode ser apenas um instrumento de informação e
+venda"*. Correct for the public half, and it does not cost the app anything —
+because the split already existed. `(public)/` is what a stranger sees;
+`(app)/` is what the Android WebView loads. The landing page could be replaced
+wholesale without the capture path noticing, and now it has been.
+
+The new landing came from a draft Felipe built in another session. Two things
+were checked before anything else:
+
+**The wordmark is the real one.** Compared byte for byte against
+`frontend/components/brand/Wordmark.tsx`: same path, same `viewBox`, same
+`fill-rule`, differing only in whitespace. The manual forbids a redrawn or
+regenerated wordmark and this is the easiest rule in the project to break by
+accident, so it is worth stating that it was verified rather than assumed.
+
+**The waitlist form did nothing at all.** `<button type="button">` with no
+handler anywhere in the file. A person typed their address, clicked, and the
+page did not move — no request, no error, no confirmation. The lead was lost
+*and* the person believed they had signed up.
+
+That is the house bug — an interface asserting something false about its own
+state — and a marketing page is the worst place for it, because unlike a
+control inside the app, nobody ever comes back to discover it lied. It was
+rebuilt with every outcome visible: sending locks the field and says so,
+success names the state back, a repeat submission is warm rather than red
+(they wanted to be on the list; they are), and a failure keeps what they typed
+and says the server was at fault.
+
+**Where the addresses go.** A `waitlist_entries` table and `POST /api/waitlist`,
+public because no account exists at the moment someone asks. Email, an optional
+`source`, and nothing else — the page promises "a gente só usa seu e-mail pra
+te avisar dos próximos eventos", and a column we do not have is a promise we
+cannot break by accident later.
+
+Reading the list back is gated on `waitlist_admin_emails`, not on being signed
+in. Being a user of the platform is not an access rule for other people's
+contact details, and the setting is empty by default so the endpoint is closed
+to everyone until someone deliberately opens it — the right posture for a table
+that fills up long before anyone remembers it exists.
+
+Normalisation lives in `services/waitlist.py` with five tests, because it is
+the piece that decides whether two submissions are one person. Android's
+keyboard capitalises the first letter by default, so `Felipe@` and `felipe@`
+arrive from the same thumb. It lowercases and trims and deliberately stops
+there: stripping dots or `+tags` would be us deciding two real addresses are
+one human.
+
+**Measured, not assumed.** Driven in a real browser at 360 px and 1280 px:
+zero horizontal overflow at both — the failure that once put a whole nav
+section off screen — zero console errors, and all six sections confirmed to
+reach full opacity when scrolled to. The last one mattered: a reveal animation
+that never fires leaves a marketing page blank, so `Reveal` starts visible and
+only hides itself once it knows the observer is running. The three form
+outcomes were driven end to end against stubbed responses.
+
+**Still open:** the social links point at `instagram.com/tumtum.cc` and
+`tiktok.com/@tumtum.cc`, which may not exist yet, and `oi@tumtum.cc` is
+unconfirmed. Facebook, X and LinkedIn were dropped rather than shipped pointing
+at nothing. The video slots are empty by design and say so on their face — the
+page is built around footage that does not exist yet, and the labels are
+visible because this page goes to people who might supply it.
 
 ---
 

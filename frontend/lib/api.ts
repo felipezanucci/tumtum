@@ -473,6 +473,24 @@ export const demo = {
 
 // --- Users ---
 
+// --- Waitlist ---
+
+export interface WaitlistJoinResult {
+  email: string
+  already_joined: boolean
+}
+
+export const waitlist = {
+  /** Public: no account exists yet at the point someone asks to be told. */
+  join: (email: string, source?: string) =>
+    request<WaitlistJoinResult>('/api/waitlist', {
+      method: 'POST',
+      body: JSON.stringify({ email, source }),
+    }),
+
+  count: () => request<{ total: number }>('/api/waitlist/count'),
+}
+
 export const users = {
   getProfile: () => request<UserProfile>('/api/users/me'),
 

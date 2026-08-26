@@ -19,6 +19,21 @@ export default {
         'tumtum-surface': 'rgb(255 255 255 / 0.05)',
         'tumtum-border': 'rgb(255 255 255 / 0.14)',
         'tumtum-muted': 'rgb(255 255 255 / 0.60)',
+        // Quieter than muted: legal lines, captions, and the labels on the
+        // landing page's empty video slots.
+        'tumtum-faint': 'rgb(255 255 255 / 0.34)',
+      },
+      keyframes: {
+        // The landing page's video slots are empty until real footage exists.
+        // A slow brightness swell keeps them reading as "a video goes here"
+        // rather than as a broken image.
+        breathe: {
+          '0%, 100%': { filter: 'brightness(0.9)' },
+          '50%': { filter: 'brightness(1.15)' },
+        },
+      },
+      animation: {
+        breathe: 'breathe 5s ease-in-out infinite',
       },
       fontFamily: {
         // Instrument Sans carries everything except the wordmark, which is

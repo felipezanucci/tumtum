@@ -13,6 +13,7 @@ from app.api.events import router as events_router
 from app.api.experience import router as experience_router
 from app.api.health import router as health_router
 from app.api.users import router as users_router
+from app.api.waitlist import router as waitlist_router
 from app.config import settings
 
 # Sentry error tracking
@@ -39,6 +40,7 @@ async def lifespan(app: FastAPI):
 
     # Import all models so they register with Base.metadata
     from app.models.user import User  # noqa: F401
+    from app.models.waitlist_entry import WaitlistEntry  # noqa: F401
     from app.models.wearable_connection import WearableConnection  # noqa: F401
 
     try:
@@ -109,6 +111,7 @@ app.include_router(experience_router)
 app.include_router(cards_router)
 app.include_router(users_router)
 app.include_router(demo_router)
+app.include_router(waitlist_router)
 
 
 @app.get("/")

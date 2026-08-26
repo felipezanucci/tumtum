@@ -95,6 +95,7 @@ tumtum-app/
 │   │   ├── ui/               # Base UI components (Button, Card, Input...)
 │   │   ├── hr/               # Heart rate specific (HRCurve, PeakMarker...)
 │   │   ├── cards/            # Share card templates (SoloCard, ComparisonCard)
+│   │   ├── marketing/        # Public landing only — never used inside the app
 │   │   └── layout/           # Layout components (Nav, Footer, Sidebar)
 │   ├── lib/
 │   │   ├── api.ts            # Backend API client
@@ -180,6 +181,11 @@ cards: id (uuid PK), user_id (FK), session_id (FK), peak_id (FK), card_type (sol
 
 -- Share tracking
 shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link|native), shared_at
+
+-- Public waitlist (landing page). Email and nothing else: the page promises
+-- "a gente só usa seu e-mail pra te avisar dos próximos eventos", and a column
+-- we do not have is a promise we cannot accidentally break.
+waitlist_entries: id (uuid PK), email (unique), source, created_at
 ```
 
 ## Brand identity
