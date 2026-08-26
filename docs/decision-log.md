@@ -9,8 +9,8 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 | Track | Status |
 |---|---|
-| **Hardware supplier** | J-Style **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", which is an opening: Draft 4 in `docs/jstyle-email-draft.md` argues the small batch as *their* risk reduction on the unanswered firmware question. No NRE and no volume before the pilot. |
-| **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. What remains is Health Connect. |
+| **Hardware supplier** | J-Style **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
+| **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. Launcher icon confirmed on the A17 as the TUMTUM wordmark on black. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. |
@@ -25,11 +25,15 @@ the linked documents — this file is the index and the reasoning, not a diary.
    everything; nothing is queued.
 2. ~~**End-to-end save test**~~ and ~~**detection accuracy**~~ — both done
    2026-08-25, both passed.
-3. **J-Style** — the decline was sent 2026-08-26 and Arena reopened the case
-   the same day asking for the project's vision. Draft 4 answers it and puts
-   the pilot batch back on the table as shared technical de-risking. Awaiting
-   their reply; the firmware question (does custom Raw PPG remove the
-   motion-conditioned clamp?) is the one that decides everything.
+3. **J-Style** — the decline was sent 2026-08-26; Arena reopened the case the
+   same day asking for the project's vision, and **Draft 4 went out the same
+   day**, putting the pilot batch back on the table as shared technical
+   de-risking. **Now waiting on her.** The firmware question — does custom Raw
+   PPG remove the motion-conditioned clamp? — is the one that decides
+   everything, and it is the question the letter asks her to answer. If she
+   presses on demand instead, the prepared answer is the paragraph Felipe cut,
+   preserved verbatim in `docs/jstyle-email-draft.md`; do not improvise a
+   forecast in its place.
 4. **Veepoo** — contacted 2026-08-18, still the primary alternative if they
    confirm native raw PPG / R-R streaming.
 5. ~~**Deployment protection**~~ — resolved 2026-08-25: it was never a
@@ -64,7 +68,33 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-26 — the launcher icon, and an hour lost to build identity
+
+The Android launcher icon now shows the TUMTUM wordmark on black, confirmed on
+Felipe's A17. The drawables were generated verbatim from
+`frontend/components/brand/Wordmark.tsx`, so the phone icon and the web
+wordmark are the same paths — the manual forbids redrawing the letters, and
+generating from the master is the only way to be sure nobody did.
+
+**The cost was not the fix, it was finding out the fix was already shipped.**
+The icon "still" showed the Android robot after the change had been merged,
+and the reason was that the installed APK was `tumtum-captura-4a12146.apk`,
+built 2026-08-25 — a build from before the icon existed. Nothing was wrong
+with the code; the wrong binary was on the phone.
+
+**Rule this earns:** when a report says the app is missing something that was
+merged, establish which build is installed *before* looking at the source. The
+APK filename carries the commit — read it first. This is the same failure
+shape as the bug class this project keeps finding, only inverted: not the app
+lying about its state, but us reasoning about a version that was never
+running.
+
+---
+
 ## 2026-08-26 — Arena reopens the case and asks for the vision
+
+**Draft 4 sent 2026-08-26**, in the cut-down form described in rule 2 below.
+Awaiting her reply.
 
 Hours after the decline was sent, Arena wrote back: *"Could you share with us
 more vision about this project? I'm trying to reevaluate this case and figure
