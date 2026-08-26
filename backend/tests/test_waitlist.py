@@ -1,4 +1,4 @@
-from app.services.waitlist import normalize_email
+from app.services.waitlist import normalize_email, normalize_name
 
 
 def test_lowercases_so_one_person_is_one_row():
@@ -24,9 +24,6 @@ def test_leaves_the_address_otherwise_intact():
 
 def test_already_normal_addresses_are_unchanged():
     assert normalize_email("felipe@gmail.com") == "felipe@gmail.com"
-
-
-from app.services.waitlist import normalize_name
 
 
 def test_name_collapses_the_spaces_people_type():

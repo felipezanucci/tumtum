@@ -20,6 +20,13 @@ class Settings(BaseSettings):
     # nobody, which is the safe default — the list is other people's contact
     # details, and "any signed-in user" is not an access rule for that.
     waitlist_admin_emails: str = ""
+    # Resend. Empty means the app cannot send mail, and every path that needs
+    # to says so out loud rather than pretending it sent something.
+    resend_api_key: str = ""
+    email_from: str = "TumTum <oi@updates.tumtum.cc>"
+    # Where a reset link points. The API and the site are different hosts, so
+    # this cannot be derived from the request.
+    site_url: str = "https://tumtum.cc"
     environment: str = "development"
 
     @property

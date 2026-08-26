@@ -109,6 +109,22 @@ export const auth = {
  * Returns milliseconds remaining, or null when the token carries no readable
  * expiry — in which case there is nothing to warn about.
  */
+export const passwordReset = {
+  /** Always resolves the same way — the API refuses to say who has an account. */
+  request: (email: string) =>
+    request<{ message: string }>('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  /** Returns a token: choosing a new password signs you in. */
+  complete: (token: string, password: string) =>
+    request<TokenResponse>('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    }),
+}
+
 export function millisUntilTokenExpiry(token: string, now = Date.now()): number | null {
   const payload = token.split('.')[1]
   if (!payload) return null

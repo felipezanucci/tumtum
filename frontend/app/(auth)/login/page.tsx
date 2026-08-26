@@ -51,6 +51,15 @@ export default function LoginPage() {
             autoComplete="current-password"
           />
 
+          <p className="text-right text-sm">
+            <Link
+              href="/esqueci-senha"
+              className="text-tumtum-muted hover:text-tumtum-lime hover:underline"
+            >
+              Esqueci minha senha
+            </Link>
+          </p>
+
           {error && (
             <p className="text-sm text-red-500">{error}</p>
           )}
