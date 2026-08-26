@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
@@ -38,6 +39,20 @@ class ExperienceActivity : Activity() {
         val target = intent.getStringExtra(EXTRA_URL) ?: WEB_URL
 
         web.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                // The site's "Ao vivo" is a dead end inside this frame — a
+                // WebView has no Web Bluetooth, so that page can only say "your
+                // browser can't do this" about the one thing the app around it
+                // does natively. Found on the first night: tapping Ao vivo in
+                // the nav stranded the person one screen away from the real
+                // capture. It now closes the frame, landing exactly there.
+                if (request.url.host == Uri.parse(WEB_URL).host && request.url.path == "/live") {
+                    finish()
+                    return true
+                }
+                return false
+            }
+
             override fun onPageFinished(view: WebView, url: String) {
                 // The site keeps its session in localStorage, which belongs to
                 // the page, not to us. So: land on the origin once, hand over
