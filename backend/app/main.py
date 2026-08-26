@@ -36,6 +36,9 @@ async def lifespan(app: FastAPI):
     from app.models.event_timeline import EventTimeline  # noqa: F401
     from app.models.hr_data import HRData  # noqa: F401
     from app.models.hr_session import HRSession  # noqa: F401
+    from app.models.password_reset_token import (  # noqa: F401
+        PasswordResetToken,
+    )
     from app.models.peak import Peak  # noqa: F401
 
     # Import all models so they register with Base.metadata

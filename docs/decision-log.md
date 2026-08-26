@@ -58,14 +58,15 @@ the linked documents — this file is the index and the reasoning, not a diary.
     recording on both the Polar app and TumTum, and send the Polar CSV so the
     importer can be checked against a file the device actually wrote rather
     than one reproduced from its documented shape.
-11. **Password reset does not exist and is blocked on an email provider.**
-    Nothing in the backend can send email. Until one is chosen and
-    `tumtum.cc` is verified with it, a forgotten password means a lost
-    account — which is why signup now has a reveal toggle and a confirmation
-    field. Related and queued with it: `auth.py` compares email addresses
-    case-sensitively, so `Felipe@` and `felipe@` are different accounts. The
-    fix is normalisation plus a migration of existing rows, not a change to
-    make days before a field test.
+11. ~~**Password reset does not exist.**~~ Built 2026-08-26 on Resend, via
+    `mail.tumtum.cc`, which is the default in `config.py` — so **only
+    `RESEND_API_KEY` needs setting on Railway**. Without it every send fails —
+    loudly in the logs, silently to the person, since the reply is identical
+    either way by design. **Still open and related:** `auth.py` compares email
+    addresses case-sensitively, so `Felipe@` and `felipe@` are different
+    accounts. The reset lookup works around it with `func.lower`; the column
+    itself still needs normalisation plus a migration of existing rows, which
+    is not a change to make days before a field test.
 12. **An audit of every empty state is worth doing** after the festival. Two
     were found lying on 2026-08-26 by pulling one thread; nobody has checked
     the rest. The rule: an empty state is a claim about the world, so any list
@@ -84,6 +85,70 @@ the linked documents — this file is the index and the reasoning, not a diary.
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — TumTum can send mail, and passwords can be recovered
+
+Resend, on the subdomain `mail.tumtum.cc`. **Domain verified in six
+minutes** — added 16:25, DNS verified 16:29, verified 16:31 — which is unusual
+for GoDaddy and means the records went in correctly the first time.
+
+**The subdomain was the whole point.** `oi@tumtum.cc` already receives, so
+there are live MX records on the root domain; pointing a sending provider at
+the root risks replacing them and killing an address nobody would think to
+re-test. A subdomain isolates the sending stack from the mailbox entirely.
+
+### What the reset flow decides
+
+**The email never says whether the account exists.** Both outcomes return the
+same sentence: *"Se esse e-mail tiver uma conta, o link acabou de sair."*
+Answering "esse e-mail não está cadastrado" would turn the form into a free
+tool for discovering who has an account, at any volume, for anyone.
+
+**The database stores a hash, never the token.** What travels in the email is
+not what sits in the table, so reading `password_reset_tokens` grants nobody a
+reset — the same reason passwords are hashed. SHA-256 rather than bcrypt is
+deliberate and would be wrong for a password: the input is 32 random bytes with
+a 30-minute life, so there is no dictionary to run against it.
+
+**Thirty minutes, one use.** Single use matters as much as expiry: without it a
+link sitting in an inbox stays a working key for its whole lifetime, and
+"I already reset it" would not close that window. Completing a reset also kills
+every other outstanding link for that account — someone resetting because they
+fear a break-in should not leave a spare key in a mailbox they no longer
+control.
+
+**A failed send is logged, loudly.** Because the person is told the same thing
+either way, a send that fails would otherwise vanish completely and
+"não recebi o e-mail" would be unanswerable. `EmailNotConfigured` raises rather
+than returning quietly, for the same reason.
+
+**The lookup is case-insensitive**, via `func.lower`. Addresses were stored
+without normalisation (open item 11), so an account registered as `Felipe@`
+could not otherwise be found by someone typing `felipe@` — the feature would
+fail for exactly the people most likely to need it. Matching loosely here is a
+patch over that; the column still needs fixing.
+
+**A link with no token shows an explanation, not a form.** Some apps truncate
+long URLs. A form that fails on submit would blame the person for what the link
+did.
+
+Success signs them in rather than bouncing to the login page: they just proved
+control of the mailbox and chose a password, so asking them to type it again is
+ceremony.
+
+Twelve tests on the token rules, and the whole flow driven in a browser —
+request, missing token, mismatched confirmation, success, token stored,
+redirect.
+
+**Replies reach a person.** `mail.tumtum.cc` only sends — a reply to it would
+vanish. `reply_to` points at `oi@tumtum.cc`, which receives, so someone
+answering "não fui eu que pedi isso" reaches a human instead of a black hole.
+That is the difference between a security notice and a robot.
+
+**Still needed before it works in production:** `RESEND_API_KEY` on Railway.
+Everything else defaults correctly.
 
 ---
 
