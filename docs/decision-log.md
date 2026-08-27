@@ -99,6 +99,38 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-27 — the native path finds both peaks, to the beat
+
+The eight-minute two-effort rehearsal, on the day's final APK (`f73d87d`),
+with Polar Flow recording in parallel as the reference. The whole native
+pipeline — BLE capture → upload → automatic analysis → native night screen —
+against a hand-noted protocol and an independent recording:
+
+| | TumTum | Polar (reference) | Δ |
+|---|---|---|---|
+| Effort-1 peak | **140 bpm · 18:07** · 29 s | 140 bpm · 18:07:49 | 0 bpm, same minute |
+| Effort-2 peak | **143 bpm · 18:10** · 35 s | 143 bpm · 18:10:35 | 0 bpm, same minute |
+| Average / min / max | 100 / 78 / 143 | 100.5 / 78 / 143 | ≤ 0.5 bpm |
+| False positives | **0** | — | — |
+
+Exactly two moments found, ranked correctly by magnitude (the 143 first),
+both matching Felipe's hand-written effort times and the Polar file to the
+minute and to the beat. This closes the question the day opened with —
+detection had never once run on a natively captured session — and re-confirms
+the 2026-08-25 calibration on a different capture path.
+
+**The Saturday arrangement is itself proven.** Both H10 BLE connections were
+in use simultaneously — TumTum capturing, Polar Flow recording — which is
+exactly the plan-A-plus-plan-B configuration of the festival, previously
+argued from the datasheet and never exercised on purpose.
+
+One caveat, deliberate: the rehearsal ran with "Sem evento", so peak-to-moment
+matching and the card's event name were not exercised in this run. Both
+depend only on the `event_id` link that the picker and the Eventos screen now
+set. **On Saturday: choose Realness before connecting.**
+
+---
+
 ## 2026-08-27 — the app said it was signed in, and it was not
 
 Felipe opened the app to run the rehearsal. It showed the capture screen,
