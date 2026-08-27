@@ -22,6 +22,18 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!--
+      Read heart rate from Health Connect — the entire ask, and the narrowest
+      one that does the job: no write, no other data type, no background
+      access. On Android 13 and below the provider is a Play Store app, so it
+      must also be declared visible to our package queries.
+    -->
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
+
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
@@ -77,6 +89,37 @@
             android:name=".CardActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".WatchImportActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!--
+          Why we ask: opened by Health Connect's own permission UI, on both
+          generations of the contract — the rationale intent up to Android 13,
+          the permission-usage intent from Android 14. Exported because the
+          caller is another app; the 14+ door additionally demands the caller
+          hold START_VIEW_PERMISSION_USAGE, which only the system does.
+        -->
+        <activity
+            android:name=".PrivacyRationaleActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+
+        <activity-alias
+            android:name=".ViewPermissionUsageActivity"
+            android:targetActivity=".PrivacyRationaleActivity"
+            android:exported="true"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- Kept as the net behind the native screens, reachable from them. -->
         <activity

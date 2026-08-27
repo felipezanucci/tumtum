@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Trazer do meu relógio. One column, revealed gate by gate: availability,
+  permission, window, what was found, send. Everything below the current
+  gate stays gone — a button that could not work yet would be the screen
+  promising something it cannot do.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/tumtum_black">
+
+    <include layout="@layout/topbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/watch_title"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/tumtum_white" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/watch_subtitle"
+                android:textSize="13sp"
+                android:textColor="@color/tumtum_muted" />
+
+            <!-- Availability, permission, signed-out: whichever gate is
+                 current speaks here. Never a silent blank. -->
+            <TextView
+                android:id="@+id/state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:textSize="15sp"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_white" />
+
+            <Button
+                android:id="@+id/action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:minHeight="48dp"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_black"
+                android:backgroundTint="@color/tumtum_lime" />
+
+            <TextView
+                android:id="@+id/windowTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/watch_window_title"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_white" />
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/optionEvent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:textSize="15sp"
+                    android:visibility="gone"
+                    android:textColor="@color/tumtum_white"
+                    android:buttonTint="@color/tumtum_lime" />
+
+                <RadioButton
+                    android:id="@+id/optionRecent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/watch_window_recent"
+                    android:textSize="15sp"
+                    android:visibility="gone"
+                    android:textColor="@color/tumtum_white"
+                    android:buttonTint="@color/tumtum_lime" />
+            </RadioGroup>
+
+            <!-- Why the event option is absent, when it is: no event chosen,
+                 no times on it, or its load failed. Each its own sentence. -->
+            <TextView
+                android:id="@+id/eventHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13sp"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_muted" />
+
+            <Button
+                android:id="@+id/read"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:minHeight="48dp"
+                android:text="@string/watch_read"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_black"
+                android:backgroundTint="@color/tumtum_lime" />
+
+            <!-- What was found — count, span, cadence — before any upload. -->
+            <TextView
+                android:id="@+id/report"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:textSize="15sp"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_white" />
+
+            <!-- What that cadence honestly supports: moments, or a curve. -->
+            <TextView
+                android:id="@+id/verdict"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="14sp"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_lime" />
+
+            <Button
+                android:id="@+id/send"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:minHeight="48dp"
+                android:text="@string/watch_send"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_black"
+                android:backgroundTint="@color/tumtum_lime" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

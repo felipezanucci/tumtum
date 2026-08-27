@@ -127,6 +127,46 @@ class TumtumApi(context: Context) {
             .getString("id")
     }
 
+    /**
+     * Upload a night read from Health Connect, and return its id.
+     *
+     * Same wire shape as a strap capture, different provenance: the readings
+     * carry absolute timestamps (the watch's own clock, via Health Connect)
+     * instead of elapsed offsets. Bounds and the per-second dedupe mirror
+     * uploadSession — the backend rejects the whole batch over one bad row,
+     * and losing a night to one glitched sample is never the right trade.
+     */
+    fun uploadWatchReadings(
+        readings: List<HealthConnectReader.Reading>,
+        eventId: String?,
+    ): String {
+        require(readings.isNotEmpty()) { "Nada lido" }
+
+        val points = JSONArray()
+        val seen = HashSet<Long>()
+        for (reading in readings) {
+            if (reading.bpm < 30 || reading.bpm > 250) continue
+            if (!seen.add(reading.timeMillis / 1000)) continue
+            points.put(
+                JSONObject()
+                    .put("time", isoUtc(reading.timeMillis))
+                    .put("bpm", reading.bpm)
+                    .put("source", "health_connect")
+            )
+        }
+        require(points.length() > 0) { "Nenhuma leitura válida" }
+
+        val body = JSONObject()
+            .put("start_time", isoUtc(readings.first().timeMillis))
+            .put("end_time", isoUtc(readings.last().timeMillis))
+            .put("source_device", "Health Connect")
+            .put("data_points", points)
+        if (eventId != null) body.put("event_id", eventId)
+
+        return JSONObject(request("POST", "/api/health/sessions", body.toString(), auth = true))
+            .getString("id")
+    }
+
     // --- The night, once it is up ---
 
     fun listSessions(): List<SessionSummary> =
