@@ -39,4 +39,8 @@ android {
 // on an upgrade. JUnit is test-only and never ships in the APK.
 dependencies {
     testImplementation 'junit:junit:4.13.2'
+    // Android ships org.json, but the stub on the unit-test classpath throws
+    // on every call. AccessToken reads a JWT payload with it, so the tests
+    // need a real implementation. Test-only: it never reaches the APK.
+    testImplementation 'org.json:json:20240303'
 }
