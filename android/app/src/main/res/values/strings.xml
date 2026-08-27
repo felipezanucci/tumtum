@@ -5,6 +5,7 @@
     <string name="capture_notification_title">TumTum está gravando</string>
     <string name="capture_notification_waiting">Procurando batida…</string>
 
+    <string name="bpm">bpm</string>
     <string name="connect">Conectar sensor</string>
     <string name="stop">Encerrar</string>
     <string name="cancel">Cancelar</string>
@@ -23,9 +24,40 @@
     <string name="signing_in">Entrando…</string>
     <string name="finish_and_send">Encerrar e enviar</string>
     <string name="sending">Enviando %1$d leituras…</string>
-    <string name="sent">Enviado. Abra tumtum.cc para ver sua experiência.</string>
-    <string name="send_failed">Falha ao enviar: %1$s. As leituras continuam aqui — toque de novo.</string>
+    <string name="sent">Enviado.</string>
+    <string name="send_failed">Falha ao enviar: %1$s</string>
+    <string name="send_again">Enviar de novo</string>
+    <string name="held_readings">%1$d leituras esperando aqui. Nada se perdeu.</string>
     <string name="too_few">Poucas leituras para salvar.</string>
     <string name="service_failed">Não consegui iniciar a captura: %1$s</string>
     <string name="last_crash">Da última vez eu quebrei aqui: %1$s</string>
+
+    <!-- Events -->
+    <string name="event_label">Onde você está</string>
+    <string name="event_none">Sem evento — só a curva</string>
+    <string name="events_failed">Não consegui carregar os eventos. Dá para capturar assim mesmo; a noite fica sem vínculo.</string>
+
+    <!-- Session -->
+    <string name="session_expired_holding">Sua sessão venceu. Entre de novo — suas %1$d leituras continuam aqui.</string>
+    <string name="session_expired">Sua sessão venceu. Entre de novo.</string>
+    <string name="session_expiring">Sua sessão vence em %1$s. Entre de novo antes do show.</string>
+    <string name="hours_short">%1$dh</string>
+    <string name="minutes_short">%1$d min</string>
+
+    <string name="sent_not_analysed">Enviado. Ainda não consegui procurar seus picos — abra a noite e tente de novo.</string>
+    <string name="analyzing">Procurando seus picos…</string>
+
+    <!-- Minhas noites -->
+    <string name="nights_title">Minhas noites</string>
+    <string name="nights_subtitle">Cada captura que chegou até aqui, a mais recente primeiro.</string>
+    <string name="nights_empty">Nenhuma captura ainda. Coloque a cinta e grave a primeira.</string>
+    <string name="nights_failed">Não consegui carregar suas noites: %1$s</string>
+    <string name="nights_signed_out">Entre na sua conta para ver suas noites.</string>
+    <string name="loading">Carregando…</string>
+    <string name="retry">Tentar de novo</string>
+    <string name="duration_hm">%1$dh%2$02d</string>
+    <string name="duration_m">%1$d min</string>
+    <string name="max_bpm">%1$d máx</string>
+    <string name="avg_bpm">%1$d média</string>
+    <string name="open_nights">Minhas noites</string>
 </resources>

@@ -12,16 +12,14 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
- * The two calls this app makes: sign in, and hand a night's readings to the
- * backend that already knows what to do with them.
+ * Everything this app asks of the backend.
  *
  * HttpURLConnection and org.json, on purpose. Both ship with Android, so the
- * APK still carries no dependencies — no version matrix to get wrong while
- * this is built without a device to compile against. Two endpoints do not
- * justify an HTTP client library.
+ * APK still carries no runtime dependencies — no version matrix to get wrong
+ * while this is built without a device to compile against.
  *
- * Everything here is synchronous and must be called off the main thread; the
- * service owns the thread, this owns the wire format.
+ * Everything here is synchronous and must be called off the main thread. The
+ * screens own their threads; this owns the wire format.
  */
 class TumtumApi(context: Context) {
 
@@ -33,32 +31,59 @@ class TumtumApi(context: Context) {
             prefs.edit().putString("access_token", value).apply()
         }
 
-    val signedIn: Boolean get() = token != null
+    /**
+     * Signed in means a token that is still alive — not merely one that exists.
+     *
+     * The distinction cost an afternoon on 2026-08-27. The app hid its login
+     * row whenever a token was *stored*, and an expired token is still stored,
+     * so it presented itself as signed in, captured happily, and only failed
+     * at the upload, with no route back to a password field.
+     */
+    val signedIn: Boolean
+        get() = token?.let { !AccessToken.isExpired(it, System.currentTimeMillis()) } ?: false
+
+    /** Millis before the session dies, so a screen can warn before a show, not after. */
+    fun sessionRemainingMillis(): Long? =
+        token?.let { AccessToken.remainingMillis(it, System.currentTimeMillis()) }
 
     class ApiException(val code: Int, message: String) : IOException(message)
 
-    /** Sign in and keep the token for every later call. */
+    /** Forget the token. Called when the server refuses it, and on sign-out. */
+    fun signOut() {
+        prefs.edit().remove("access_token").apply()
+    }
+
+    // --- Auth ---
+
     fun login(email: String, password: String) {
-        val body = JSONObject()
-            .put("email", email)
-            .put("password", password)
-        val response = post("/api/auth/login", body.toString(), auth = false)
+        val body = JSONObject().put("email", email).put("password", password)
+        val response = JSONObject(request("POST", "/api/auth/login", body.toString(), auth = false))
         token = response.getString("access_token")
     }
 
-    fun logout() {
-        token = null
-    }
+    // --- Events ---
 
     /**
-     * Upload one capture as a session. Returns the session id, which is all
-     * the web app needs to show the night: the curve, the peaks and the card
-     * live there, not here.
+     * The events somebody could be standing in. Public on the backend, so this
+     * works before a token exists and keeps working after one dies.
+     */
+    fun listEvents(): List<EventBrief> =
+        EventBrief.listFrom(JSONArray(request("GET", "/api/events", null, auth = false)))
+
+    // --- Capture upload ---
+
+    /**
+     * Upload one capture as a session, and return its id.
+     *
+     * `eventId` is what makes the night mean something: without it the card
+     * reads "Evento" and no peak can be matched to a moment, because the
+     * backend has no timeline to match against.
      */
     fun uploadSession(
         firstReadingAtMillis: Long,
         samples: List<CaptureService.Sample>,
         deviceName: String?,
+        eventId: String?,
     ): String {
         require(samples.isNotEmpty()) { "Nada capturado" }
 
@@ -68,8 +93,7 @@ class TumtumApi(context: Context) {
             val at = firstReadingAtMillis + sample.elapsedMs
             // hr_data is keyed by (time, session_id): a duplicate timestamp
             // aborts the whole insert server-side, and losing a night to one
-            // repeated instant is never the right trade. Same dedup the web
-            // client had to learn.
+            // repeated instant is never the right trade.
             if (!seen.add(at / 1000)) continue
             points.put(
                 JSONObject()
@@ -84,43 +108,98 @@ class TumtumApi(context: Context) {
             .put("end_time", isoUtc(firstReadingAtMillis + samples.last().elapsedMs))
             .put("source_device", deviceName ?: "Sensor BLE")
             .put("data_points", points)
+        if (eventId != null) body.put("event_id", eventId)
 
-        return post("/api/health/sessions", body.toString(), auth = true).getString("id")
+        return JSONObject(request("POST", "/api/health/sessions", body.toString(), auth = true))
+            .getString("id")
     }
 
-    private fun post(path: String, body: String, auth: Boolean): JSONObject {
+    // --- The night, once it is up ---
+
+    fun listSessions(): List<SessionSummary> =
+        SessionSummary.listFrom(JSONArray(request("GET", "/api/health/sessions", null, auth = true)))
+
+    /**
+     * Run peak detection over a session and store the result.
+     *
+     * Nothing else triggers this. Creating a session does not, and reading an
+     * experience only reads peaks already in the table — so a capture that is
+     * never analysed shows an empty list under "Seus picos", which the screen
+     * would otherwise report as "your heart kept the same rhythm". After six
+     * hours of a festival that is a lie, and it is the reason this call exists
+     * at the end of every upload.
+     */
+    fun analyze(sessionId: String) {
+        request("POST", "/api/experience/$sessionId/analyze", "", auth = true)
+    }
+
+    fun getExperience(sessionId: String): Experience =
+        Experience.from(JSONObject(request("GET", "/api/experience/$sessionId", null, auth = true)))
+
+    // --- Cards ---
+
+    /** Generate a share card and return its id. */
+    fun createCard(sessionId: String, peakId: String?): String {
+        val body = JSONObject()
+            .put("session_id", sessionId)
+            .put("card_type", "solo")
+            .put("format", "story")
+        if (peakId != null) body.put("peak_id", peakId)
+        return JSONObject(request("POST", "/api/cards", body.toString(), auth = true))
+            .getString("id")
+    }
+
+    /** The image is served publicly so a shared link can render it. */
+    fun cardImageUrl(cardId: String): String = "$BASE_URL/api/cards/$cardId/image"
+
+    /** Record that a card was handed to the system share sheet. */
+    fun recordShare(cardId: String) {
+        val body = JSONObject().put("platform", "native")
+        runCatching { request("POST", "/api/cards/$cardId/share", body.toString(), auth = true) }
+    }
+
+    // --- Wire ---
+
+    private fun request(method: String, path: String, body: String?, auth: Boolean): String {
         val connection = URL(BASE_URL + path).openConnection() as HttpURLConnection
         try {
-            connection.requestMethod = "POST"
-            connection.doOutput = true
-            connection.setRequestProperty("Content-Type", "application/json")
+            connection.requestMethod = method
+            connection.setRequestProperty("Accept", "application/json")
             if (auth) {
                 connection.setRequestProperty("Authorization", "Bearer $token")
+            }
+            if (body != null) {
+                connection.doOutput = true
+                connection.setRequestProperty("Content-Type", "application/json")
             }
             // A festival's cellular is slow, not absent. The upload is over a
             // megabyte after six hours; give it room before declaring failure.
             connection.connectTimeout = 15_000
             connection.readTimeout = 120_000
 
-            connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            if (body != null) {
+                connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            }
 
             val code = connection.responseCode
             val text = (if (code in 200..299) connection.inputStream else connection.errorStream)
                 ?.bufferedReader()?.readText().orEmpty()
 
             if (code !in 200..299) {
+                // FastAPI puts a sentence in `detail` for the errors we raise,
+                // and a list of field problems for the ones Pydantic raises.
+                // Only the first is worth showing somebody in a dark room.
                 val detail = runCatching { JSONObject(text).getString("detail") }
                     .getOrDefault("Erro $code")
                 throw ApiException(code, detail)
             }
-            return JSONObject(text)
+            return text
         } finally {
             connection.disconnect()
         }
     }
 
-    private fun isoUtc(millis: Long): String =
-        FORMAT.get()!!.format(Date(millis))
+    private fun isoUtc(millis: Long): String = FORMAT.get()!!.format(Date(millis))
 
     companion object {
         const val BASE_URL = "https://tumtum-production.up.railway.app"

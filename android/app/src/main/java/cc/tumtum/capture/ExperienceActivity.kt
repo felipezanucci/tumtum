@@ -38,7 +38,8 @@ class ExperienceActivity : Activity() {
         web.addJavascriptInterface(ShareBridge(this), "TumTumAndroid")
 
         val token = TumtumApi(applicationContext).token
-        val target = intent.getStringExtra(EXTRA_URL) ?: WEB_URL
+        val sessionId = intent.getStringExtra(EXTRA_SESSION)
+        val target = if (sessionId != null) "$WEB_URL/experience?session=$sessionId" else "$WEB_URL/sessions"
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -98,7 +99,7 @@ class ExperienceActivity : Activity() {
             }
         }
 
-        web.loadUrl(WEB_URL)
+        web.loadUrl(BOOTSTRAP_URL)
     }
 
     @Deprecated("Deprecated in Android; fine for a back-goes-back web screen.")
@@ -109,12 +110,25 @@ class ExperienceActivity : Activity() {
     companion object {
         /** The product lives here; the app frames it. */
         const val WEB_URL = "https://tumtum.cc"
-        private const val EXTRA_URL = "url"
 
-        fun open(context: Context, path: String) {
+        /**
+         * Where the token handover happens.
+         *
+         * This used to be the site root, which since 2026-08-26 is the public
+         * sales page — so every time somebody opened their own night inside
+         * the app, the marketing landing flashed up first. The bootstrap only
+         * needs *a* page on the same origin to reach localStorage, and the
+         * sign-in screen is both cheap and the one page whose appearance
+         * during a sign-in handover is not a lie.
+         */
+        private const val BOOTSTRAP_URL = "$WEB_URL/login"
+
+        private const val EXTRA_SESSION = "session_id"
+
+        fun open(context: Context, sessionId: String) {
             context.startActivity(
                 Intent(context, ExperienceActivity::class.java)
-                    .putExtra(EXTRA_URL, WEB_URL + path)
+                    .putExtra(EXTRA_SESSION, sessionId)
             )
         }
     }

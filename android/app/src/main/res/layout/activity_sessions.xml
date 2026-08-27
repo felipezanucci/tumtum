@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/tumtum_black">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/wordmark" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/nights_title"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/tumtum_white" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/nights_subtitle"
+            android:textSize="13sp"
+            android:textColor="@color/tumtum_muted" />
+
+        <!--
+          One line that says which of four things is true: loading, nothing
+          captured yet, could not ask, or not signed in. An empty list is a
+          claim about the world, and "nada aqui" must never stand in for "não
+          consegui perguntar".
+        -->
+        <TextView
+            android:id="@+id/state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:textSize="15sp"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_muted" />
+
+        <Button
+            android:id="@+id/retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:minHeight="48dp"
+            android:text="@string/retry"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_black"
+            android:backgroundTint="@color/tumtum_lime" />
+
+        <LinearLayout
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>
