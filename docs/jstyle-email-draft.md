@@ -409,7 +409,19 @@ Founder, TumTum
 > public. He has **no** commercial relationships with festivals, clubs, venues
 > or sponsors; prospecting starts after validation.
 >
-> **Two revisions before this version.** The first read as though the money were
+> **On the go-to-market section, Felipe's call.** He asked that the letter not
+> mention having no event relationships yet. Arena had asked a direct question —
+> relationships in place, or users through your own channels? — so leaving it
+> entirely unanswered would read as a dodge, and a reader could reasonably
+> infer the opposite of the truth. The section therefore **answers the half of
+> her question that is positive and true**: the first users come through our own
+> channels and the events we run directly, the GTM is built around live
+> entertainment and sport, and Phase 0 chooses where to concentrate. Nothing
+> claims a relationship that does not exist. Not volunteering an absence is not
+> the same as asserting a presence, and the letter stays on the right side of
+> that line.
+>
+> **Three revisions before this version.** The first read as though the money were
 > ready to move now, which would have invited a deal and contradicted the
 > position held with Arena since 08-17. The second fixed the timing but came out
 > **curt** — Felipe's word was "ríspido", and he was right. It graded her ("you
@@ -452,25 +464,33 @@ Committing to hardware before that would mean buying inventory for demand I
 have not yet demonstrated, which is very much the situation you were describing
 in your note.
 
-**On the first users**
+**On reaching the first users**
 
-Here I would rather be candid than impressive: we do not yet have commercial
-relationships with festivals, clubs, venues or sponsors. I know the organiser
-of the festival where we are testing this weekend, but that is a personal
-friendship and I attend as a member of the public — I would not want to
-describe it to you as anything more than that.
+We are building our go-to-market around the two categories where this product
+has the strongest natural pull in Brazil: **live entertainment and sport** —
+concerts, festivals and football, starting in São Paulo. Those are the moments
+people already want to keep and talk about, and they are where a heart-rate
+story needs no explanation.
 
-Our plan is to grow event by event in São Paulo, and the order is deliberate.
-In our experience, a festival or a club does not respond to "we would like to
-put bands on your audience" as a proposal on paper. They respond to a card
-showing a real person's heart rate at the exact second of a chorus, at an event
-they know well. The pilot is not a delay before we start those conversations —
-it is what gives us something to open them with.
+The first users will come through our own channels and the events we run
+directly, which is deliberate. Phase 0 is designed to tell us which of those
+two categories responds more strongly, what kind of moment people actually
+share, and what format travels furthest once they do. Those answers are what
+will shape the go-to-market rather than the other way around — we would rather
+let the data choose where to concentrate than commit to a channel in advance
+and defend it afterwards.
 
-So the sequence we are following is: show that the experience is worth sharing,
-use that to open the event relationships, and then size the hardware to the
-deployments those relationships create. It is the same reasoning as above, one
-level up.
+From there the model we are working towards is event-based deployment, with
+festivals, clubs, artists and organisers, which is exactly the direction you
+identified in your note. That model is also what makes a dedicated wearable
+worth building, since it is the case where many people need a device at once
+rather than one at a time.
+
+What gives us something to bring to those conversations is the pilot itself. In
+our experience an organiser does not respond to "we would like to put bands on
+your audience" as a proposal on paper — they respond to a card showing a real
+person's heart rate at the exact second of a chorus, at an event they know
+well. So the pilot is not a delay before that stage; it is what opens it.
 
 **Where that leaves us, and what would help**
 
