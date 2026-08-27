@@ -226,6 +226,20 @@ export function EventForm({
           />
         </div>
 
+        {/*
+          A night that crosses midnight needs no second date: an end earlier
+          than the start can only mean the next day for any event under 24
+          hours, so the form states that reading instead of asking for it.
+          Storage stays one date and two times — the alternative is a schema
+          change, and the deployed app cannot apply one (startup runs
+          create_all, which never alters existing tables).
+        */}
+        {crossesMidnight(form) && (
+          <p className="mt-2 text-xs text-tumtum-lime">
+            Termina na madrugada do dia seguinte ({nextDayLabel(form.date)}).
+          </p>
+        )}
+
         <label className={`${label} mt-4`} htmlFor="venue">
           Local
         </label>
@@ -259,6 +273,21 @@ export function EventForm({
       </Button>
     </form>
   )
+}
+
+/** An end earlier than the start means the small hours of the next day. */
+function crossesMidnight(form: EventFormValues): boolean {
+  return Boolean(form.start_time && form.end_time && form.end_time < form.start_time)
+}
+
+/** "30/08", the day after the event's date. Parsed as UTC noon to dodge DST edges. */
+function nextDayLabel(date: string): string {
+  const parsed = new Date(`${date}T12:00:00Z`)
+  if (Number.isNaN(parsed.getTime())) return 'dia seguinte'
+  parsed.setUTCDate(parsed.getUTCDate() + 1)
+  const day = String(parsed.getUTCDate()).padStart(2, '0')
+  const month = String(parsed.getUTCMonth() + 1).padStart(2, '0')
+  return `${day}/${month}`
 }
 
 /** The API wants seconds; the picker gives HH:MM. */

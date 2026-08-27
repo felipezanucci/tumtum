@@ -17,9 +17,12 @@ import java.util.concurrent.Executors
 /**
  * A night, natively: the curve, the moments, and the card that comes out of it.
  *
- * This replaces the WebView as the place a capture is relived. The WebView is
- * still reachable from the bottom of this screen, as a net for the case where
- * the native load fails — a net nobody can reach is not a net.
+ * This replaces the WebView as the place a capture is relived. Felipe's call,
+ * 2026-08-27: the whole experience happens inside the app, so the "abrir no
+ * site" net that briefly lived at the bottom of this screen was removed the
+ * same day it appeared. ExperienceActivity stays in the codebase, doorless,
+ * because deleting a working screen two days before the only six-hour test
+ * buys nothing.
  *
  * The empty state is the whole design problem here. An empty list of moments
  * can mean three different things, and the site's version of this screen said
@@ -42,7 +45,6 @@ class NightActivity : Activity() {
     private lateinit var findMoments: Button
     private lateinit var moments: LinearLayout
     private lateinit var makeCard: Button
-    private lateinit var openOnSite: TextView
 
     private val io = Executors.newSingleThreadExecutor()
 
@@ -74,14 +76,12 @@ class NightActivity : Activity() {
         findMoments = findViewById(R.id.findMoments)
         moments = findViewById(R.id.moments)
         makeCard = findViewById(R.id.makeCard)
-        openOnSite = findViewById(R.id.openOnSite)
 
         sessionId = intent.getStringExtra(EXTRA_SESSION).orEmpty()
 
         retryButton.setOnClickListener { load() }
         findMoments.setOnClickListener { analyse() }
         makeCard.setOnClickListener { onMakeCard() }
-        openOnSite.setOnClickListener { ExperienceActivity.open(this, sessionId) }
 
         load()
     }

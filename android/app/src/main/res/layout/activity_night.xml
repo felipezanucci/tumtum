@@ -134,22 +134,5 @@
             android:textColor="@color/tumtum_black"
             android:backgroundTint="@color/tumtum_lime" />
 
-        <!--
-          The WebView kept as a net, reachable rather than merely present. When
-          the native screen cannot load a night, the site can still show it.
-        -->
-        <TextView
-            android:id="@+id/openOnSite"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="24dp"
-            android:minHeight="48dp"
-            android:gravity="center"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/open_on_site"
-            android:textSize="14sp"
-            android:textColor="@color/tumtum_muted" />
     </LinearLayout>
 </ScrollView>

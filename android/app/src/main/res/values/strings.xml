@@ -70,7 +70,6 @@
     <string name="curve_caption">Sua batida ao longo da noite</string>
     <string name="moments_title">Seus momentos</string>
     <string name="night_failed">Não consegui carregar sua noite: %1$s</string>
-    <string name="open_on_site">Abrir no site</string>
 
     <!--
       Three different silences, three different sentences. An empty list of

@@ -2,8 +2,10 @@ package cc.tumtum.capture
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
 import java.text.SimpleDateFormat
@@ -34,6 +36,19 @@ class HRCurveView @JvmOverloads constructor(
 
     private val density = resources.displayMetrics.density
     private fun dp(value: Float) = value * density
+
+    /**
+     * The wash of lime under the line, fading to nothing.
+     *
+     * The site's chart fills the area under the curve and the bare polyline
+     * looked thin next to it — Felipe's words, and he was right. Same visual
+     * grammar in both places: the line carries the data, the fill carries the
+     * feeling, and neither adds a zone, a range or a verdict.
+     */
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+    }
+    private val fillPath = Path()
 
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -102,6 +117,21 @@ class HRCurveView @JvmOverloads constructor(
             val y = yFor(point.bpm)
             if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
         }
+
+        // Fill first, line on top, so the stroke keeps its full colour.
+        fillPath.set(path)
+        fillPath.lineTo(xFor(lastTime), bottom)
+        fillPath.lineTo(xFor(firstTime), bottom)
+        fillPath.close()
+        // Rebuilt per draw because the gradient spans the plot's own top and
+        // bottom, which change with the view's size.
+        fillPaint.shader = LinearGradient(
+            0f, top, 0f, bottom,
+            resources.getColor(R.color.tumtum_lime, null) and 0x00FFFFFF or (0x66 shl 24),
+            resources.getColor(R.color.tumtum_lime, null) and 0x00FFFFFF,
+            Shader.TileMode.CLAMP,
+        )
+        canvas.drawPath(fillPath, fillPaint)
         canvas.drawPath(path, linePaint)
 
         // The two numbers that frame the night, on the axis they belong to.
