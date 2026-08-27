@@ -99,6 +99,53 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-27 — what a Wear OS app is actually for
+
+Costed in `docs/wear-os-plan.md`, which supersedes the fase-2 estimate in
+`docs/path-2-roadmap.md` (written before the phone app existed).
+
+**It is not for "live".** Wear OS came up as the way to see the beat during the
+show, but nobody looks at a watch mid-show and the Phase 0 loop does not need
+it: live the event, then see the night. What a watch app actually buys is that
+`ExerciseClient` guarantees ~1 Hz on every Wear OS 3+ device, regardless of any
+setting its owner chose — which is precisely the risk that can kill the Health
+Connect path. That is the reason to build it, and the only one.
+
+**And there is a free mitigation first.** The same watch that samples every ten
+minutes in normal use samples densely while an exercise session is running. One
+sentence in onboarding — *start a workout when the show starts* — buys the
+density for everyone who follows it. The Wear OS app is the version that works
+for everyone who does not, and that is what several weeks would be purchasing.
+
+**The reach is the uncomfortable number.** Wear OS 3+ means Galaxy Watch 4 or
+newer and Pixel Watch. Older Galaxy is Tizen; Fitbit's own watches, Garmin and
+Amazfit are not Wear OS; Apple Watch, the most common smartwatch of all, is
+out. It is the narrowest audience of the three capture paths, for the highest
+build cost.
+
+**Distribution is the practical wall.** There is no "send them the APK" on Wear
+OS: each watch needs developer options, wireless debugging and a PC running
+adb — one in-person session per person. Fine for a concierge pilot of three to
+five; it does not scale without the Play Store, which brings back the health
+declaration form plus Wear review.
+
+**Battery is a real gate, not a formality.** A continuous-heart-rate exercise
+session is the most expensive mode a watch has. If a Galaxy Watch cannot cross
+six hours, the app does not serve festivals — and that is only knowable by
+measuring.
+
+Estimate: 7–11 working sessions, 3–5 weeks of calendar after a watch is bought
+(R$ 800–2,000, no emulator can stand in — a heart-rate sensor cannot be
+emulated). Roughly double Health Connect, for the narrowest reach. It does not
+fit comfortably before 25/09.
+
+**Recommended order, each deciding the next:** the onboarding sentence, then
+Health Connect stage 0 (a night, no code, measures the real density), then Wear
+OS only if that measurement shows the density does not come for free. Building
+it first would be paying weeks for insurance against an unquantified risk.
+
+---
+
 ## 2026-08-27 — what Health Connect can and cannot be
 
 Planned in `docs/health-connect-plan.md`, before writing any of it, because
