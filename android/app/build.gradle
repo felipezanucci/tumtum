@@ -5,10 +5,12 @@ plugins {
 
 android {
     namespace 'cc.tumtum.capture'
-    // 35 because connect-client 1.1.0 refuses anything lower. targetSdk stays
-    // 34: compiling against new APIs and opting into new behaviour are
-    // different decisions, and the second one deserves its own test pass.
-    compileSdk 35
+    // 36 because connect-client 1.1.0 refuses anything lower (the published
+    // AAR metadata demands 36 and AGP 8.9.1+, whatever the docs say).
+    // targetSdk stays 34: compiling against new APIs and opting into new
+    // behaviour are different decisions, and the second deserves its own
+    // test pass.
+    compileSdk 36
 
     /*
       A signing key that does not change between builds.
