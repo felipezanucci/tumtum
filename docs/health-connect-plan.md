@@ -110,7 +110,7 @@ tela. Esta etapa custa uma noite e evita semanas.
 
 ---
 
-### Etapa 1 — Migração AndroidX · 1 sessão · risco médio
+### Etapa 1 — Migração AndroidX · **feita, 2026-08-27** · verde no CI
 
 O APK hoje **não tem nenhuma dependência de runtime**, por decisão registrada
 no `build.gradle`. O `androidx.health.connect:connect-client` quebra isso: traz
@@ -127,9 +127,18 @@ sete telas do app usam `android.app.Activity` puro.
 **Nada disso é visível para o usuário.** É custo de infraestrutura pago para
 que a Etapa 2 exista.
 
+**Como foi de verdade (27/08):** menor no código e maior na toolchain do que o
+previsto. As sete telas (oito, com o splash) usavam `Activity` só como
+superclasse, então a migração foi oito declarações — mas o `connect-client`
+1.1.0 publicado exige `compileSdk 36` e AGP 8.9.1+, o que arrastou AGP 8.11.1,
+Gradle 8.13 e Kotlin 2.0.21. Três voltas de CI: o metadado do artefato
+contradizia a documentação (36, não 35), e o `ComponentActivity` em Kotlin
+rejeita a assinatura antiga de `onRequestPermissionsResult`
+(`Array<out String>` → `Array<String>`). APK agora é a versão 0.2.
+
 ---
 
-### Etapa 2 — Ler o Health Connect · 1–2 sessões
+### Etapa 2 — Ler o Health Connect · **feita com a Etapa 3 junto, 2026-08-27** · aguarda teste em aparelho
 
 | # | Tarefa |
 |---|---|
@@ -145,7 +154,7 @@ noite antiga.
 
 ---
 
-### Etapa 3 — A tela · 1 sessão
+### Etapa 3 — A tela · **feita, 2026-08-27** ("Trazer do relógio" no menu)
 
 "Trazer do meu relógio" no menu: escolher a noite (ou o evento), ver **o que
 foi encontrado antes de subir** — quantas leituras, que cadência, que qualidade

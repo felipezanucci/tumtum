@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
-| **Android app (native)** | **No longer a WebView shell.** Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. What remains is Health Connect. |
+| **Android app (native)** | **No longer a WebView shell.** Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
@@ -112,6 +112,54 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-27 — Health Connect built to the screen in one evening, and what it cost
+
+Felipe said go, and Etapas 1, 2 and 3 of `docs/health-connect-plan.md` are
+code — pushed the same evening the plan was written. What remains is what no
+session here can do: a person with a watch in hand (Etapa 4, and the Etapa 0
+measurement the screen itself now performs).
+
+**The zero-dependency rule ended, on purpose and with a successor.** The
+Health Connect client requires AndroidX and its permission flow requires
+`ComponentActivity`; there is no framework-only way to read another app's
+data. The new rule, recorded in `build.gradle`: every runtime dependency must
+be one Health Connect forces — nothing else. Three entered: `androidx.activity`,
+`connect-client` 1.1.0, coroutines.
+
+**The migration was smaller in code and bigger in toolchain than planned.**
+Eight superclass declarations — every screen used `Activity` only as a
+superclass, and the shared helpers take it as a parameter type, which a
+`ComponentActivity` satisfies. But the published artifact demands
+`compileSdk 36` and AGP 8.9.1+ (its docs said 35 — **the artifact's metadata
+outranks the documentation**), which dragged AGP 8.11.1, Gradle 8.13 and
+Kotlin 2.0.21 with it. Three CI rounds, all findable only in CI from here.
+APK is now version 0.2.
+
+**The screen is a corridor of honest gates**, and the cadence is measured,
+never assumed — by median gap *and* 5-second-slot coverage, because either
+alone flatters a sparse night (dense clusters around dead half-hours have a
+lovely median; a 9-second metronome covers the night while starving the
+detector's smoothing window). The verdict names what the data supports:
+moments, or the curve — with the start-a-workout sentence offered right where
+the sparse verdict lands. "Your watch wrote nothing" and "I could not ask"
+never share a message. Eight CI-proven tests on the measurement.
+
+**Etapa 0 got cheaper than the plan priced it.** The screen *is* the
+measurement: no export, no file, no laptop — install 0.2, tap Trazer do
+relógio, and the cadence report is the Etapa 0 reading. The two-stretch
+protocol (normal wear vs. hand-started workout) still applies; the tool for
+it now ships in the APK.
+
+**The dead Google Fit chain went with it**, as section 6 ordered: the
+frontend module that was never Health Connect, the backend `/sync` endpoint
+and service nobody called, the client surface. While they existed under those
+names they claimed half of this work was already done.
+
+**Standing rule, standing:** the 0.1 APK on Felipe's phone is validated for
+Realness on 29/08; 0.2 is not. **No update before the festival.**
 
 ---
 
