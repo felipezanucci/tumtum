@@ -3,6 +3,7 @@ package cc.tumtum.capture
 import android.app.Activity
 import android.content.Intent
 import android.view.View
+import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 
@@ -34,6 +35,11 @@ object Chrome {
      * the visible screen and no navigation happens.
      */
     fun wire(activity: Activity, api: TumtumApi, onSignedOut: (() -> Unit)? = null) {
+        // The wordmark is the way home from any screen — Felipe's ask, and the
+        // convention every app trains people into anyway.
+        activity.findViewById<ImageView>(R.id.topLogo)
+            ?.setOnClickListener { goHome(activity) }
+
         val button = activity.findViewById<TextView>(R.id.menuButton) ?: return
         button.visibility = if (api.signedIn) View.VISIBLE else View.GONE
         button.setOnClickListener { anchor ->
@@ -44,7 +50,7 @@ object Chrome {
             popup.menu.add(0, ITEM_SIGN_OUT, 3, activity.getString(R.string.menu_sign_out))
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    ITEM_CAPTURE -> goToCapture(activity)
+                    ITEM_CAPTURE -> goHome(activity)
                     ITEM_NIGHTS ->
                         if (activity !is SessionsActivity) {
                             activity.startActivity(Intent(activity, SessionsActivity::class.java))
@@ -61,7 +67,7 @@ object Chrome {
                         // unsent readings, stay exactly where they are.
                         api.signOut()
                         onSignedOut?.invoke()
-                        goToCapture(activity)
+                        goHome(activity)
                     }
                 }
                 true
@@ -71,7 +77,7 @@ object Chrome {
     }
 
     /** Back to the capture screen, reusing the one already under the stack. */
-    private fun goToCapture(activity: Activity) {
+    fun goHome(activity: Activity) {
         if (activity is MainActivity) return
         activity.startActivity(
             Intent(activity, MainActivity::class.java)

@@ -5,6 +5,7 @@
   signed-in person for it to serve.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/topbar"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -15,9 +16,15 @@
     android:paddingBottom="10dp"
     android:background="@color/tumtum_black">
 
+    <!-- The wordmark is the way home, from anywhere. Padding keeps the touch
+         target honest while the mark itself stays 22dp. -->
     <ImageView
+        android:id="@+id/topLogo"
         android:layout_width="wrap_content"
-        android:layout_height="22dp"
+        android:layout_height="46dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:paddingEnd="12dp"
         android:adjustViewBounds="true"
         android:contentDescription="@string/app_name"
         android:src="@drawable/wordmark" />

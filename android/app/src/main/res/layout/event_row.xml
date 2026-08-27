@@ -43,4 +43,21 @@
         android:textSize="18sp"
         android:visibility="gone"
         android:textColor="@color/tumtum_lime" />
+
+    <!--
+      Editing is its own explicit door. Tapping the row chooses the night, and
+      "não consegui editar o evento" showed that a second, hidden meaning on
+      the same tap is unfindable — so the second meaning gets its own word.
+    -->
+    <TextView
+        android:id="@+id/editRow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:gravity="center"
+        android:text="@string/edit_row"
+        android:textSize="13sp"
+        android:textColor="@color/tumtum_muted" />
 </LinearLayout>

@@ -18,9 +18,10 @@ import java.util.concurrent.Executors
  * Tapping an event here is the same choice the capture screen's picker makes,
  * through the same stored key, so the two can never disagree.
  *
- * Creating and correcting events stays on the site for now: that is organiser
- * tooling, not the night itself, and a native event form two days before the
- * festival is risk without reward. Recorded as an open item.
+ * Correcting an event lives behind each row's "Editar" — its own explicit
+ * door, because a second, hidden meaning on the same tap proved unfindable
+ * within minutes of this screen shipping. Creating events is what still lives
+ * on the site; recorded as an open item.
  */
 class EventsActivity : Activity() {
 
@@ -102,6 +103,9 @@ class EventsActivity : Activity() {
             row.findViewById<TextView>(R.id.chosen).visibility =
                 if (event.id == chosen) View.VISIBLE else View.GONE
             row.setOnClickListener { choose(event, alreadyChosen = event.id == chosen) }
+            row.findViewById<TextView>(R.id.editRow).setOnClickListener {
+                EventEditActivity.open(this, event.id)
+            }
             list.addView(row)
         }
     }

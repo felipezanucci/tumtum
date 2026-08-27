@@ -66,6 +66,8 @@ class MainActivity : Activity() {
     private lateinit var eventLabel: TextView
     private lateinit var eventPicker: Spinner
     private lateinit var openNights: TextView
+    private lateinit var topbar: View
+    private lateinit var loginLogo: View
 
     private lateinit var api: TumtumApi
 
@@ -118,6 +120,8 @@ class MainActivity : Activity() {
         eventLabel = findViewById(R.id.eventLabel)
         eventPicker = findViewById(R.id.eventPicker)
         openNights = findViewById(R.id.openNights)
+        topbar = findViewById(R.id.topbar)
+        loginLogo = findViewById(R.id.loginLogo)
 
         api = TumtumApi(applicationContext)
         showLastCrashIfAny()
@@ -405,6 +409,10 @@ class MainActivity : Activity() {
         emailField.visibility = loginVisibility
         passwordField.visibility = loginVisibility
         loginButton.visibility = loginVisibility
+        // Signing in gets the big centred wordmark; signed in gets the top
+        // bar. Never both — two wordmarks on one screen would be shouting.
+        loginLogo.visibility = loginVisibility
+        topbar.visibility = if (authed) View.VISIBLE else View.GONE
 
         // The picker only matters before a capture: once readings exist, the
         // night they belong to is already decided.

@@ -73,6 +73,24 @@
     <string name="events_empty">Nenhum evento cadastrado ainda.</string>
     <string name="events_failed_screen">Não consegui carregar os eventos: %1$s</string>
     <string name="chosen_mark">✓</string>
+    <string name="edit_row">Editar</string>
+
+    <!-- Editar evento -->
+    <string name="edit_title">Editar evento</string>
+    <string name="edit_subtitle">A data e o horário são o que ligam sua batida aos momentos da noite.</string>
+    <string name="field_name">Nome</string>
+    <string name="field_date">Data</string>
+    <string name="field_start">Começa</string>
+    <string name="field_end">Termina</string>
+    <string name="field_venue">Local</string>
+    <string name="field_city">Cidade</string>
+    <string name="edit_midnight">Termina na madrugada do dia seguinte.</string>
+    <string name="save">Salvar</string>
+    <string name="saving">Salvando…</string>
+    <string name="edit_load_failed">Não consegui carregar o evento: %1$s</string>
+    <string name="edit_save_failed">Não consegui salvar: %1$s</string>
+    <string name="edit_needs_name">Dê um nome ao evento.</string>
+    <string name="no_time">--</string>
 
     <!-- Sua noite -->
     <string name="night_title">Sua noite</string>

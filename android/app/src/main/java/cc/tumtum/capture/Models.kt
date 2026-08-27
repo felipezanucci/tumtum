@@ -54,6 +54,37 @@ data class EventBrief(
     }
 }
 
+/**
+ * Everything the edit screen needs to show and send back.
+ *
+ * Times come and go as the wall-clock strings the API speaks ("22:00:00").
+ * They are never parsed into instants here: a time-of-day without a date is
+ * not a moment, and pretending otherwise is how the timetz bug happened.
+ */
+data class EventDetail(
+    val id: String,
+    val name: String,
+    val eventType: String,
+    val date: String,
+    val startTime: String?,
+    val endTime: String?,
+    val venue: String?,
+    val city: String?,
+) {
+    companion object {
+        fun from(json: JSONObject) = EventDetail(
+            id = json.getString("id"),
+            name = json.optString("name", ""),
+            eventType = json.optString("event_type", "concert"),
+            date = json.optString("date", ""),
+            startTime = json.stringOrNull("start_time"),
+            endTime = json.stringOrNull("end_time"),
+            venue = json.stringOrNull("venue"),
+            city = json.stringOrNull("city"),
+        )
+    }
+}
+
 data class SessionSummary(
     val id: String,
     val eventId: String?,

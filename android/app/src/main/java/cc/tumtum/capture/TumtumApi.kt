@@ -70,6 +70,19 @@ class TumtumApi(context: Context) {
     fun listEvents(): List<EventBrief> =
         EventBrief.listFrom(JSONArray(request("GET", "/api/events", null, auth = false)))
 
+    fun getEvent(eventId: String): EventDetail =
+        EventDetail.from(JSONObject(request("GET", "/api/events/$eventId", null, auth = false)))
+
+    /**
+     * Correct an event. Absent fields stay untouched — the backend's PATCH
+     * semantics — and the call itself goes out as POST because
+     * HttpURLConnection refuses the PATCH verb outright; the backend carries
+     * a POST twin of the route for exactly this client.
+     */
+    fun updateEvent(eventId: String, changes: JSONObject) {
+        request("POST", "/api/events/$eventId", changes.toString(), auth = true)
+    }
+
     // --- Capture upload ---
 
     /**

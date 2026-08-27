@@ -34,7 +34,12 @@ async def create_event(
     return event
 
 
+# The POST twin exists for the Android app: java.net.HttpURLConnection —
+# deliberately the app's only HTTP client — refuses the PATCH verb outright
+# (ProtocolException, a fixed method list that predates PATCH). Same handler,
+# same semantics, hidden from the schema so the API still reads as PATCH.
 @router.patch("/{event_id}", response_model=EventResponse)
+@router.post("/{event_id}", response_model=EventResponse, include_in_schema=False)
 async def update_event(
     event_id: uuid.UUID,
     body: EventUpdateRequest,
