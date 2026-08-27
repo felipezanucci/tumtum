@@ -53,6 +53,23 @@ comum, está fora.
 
 É a fatia mais estreita das três, pelo maior custo de construção.
 
+### E o mercado brasileiro piora essa conta
+
+O volume no Brasil é dominado pela faixa abaixo de US$ 150 — Xiaomi, Huawei,
+Zepp/Amazfit, Positivo — e o vestível mais vendido na Amazon Brasil em 2025 foi
+o **Samsung Galaxy Fit3**, que é uma *band*, não um relógio.
+
+**Nenhuma dessas pulseiras roda Wear OS.** Xiaomi Smart Band, Amazfit, Galaxy
+Fit: são sistemas fechados do fabricante. Um app de Wear OS não roda em
+nenhuma delas, por mais bem feito que seja.
+
+Ou seja: o investimento de 3–5 semanas alcançaria Galaxy Watch 4+ e Pixel
+Watch — e nada do que a maior parte do Brasil tem no pulso.
+
+**Health Connect, ao contrário, alcança todas elas**: Mi Fitness, Zepp e
+Samsung Health escrevem frequência cardíaca no Health Connect. É o único
+caminho que chega ao volume brasileiro.
+
 ---
 
 ## 3. Etapas

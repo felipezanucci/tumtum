@@ -96,6 +96,42 @@ the linked documents — this file is the index and the reasoning, not a diary.
 18. **An event cannot cross midnight** — one date, two bare times, so
     "termina 03:00" cannot say it means the next day. A capture attaches by
     event id, so Saturday is unaffected; the model change waits.
+19. **The Brazilian age/sex split for wearables is unknown.** Super Panorama
+    2026 (Mobile Time / Opinion Box) has it; this environment cannot reach
+    `mobiletime.com.br`. Felipe's to open. Do not guess it in the meantime —
+    the only figure we have is global (Counterpoint, women ~35%).
+
+---
+
+## 2026-08-27 — what Brazil actually wears, and what it does to the plan
+
+Researched to put numbers under the capture-path choice. The market answer
+turns out to be sharper than the demographic one.
+
+**Volume in Brazil lives below US$ 150** — Xiaomi, Huawei, Zepp/Amazfit,
+Positivo — and the best-selling wearable on Amazon Brasil in 2025 was the
+Samsung **Galaxy Fit3**, a band rather than a watch. Apple and Samsung hold
+the value share; they do not hold the wrists.
+
+**None of those bands run Wear OS.** Xiaomi Smart Band, Amazfit, Galaxy Fit are
+closed manufacturer systems. So the 3–5 week Wear OS investment would reach
+Galaxy Watch 4+ and Pixel Watch and nothing that most of Brazil is actually
+wearing. That is a much harder argument against it than "narrow reach" was
+yesterday.
+
+**Health Connect reaches all of them.** Mi Fitness, Zepp and Samsung Health all
+write heart rate into Health Connect. It is the only path that touches the
+Brazilian volume, which settles the ordering: Health Connect first, and Wear OS
+only if a specific measurement demands it.
+
+**The demographic cut could not be obtained.** The right source exists — Super
+Panorama 2026 (Mobile Time / Opinion Box, 4,138 respondents, ±1.5 pp, covering
+wearables with gender and age segmentation) — but `mobiletime.com.br` is
+blocked by this environment's egress proxy and the figures do not surface in
+search. The only demographic number found is global, not Brazilian:
+Counterpoint has women at historically ~35% of smartwatch users. **Open item
+19:** Felipe can open the Super Panorama and read the wearables section; until
+then the age/sex split is unknown and should not be guessed at.
 
 ---
 
