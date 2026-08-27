@@ -1,13 +1,40 @@
 import uuid
-from datetime import date, datetime, time
+from datetime import UTC, date, datetime, time
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # A field called `date` hides the type called `date`. In `x: T = v` Python
 # stores the value before evaluating the annotation, so by the time
 # `date | None` is read, `date` is already the None just assigned — which the
 # create schema never hit only because its `date` field has no default.
 EventDate = date
+
+
+def offset_aware(value: time | None) -> time | None:
+    """Give a bare time an offset, because the column insists on one.
+
+    `events.start_time` and `events.end_time` are `TIME WITH TIME ZONE`.
+    asyncpg encodes that type as `obj.tzinfo.utcoffset(None)`, so a naive
+    `datetime.time` — which is exactly what parsing "22:00:00" produces —
+    raises `AttributeError` inside the driver and surfaces as a bare
+    "Erro interno do servidor". Found on 2026-08-27 trying to put the
+    festival's hours on its event; creating the event had worked only
+    because the times were left empty and the columns never written.
+
+    **The offset stored here carries no information and must not be read.**
+    A time-of-day with an offset but no date cannot even account for a
+    daylight rule, which is why Postgres's own documentation discourages the
+    type. The real fix is migration 007, which drops the timezone from both
+    columns — dormant until this project actually runs its migrations, since
+    the deployed app calls `create_all` and that only ever creates missing
+    tables. Once the column is a plain `time`, this coercion becomes a no-op:
+    the cast keeps the wall-clock digits and discards the offset, which is
+    all anybody was ever shown.
+    """
+    if value is None or value.tzinfo is not None:
+        return value
+    return value.replace(tzinfo=UTC)
+
 
 # --- Event ---
 
@@ -24,6 +51,8 @@ class EventCreateRequest(BaseModel):
     event_type: str = Field(..., pattern="^(concert|sports|festival)$")
     external_id: str | None = None
     cover_image_url: str | None = None
+
+    _offsets = field_validator("start_time", "end_time")(offset_aware)
 
 
 class EventUpdateRequest(BaseModel):
@@ -44,6 +73,8 @@ class EventUpdateRequest(BaseModel):
     end_time: time | None = None
     event_type: str | None = Field(None, pattern="^(concert|sports|festival)$")
     cover_image_url: str | None = None
+
+    _offsets = field_validator("start_time", "end_time")(offset_aware)
 
 
 class EventResponse(BaseModel):
