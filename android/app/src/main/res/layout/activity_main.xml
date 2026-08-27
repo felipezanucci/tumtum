@@ -5,6 +5,13 @@
   Scrolls because the login row, the event picker and the capture block do not
   all fit on a 360dp phone in landscape, and a button that cannot be reached is
   the same as a button that does not exist.
+
+  gravity is "center", not "center_horizontal". With fillViewport the inner
+  column is stretched to the height of the screen whenever the content is
+  shorter than it, so centring vertically is what puts the sign-in fields in
+  the middle instead of stranding them under the wordmark. Once a capture is
+  running the content is taller than the screen and the gravity stops
+  mattering, which is the behaviour we want in both states.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -16,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
+        android:gravity="center"
         android:padding="24dp">
 
         <ImageView
