@@ -99,6 +99,49 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-27 — what Health Connect can and cannot be
+
+Planned in `docs/health-connect-plan.md`, before writing any of it, because
+two facts reframe the whole phase.
+
+**Health Connect reads what a watch already recorded; it does not stream.**
+Live heart rate from somebody's own watch is Health Services in a Wear OS app
+— a different project, on the watch, weeks of it. For the Phase 0 question
+(*is the delivery valuable?*) the after-the-event path is enough: wear your own
+watch, open TumTum afterwards, see the night. That is what this phase builds.
+
+**The risk that can kill it is measurable today, with no code.** The detector
+assumes roughly a reading a second — 5 s smoothing, a 300 s baseline, a 5 s
+minimum peak. But Samsung Health measures continuously *or every ten minutes*
+depending on a setting its owner chose, and Fitbit gives 1–5 s only in training
+mode. At one reading per ten minutes a six-hour festival is **36 points**: the
+detector cannot run, and the curve it would draw is a pretty lie. So stage 0 is
+two or three people exporting a real evening through the `/import` screen that
+already parses Health Connect and already scores quality — a night's work, no
+engineering, and it decides whether this phase promises *moments* or only *a
+curve*.
+
+**The infrastructure cost is real and invisible.** `connect-client` breaks the
+APK's deliberate zero-dependency stance and its permission flow needs
+ComponentActivity, so all seven screens migrate off plain `android.app.Activity`
+before a single byte of health data is read.
+
+**The Play Store is not in the way.** Health permissions need a developer
+declaration form and review to publish, but a hand-installed APK reads Health
+Connect with no approval at all. That is weeks that the pilot does not have to
+spend.
+
+Estimate: 4–6 working sessions, ~2 weeks of calendar with the device-test
+loops, against ~4 weeks until 25/09. It fits if stage 0 passes.
+
+**Debt found while planning:** `frontend/lib/health/google-health-connect.ts`
+is not Health Connect at all — it is the Google Fit REST API, whose developer
+signups closed on 2024-05-01 and which reaches end of life late in 2026. It
+cannot be switched on even if we wanted it. Under that name it implies half of
+Health Connect is done; it should be deleted with stage 1.
+
+---
+
 ## 2026-08-27 — the native path finds both peaks, to the beat
 
 The eight-minute two-effort rehearsal, on the day's final APK (`f73d87d`),

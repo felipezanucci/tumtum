@@ -32,6 +32,7 @@ The other durable documents:
 | `docs/jstyle-v8-evaluation.md` | Everything learned about the J-Style bands |
 | `shared/brand/README.md` | Brand implementation details beyond this file |
 | `docs/handoff-2026-08-26.md` | Session handoff: state, config, traps, and what was still Felipe's to do two days before the festival |
+| `docs/health-connect-plan.md` | The next phase: reading the fans' own watches, its stages, its estimate, and the sampling risk that decides it |
 
 One working rule the log records, learned four times: push everything first,
 open the pull request last, and anything pushed after a PR is merged gets a
