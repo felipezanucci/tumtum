@@ -7,6 +7,38 @@ android {
     namespace 'cc.tumtum.capture'
     compileSdk 34
 
+    /*
+      A signing key that does not change between builds.
+
+      With no signingConfig at all, Gradle falls back to ~/.android/debug.keystore
+      and *generates it at random* when the file is missing. Every CI run is a
+      fresh machine, so every APK was signed by a different key — and Android
+      refuses to install an update whose signature does not match the installed
+      app. The symptom is a bare "App nao instalado" after the person has
+      already agreed to install it, with nothing naming the real cause.
+
+      That is not cosmetic for a pilot. It means the app can only be updated by
+      uninstalling first, and uninstalling destroys whatever capture the service
+      is still holding in memory — the worst possible instruction to give
+      somebody after a six-hour show.
+
+      The keystore is committed on purpose. It signs debug builds of an app
+      installed by hand, its password is the conventional one, and it holds
+      nothing secret. The trade-off, stated plainly: anyone with this repository
+      can build an APK that Android would accept as an update to this one, which
+      matters only to somebody who can also get it onto the phone. That is an
+      acceptable trade for a hand-installed pilot and would not be for a store
+      release, which needs a real release key kept out of the repository.
+    */
+    signingConfigs {
+        debug {
+            storeFile file('../debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
     defaultConfig {
         applicationId 'cc.tumtum.capture'
         // Android 8. Anything older cannot hold a foreground service the way
@@ -21,6 +53,7 @@ android {
         debug {
             // The pilot installs this by hand, so a debug build is the product.
             applicationIdSuffix '.debug'
+            signingConfig signingConfigs.debug
         }
     }
 
