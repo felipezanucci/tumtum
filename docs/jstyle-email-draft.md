@@ -409,95 +409,109 @@ Founder, TumTum
 > public. He has **no** commercial relationships with festivals, clubs, venues
 > or sponsors; prospecting starts after validation.
 >
-> **A first version of this draft got the timing wrong** — it read as though the
-> money were ready to move now, which would have invited Arena to propose a deal
-> and contradicted the position held with her since 08-17. Felipe corrected it.
-> The letter below states that the funding exists, that it is his, and that it
-> does not move before validation — which is a stronger position than either
-> half alone, because it explains the patience rather than merely asserting it.
+> **Two revisions before this version.** The first read as though the money were
+> ready to move now, which would have invited a deal and contradicted the
+> position held with Arena since 08-17. The second fixed the timing but came out
+> **curt** — Felipe's word was "ríspido", and he was right. It graded her ("you
+> were right"), issued instructions ("I do not want you preparing quotations"),
+> declared its own honesty ("I would rather answer them plainly than well"), and
+> closed on a line that read as a dig at other suppliers.
 >
-> It also tells her explicitly not to do work yet. A supplier who prepares a
-> quotation for an order that is months away, on a trigger nobody named, ends up
-> feeling strung along — and this relationship is worth more than that.
+> The lesson worth keeping: **directness and curtness are not the same thing,
+> and the difference is almost entirely in the connective tissue.** Every fact
+> below is identical to the curt version. What changed is that the letter
+> acknowledges her effort, asks instead of instructs, and lets the honesty be
+> demonstrated rather than announced.
 
 Dear Arena,
 
-Thank you — these are the right questions, and I would rather answer them
-plainly than well.
+Thank you for such a thoughtful reply, and for asking about the business rather
+than only the specification. It is a generous way to approach this, and it
+deserves straight answers, so let me give you both.
 
-**1. Funding.**
+**On funding**
 
-TumTum is entirely self-funded. There are no outside investors, no round, and
-no institutional backing. Everything you have seen — the app, the backend, the
-capture pipeline, the peak detection — I built and paid for myself.
+TumTum is entirely self-funded at this stage. There are no outside investors
+and no funding round — everything you have seen so far, the app, the backend,
+the capture pipeline and the peak detection, I have built and paid for myself.
 
-When the time comes, I am prepared to fund the US$ 15,000 NRE and a first
-batch of around 50 units personally. That is also the honest reason the batch
-should be small: it is my own money, and 50 units is what one person can
-responsibly put behind a device that has not yet been on a stranger's wrist.
+When we reach the hardware stage, I would be funding the US$ 15,000 NRE and a
+first batch of around 50 units personally as well. I mention this because it
+explains something that might otherwise look like hesitation on my side: the
+batch size I keep coming back to is not a negotiating position, it simply
+reflects what one person can responsibly commit to a device that has not yet
+been worn by anyone outside our own testing.
 
-But I want to be equally clear about *when*. **That money does not move before
-Phase 0 is answered**, and Phase 0 is a specific thing rather than a feeling:
-real fans, at real events, wearing the watches and straps they already own,
-using the app we have already built — and then telling us, by whether they
-share the result, whether this is worth anything to them.
+I should also be open with you about the timing. That investment would come
+**after** we have an answer to the Phase 0 question, which for us is quite
+specific: real fans, at real events, using the watches and straps they already
+own with the app we have already built — and then showing us, through whether
+they actually share what they get, whether this matters to them.
 
-Until that question has an answer, buying hardware would be buying inventory
-for a demand I have not demonstrated. You described this yourself as
-overbuilding too early, and you were right.
+Committing to hardware before that would mean buying inventory for demand I
+have not yet demonstrated, which is very much the situation you were describing
+in your note.
 
-**2. First users.**
+**On the first users**
 
-Here I have to be equally direct: I do not yet have commercial relationships
-with festivals, clubs, venues or sponsors. I know the organiser of the festival
-where I am testing this weekend personally, but I attend as a member of the
-public — that is a friendship, not a partnership, and I will not present it as
-more.
+Here I would rather be candid than impressive: we do not yet have commercial
+relationships with festivals, clubs, venues or sponsors. I know the organiser
+of the festival where we are testing this weekend, but that is a personal
+friendship and I attend as a member of the public — I would not want to
+describe it to you as anything more than that.
 
-The plan is event by event in São Paulo, and the sequencing is deliberate. A
-festival or a club does not buy "we would like to put bands on your crowd" from
-a slide deck. They buy it from a card showing a real person's heart rate at the
-exact second of a real chorus, at an event they know. **The pilot is not a delay
-before prospecting — it is the thing that makes prospecting possible.**
+Our plan is to grow event by event in São Paulo, and the order is deliberate.
+In our experience, a festival or a club does not respond to "we would like to
+put bands on your audience" as a proposal on paper. They respond to a card
+showing a real person's heart rate at the exact second of a chorus, at an event
+they know well. The pilot is not a delay before we start those conversations —
+it is what gives us something to open them with.
 
-So the order is: prove the experience is worth sharing, use that proof to open
-the event relationships, then size hardware to the deployments those
-relationships actually create. That is the same reasoning as above, one level
-up.
+So the sequence we are following is: show that the experience is worth sharing,
+use that to open the event relationships, and then size the hardware to the
+deployments those relationships create. It is the same reasoning as above, one
+level up.
 
-**3. What I am asking of you right now: nothing.**
+**Where that leaves us, and what would help**
 
-I do not want you preparing quotations or reserving engineering time for an
-order that is months away. That is not fair to your side, and I would rather
-tell you the trigger than have you guess it.
+I am conscious that this is a longer horizon than a supplier would usually be
+asked to hold, so I would rather be clear about it than leave you guessing.
+Please do not feel any need to prepare quotations or set aside engineering time
+on our account at this stage — I would not want to take up your team's time for
+something that is still months away.
 
-The trigger is this: **we run a structured pilot on 25 September**, and I expect
-to know in October whether people share these moments — the only question that
-justifies custom hardware at all. If the answer is yes, I will come back to you
-with that data, unprompted, and we can talk about real numbers.
+What I can offer is a concrete milestone. We run a structured pilot on
+**25 September**, and expect to know during October whether people share these
+moments, which is really the only thing that would justify custom hardware. If
+the answer is yes, I will come back to you with that data without being asked,
+and we can talk about real numbers.
 
-When that happens, one structure would make the decision straightforward on my
-side, and it is worth putting to you now so you can think about whether it is
-possible: **the NRE in stages, against the one question that decides
-everything.** Our acceptance protocol tests amplitude response with the wearer
-**stationary**, and that condition is eliminatory — a concert audience stands
-still. Does the customized Raw PPG firmware remove the motion-conditioned
-processing entirely?
+There is one thing that might be worth turning over in the meantime, whenever
+it is convenient. When we do reach that point, the decision would be much
+easier on my side if the NRE could be arranged in stages, tied to the single
+question that determines whether these units work for us at all: does the
+customized Raw PPG firmware remove the motion-conditioned processing entirely?
+Our acceptance protocol measures amplitude response with the wearer standing
+still, and that condition is decisive for us, since a concert audience barely
+moves.
 
-A first tranche delivering that firmware on five or ten units, our protocol run
-against a Polar H10 with the full data shared with your engineering team
-whatever it shows, and the remainder plus the batch on acceptance. If the
-firmware answers the question, you have a customer who has verified your
-product and can say so. If it does not, we both learn that for the price of a
-few units.
+What I have in mind would be something like a first stage delivering that
+firmware on a small number of units — five or ten would be plenty — after which
+we run our protocol against a Polar H10 reference and share the complete
+results with your engineering team, whatever they show. The remainder, and the
+batch itself, would follow on acceptance. If the firmware does what we hope,
+you would have a customer who has verified it and can say so publicly. If it
+does not, we would both learn that at the cost of a handful of units rather
+than a full engagement.
 
-There is no rush on that answer. I raise it now only so that when I come back
-with demand data, we are not starting the commercial conversation from zero.
+There is no urgency at all on that question — I raise it now only so that when
+I do come back with demand data, we are not starting from a blank page.
 
-Thank you for taking the time to understand the business rather than only the
-order. It is not the usual experience, and it is the reason you are still the
-supplier I would rather work with.
+Thank you again for the patience you have shown through this conversation, and
+for the care you have put into understanding what we are trying to build. It
+has been genuinely helpful, and it is why you remain the supplier I would most
+like to work with when the time is right.
 
-Best regards,
+With best regards,
 Felipe Zanucci
 Founder, TumTum
