@@ -34,15 +34,24 @@
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:allowBackup="false">
 
+        <!-- The front door: two seconds of heartbeat, then the capture screen. -->
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Tumtum.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Reached through the splash, the menu and the capture notification;
+             nothing outside the app opens it directly any more. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <activity
             android:name=".EventEditActivity"

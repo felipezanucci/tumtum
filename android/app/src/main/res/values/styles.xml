@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      A truly black window for the splash. The stock Material dark theme
+      paints its window a charcoal grey before the first frame lays out, and
+      that one grey flash in front of a black film is the kind of small lie
+      about its own state this project keeps hunting.
+    -->
+    <style name="Theme.Tumtum.Splash" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/tumtum_black</item>
+        <item name="android:statusBarColor">@color/tumtum_black</item>
+        <item name="android:navigationBarColor">@color/tumtum_black</item>
+    </style>
+</resources>
