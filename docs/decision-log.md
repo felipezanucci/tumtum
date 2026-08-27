@@ -9,7 +9,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 | Track | Status |
 |---|---|
-| **Hardware supplier** | J-Style **re-engaged, and they dropped the volume demand.** Arena is now asking how the project is funded rather than for a commitment. **TumTum is entirely self-funded by Felipe** — recorded 2026-08-26 — and **no money moves before Phase 0 is answered by fans at real events on their own devices.** Draft 5 answers her questions, asks for nothing now, and names the 25 September pilot as the trigger; the structure floated for later is the NRE in stages against the unanswered firmware question. Previously: **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
+| **Hardware supplier** | J-Style **re-engaged, and they dropped the volume demand.** Arena is now asking how the project is funded rather than for a commitment. **TumTum is entirely self-funded by Felipe** — recorded 2026-08-26 — and **no money moves before Phase 0 is answered by fans at real events on their own devices.** Draft 5 (**sent 2026-08-26**) answers her questions, asks for nothing now, and names the 25 September pilot as the trigger; the structure floated for later is the NRE in stages against the unanswered firmware question. Previously: **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
 | **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. Launcher icon confirmed on the A17 as the TUMTUM wordmark on black. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
@@ -27,8 +27,8 @@ the linked documents — this file is the index and the reasoning, not a diary.
    2026-08-25, both passed.
 3. **J-Style** — three exchanges on 2026-08-26. The decline, then Arena
    reopening the case for "more vision" (Draft 4, sent), then Arena dropping
-   the volume requirement and asking about funding and go-to-market. **Draft 5
-   is written and awaiting Felipe.** It answers both questions plainly and
+   the volume requirement and asking about funding and go-to-market. **Draft 5 was sent
+   2026-08-26.** It answers both questions plainly and
    **asks her for nothing now** — naming the 25 September pilot as the trigger
    instead, so she does not prepare work for an order months away. **No money
    moves before Phase 0 is answered by fans at real events on their own
@@ -94,6 +94,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
 ---
 
 ## 2026-08-26 — Arena asks how it is paid for, and the answer is recorded for the first time
+
+**Draft 5 sent 2026-08-26**, after two rewrites — one for timing, one for tone.
+Waiting on her.
 
 Arena's third reply dropped the volume expectation outright — *"there is no
 expectation for you to commit to a large production volume"* — and asked two
