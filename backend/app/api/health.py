@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -15,8 +15,6 @@ from app.schemas.health import (
     HRSessionCreateRequest,
     HRSessionDetailResponse,
     HRSessionResponse,
-    SyncRequest,
-    SyncStatusResponse,
     WearableConnectionResponse,
     WearableConnectRequest,
 )
@@ -200,48 +198,3 @@ async def get_hr_session(
     )
     session.data_points = data_result.scalars().all()
     return session
-
-
-# --- Sync ---
-
-
-@router.post("/sync", response_model=SyncStatusResponse)
-async def trigger_sync(
-    body: SyncRequest,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(
-        select(WearableConnection).where(
-            WearableConnection.id == body.connection_id,
-            WearableConnection.user_id == user.id,
-            WearableConnection.status == "active",
-        )
-    )
-    connection = result.scalar_one_or_none()
-    if not connection:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Conexão não encontrada ou inativa",
-        )
-
-    # Dispatch async sync task
-    from app.services.health_sync import sync_health_data
-
-    records_synced = await sync_health_data(
-        db=db,
-        user_id=user.id,
-        connection=connection,
-        start_time=body.start_time,
-        end_time=body.end_time,
-    )
-
-    connection.last_sync_at = datetime.now(UTC)
-    await db.flush()
-
-    return SyncStatusResponse(
-        connection_id=connection.id,
-        status="completed",
-        records_synced=records_synced,
-        last_sync_at=connection.last_sync_at,
-    )

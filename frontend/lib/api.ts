@@ -176,13 +176,6 @@ export interface HRSessionDetail extends HRSession {
   data_points: HRDataPoint[]
 }
 
-export interface SyncStatus {
-  connection_id: string
-  status: string
-  records_synced: number
-  last_sync_at: string | null
-}
-
 export const health = {
   connectWearable: (provider: string, accessToken: string, refreshToken?: string) =>
     request<WearableConnection>('/api/health/wearables', {
@@ -222,15 +215,6 @@ export const health = {
   getSession: (sessionId: string) =>
     request<HRSessionDetail>(`/api/health/sessions/${sessionId}`),
 
-  triggerSync: (connectionId: string, startTime: string, endTime: string) =>
-    request<SyncStatus>('/api/health/sync', {
-      method: 'POST',
-      body: JSON.stringify({
-        connection_id: connectionId,
-        start_time: startTime,
-        end_time: endTime,
-      }),
-    }),
 }
 
 // --- Events ---

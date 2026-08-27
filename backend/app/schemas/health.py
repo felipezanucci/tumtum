@@ -69,19 +69,3 @@ class HRDataPointResponse(BaseModel):
 
 class HRSessionDetailResponse(HRSessionResponse):
     data_points: list[HRDataPointResponse] = []
-
-
-# --- Sync ---
-
-
-class SyncRequest(BaseModel):
-    connection_id: uuid.UUID
-    start_time: datetime
-    end_time: datetime
-
-
-class SyncStatusResponse(BaseModel):
-    connection_id: uuid.UUID
-    status: str  # syncing | completed | failed
-    records_synced: int
-    last_sync_at: datetime | None
