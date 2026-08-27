@@ -5,6 +5,7 @@
     <string name="capture_notification_title">TumTum está gravando</string>
     <string name="capture_notification_waiting">Procurando batida…</string>
 
+    <string name="bpm">bpm</string>
     <string name="connect">Conectar sensor</string>
     <string name="stop">Encerrar</string>
     <string name="cancel">Cancelar</string>
@@ -23,9 +24,107 @@
     <string name="signing_in">Entrando…</string>
     <string name="finish_and_send">Encerrar e enviar</string>
     <string name="sending">Enviando %1$d leituras…</string>
-    <string name="sent">Enviado. Abra tumtum.cc para ver sua experiência.</string>
-    <string name="send_failed">Falha ao enviar: %1$s. As leituras continuam aqui — toque de novo.</string>
+    <string name="sent">Enviado.</string>
+    <string name="send_failed">Falha ao enviar: %1$s</string>
+    <string name="send_again">Enviar de novo</string>
+    <string name="held_readings">%1$d leituras esperando aqui. Nada se perdeu.</string>
     <string name="too_few">Poucas leituras para salvar.</string>
     <string name="service_failed">Não consegui iniciar a captura: %1$s</string>
     <string name="last_crash">Da última vez eu quebrei aqui: %1$s</string>
+
+    <!-- Events -->
+    <string name="event_none">Sem evento — só a curva</string>
+    <string name="events_failed">Não consegui carregar os eventos. Dá para capturar assim mesmo; a noite fica sem vínculo.</string>
+
+    <!-- Session -->
+    <string name="session_expired_holding">Sua sessão venceu. Entre de novo — suas %1$d leituras continuam aqui.</string>
+    <string name="session_expired">Sua sessão venceu. Entre de novo.</string>
+    <string name="session_expiring">Sua sessão vence em %1$s. Entre de novo antes do show.</string>
+    <string name="hours_short">%1$dh</string>
+    <string name="minutes_short">%1$d min</string>
+
+    <string name="sent_not_analysed">Enviado. Ainda não consegui procurar seus picos — abra a noite e tente de novo.</string>
+    <string name="analyzing">Procurando seus picos…</string>
+
+    <!-- Minhas noites -->
+    <string name="nights_title">Minhas noites</string>
+    <string name="nights_subtitle">Cada captura que chegou até aqui, a mais recente primeiro.</string>
+    <string name="nights_empty">Nenhuma captura ainda. Coloque a cinta e grave a primeira.</string>
+    <string name="nights_failed">Não consegui carregar suas noites: %1$s</string>
+    <string name="nights_signed_out">Entre na sua conta para ver suas noites.</string>
+    <string name="loading">Carregando…</string>
+    <string name="retry">Tentar de novo</string>
+    <string name="duration_hm">%1$dh%2$02d</string>
+    <string name="duration_m">%1$d min</string>
+    <string name="max_bpm">%1$d máx</string>
+    <string name="avg_bpm">%1$d média</string>
+    <string name="open_nights">Minhas noites</string>
+
+    <!-- Chrome -->
+    <string name="menu_glyph">☰</string>
+    <string name="menu_capture">Capturar</string>
+    <string name="menu_nights">Minhas noites</string>
+    <string name="menu_events">Eventos</string>
+    <string name="menu_sign_out">Sair</string>
+
+    <!-- Eventos -->
+    <string name="events_title">Eventos</string>
+    <string name="events_subtitle">Toque na noite em que você está. É ela que dá nome ao seu card.</string>
+    <string name="events_empty">Nenhum evento cadastrado ainda.</string>
+    <string name="events_failed_screen">Não consegui carregar os eventos: %1$s</string>
+    <string name="chosen_mark">✓</string>
+    <string name="edit_row">Editar</string>
+
+    <!-- Editar evento -->
+    <string name="edit_title">Editar evento</string>
+    <string name="edit_subtitle">A data e o horário são o que ligam sua batida aos momentos da noite.</string>
+    <string name="field_name">Nome</string>
+    <string name="field_date">Data</string>
+    <string name="field_start">Começa</string>
+    <string name="field_end">Termina</string>
+    <string name="field_venue">Local</string>
+    <string name="field_city">Cidade</string>
+    <string name="edit_midnight">Termina na madrugada do dia seguinte.</string>
+    <string name="save">Salvar</string>
+    <string name="saving">Salvando…</string>
+    <string name="edit_load_failed">Não consegui carregar o evento: %1$s</string>
+    <string name="edit_save_failed">Não consegui salvar: %1$s</string>
+    <string name="edit_needs_name">Dê um nome ao evento.</string>
+    <string name="no_time">--</string>
+
+    <!-- Sua noite -->
+    <string name="night_title">Sua noite</string>
+    <string name="stat_avg">Média %1$d</string>
+    <string name="stat_max">Máx %1$d</string>
+    <string name="stat_min">Mín %1$d</string>
+    <string name="stat_quality">Qualidade %1$d%%</string>
+    <string name="curve_caption">Sua batida ao longo da noite</string>
+    <string name="moments_title">Seus momentos</string>
+    <string name="night_failed">Não consegui carregar sua noite: %1$s</string>
+
+    <!--
+      Three different silences, three different sentences. An empty list of
+      moments can mean the analysis never ran, or that the capture is too short
+      for anything to stand out against, or that a real analysis found nothing.
+      Saying "sua batida seguiu no mesmo ritmo" before we have actually looked
+      would be the app inventing a result.
+    -->
+    <string name="moments_not_looked">Ainda não procurei seus momentos nesta noite.</string>
+    <string name="moments_too_short">Esta captura tem %1$d min. Para um momento se destacar, ele precisa dos cinco minutos em volta para comparar — numa noite inteira sobra.</string>
+    <string name="moments_none">Nenhum momento se destacou. Sua batida seguiu no mesmo ritmo.</string>
+    <string name="find_moments">Procurar meus momentos</string>
+    <string name="finding_moments">Procurando…</string>
+    <string name="moment_bpm">%1$d bpm</string>
+    <string name="moment_rank">#%1$d</string>
+    <string name="moment_duration">%1$d s</string>
+
+    <!-- Card -->
+    <string name="make_card">Gerar card</string>
+    <string name="making_card">Gerando…</string>
+    <string name="card_title">Seu card</string>
+    <string name="card_failed">Não consegui gerar o card: %1$s</string>
+    <string name="card_image_failed">O card foi criado, mas não consegui baixar a imagem: %1$s</string>
+    <string name="share_card">Compartilhar</string>
+    <string name="share_text">Minha batida no TumTum</string>
+    <string name="card_description">Seu card do TumTum</string>
 </resources>

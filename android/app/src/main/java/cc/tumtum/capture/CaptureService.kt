@@ -110,6 +110,21 @@ class CaptureService : Service() {
         monitor = null
     }
 
+    /**
+     * Forget a capture that has safely reached the server.
+     *
+     * Clearing the samples alone was not enough: `startedAtMillis` survived,
+     * so the *next* capture measured its offsets from the previous one's first
+     * reading and uploaded a night stamped hours before it happened. Nothing
+     * failed visibly — it simply filed the readings under the wrong time.
+     */
+    fun clearCapture() {
+        samples.clear()
+        startedAtMillis = 0
+        startedAtElapsed = 0
+        lastBpm = null
+    }
+
     /** Wall-clock instant of the first reading, or null before one arrives. */
     fun firstReadingAt(): Long? = startedAtMillis.takeIf { it != 0L }
 

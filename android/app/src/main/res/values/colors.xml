@@ -5,4 +5,6 @@
     <color name="tumtum_white">#FFFFFFFF</color>
     <color name="tumtum_lime">#FFC6FF00</color>
     <color name="tumtum_muted">#FF8A8A8A</color>
+    <!-- Toxic Yellow, the second explosion: attention, sparingly. -->
+    <color name="tumtum_yellow">#FFEFFF00</color>
 </resources>

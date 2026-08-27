@@ -1,80 +1,174 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  One screen: sign in, choose the night, capture, finish.
+
+  Scrolls because the login row, the event picker and the capture block do not
+  all fit on a 360dp phone in landscape, and a button that cannot be reached is
+  the same as a button that does not exist.
+
+  gravity is "center", not "center_horizontal". With fillViewport the inner
+  column is stretched to the height of the screen whenever the content is
+  shorter than it, so centring vertically is what puts the sign-in fields in
+  the middle instead of stranding them under the wordmark. Once a capture is
+  running the content is taller than the screen and the gravity stops
+  mattering, which is the behaviour we want in both states.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:background="@color/tumtum_black"
-    android:padding="24dp">
+    android:background="@color/tumtum_black">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="48dp"
-        android:contentDescription="@string/app_name"
-        android:src="@drawable/wordmark" />
+    <include layout="@layout/topbar" />
 
-    <EditText
-        android:id="@+id/email"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/email"
-        android:inputType="textEmailAddress"
-        android:textColor="@color/tumtum_white"
-        android:textColorHint="@color/tumtum_muted"
-        android:backgroundTint="@color/tumtum_muted" />
-
-    <EditText
-        android:id="@+id/password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:hint="@string/password"
-        android:inputType="textPassword"
-        android:textColor="@color/tumtum_white"
-        android:textColorHint="@color/tumtum_muted"
-        android:backgroundTint="@color/tumtum_muted" />
-
-    <Button
-        android:id="@+id/login"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/sign_in"
-        android:textColor="@color/tumtum_black"
-        android:backgroundTint="@color/tumtum_lime" />
-
-    <TextView
-        android:id="@+id/bpm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="--"
-        android:textSize="96sp"
-        android:textStyle="bold"
-        android:textColor="@color/tumtum_lime" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="bpm"
-        android:textSize="14sp"
-        android:textColor="@color/tumtum_muted" />
-
-    <TextView
-        android:id="@+id/status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:orientation="vertical"
         android:gravity="center"
-        android:textSize="16sp"
-        android:textColor="@color/tumtum_white" />
+        android:padding="24dp">
 
-    <Button
-        android:id="@+id/action"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="@string/connect"
-        android:textColor="@color/tumtum_black"
-        android:backgroundTint="@color/tumtum_lime" />
+        <!--
+          The wordmark, big and centred, only while signing in. Once inside,
+          the small one in the top bar takes over and this one leaves — two
+          wordmarks on one screen would be shouting.
+        -->
+        <ImageView
+            android:id="@+id/loginLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginBottom="40dp"
+            android:adjustViewBounds="true"
+            android:visibility="gone"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/wordmark" />
+
+        <!-- Sign in. Hidden the moment there is a live token, back the moment there is not. -->
+        <EditText
+            android:id="@+id/email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/email"
+            android:inputType="textEmailAddress"
+            android:textColor="@color/tumtum_white"
+            android:textColorHint="@color/tumtum_muted"
+            android:backgroundTint="@color/tumtum_muted" />
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/password"
+            android:inputType="textPassword"
+            android:textColor="@color/tumtum_white"
+            android:textColorHint="@color/tumtum_muted"
+            android:backgroundTint="@color/tumtum_muted" />
+
+        <Button
+            android:id="@+id/login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/sign_in"
+            android:textColor="@color/tumtum_black"
+            android:backgroundTint="@color/tumtum_lime" />
+
+        <!--
+          Which night this is. Without it the backend has no timeline to match
+          against, so no peak gets a moment and the card reads "Evento".
+        -->
+        <!-- No caption in the happy path (Felipe's call: the picker explains
+             itself). This line exists only to say a load failed. -->
+        <TextView
+            android:id="@+id/eventLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="13sp"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_muted" />
+
+        <Spinner
+            android:id="@+id/eventPicker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:popupBackground="@color/tumtum_black" />
+
+        <TextView
+            android:id="@+id/bpm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="--"
+            android:textSize="96sp"
+            android:textStyle="bold"
+            android:textColor="@color/tumtum_lime" />
+
+        <TextView
+            android:id="@+id/bpmLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/bpm"
+            android:textSize="14sp"
+            android:textColor="@color/tumtum_muted" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textColor="@color/tumtum_white" />
+
+        <!-- Only ever visible when there is something true to say about the session. -->
+        <TextView
+            android:id="@+id/sessionNotice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_lime" />
+
+        <Button
+            android:id="@+id/action"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:minHeight="56dp"
+            android:text="@string/connect"
+            android:textColor="@color/tumtum_black"
+            android:backgroundTint="@color/tumtum_lime" />
+
+        <!--
+          A door into the app that does not depend on an upload having worked.
+          Until this existed, a failed send left the whole product unreachable:
+          the only code path that opened anything else was the success branch.
+        -->
+        <TextView
+            android:id="@+id/openNights"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:minHeight="48dp"
+            android:gravity="center"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/open_nights"
+            android:textSize="15sp"
+            android:textColor="@color/tumtum_lime" />
+    </LinearLayout>
+    </ScrollView>
 </LinearLayout>

@@ -27,6 +27,7 @@ from app.schemas.event import (
     HRSessionSummary,
     PeakResponse,
     TimelineEntryResponse,
+    offset_aware,
 )
 from app.services.event_correlator import correlate_peaks_to_timeline
 from app.services.peak_detection import detect_peaks
@@ -220,6 +221,12 @@ async def seed_database(db: AsyncSession = Depends(get_db)):
     for ev_data in SEED_EVENTS:
         timeline_data = ev_data["timeline"]
         event_fields = {k: v for k, v in ev_data.items() if k != "timeline"}
+
+        # The same timetz trap the API hits: a naive time cannot be encoded
+        # into TIME WITH TIME ZONE, so seeding has never worked against a real
+        # database either. See offset_aware in app/schemas/event.py.
+        for key in ("start_time", "end_time"):
+            event_fields[key] = offset_aware(event_fields.get(key))
 
         event = Event(**event_fields)
         db.add(event)
