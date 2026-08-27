@@ -5,12 +5,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-08-25
+## Where things stand — 2026-08-27
 
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
-| **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. Launcher icon confirmed on the A17 as the TUMTUM wordmark on black. What remains is Health Connect. |
+| **Android app (native)** | **No longer a WebView shell.** Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
@@ -85,6 +85,200 @@ the linked documents — this file is the index and the reasoning, not a diary.
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+16. **The deployed app never runs Alembic** — startup calls `create_all`,
+    which only creates missing tables. Any migration that adds or alters a
+    column silently does not happen in production; 007 is written and
+    dormant. Decide after the festival: run migrations on deploy, or keep
+    create_all and know its limits.
+17. **The landing page has no sign-in link.** The only "Entrar" on it is the
+    waitlist. Decide before the 25 September pilot how a person with an
+    account gets in without typing an address.
+18. **An event cannot cross midnight** — one date, two bare times, so
+    "termina 03:00" cannot say it means the next day. A capture attaches by
+    event id, so Saturday is unaffected; the model change waits.
+
+---
+
+## 2026-08-27 — the app said it was signed in, and it was not
+
+Felipe opened the app to run the rehearsal. It showed the capture screen,
+connected the H10, counted readings — and failed at the upload with **"Token
+inválido ou expirado"**, with no way anywhere in the app to sign in again.
+
+**The token lasts 24 hours and he had signed in the day before.** What turned
+an expiry into a dead end is one line:
+
+```kotlin
+val gone = if (api.signedIn) GONE else VISIBLE
+```
+
+`signedIn` was `token != null`. **An expired token is still a stored token**,
+so the app hid its password field, presented itself as authenticated, captured
+happily, and discovered the truth only at the end. `logout()` existed in
+`TumtumApi` and was called from nowhere. The only recovery was wiping the app's
+data — which, on any night that mattered, would have taken the readings with
+it, because the samples live in the service's memory and nowhere else.
+
+Fourteenth of the family, and the first that could have cost a whole event.
+
+**Two more of the same family fell out of it.** The failure message said
+"toque de novo" while the button underneath read "Conectar sensor" and did in
+fact start a *new* capture — the retry was never wired. And `CONNECTING` did
+not count as capturing, so pressing the button mid-connect began a second
+capture instead of ending the first, under a label that said "Encerrar e
+enviar".
+
+Now: signed in means a live token, checked against the expiry the JWT already
+carries; a 401 on upload forgets the token and brings the login back **while
+keeping every sample**; the button says "Enviar de novo" only when there is
+something to resend, and resends it; and a session with under twelve hours
+left says so *before* a strap goes on.
+
+→ `AccessToken.kt` with tests, `MainActivity.render()`
+
+---
+
+## 2026-08-27 — the app had exactly one door, and it was the success branch
+
+With the upload failing, the whole product became unreachable from inside its
+own app. Not "hard to find" — unreachable. `ExperienceActivity` is
+`exported="false"` with no launcher, and grep found **one** call site: the
+success branch of the upload.
+
+```kotlin
+.onSuccess { sessionId -> ExperienceActivity.open(this, ...) }
+```
+
+So a failed send removed sessions, cards and every night from the app. Felipe's
+report was "não consigo ver mais nada", and he was exactly right.
+
+**A related finding on the site.** He went to `tumtum.cc` and landed on the
+sales page, and concluded the site no longer had the app in it. Half true: the
+`(app)` route group is still there and is still what the WebView loads — but
+**the landing has no link to sign in.** The only "Entrar" on it is "Entrar na
+lista", the waitlist. So the site *behaves* exactly as he described unless you
+type the address. Worth deciding before the 25 September pilot, when three to
+five people with accounts will open `tumtum.cc` and find no way in.
+
+---
+
+## 2026-08-27 — nothing ever asked for the peaks
+
+`POST /api/health/sessions` does not run detection. `GET /api/experience/{id}`
+only reads peaks already stored. The only thing that runs `detect_peaks` is
+`POST /api/experience/{id}/analyze`, and the only callers were the web
+`/import` and `/live` pages — **neither of which the Android app uses**.
+
+So every natively captured night had an empty peaks table, and the experience
+screen renders an empty peaks table as *"Nenhum momento se destacou aqui. Sua
+batida seguiu no mesmo ritmo."* After six hours of a festival that is a lie,
+and it would have been the first thing Felipe saw at 4 a.m.
+
+Found by reading the call graph, not by running anything — the proxy cannot
+reach production from the dev environment.
+
+**The app now analyses at the end of every upload**, in a separate call so a
+failed analysis cannot fail the upload: retrying 1.3 MB would file the same
+night twice. And the native night screen tells the three silences apart —
+capture too short for a 300-second baseline, nobody has looked yet, or looked
+and found nothing. Only the third says a heart kept the same rhythm.
+
+**The event was never attached either.** The app sent no `event_id`, and no
+endpoint attaches one afterwards, so every capture was orphaned and its card
+read "Evento" — the exact string the `/events/novo` page was built to stop.
+There is now a picker before capture, and the choice survives the screen being
+destroyed mid-capture.
+
+---
+
+## 2026-08-27 — every APK was signed by a different key
+
+"App não instalado", after agreeing to install it. The project defines **no
+`signingConfig`**, so Gradle falls back to `~/.android/debug.keystore` and
+*generates it at random when the file is missing*. Every CI run is a fresh
+machine. Every APK therefore carried a different signature, and Android
+refuses an update whose signature does not match the installed app. The dialog
+names none of this.
+
+**For a hand-installed pilot this is worse than an annoyance.** It means the
+only way to update is to uninstall first — and uninstalling kills the capture
+service and every reading it is holding. That is precisely the instruction
+nobody can be given after a six-hour show.
+
+A debug keystore is now committed and wired into `build.gradle`. The
+trade-off is written out there: it signs debug builds of an app installed by
+hand, its password is the conventional one, and anyone with the repository
+could sign an APK Android would accept as an update — which matters only to
+somebody who can also get it onto the phone. A store release would need a real
+key kept out of the repository.
+
+**I told him not to uninstall, and then had to correct it.** With the old
+random signature there was no other way; the fix only takes effect from the
+next build onward.
+
+---
+
+## 2026-08-27 — a 500 with a name, and migrations that never run
+
+Saving the festival's hours — 22:00 to 03:00 — returned "Erro interno do
+servidor". `events.start_time` and `end_time` are **`TIME WITH TIME ZONE`**,
+and asyncpg encodes that type as:
+
+```
+offset = obj.tzinfo.utcoffset(None)
+```
+
+Parsing `"22:00:00"` gives a naive `datetime.time`, whose `tzinfo` is `None`,
+so the driver raises `AttributeError`. Creating the event had worked only
+because its times were left blank and the columns never written. **Proved by
+reading asyncpg's own encoder** after `pip install asyncpg` — there is no
+Postgres and no Docker daemon in the dev environment, so it could not be
+reproduced, and a guess was not good enough.
+
+The same trap silently broke `/api/demo/seed`, which builds its events from
+naive times: seeding has never worked against a real database.
+
+**And the finding that outlives this bug: the deployed app does not run
+Alembic.** `app/main.py` calls `Base.metadata.create_all` on startup, which
+creates missing tables and **never alters an existing column**. Migrations 002,
+003, 004 and 006 only create tables, so they worked by accident. 005 adds
+columns, and 007 changes a type — neither would happen in production.
+
+So the running fix is a validator that gives a bare time an offset, and
+migration 007 (drop the timezone from both columns) is written and dormant.
+The offset it stores carries no information and must not be read: a
+time-of-day with an offset but no date cannot account for a daylight rule,
+which is why Postgres discourages the type.
+
+**Still open:** an event that crosses midnight cannot be represented at all —
+one `date` and two bare times, so "termina 03:00" cannot say it is the next
+day. Not a Saturday problem, since a capture attaches by event id.
+
+---
+
+## 2026-08-27 — the app stops being a shell
+
+Felipe's call, made against a stated recommendation to defer it: **the site is
+information and sales, the app is the experience.** The reasoning he gave is
+sound — the two now have different jobs — and the version delivered is the
+narrow one that fits before a festival.
+
+Native: sign-in, event picker, capture, "Minhas noites", "Sua noite" (curve
+and moments), the card and its share sheet. Still on the site, reachable in a
+browser: creating and editing events, the Polar importer, profile, admin.
+
+**Kept deliberately:** the WebView, now reachable from the bottom of the night
+screen rather than merely present — a net nobody can reach is not a net. Same
+argument that kept `/live` alive.
+
+**Not done, and it was argued against:** rebuilding the card image natively.
+It is drawn server-side to the brand manual; a fully native app would still
+call that endpoint. The independence worth having is not leaving the app, not
+redrawing what already works.
+
+The chart is a Canvas polyline, no chart library — the APK still carries zero
+runtime dependencies. Plain BPM over time, per the manual: no zones, no risk
+colours, no normal ranges.
 
 ---
 
