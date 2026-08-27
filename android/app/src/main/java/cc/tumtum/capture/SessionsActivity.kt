@@ -43,6 +43,7 @@ class SessionsActivity : Activity() {
         retryButton = findViewById(R.id.retry)
         list = findViewById(R.id.list)
         retryButton.setOnClickListener { load() }
+        Chrome.wire(this, api)
     }
 
     /** Reloaded on every return, so a night sent a minute ago is already here. */

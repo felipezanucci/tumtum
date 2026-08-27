@@ -143,6 +143,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         if (api.signedIn && events.isEmpty() && !eventsFailed && !eventsLoading) loadEvents()
+        if (events.isNotEmpty()) applySavedSelection()
         render()
     }
 
@@ -352,16 +353,24 @@ class MainActivity : Activity() {
         val adapter = ArrayAdapter(this, R.layout.spinner_item, labels)
         adapter.setDropDownViewResource(R.layout.spinner_item)
         eventPicker.adapter = adapter
+        applySavedSelection()
 
-        val saved = getSharedPreferences("tumtum", MODE_PRIVATE).getString(SELECTED_EVENT, null)
+        // No caption in the happy path — the picker explains itself. The line
+        // exists to keep a failed load from posing as an empty world.
+        eventLabel.text = if (eventsFailed) getString(R.string.events_failed) else ""
+    }
+
+    /**
+     * Reflect the stored choice, wherever it was made. The events screen
+     * writes the same key, so coming back from it has to move this picker —
+     * two screens disagreeing about which night this is would be the bug
+     * class all over again.
+     */
+    private fun applySavedSelection() {
+        val saved = getSharedPreferences("tumtum", MODE_PRIVATE)
+            .getString(Chrome.SELECTED_EVENT, null)
         val index = events.indexOfFirst { it.id == saved }
-        if (index >= 0) eventPicker.setSelection(index + 1)
-
-        eventLabel.text = if (eventsFailed) {
-            getString(R.string.events_failed)
-        } else {
-            getString(R.string.event_label)
-        }
+        eventPicker.setSelection(if (index >= 0) index + 1 else 0)
     }
 
     private fun selectedEventId(): String? {
@@ -379,13 +388,14 @@ class MainActivity : Activity() {
     private fun saveSelectedEvent() {
         if (events.isEmpty()) return
         getSharedPreferences("tumtum", MODE_PRIVATE).edit()
-            .putString(SELECTED_EVENT, selectedEventId())
+            .putString(Chrome.SELECTED_EVENT, selectedEventId())
             .apply()
     }
 
     // --- What the screen says ---
 
     private fun render() {
+        Chrome.wire(this, api) { render() }
         val current = service
         val capturing = isCapturing() || scanning
         val holding = !capturing && hasUnsentCapture()
@@ -399,8 +409,9 @@ class MainActivity : Activity() {
         // The picker only matters before a capture: once readings exist, the
         // night they belong to is already decided.
         val eventVisibility = if (authed && !capturing && !holding) View.VISIBLE else View.GONE
-        eventLabel.visibility = eventVisibility
         eventPicker.visibility = eventVisibility
+        eventLabel.visibility =
+            if (eventsFailed && eventVisibility == View.VISIBLE) View.VISIBLE else View.GONE
 
         // A capture in flight keeps its own display even with a dead token —
         // the strap does not care about authentication, and hiding a running
@@ -579,8 +590,6 @@ class MainActivity : Activity() {
 
     companion object {
         private const val PERMISSION_REQUEST = 1
-        private const val SELECTED_EVENT = "selected_event_id"
-
         /** The backend refuses to analyse fewer than this, so neither do we. */
         private const val MIN_SAMPLES = 10
 

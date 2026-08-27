@@ -13,11 +13,19 @@
   running the content is taller than the screen and the gravity stops
   mattering, which is the behaviour we want in both states.
 -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
+    android:orientation="vertical"
     android:background="@color/tumtum_black">
+
+    <include layout="@layout/topbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,14 +33,6 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="24dp">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="32dp"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/wordmark" />
 
         <!-- Sign in. Hidden the moment there is a live token, back the moment there is not. -->
         <EditText
@@ -69,13 +69,15 @@
           Which night this is. Without it the backend has no timeline to match
           against, so no peak gets a moment and the card reads "Evento".
         -->
+        <!-- No caption in the happy path (Felipe's call: the picker explains
+             itself). This line exists only to say a load failed. -->
         <TextView
             android:id="@+id/eventLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/event_label"
             android:textSize="13sp"
+            android:visibility="gone"
             android:textColor="@color/tumtum_muted" />
 
         <Spinner
@@ -153,4 +155,5 @@
             android:textSize="15sp"
             android:textColor="@color/tumtum_lime" />
     </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

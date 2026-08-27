@@ -50,6 +50,7 @@ class CardActivity : Activity() {
         cardId = intent.getStringExtra(EXTRA_CARD).orEmpty()
         retryButton.setOnClickListener { load() }
         shareButton.setOnClickListener { share() }
+        Chrome.wire(this, api)
 
         load()
     }

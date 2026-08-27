@@ -33,7 +33,6 @@
     <string name="last_crash">Da última vez eu quebrei aqui: %1$s</string>
 
     <!-- Events -->
-    <string name="event_label">Onde você está</string>
     <string name="event_none">Sem evento — só a curva</string>
     <string name="events_failed">Não consegui carregar os eventos. Dá para capturar assim mesmo; a noite fica sem vínculo.</string>
 
@@ -60,6 +59,20 @@
     <string name="max_bpm">%1$d máx</string>
     <string name="avg_bpm">%1$d média</string>
     <string name="open_nights">Minhas noites</string>
+
+    <!-- Chrome -->
+    <string name="menu_glyph">☰</string>
+    <string name="menu_capture">Capturar</string>
+    <string name="menu_nights">Minhas noites</string>
+    <string name="menu_events">Eventos</string>
+    <string name="menu_sign_out">Sair</string>
+
+    <!-- Eventos -->
+    <string name="events_title">Eventos</string>
+    <string name="events_subtitle">Toque na noite em que você está. É ela que dá nome ao seu card.</string>
+    <string name="events_empty">Nenhum evento cadastrado ainda.</string>
+    <string name="events_failed_screen">Não consegui carregar os eventos: %1$s</string>
+    <string name="chosen_mark">✓</string>
 
     <!-- Sua noite -->
     <string name="night_title">Sua noite</string>

@@ -82,6 +82,7 @@ class NightActivity : Activity() {
         retryButton.setOnClickListener { load() }
         findMoments.setOnClickListener { analyse() }
         makeCard.setOnClickListener { onMakeCard() }
+        Chrome.wire(this, api)
 
         load()
     }
