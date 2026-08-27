@@ -60,4 +60,41 @@
     <string name="max_bpm">%1$d máx</string>
     <string name="avg_bpm">%1$d média</string>
     <string name="open_nights">Minhas noites</string>
+
+    <!-- Sua noite -->
+    <string name="night_title">Sua noite</string>
+    <string name="stat_avg">Média %1$d</string>
+    <string name="stat_max">Máx %1$d</string>
+    <string name="stat_min">Mín %1$d</string>
+    <string name="stat_quality">Qualidade %1$d%%</string>
+    <string name="curve_caption">Sua batida ao longo da noite</string>
+    <string name="moments_title">Seus momentos</string>
+    <string name="night_failed">Não consegui carregar sua noite: %1$s</string>
+    <string name="open_on_site">Abrir no site</string>
+
+    <!--
+      Three different silences, three different sentences. An empty list of
+      moments can mean the analysis never ran, or that the capture is too short
+      for anything to stand out against, or that a real analysis found nothing.
+      Saying "sua batida seguiu no mesmo ritmo" before we have actually looked
+      would be the app inventing a result.
+    -->
+    <string name="moments_not_looked">Ainda não procurei seus momentos nesta noite.</string>
+    <string name="moments_too_short">Esta captura tem %1$d min. Para um momento se destacar, ele precisa dos cinco minutos em volta para comparar — numa noite inteira sobra.</string>
+    <string name="moments_none">Nenhum momento se destacou. Sua batida seguiu no mesmo ritmo.</string>
+    <string name="find_moments">Procurar meus momentos</string>
+    <string name="finding_moments">Procurando…</string>
+    <string name="moment_bpm">%1$d bpm</string>
+    <string name="moment_rank">#%1$d</string>
+    <string name="moment_duration">%1$d s</string>
+
+    <!-- Card -->
+    <string name="make_card">Gerar card</string>
+    <string name="making_card">Gerando…</string>
+    <string name="card_title">Seu card</string>
+    <string name="card_failed">Não consegui gerar o card: %1$s</string>
+    <string name="card_image_failed">O card foi criado, mas não consegui baixar a imagem: %1$s</string>
+    <string name="share_card">Compartilhar</string>
+    <string name="share_text">Minha batida no TumTum</string>
+    <string name="card_description">Seu card do TumTum</string>
 </resources>

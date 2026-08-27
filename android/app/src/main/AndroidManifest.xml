@@ -50,6 +50,17 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".NightActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".CardActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Kept as the net behind the native screens, reachable from them. -->
+        <activity
             android:name=".ExperienceActivity"
             android:exported="false" />
 

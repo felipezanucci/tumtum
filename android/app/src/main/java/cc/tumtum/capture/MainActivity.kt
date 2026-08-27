@@ -276,7 +276,7 @@ class MainActivity : Activity() {
                         } else {
                             getString(R.string.sent_not_analysed)
                         }
-                        ExperienceActivity.open(this, sessionId)
+                        NightActivity.open(this, sessionId)
                     }
                     .onFailure { error ->
                         if (error is TumtumApi.ApiException && error.code == 401) {

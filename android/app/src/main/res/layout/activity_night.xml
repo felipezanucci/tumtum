@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/tumtum_black">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/wordmark" />
+
+        <TextView
+            android:id="@+id/nightTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/night_title"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/tumtum_white" />
+
+        <TextView
+            android:id="@+id/nightWhen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="13sp"
+            android:textColor="@color/tumtum_muted" />
+
+        <!-- The four numbers, tabular and plain. No zones, no verdicts. -->
+        <TextView
+            android:id="@+id/stats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:textSize="14sp"
+            android:textColor="@color/tumtum_white" />
+
+        <!-- Loading, failed, or signed out. Never a silent blank. -->
+        <TextView
+            android:id="@+id/state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textSize="15sp"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_muted" />
+
+        <Button
+            android:id="@+id/retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:minHeight="48dp"
+            android:text="@string/retry"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_black"
+            android:backgroundTint="@color/tumtum_lime" />
+
+        <cc.tumtum.capture.HRCurveView
+            android:id="@+id/curve"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="20dp"
+            android:visibility="gone"
+            android:background="@drawable/card_background" />
+
+        <TextView
+            android:id="@+id/curveCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/curve_caption"
+            android:textSize="12sp"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_muted" />
+
+        <TextView
+            android:id="@+id/momentsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/moments_title"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_white" />
+
+        <TextView
+            android:id="@+id/momentsEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="14sp"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_muted" />
+
+        <Button
+            android:id="@+id/findMoments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:minHeight="48dp"
+            android:text="@string/find_moments"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_black"
+            android:backgroundTint="@color/tumtum_lime" />
+
+        <LinearLayout
+            android:id="@+id/moments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical" />
+
+        <Button
+            android:id="@+id/makeCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:minHeight="56dp"
+            android:text="@string/make_card"
+            android:visibility="gone"
+            android:textColor="@color/tumtum_black"
+            android:backgroundTint="@color/tumtum_lime" />
+
+        <!--
+          The WebView kept as a net, reachable rather than merely present. When
+          the native screen cannot load a night, the site can still show it.
+        -->
+        <TextView
+            android:id="@+id/openOnSite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="24dp"
+            android:minHeight="48dp"
+            android:gravity="center"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/open_on_site"
+            android:textSize="14sp"
+            android:textColor="@color/tumtum_muted" />
+    </LinearLayout>
+</ScrollView>

@@ -110,7 +110,7 @@ class SessionsActivity : Activity() {
                 session.maxBpm?.let { getString(R.string.max_bpm, it) }.orEmpty()
             row.findViewById<TextView>(R.id.avg).text =
                 session.avgBpm?.let { getString(R.string.avg_bpm, it) }.orEmpty()
-            row.setOnClickListener { ExperienceActivity.open(this, session.id) }
+            row.setOnClickListener { NightActivity.open(this, session.id) }
             list.addView(row)
         }
     }
