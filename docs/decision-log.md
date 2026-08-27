@@ -115,6 +115,46 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-27 — Health Connect is the next step, and Etapa 0 just got sharper
+
+Felipe asked whether the best-selling-band argument makes Health Connect the
+natural next thing to build. It does — two independent lines point the same
+way: it is the only path that reaches the cheap bands Brazil actually buys, and
+it costs roughly half of Wear OS. **But the next step is still not code.**
+
+Checking what the vendor apps actually do turned up something that changes
+Etapa 0 from a density check into a two-question check:
+
+> **Writing to Health Connect is the manufacturer's choice, and the list of
+> what a vendor writes is not the list of what its device measures.**
+
+- **Samsung Health** — the watch itself offers *measure continuously*, *every
+  10 minutes*, or *manual only*. And there are user reports that **not all of
+  it crosses into Health Connect: only exercise heart rate arrives reliably.**
+  If that holds, *start a workout when the show starts* stops being a density
+  mitigation and becomes a **functional requirement**. That is the single most
+  consequential unknown in the plan right now.
+- **Zepp / Amazfit** — writes to Health Connect, one-way (write only, never
+  read), with an isolated report of heart rate not coming through.
+- **Mi Fitness** (Xiaomi / Redmi) — writes steps, sleep, heart rate and
+  workouts, chosen per metric at authorisation time.
+
+None of those three lines is our measurement; they are third-party reports and
+are recorded as the reason Etapa 0 exists, not as findings.
+
+**Etapa 0 rewritten accordingly** in `docs/health-connect-plan.md`: two or
+three people on **different brands**, each producing **two stretches on the
+same device** — normal wear and a hand-started workout. Only that split can
+separate *the watch did not measure it* from *the vendor did not pass it on*.
+The gate now has a middle outcome: failing the normal stretch but passing the
+workout stretch keeps the path alive and promotes the onboarding sentence into
+the product.
+
+**And it can be run for free at Realness on 29/08** — anyone in the group
+wearing a band, one export, no code, on a real six-hour night.
+
+---
+
 ## 2026-08-27 — "Apple Watch está fora" was a sentence that lied
 
 Felipe read `docs/wear-os-plan.md` and asked, reasonably, whether Apple Watch

@@ -63,20 +63,50 @@ que fica de fora deste plano.
 
 O `/import` **já existe e já lê export do Health Connect**, e já pontua
 qualidade contra os requisitos do detector. Então isto não precisa de nenhuma
-linha nova:
+linha nova.
 
-1. Duas ou três pessoas com relógios diferentes usam o relógio uma noite,
-   fazendo o que fariam normalmente.
-2. Exportam do Health Connect e passam pelo `/import`.
-3. Lê-se a cadência real e o score de qualidade.
+São **duas** perguntas, e a primeira é mais básica do que parecia:
+
+| | Pergunta | Por que ela existe |
+|---|---|---|
+| **A** | O app do fabricante escreve batimento no Health Connect **de qualquer jeito**? | Escrever é opção do fabricante, e a lista do que ele escreve não é a lista do que ele mede |
+| **B** | Em que cadência? | O detector foi calibrado contra ~1 leitura/segundo |
+
+**O que a pesquisa de 27/08 já indica, e precisa ser confirmado no aparelho:**
+
+- **Samsung Health** (Galaxy Fit3, Galaxy Watch) — o próprio relógio oferece
+  *medir continuamente*, *a cada 10 minutos* ou *só manual*. E há relatos de
+  que **nem tudo atravessa para o Health Connect: só o batimento de exercício
+  chega de forma confiável.** Se isso se confirmar, a frase do onboarding deixa
+  de ser mitigação de densidade e vira **requisito de funcionamento**.
+- **Zepp / Amazfit** — escreve no Health Connect (Perfil → vinculação de contas
+  de terceiros), e é **mão única**: só escreve, não lê. Há relato isolado de
+  batimento não chegando corretamente.
+- **Mi Fitness** (Xiaomi / Redmi Smart Band) — escreve passos, sono, batimento
+  e treinos, com escolha por métrica na hora de autorizar.
+
+Nenhuma dessas três linhas é medição nossa. São o motivo de a Etapa 0 existir.
+
+**O protocolo:**
+
+1. Duas ou três pessoas com **marcas diferentes** — idealmente uma Samsung, uma
+   Xiaomi/Amazfit — usam o relógio uma noite.
+2. **Cada uma faz as duas noites:** uma trecho de uso normal e um trecho com
+   **treino iniciado à mão**, no mesmo aparelho. É o único jeito de separar o
+   que o relógio não mede do que o fabricante não repassa.
+3. Exportam do Health Connect e passam pelo `/import`.
+4. Lê-se a cadência real e o score de qualidade, **por marca e por trecho**.
 
 **Gate — todos precisam valer:**
 - Cadência sustentada de **pelo menos 1 leitura a cada 5 s** durante a janela
 - Score de qualidade Aprovado
 - Detecção acha picos plantados (um esforço combinado no meio da noite)
 
-**Se falhar:** parar e redesenhar a promessa antes de construir a tela. Esta
-etapa custa uma noite e evita semanas.
+**Se falhar só no trecho normal e passar no trecho de treino:** o caminho vive,
+e a instrução de iniciar treino passa a ser parte do produto, não um conselho.
+
+**Se falhar nos dois:** parar e redesenhar a promessa antes de construir a
+tela. Esta etapa custa uma noite e evita semanas.
 
 ---
 
@@ -194,3 +224,7 @@ ele sugere que metade do Health Connect já está feita, e não está.
 - [Google Fit migration FAQ](https://developer.android.com/health-and-fitness/health-connect/migration/fit/faq)
 - [Samsung — Health Connect FAQ](https://developer.samsung.com/health/health-connect-faq.html)
 - *Super Panorama, junho 2026* — Mobile Time / Opinion Box, gráficos 63 e 64 (páginas 40–41)
+- [Samsung — como o Samsung Health monitora batimento](https://ushl.samsung.com/latin_en/support/apps-services/how-samsung-health-monitors-your-heart-rate)
+- [Fórum de desenvolvedores Samsung — Heart Rate Sync with Google Health Connect](https://forum.developer.samsung.com/t/heart-rate-sync-with-google-health-connect/24632)
+- [Amazfit ganha sincronização com Health Connect](https://www.notebookcheck.net/Amazfit-smartwatches-get-new-Health-Connect-data-sync-feature.951489.0.html)
+- [Xiaomi Mi Band + Health Connect](https://www.reaction-club.com/guides/xiaomi-health-connect)
