@@ -9,7 +9,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 | Track | Status |
 |---|---|
-| **Hardware supplier** | J-Style **re-engaged, and they dropped the volume demand.** Arena is now asking how the project is funded rather than for a commitment. **TumTum is entirely self-funded by Felipe** — recorded 2026-08-26. Draft 5 asks for the NRE in stages against the unanswered firmware question. Previously: **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
+| **Hardware supplier** | J-Style **re-engaged, and they dropped the volume demand.** Arena is now asking how the project is funded rather than for a commitment. **TumTum is entirely self-funded by Felipe** — recorded 2026-08-26 — and **no money moves before Phase 0 is answered by fans at real events on their own devices.** Draft 5 answers her questions, asks for nothing now, and names the 25 September pilot as the trigger; the structure floated for later is the NRE in stages against the unanswered firmware question. Previously: **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
 | **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. Launcher icon confirmed on the A17 as the TUMTUM wordmark on black. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
@@ -28,12 +28,13 @@ the linked documents — this file is the index and the reasoning, not a diary.
 3. **J-Style** — three exchanges on 2026-08-26. The decline, then Arena
    reopening the case for "more vision" (Draft 4, sent), then Arena dropping
    the volume requirement and asking about funding and go-to-market. **Draft 5
-   is written and awaiting Felipe.** It states the self-funding plainly and
-   uses it to ask for the **NRE in stages against the firmware question** —
-   a first tranche on five to ten units, our acceptance protocol run against a
-   Polar H10, remainder and a ~50-unit batch on acceptance. The firmware
-   question (does custom Raw PPG remove the motion-conditioned clamp?) still
-   decides everything.
+   is written and awaiting Felipe.** It answers both questions plainly and
+   **asks her for nothing now** — naming the 25 September pilot as the trigger
+   instead, so she does not prepare work for an order months away. **No money
+   moves before Phase 0 is answered by fans at real events on their own
+   devices.** The structure floated for later: the NRE in stages against the
+   firmware question (does custom Raw PPG remove the motion-conditioned
+   clamp?), which still decides everything.
 3b. **How TumTum reaches its first 1,000 users has no written answer.** Arena
    asked it better than anyone has. There are no festival, club, venue or
    sponsor relationships yet, by design — prospecting starts after validation.
@@ -102,30 +103,36 @@ hardware investment rather than overbuilding, which is our own argument handed
 back to us. That is a real shift, and it is what the vision letter was for.
 
 **The funding position, never recorded until now.** TumTum is **entirely
-self-funded by Felipe.** No investors, no round, no institutional money. He
-intends to pay the US$ 15,000 NRE and a first batch personally, which is
-precisely why the batch should be around 50 units. On go-to-market: he knows
-the organiser of the Realness festival personally but attends as a member of
-the public, and has **no** commercial relationships with festivals, clubs,
-venues or sponsors. Prospecting starts after the product is validated.
+self-funded by Felipe.** No investors, no round, no institutional money. He is
+prepared to pay the US$ 15,000 NRE and a ~50-unit batch personally — which is
+precisely why the batch should be small. On go-to-market: he knows the
+organiser of the Realness festival personally but attends as a member of the
+public, and has **no** commercial relationships with festivals, clubs, venues
+or sponsors. Prospecting starts after the product is validated.
 
-**A concern raised once and then set aside as the founder's call.** Paying the
-full NRE before the pilot contradicts the position held with Arena since
-08-17, and it puts roughly R$ 90–100k of personal money behind firmware whose
-central behaviour is unverified. Two of Felipe's own numbers sit oddly beside
-each other: he declined **R$ 10k** for ten wearables to validate demand on
-08-25, and is now prepared to spend eight to ten times that on firmware before
-demand is validated. The purposes differ, so this is not incoherence — but the
-motion-clamp risk we described to Arena as *her* exposure at 3,000 units is now
-*his* exposure at 50, and more concentrated because he pays alone.
+**And the timing, which is the whole point.** A first version of this draft
+read as though the money were ready to move now, and I raised a concern about
+that — it would have contradicted the position held with Arena since 08-17 and
+put roughly R$ 90–100k of personal money behind firmware whose central
+behaviour is unverified. **Felipe corrected the premise, not the concern:** he
+never intended to spend before Phase 0 is answered, and Phase 0 means **fans at
+real events, on their own devices, using the app that already exists.** Nothing
+moves before that.
 
-**So the letter does not soften the self-funding — it uses it.** Draft 5 states
-the position plainly and makes it the reason for the ask: **the NRE in stages
-against the firmware question.** A first tranche delivering customized firmware
-on five or ten units, our acceptance protocol run against a Polar H10 with the
-full data shared either way, and the remainder plus a ~50-unit batch on
-acceptance. Ordinary commercial structure, and the thing that protects someone
-paying out of pocket.
+That correction makes the letter stronger than either half alone. "I have the
+money and it is mine" plus "it does not move until the question is answered"
+*explains* the patience instead of merely asserting it — and it is the same
+argument, one level up, as the staged NRE below.
+
+**Draft 5 therefore asks Arena for nothing right now**, and says so: no
+quotations, no reserved engineering time. It names the trigger instead — the
+25 September pilot, results in October — so she is not left guessing when to
+expect movement, which is how suppliers end up feeling strung along.
+
+The structure it floats for *when* that happens: **the NRE in stages against
+the firmware question.** A first tranche delivering customized firmware on five
+or ten units, our acceptance protocol run against a Polar H10 with the full
+data shared either way, and the remainder plus the batch on acceptance.
 
 **On acquisition, the thin answer is given as thin.** No relationships, one
 friendship that is explicitly not presented as a partnership. The reframe that

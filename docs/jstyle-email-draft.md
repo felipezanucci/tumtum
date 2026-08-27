@@ -399,29 +399,26 @@ Founder, TumTum
 > Context: Arena dropped the volume expectation outright — *"there is no
 > expectation for you to commit to a large production volume"* — and asked two
 > qualifying questions: what budget exists and how TumTum is funded, and how
-> the first 1,000–3,000 users will be acquired. She frames both as wanting to
-> right-size the hardware investment rather than overbuild, which is our own
-> argument returned to us.
+> the first 1,000–3,000 users will be acquired.
 >
-> **The facts, from Felipe:** entirely self-funded, no outside investors, no
-> round. He intends to pay the US$ 15,000 NRE and a first batch personally,
-> which is precisely why the batch should be ~50 units. He knows the organiser
-> of the festival he is testing at but attends as a member of the public. He
-> has **no** commercial relationships with festivals, clubs, venues or
-> sponsors, and plans to start that prospecting after the product is validated.
+> **The facts, from Felipe:** entirely self-funded, no investors, no round. He
+> is prepared to fund the US$ 15,000 NRE and a ~50-unit batch personally —
+> **but not before Phase 0 is answered**, and Phase 0 means fans at real events
+> using their own devices with the app that already exists. He knows the
+> organiser of the festival he is testing at but attends as a member of the
+> public. He has **no** commercial relationships with festivals, clubs, venues
+> or sponsors; prospecting starts after validation.
 >
-> **The concern raised once, then set aside as his call:** paying the full NRE
-> before the pilot contradicts the position held with Arena so far, and it puts
-> roughly R$ 90–100k of personal money behind firmware whose central behaviour
-> — does it remove the motion-conditioned clamp? — is still unverified. The
-> letter therefore does not soften the self-funding; it uses it as the reason to
-> ask for the NRE **in stages against that question**, which is ordinary
-> commercial structure and the thing that protects a founder paying alone.
+> **A first version of this draft got the timing wrong** — it read as though the
+> money were ready to move now, which would have invited Arena to propose a deal
+> and contradicted the position held with her since 08-17. Felipe corrected it.
+> The letter below states that the funding exists, that it is his, and that it
+> does not move before validation — which is a stronger position than either
+> half alone, because it explains the patience rather than merely asserting it.
 >
-> On acquisition, the honest answer is thin and is given as such. The reframe
-> that makes it credible rather than evasive: the pilot is not a delay before
-> prospecting, it is what makes prospecting possible. Nobody sells "let us put
-> bands on your crowd" with a slide deck.
+> It also tells her explicitly not to do work yet. A supplier who prepares a
+> quotation for an order that is months away, on a trigger nobody named, ends up
+> feeling strung along — and this relationship is worth more than that.
 
 Dear Arena,
 
@@ -434,14 +431,20 @@ TumTum is entirely self-funded. There are no outside investors, no round, and
 no institutional backing. Everything you have seen — the app, the backend, the
 capture pipeline, the peak detection — I built and paid for myself.
 
-For the next phase, I am prepared to fund the US$ 15,000 NRE and a first
-production batch personally. That is also the honest reason I keep asking for a
-small batch: not because I doubt the product, but because it is my own money,
-and 50 units is what one person can responsibly put behind a device that has
-not yet been tested on strangers.
+When the time comes, I am prepared to fund the US$ 15,000 NRE and a first
+batch of around 50 units personally. That is also the honest reason the batch
+should be small: it is my own money, and 50 units is what one person can
+responsibly put behind a device that has not yet been on a stranger's wrist.
 
-I would rather tell you that now than discover it together halfway through a
-production run.
+But I want to be equally clear about *when*. **That money does not move before
+Phase 0 is answered**, and Phase 0 is a specific thing rather than a feeling:
+real fans, at real events, wearing the watches and straps they already own,
+using the app we have already built — and then telling us, by whether they
+share the result, whether this is worth anything to them.
+
+Until that question has an answer, buying hardware would be buying inventory
+for a demand I have not demonstrated. You described this yourself as
+overbuilding too early, and you were right.
 
 **2. First users.**
 
@@ -454,44 +457,46 @@ more.
 The plan is event by event in São Paulo, and the sequencing is deliberate. A
 festival or a club does not buy "we would like to put bands on your crowd" from
 a slide deck. They buy it from a card showing a real person's heart rate at the
-exact second of a real chorus, from an event they know. **The pilot is not a
-delay before prospecting — it is the thing that makes prospecting possible.**
-That is what the September pilot produces, and it is what I intend to walk into
-those conversations with.
+exact second of a real chorus, at an event they know. **The pilot is not a delay
+before prospecting — it is the thing that makes prospecting possible.**
 
-So the order is: prove the experience is worth sharing, then use that proof to
-open the event relationships, then scale hardware to the deployments those
-relationships create. Building hardware ahead of that order is exactly the
-overbuilding you described.
+So the order is: prove the experience is worth sharing, use that proof to open
+the event relationships, then size hardware to the deployments those
+relationships actually create. That is the same reasoning as above, one level
+up.
 
-**3. What I would like to propose, given the above.**
+**3. What I am asking of you right now: nothing.**
 
-Since I am funding this personally, I cannot pay the full NRE for firmware
-whose central behaviour is still unverified. One open question decides whether
-these units work for us at all: **does the customized Raw PPG firmware remove
-the motion-conditioned processing entirely?** Our acceptance protocol tests
-amplitude response with the wearer **stationary**, and that condition is
-eliminatory — a concert audience stands still.
+I do not want you preparing quotations or reserving engineering time for an
+order that is months away. That is not fair to your side, and I would rather
+tell you the trigger than have you guess it.
 
-Would it be possible to structure the engagement in stages?
+The trigger is this: **we run a structured pilot on 25 September**, and I expect
+to know in October whether people share these moments — the only question that
+justifies custom hardware at all. If the answer is yes, I will come back to you
+with that data, unprompted, and we can talk about real numbers.
 
-1. A first stage that delivers the customized firmware on a small number of
-   units — even five or ten — against a portion of the NRE.
-2. We run our acceptance protocol against a Polar H10 reference and share the
-   full data with your engineering team, whatever it shows.
-3. The remainder of the NRE, and a first batch of around 50 units, on
-   acceptance.
+When that happens, one structure would make the decision straightforward on my
+side, and it is worth putting to you now so you can think about whether it is
+possible: **the NRE in stages, against the one question that decides
+everything.** Our acceptance protocol tests amplitude response with the wearer
+**stationary**, and that condition is eliminatory — a concert audience stands
+still. Does the customized Raw PPG firmware remove the motion-conditioned
+processing entirely?
 
-If the firmware answers the question, you have a customer who has verified your
-product and can speak to it. If it does not, we both find out for the cost of a
-few units rather than a full engagement — and I would still rather have paid
-for that answer than not have it.
+A first tranche delivering that firmware on five or ten units, our protocol run
+against a Polar H10 with the full data shared with your engineering team
+whatever it shows, and the remainder plus the batch on acceptance. If the
+firmware answers the question, you have a customer who has verified your
+product and can say so. If it does not, we both learn that for the price of a
+few units.
 
-I am open to whatever structure works on your side; the staging matters more to
-me than the exact split.
+There is no rush on that answer. I raise it now only so that when I come back
+with demand data, we are not starting the commercial conversation from zero.
 
 Thank you for taking the time to understand the business rather than only the
-order.
+order. It is not the usual experience, and it is the reason you are still the
+supplier I would rather work with.
 
 Best regards,
 Felipe Zanucci
