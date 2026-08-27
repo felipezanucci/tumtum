@@ -2,7 +2,6 @@ package cc.tumtum.capture
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -25,6 +24,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit
  *    success branch of the upload, so a failed send left the entire product
  *    unreachable.
  */
-class MainActivity : Activity() {
+class MainActivity : ComponentActivity() {
 
     private var service: CaptureService? = null
     private var scanner: android.bluetooth.le.BluetoothLeScanner? = null

@@ -1,11 +1,11 @@
 package cc.tumtum.capture
 
-import android.app.Activity
 import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.widget.VideoView
+import androidx.activity.ComponentActivity
 
 /**
  * Two seconds of heartbeat before the app.
@@ -20,7 +20,7 @@ import android.widget.VideoView
  * straight into the app instead of trapping somebody at a black screen. And a
  * tap skips it: two seconds is an arrival, not a toll.
  */
-class SplashActivity : Activity() {
+class SplashActivity : ComponentActivity() {
 
     private var proceeded = false
 

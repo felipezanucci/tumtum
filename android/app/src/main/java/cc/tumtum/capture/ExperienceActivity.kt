@@ -1,7 +1,6 @@
 package cc.tumtum.capture
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
@@ -11,6 +10,7 @@ import android.os.Environment
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.ComponentActivity
 
 /**
  * The night, relived — inside the app.
@@ -21,7 +21,7 @@ import android.webkit.WebViewClient
  * fix twice. Native does what only native can — the capture — and this shows
  * what the web already does well.
  */
-class ExperienceActivity : Activity() {
+class ExperienceActivity : ComponentActivity() {
 
     private lateinit var web: WebView
     private var bootstrapped = false

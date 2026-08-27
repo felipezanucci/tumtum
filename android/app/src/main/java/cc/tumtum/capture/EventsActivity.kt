@@ -1,12 +1,12 @@
 package cc.tumtum.capture
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import java.util.concurrent.Executors
 
 /**
@@ -23,7 +23,7 @@ import java.util.concurrent.Executors
  * within minutes of this screen shipping. Creating events is what still lives
  * on the site; recorded as an open item.
  */
-class EventsActivity : Activity() {
+class EventsActivity : ComponentActivity() {
 
     private lateinit var api: TumtumApi
     private lateinit var stateView: TextView

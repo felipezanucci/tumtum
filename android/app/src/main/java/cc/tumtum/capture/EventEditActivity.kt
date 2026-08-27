@@ -1,6 +1,5 @@
 package cc.tumtum.capture
 
-import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
@@ -13,8 +12,9 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
-import org.json.JSONObject
+import androidx.activity.ComponentActivity
 import java.util.concurrent.Executors
+import org.json.JSONObject
 
 /**
  * Correct an event without leaving the app.
@@ -29,7 +29,7 @@ import java.util.concurrent.Executors
  * than the start is named for what it means (the small hours of the next
  * day) rather than asking for a second date an under-24h event cannot need.
  */
-class EventEditActivity : Activity() {
+class EventEditActivity : ComponentActivity() {
 
     private lateinit var api: TumtumApi
     private lateinit var stateView: TextView

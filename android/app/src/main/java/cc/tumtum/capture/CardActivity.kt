@@ -1,6 +1,5 @@
 package cc.tumtum.capture
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -9,6 +8,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -24,7 +24,7 @@ import java.util.concurrent.Executors
  * handed to the share sheet through CardProvider. Sharing an image somebody
  * has not seen would be its own small dishonesty.
  */
-class CardActivity : Activity() {
+class CardActivity : ComponentActivity() {
 
     private lateinit var api: TumtumApi
     private lateinit var stateView: TextView

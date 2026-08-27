@@ -5,7 +5,10 @@ plugins {
 
 android {
     namespace 'cc.tumtum.capture'
-    compileSdk 34
+    // 35 because connect-client 1.1.0 refuses anything lower. targetSdk stays
+    // 34: compiling against new APIs and opting into new behaviour are
+    // different decisions, and the second one deserves its own test pass.
+    compileSdk 35
 
     /*
       A signing key that does not change between builds.
@@ -45,8 +48,8 @@ android {
         // a six-hour capture needs.
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName '0.1'
+        versionCode 2
+        versionName '0.2'
     }
 
     buildTypes {
@@ -67,10 +70,21 @@ android {
     }
 }
 
-// Nothing at runtime on purpose: everything the app uses is in the Android
-// framework, so there is no version matrix to get wrong and nothing to break
-// on an upgrade. JUnit is test-only and never ships in the APK.
+// The zero-dependency rule served until 2026-08-27, when Health Connect ended
+// it: its client requires AndroidX and its permission flow requires
+// ComponentActivity, and there is no framework-only way to read another app's
+// heart-rate data. The rule's successor is narrower but still a rule: every
+// runtime dependency here must be one Health Connect forces, nothing else.
+// JUnit and org.json remain test-only and never ship in the APK.
 dependencies {
+    // ComponentActivity, so the Health Connect permission contract can launch.
+    implementation 'androidx.activity:activity:1.9.3'
+    // The Health Connect client itself (1.1.0 stable, Oct 2025; stage 2 uses it, stage 1 only carries it).
+    implementation 'androidx.health.connect:connect-client:1.1.0'
+    // connect-client is Kotlin coroutines end to end; -android brings the
+    // main-thread dispatcher the permission callbacks land on.
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
     testImplementation 'junit:junit:4.13.2'
     // Android ships org.json, but the stub on the unit-test classpath throws
     // on every call. AccessToken reads a JWT payload with it, so the tests

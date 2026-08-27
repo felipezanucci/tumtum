@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -26,7 +27,7 @@ import java.util.concurrent.Executors
  * about the world, and "nada aqui" must never stand in for "não consegui
  * perguntar" — the rule this project earned twelve times over.
  */
-class SessionsActivity : Activity() {
+class SessionsActivity : ComponentActivity() {
 
     private lateinit var api: TumtumApi
     private lateinit var stateView: TextView
