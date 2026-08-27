@@ -44,6 +44,17 @@ detector não roda, e — pior — a curva desenhada seria uma mentira bonita.
 > Health Connect entrega *a curva da noite*, não *os momentos*. Isso muda a
 > promessa do card, não o cronograma.
 
+**O que o mercado diz sobre esse risco.** No Super Panorama de junho/2026,
+**monitorar exercício é a funcionalidade mais importante do vestível para 30,2%
+dos donos brasileiros** — o primeiro lugar, à frente de notificações (29,8%).
+Ou seja: pedir "inicie um treino quando o show começar" está pedindo o
+comportamento que essas pessoas mais praticam, e é a razão de a Etapa 0 medir
+os dois casos — a noite comum e a noite com treino iniciado.
+
+**E o teto do caminho inteiro é 30,1%** — a proporção de donos de smartphone no
+Brasil que usam relógio ou pulseira (37,6% nas classes A e B). Menos o iPhone,
+que fica de fora deste plano.
+
 ---
 
 ## 3. Etapas
@@ -182,3 +193,4 @@ ele sugere que metade do Health Connect já está feita, e não está.
 - [Health apps declaration form](https://support.google.com/googleplay/android-developer/answer/14738291)
 - [Google Fit migration FAQ](https://developer.android.com/health-and-fitness/health-connect/migration/fit/faq)
 - [Samsung — Health Connect FAQ](https://developer.samsung.com/health/health-connect-faq.html)
+- *Super Panorama, junho 2026* — Mobile Time / Opinion Box, gráficos 63 e 64 (páginas 40–41)

@@ -96,10 +96,70 @@ the linked documents — this file is the index and the reasoning, not a diary.
 18. **An event cannot cross midnight** — one date, two bare times, so
     "termina 03:00" cannot say it means the next day. A capture attaches by
     event id, so Saturday is unaffected; the model change waits.
-19. **The Brazilian age/sex split for wearables is unknown.** Super Panorama
-    2026 (Mobile Time / Opinion Box) has it; this environment cannot reach
-    `mobiletime.com.br`. Felipe's to open. Do not guess it in the meantime —
-    the only figure we have is global (Counterpoint, women ~35%).
+19. **The Brazilian age/sex split for wearables is still unknown — and Super
+    Panorama does not carry it.** Felipe opened the June 2026 edition on 27/08:
+    it gives penetration (30,1%), the class cut and the function ranking, but
+    **crosses wearables with nothing demographic** — its gender and age figures
+    are about smartphones. The only route to the split is the raw crossing
+    tables, on request from `fernando.paiva@mobiletime.com.br`. Felipe's to
+    ask; it does not block Health Connect. Until then the only figure we have
+    is global (Counterpoint, women ~35%), and it should not be guessed at.
+
+---
+
+## 2026-08-27 — Super Panorama: three in ten wrists, and the one that matters
+
+Felipe downloaded the **Super Panorama, junho 2026** (Mobile Time / Opinion
+Box). It answers the market question and refuses the demographic one, so both
+are recorded plainly.
+
+**Penetration: 30,1%.** Of 4.138 Brazilians aged 16+ who own a smartphone,
+30,1% also use a watch or band that talks to it (Gráfico 63). Three in ten
+wrists — the ceiling on the Health Connect path before Apple Watch is
+subtracted from it.
+
+**And the audience we actually have skews above that.** Classes A and B are at
+**37,6%**, against C at 29,6% and D/E at 27,5%. A ticketed festival crowd in
+São Paulo is not the national average; the useful planning number for Realness
+and for the pilot is nearer the top of that range than the middle.
+
+**The function ranking is the finding that changes something** (Gráfico 64,
+base 1.245 owners — what is *most important* to them day to day):
+
+| | |
+|---|---|
+| Monitoramento de exercícios físicos | **30,2%** |
+| Recebimento de notificações do celular | 29,8% |
+| Monitoramento da quantidade de passos | 12,1% |
+| **Monitoramento do batimento cardíaco** | **9,7%** |
+| Calorias queimadas | 8,4% |
+| Qualidade do sono | 8,4% |
+| Outro | 1,4% |
+
+**Exercise tracking is the number one thing Brazilians use a wearable for.**
+That is exactly the gesture the free density mitigation asks for — *start a
+workout when the show starts* — so the instruction is not asking people to
+learn a new behaviour, it is asking them to do the thing they already do most.
+The zero-cost mitigation in `docs/wear-os-plan.md` just got materially more
+likely to work, which strengthens the ordering: Health Connect first, Wear OS
+only if measurement demands it.
+
+**Heart rate at 9,7% is a salience number, not a usage number.** The question
+asked which single function matters most, not which ones the device performs —
+almost every one of those bands reads heart rate continuously whatever its
+owner ranks first. Read correctly it says: HR is not what people bought the
+thing for. That cuts both ways. TumTum is not competing with an entrenched
+habit, and it also cannot assume anyone knows their watch has been recording
+their heart all along. The onboarding copy should tell them.
+
+**The demographic cut is not in this report.** The gender and age splits in its
+analysis (the 48,7%/35,2% on smartphone importance, the 16–29 cuts) are about
+smartphones; wearables are crossed only with social class. The report itself
+offers the raw crossing tables on request — `fernando.paiva@mobiletime.com.br`.
+Open item 19 is updated rather than closed: what is known is now known, what is
+missing is now known to be missing from this source specifically.
+
+Source: `Super Panorama, junho 2026`, Mobile Time / Opinion Box, pages 40–41.
 
 ---
 

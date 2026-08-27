@@ -36,6 +36,11 @@ Custa uma frase. Resolve a densidade para quem obedecer. O app de Wear OS é a
 versão que funciona para quem **não** obedecer — e é isso que ele está
 comprando por várias semanas de trabalho.
 
+E o Super Panorama de junho/2026 diz que essa frase pede pouco: **monitorar
+exercício é a funcionalidade mais importante do vestível para 30,2% dos donos
+brasileiros** — o primeiro lugar da lista. A instrução não pede um hábito novo,
+pede o hábito que já é o mais comum.
+
 ---
 
 ## 2. As três formas de capturar, lado a lado
@@ -54,6 +59,11 @@ comum, está fora.
 É a fatia mais estreita das três, pelo maior custo de construção.
 
 ### E o mercado brasileiro piora essa conta
+
+**30,1% dos brasileiros donos de smartphone usam relógio ou pulseira
+inteligente** (Super Panorama, junho/2026; base 4.138, 16 anos ou mais) —
+37,6% nas classes A e B. Três pulsos em dez é o teto de qualquer caminho que
+dependa do aparelho da pessoa. O Wear OS enxerga uma fração pequena desses três.
 
 O volume no Brasil é dominado pela faixa abaixo de US$ 150 — Xiaomi, Huawei,
 Zepp/Amazfit, Positivo — e o vestível mais vendido na Amazon Brasil em 2025 foi
@@ -175,3 +185,4 @@ contra um risco que ainda não foi quantificado.
 - [Record an exercise with ExerciseClient](https://developer.android.com/health-and-fitness/health-services/active-data)
 - [Compatibilidade entre aparelhos Wear OS](https://developer.android.com/health-and-fitness/health-services/compatibility)
 - [Power your Wear OS fitness app — batching](https://android-developers.googleblog.com/2022/11/power-your-wear-os-fitness-app-with-health-services-latest-version.html)
+- *Super Panorama, junho 2026* — Mobile Time / Opinion Box, gráficos 63 e 64 (páginas 40–41)
