@@ -9,7 +9,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 | Track | Status |
 |---|---|
-| **Hardware supplier** | J-Style **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
+| **Hardware supplier** | J-Style **re-engaged, and they dropped the volume demand.** Arena is now asking how the project is funded rather than for a commitment. **TumTum is entirely self-funded by Felipe** — recorded 2026-08-26. Draft 5 asks for the NRE in stages against the unanswered firmware question. Previously: **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
 | **Android app (hybrid)** | **The full cycle is proven at real scale.** 26,999/27,000 readings overnight, screen off, 7% battery; the ~27k-point upload landed at quality 100% and the whole night rendered in-app. Launcher icon confirmed on the A17 as the TUMTUM wordmark on black. What remains is Health Connect. |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
@@ -25,15 +25,19 @@ the linked documents — this file is the index and the reasoning, not a diary.
    everything; nothing is queued.
 2. ~~**End-to-end save test**~~ and ~~**detection accuracy**~~ — both done
    2026-08-25, both passed.
-3. **J-Style** — the decline was sent 2026-08-26; Arena reopened the case the
-   same day asking for the project's vision, and **Draft 4 went out the same
-   day**, putting the pilot batch back on the table as shared technical
-   de-risking. **Now waiting on her.** The firmware question — does custom Raw
-   PPG remove the motion-conditioned clamp? — is the one that decides
-   everything, and it is the question the letter asks her to answer. If she
-   presses on demand instead, the prepared answer is the paragraph Felipe cut,
-   preserved verbatim in `docs/jstyle-email-draft.md`; do not improvise a
-   forecast in its place.
+3. **J-Style** — three exchanges on 2026-08-26. The decline, then Arena
+   reopening the case for "more vision" (Draft 4, sent), then Arena dropping
+   the volume requirement and asking about funding and go-to-market. **Draft 5
+   is written and awaiting Felipe.** It states the self-funding plainly and
+   uses it to ask for the **NRE in stages against the firmware question** —
+   a first tranche on five to ten units, our acceptance protocol run against a
+   Polar H10, remainder and a ~50-unit batch on acceptance. The firmware
+   question (does custom Raw PPG remove the motion-conditioned clamp?) still
+   decides everything.
+3b. **How TumTum reaches its first 1,000 users has no written answer.** Arena
+   asked it better than anyone has. There are no festival, club, venue or
+   sponsor relationships yet, by design — prospecting starts after validation.
+   Worth answering for ourselves regardless of the supplier.
 4. **Veepoo** — contacted 2026-08-18, still the primary alternative if they
    confirm native raw PPG / R-R streaming.
 5. ~~**Deployment protection**~~ — resolved 2026-08-25: it was never a
@@ -85,6 +89,58 @@ the linked documents — this file is the index and the reasoning, not a diary.
     changed. If it fails on festival cellular nothing is lost — the snapshot
     survives and the button can be pressed again — so chunking it was judged
     not worth a contract change four days out. Revisit if it actually fails.
+
+---
+
+## 2026-08-26 — Arena asks how it is paid for, and the answer is recorded for the first time
+
+Arena's third reply dropped the volume expectation outright — *"there is no
+expectation for you to commit to a large production volume"* — and asked two
+qualifying questions: what budget exists and how TumTum is funded, and how the
+first 1,000–3,000 users will be acquired. She framed both as right-sizing the
+hardware investment rather than overbuilding, which is our own argument handed
+back to us. That is a real shift, and it is what the vision letter was for.
+
+**The funding position, never recorded until now.** TumTum is **entirely
+self-funded by Felipe.** No investors, no round, no institutional money. He
+intends to pay the US$ 15,000 NRE and a first batch personally, which is
+precisely why the batch should be around 50 units. On go-to-market: he knows
+the organiser of the Realness festival personally but attends as a member of
+the public, and has **no** commercial relationships with festivals, clubs,
+venues or sponsors. Prospecting starts after the product is validated.
+
+**A concern raised once and then set aside as the founder's call.** Paying the
+full NRE before the pilot contradicts the position held with Arena since
+08-17, and it puts roughly R$ 90–100k of personal money behind firmware whose
+central behaviour is unverified. Two of Felipe's own numbers sit oddly beside
+each other: he declined **R$ 10k** for ten wearables to validate demand on
+08-25, and is now prepared to spend eight to ten times that on firmware before
+demand is validated. The purposes differ, so this is not incoherence — but the
+motion-clamp risk we described to Arena as *her* exposure at 3,000 units is now
+*his* exposure at 50, and more concentrated because he pays alone.
+
+**So the letter does not soften the self-funding — it uses it.** Draft 5 states
+the position plainly and makes it the reason for the ask: **the NRE in stages
+against the firmware question.** A first tranche delivering customized firmware
+on five or ten units, our acceptance protocol run against a Polar H10 with the
+full data shared either way, and the remainder plus a ~50-unit batch on
+acceptance. Ordinary commercial structure, and the thing that protects someone
+paying out of pocket.
+
+**On acquisition, the thin answer is given as thin.** No relationships, one
+friendship that is explicitly not presented as a partnership. The reframe that
+makes it credible rather than evasive: **the pilot is not a delay before
+prospecting, it is what makes prospecting possible.** A festival does not buy
+"let us put bands on your crowd" from a slide deck; it buys it from a card
+showing a real person's heart rate at the second of a real chorus, at an event
+they know. That ordering — prove, then open relationships, then scale hardware
+to what those relationships create — is the same argument as the staged NRE,
+one level up.
+
+**Open, and now the most important question in the project:** how TumTum
+reaches its first thousand users. Arena asked it better than anyone has, and
+there is still no written answer. Worth answering for ourselves regardless of
+what J-Style does with it.
 
 ---
 
