@@ -104,6 +104,68 @@ the linked documents — this file is the index and the reasoning, not a diary.
     tables, on request from `fernando.paiva@mobiletime.com.br`. Felipe's to
     ask; it does not block Health Connect. Until then the only figure we have
     is global (Counterpoint, women ~35%), and it should not be guessed at.
+20. **The iOS/Apple Watch path is real but uncosted.** Reading the Health app
+    export through `/import` already works today; an iPhone app reading
+    HealthKit is the exact mirror of the Health Connect plan and needs no watch
+    app at all. What is not written down is the plan: stages, gates and an
+    honest estimate, in the same shape as the other two, so the three can be
+    compared before the order is fixed. Felipe was offered it 2026-08-27 and
+    has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
+    runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-27 — "Apple Watch está fora" was a sentence that lied
+
+Felipe read `docs/wear-os-plan.md` and asked, reasonably, whether Apple Watch
+owners simply have no way into TumTum without carrying a second device. They
+do. The document caused the misreading and has been corrected.
+
+**What the sentence meant** was that an Apple Watch does not run Wear OS —
+true, and irrelevant to whether TumTum reaches those people. **What it looked
+like it meant** was that the platform is out of reach. Written inside a
+document about one Android-specific path, with no scope marker, the narrow
+claim read as the broad one.
+
+This is the project's own recurring bug class — *a thing stating something
+false about its own state* — found for the first time in a document rather
+than in the app. The fix is the same fix: say which condition you are
+describing.
+
+**Apple Watch has three routes, and the first already works:**
+
+1. **Today, zero code.** `parseHealthKitExport` in
+   `frontend/lib/health/apple-health.ts` reads the Health app's XML export, and
+   `/import` is live. Real friction to name: the export is a `.zip` of *all*
+   health data, often hundreds of MB, and `/import` accepts `.xml` — the person
+   unzips first.
+2. **An iOS app reading HealthKit.** The exact mirror of the Health Connect
+   plan, and the answer to Felipe's question: the watch already writes into the
+   iPhone's Health store, so **no watchOS app is needed**. HealthKit is in two
+   ways more generous than Health Connect — permission is entirely on-device
+   (no OAuth, no quota) and there is no 30-day history limit.
+3. **A watchOS app.** `HKWorkoutSession` — justified only by the same argument
+   as Wear OS, and therefore last.
+
+**Density behaves the same way, so the same free mitigation applies.** Apple
+Watch samples roughly every 5 minutes outside a workout — ~72 points across six
+hours, and the detector does not run — but continuously during a recorded
+workout. *Start a workout when the show starts* is again the sentence that
+decides it.
+
+**The cost is Apple's gate, not the code.** US$ 99/year, a Mac to build (none
+here; macOS runners on GitHub Actions are the way around it), and no APK link
+at all — TestFlight, with internal testing capped at 100 people and external
+testing gated behind Beta App Review, stricter for a health app. Order of
+magnitude for a minimal iOS app (sign in, pick event, read the window, upload,
+see the night on the site): comparable to Health Connect, ~2–3 weeks of code.
+Full parity with the Android app is materially more. Recorded as open item 20;
+the plan document is offered, not yet written.
+
+**And Etapa 0 is free here too.** One Apple Watch owner exporting one night
+through `/import` measures the real cadence — and if anyone at Realness on
+29/08 wears one, that measurement costs nothing and can be taken against the
+strap on the same person.
 
 ---
 

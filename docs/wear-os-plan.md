@@ -54,9 +54,17 @@ pede o hábito que já é o mais comum.
 **O alcance é o dado desconfortável.** Wear OS 3+ significa Galaxy Watch 4 ou
 mais novo, Pixel Watch, e pouco mais. Galaxy Watch antigo é Tizen. Fitbit
 próprio, Garmin, Amazfit: nenhum é Wear OS. Apple Watch, que é o relógio mais
-comum, está fora.
+comum, não roda Wear OS.
 
 É a fatia mais estreita das três, pelo maior custo de construção.
+
+> **"Não roda Wear OS" não é "está fora da TumTum".** Esta frase, escrita aqui
+> sem essa ressalva, foi lida como se o Apple Watch não tivesse caminho — e ele
+> tem três: a exportação do app Saúde pelo `/import`, que **já funciona hoje**;
+> um app iOS lendo o HealthKit, que é o espelho exato do plano de Health
+> Connect e não exige app nenhum no relógio; e um app watchOS, que só se
+> justifica pelo mesmo motivo que este aqui. O que o Apple Watch está fora é
+> **deste documento**, que trata de um caminho específico do Android.
 
 ### E o mercado brasileiro piora essa conta
 
