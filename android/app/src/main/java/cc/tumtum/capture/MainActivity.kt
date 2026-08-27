@@ -521,11 +521,15 @@ class MainActivity : ComponentActivity() {
         return false
     }
 
+    // Array<String>, not Array<out String>: ComponentActivity is Kotlin and
+    // declares the parameter invariant, so the framework-style signature
+    // "overrides nothing" under it.
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<out String>,
+        permissions: Array<String>,
         grantResults: IntArray,
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST && grantResults.isNotEmpty() &&
             grantResults.all { it == PackageManager.PERMISSION_GRANTED }
         ) {
