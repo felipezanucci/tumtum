@@ -84,8 +84,14 @@ São **duas** perguntas, e a primeira é mais básica do que parecia:
   batimento não chegando corretamente.
 - **Mi Fitness** (Xiaomi / Redmi Smart Band) — escreve passos, sono, batimento
   e treinos, com escolha por métrica na hora de autorizar.
+- **Huawei Health** — **não escreve no Health Connect, e não é bug: é
+  geopolítica.** Desde as sanções de 2019 a Huawei vive no seu próprio stack
+  (HMS), e não existe ponte nativa. O único caminho é um app de terceiros
+  (Health Sync) — atrito demais para pedir a um fã. Huawei Band é top 3 de
+  vendas no Brasil, então isso é uma fatia real do teto de 30,1% que o
+  caminho não alcança.
 
-Nenhuma dessas três linhas é medição nossa. São o motivo de a Etapa 0 existir.
+Nenhuma dessas linhas é medição nossa. São o motivo de a Etapa 0 existir.
 
 **O protocolo:**
 

@@ -115,6 +115,24 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-27 — Huawei is the hole in "Health Connect reaches all of them"
+
+Found while ranking devices for the Etapa 0 test. The 27/08 market entry said
+Health Connect reaches the cheap bands Brazil buys, listing Huawei in the
+volume tier — and for Huawei that is wrong: **Huawei Health does not write to
+Health Connect at all.** Not a missing switch — since the 2019 sanctions
+Huawei runs its own service stack (HMS), and no native bridge to Google's
+health layer exists. The only route is a third-party sync app (Health Sync),
+which is too much friction to ask of a fan.
+
+Huawei Band is a top-3 seller in Brazil, so this is a real slice of the 30,1%
+ceiling that the Health Connect path does not reach. It does not change the
+ordering — the path still reaches Samsung, Xiaomi and Amazfit, which is most
+of the volume — but the reach claim now carries its exception, and the pilot
+onboarding should ask "qual relógio?" before promising anything.
+
+---
+
 ## 2026-08-27 — Health Connect built to the screen in one evening, and what it cost
 
 Felipe said go, and Etapas 1, 2 and 3 of `docs/health-connect-plan.md` are
