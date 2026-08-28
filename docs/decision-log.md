@@ -9,7 +9,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 | Track | Status |
 |---|---|
-| **Hardware supplier** | J-Style **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
+| **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
 | **Android app (native)** | **No longer a WebView shell.** Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
@@ -112,6 +112,65 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-28 — J-Style broke their own MOQ, and doubled the NRE doing it
+
+Arena's reply to Draft 4 arrived. **They gave us the thing that was refused
+twice: a first batch of 10–50 units** of the customized raw-PPG V8. That is a
+real exception to a 3,000-unit floor, and it cost her something internally.
+
+**And the price of that concession is in the next line.** NRE went from
+USD 15,000 to **USD 30,000**, and the rebate ladder is not mentioned at all.
+They conceded on volume and recovered it — with interest — on engineering.
+
+| | 24/08 counter | 28/08 offer |
+|---|---|---|
+| Batch | 3,000 (pilot refused) | **10–50** ✅ |
+| Unit | USD 40–80 | USD 80 (top of range) |
+| NRE | USD 15,000 | **USD 30,000** |
+| Rebate | 20% ladder, 100% at 50k units | **absent** |
+
+Total exposure fell from ~USD 255,000 to USD 34,000 — a genuinely different
+conversation. Per device, though, validation costs **USD 680** at 50 units and
+**USD 3,080** at 10.
+
+**What the letter does not do is answer the question.** Draft 4 asked directly
+whether the customized firmware removes the motion-conditioned processing —
+the question this log has called the one that decides everything. The reply
+proposes to develop it and agree criteria together. So USD 30,000 buys an
+*attempt*, not an answer. Probably honest; still worth naming, because it
+means **the payment structure matters more than the price**.
+
+It also inverts Draft 4's argument. That letter framed the small batch as
+*shared* de-risking. What came back has TumTum funding 100% of the firmware
+development, with J-Style keeping the firmware and free to resell the
+capability.
+
+**Two things in the letter are genuinely valuable, and both are ours to use.**
+Arena proposes agreeing acceptance criteria *before* development, and accepts
+**our Polar H10 protocol as the objective test**. That hands us the lever: if
+the protocol is objective enough for both teams to judge the result, it is
+objective enough to gate payment. Milestone-staged NRE becomes a fair ask
+precisely because Arena proposed the test.
+
+**Decision: reply warmly, decide nothing.** Arena removed the deadline herself
+— *"no need to rush… once you have your Phase 0 results."* Phase 0 validates
+demand; custom hardware is Phase 1. Committing USD 30,000 of hardware
+economics before knowing whether people want the product is exactly the
+inversion the phase order exists to prevent. And the Health Connect path built
+this week reaches 30,1% of Brazilian smartphone owners at zero hardware cost,
+which removes any urgency from the band without closing the option.
+
+**Draft 5 is written and unsent** (`docs/jstyle-email-draft.md`). It banks the
+concession, accepts the *shape* of the proposal, and plants three structural
+questions for after 25/09: staging the NRE against the acceptance test, what
+happens if the firmware fails it, and whether the NRE can be credited against
+a first production order. It deliberately does **not** counter on price —
+the unit price is not the problem, and the NRE argument is far stronger with
+pilot data behind it. Countering now would also signal we might pay
+USD 30,000 before demand exists.
 
 ---
 
