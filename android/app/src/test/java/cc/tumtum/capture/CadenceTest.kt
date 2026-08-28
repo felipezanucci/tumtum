@@ -77,6 +77,24 @@ class CadenceTest {
         assertEquals(10_000L, cadence.medianGapMillis)
     }
 
+    /**
+     * The reason `Cadence` is only ever computed per source. Two bands on one
+     * phone both write into Health Connect: each sparse on its own, their
+     * union looks dense. Measuring the blend would report a device nobody is
+     * wearing — confidently, in a number nothing contradicts.
+     */
+    @Test
+    fun `two sparse bands blended look dense, which is why sources stay apart`() {
+        // Each writes every 10 s — too slow for the detector. Interleaved,
+        // the union reads as one reading every 5 s.
+        val bandA = (0L until 360L).map { it * 10_000 }
+        val bandB = bandA.map { it + 5_000 }
+
+        assertFalse(Cadence.of(bandA)!!.denseEnough)
+        assertFalse(Cadence.of(bandB)!!.denseEnough)
+        assertTrue(Cadence.of(bandA + bandB)!!.denseEnough)
+    }
+
     @Test
     fun `span reads as hours and minutes`() {
         assertEquals("4h30", Cadence(2, 16_200, 1000, 1.0).spanLabel)

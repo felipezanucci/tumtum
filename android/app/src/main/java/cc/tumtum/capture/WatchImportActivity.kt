@@ -46,6 +46,7 @@ class WatchImportActivity : ComponentActivity() {
     private lateinit var recentOption: RadioButton
     private lateinit var eventHint: TextView
     private lateinit var readButton: Button
+    private lateinit var sourceView: TextView
     private lateinit var reportView: TextView
     private lateinit var verdictView: TextView
     private lateinit var sendButton: Button
@@ -54,7 +55,14 @@ class WatchImportActivity : ComponentActivity() {
 
     /** The chosen event, once loaded — null while loading or when none is chosen. */
     private var event: EventDetail? = null
-    private var readings: List<HealthConnectReader.Reading> = emptyList()
+
+    /**
+     * Readings split by the app that wrote them, richest first — never a
+     * single merged list. Health Connect is a shared store, and a cadence
+     * computed across two bands describes a device nobody is wearing.
+     */
+    private var sources: List<Pair<String, List<HealthConnectReader.Reading>>> = emptyList()
+    private var chosen: Int = 0
 
     /**
      * Must be registered before the activity starts, which is why it lives
@@ -86,6 +94,8 @@ class WatchImportActivity : ComponentActivity() {
         recentOption = findViewById(R.id.optionRecent)
         eventHint = findViewById(R.id.eventHint)
         readButton = findViewById(R.id.read)
+        sourceView = findViewById(R.id.source)
+        sourceView.setOnClickListener { offerSources() }
         reportView = findViewById(R.id.report)
         verdictView = findViewById(R.id.verdict)
         sendButton = findViewById(R.id.send)
@@ -248,6 +258,7 @@ class WatchImportActivity : ComponentActivity() {
 
         readButton.isEnabled = false
         readButton.text = getString(R.string.watch_reading)
+        sourceView.visibility = View.GONE
         reportView.visibility = View.GONE
         verdictView.visibility = View.GONE
         sendButton.visibility = View.GONE
@@ -264,7 +275,8 @@ class WatchImportActivity : ComponentActivity() {
             readButton.text = getString(R.string.watch_read)
             result
                 .onSuccess { found ->
-                    readings = found
+                    sources = HealthConnectReader.bySource(found)
+                    chosen = 0
                     report()
                 }
                 .onFailure { error ->
@@ -274,14 +286,33 @@ class WatchImportActivity : ComponentActivity() {
         }
     }
 
-    /** What was found, before anything is uploaded. The cadence is the news. */
+    /**
+     * What was found, before anything is uploaded, **for one source at a
+     * time**. Naming the source is not decoration: two bands on one phone
+     * both write here, and a blended cadence would describe a device nobody
+     * is wearing — while reading as a perfectly confident number.
+     */
     private fun report() {
+        if (sources.isEmpty()) {
+            reportView.text = getString(R.string.watch_none_found)
+            reportView.visibility = View.VISIBLE
+            return
+        }
+        val (origin, readings) = sources[chosen]
         val cadence = Cadence.of(readings.map { it.timeMillis })
         if (cadence == null) {
             reportView.text = getString(R.string.watch_none_found)
             reportView.visibility = View.VISIBLE
             return
         }
+
+        sourceView.text = if (sources.size > 1) {
+            getString(R.string.watch_source_pick, HealthConnectReader.label(origin), sources.size)
+        } else {
+            getString(R.string.watch_source_one, HealthConnectReader.label(origin))
+        }
+        sourceView.visibility = View.VISIBLE
+
         reportView.text = getString(
             R.string.watch_report,
             cadence.count,
@@ -298,6 +329,28 @@ class WatchImportActivity : ComponentActivity() {
         sendButton.visibility = View.VISIBLE
     }
 
+    /** Switch which app's readings the report and the upload describe. */
+    private fun offerSources() {
+        if (sources.size < 2) return
+        val popup = android.widget.PopupMenu(this, sourceView)
+        sources.forEachIndexed { index, (origin, readings) ->
+            popup.menu.add(
+                0, index, index,
+                getString(
+                    R.string.watch_source_row,
+                    HealthConnectReader.label(origin),
+                    readings.size,
+                ),
+            )
+        }
+        popup.setOnMenuItemClickListener { item ->
+            chosen = item.itemId
+            report()
+            true
+        }
+        popup.show()
+    }
+
     private fun gapLabel(millis: Long): String {
         val seconds = (millis + 500) / 1000
         return if (seconds < 60) getString(R.string.watch_gap_seconds, seconds)
@@ -310,10 +363,13 @@ class WatchImportActivity : ComponentActivity() {
         sendButton.isEnabled = false
         sendButton.text = getString(R.string.watch_sending)
         val eventId = if (eventOption.isChecked) event?.id else null
+        val (origin, readings) = sources[chosen]
         scope.launch {
             val result = runCatching {
                 withContext(Dispatchers.IO) {
-                    val sessionId = api.uploadWatchReadings(readings, eventId)
+                    val sessionId = api.uploadWatchReadings(
+                        readings, eventId, HealthConnectReader.label(origin),
+                    )
                     // Detection is part of delivery, same as the capture path:
                     // a night uploaded but never analysed shows no moments and
                     // calls it calm. If only the analysis fails, the night
@@ -356,6 +412,7 @@ class WatchImportActivity : ComponentActivity() {
         recentOption.visibility = View.GONE
         eventHint.visibility = View.GONE
         readButton.visibility = View.GONE
+        sourceView.visibility = View.GONE
         reportView.visibility = View.GONE
         verdictView.visibility = View.GONE
         sendButton.visibility = View.GONE

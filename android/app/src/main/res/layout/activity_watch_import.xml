@@ -123,12 +123,28 @@
                 android:textColor="@color/tumtum_black"
                 android:backgroundTint="@color/tumtum_lime" />
 
+            <!--
+              Which app wrote the readings being described. Two bands on one
+              phone both write into Health Connect, so a report that does not
+              name its source is describing a device nobody is wearing.
+            -->
+            <TextView
+                android:id="@+id/source"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:minHeight="48dp"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:textColor="@color/tumtum_yellow" />
+
             <!-- What was found — count, span, cadence — before any upload. -->
             <TextView
                 android:id="@+id/report"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="6dp"
                 android:textSize="15sp"
                 android:visibility="gone"
                 android:textColor="@color/tumtum_white" />

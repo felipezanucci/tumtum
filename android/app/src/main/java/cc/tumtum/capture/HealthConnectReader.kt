@@ -48,7 +48,35 @@ object HealthConnectReader {
             .getGrantedPermissions()
             .containsAll(PERMISSIONS)
 
-    data class Reading(val timeMillis: Long, val bpm: Int)
+    /**
+     * One reading, and **which app wrote it**.
+     *
+     * The origin is not bookkeeping — it is the difference between a true
+     * measurement and a fictional one. Health Connect is a shared store: two
+     * bands on one phone, or a band plus the phone's own sensors, all write
+     * into the same window. Measuring the cadence of that blend describes a
+     * device nobody is wearing.
+     */
+    data class Reading(val timeMillis: Long, val bpm: Int, val origin: String)
+
+    /**
+     * Package names we can name out loud. Anything unknown keeps its package
+     * name rather than being guessed at — a wrong friendly label would be the
+     * screen inventing a fact, and the raw name is always true.
+     */
+    private val KNOWN_SOURCES = mapOf(
+        "com.sec.android.app.shealth" to "Samsung Health",
+        "com.xiaomi.wearable" to "Mi Fitness",
+        "com.xiaomi.hm.health" to "Zepp Life",
+        "com.huami.midong" to "Zepp",
+        "com.google.android.apps.fitness" to "Google Fit",
+        "com.fitbit.FitbitMobile" to "Fitbit",
+        "com.garmin.android.apps.connectmobile" to "Garmin Connect",
+        "cc.tumtum.capture" to "TumTum (cinta)",
+        "cc.tumtum.capture.debug" to "TumTum (cinta)",
+    )
+
+    fun label(packageName: String): String = KNOWN_SOURCES[packageName] ?: packageName
 
     /**
      * Every heart-rate sample between the two instants, oldest first.
@@ -80,10 +108,11 @@ object HealthConnectReader {
                 )
             )
             for (record in response.records) {
+                val origin = record.metadata.dataOrigin.packageName
                 for (sample in record.samples) {
                     val at = sample.time.toEpochMilli()
                     if (at in startMillis..endMillis) {
-                        readings += Reading(at, sample.beatsPerMinute.toInt())
+                        readings += Reading(at, sample.beatsPerMinute.toInt(), origin)
                     }
                 }
             }
@@ -91,4 +120,15 @@ object HealthConnectReader {
         } while (pageToken != null)
         return readings.sortedBy { it.timeMillis }
     }
+
+    /**
+     * Split by the app that wrote them, richest first.
+     *
+     * Every cadence and every upload is computed on one of these lists,
+     * never on their union.
+     */
+    fun bySource(readings: List<Reading>): List<Pair<String, List<Reading>>> =
+        readings.groupBy { it.origin }
+            .toList()
+            .sortedByDescending { it.second.size }
 }

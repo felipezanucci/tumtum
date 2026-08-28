@@ -139,6 +139,7 @@ class TumtumApi(context: Context) {
     fun uploadWatchReadings(
         readings: List<HealthConnectReader.Reading>,
         eventId: String?,
+        sourceLabel: String,
     ): String {
         require(readings.isNotEmpty()) { "Nada lido" }
 
@@ -159,7 +160,10 @@ class TumtumApi(context: Context) {
         val body = JSONObject()
             .put("start_time", isoUtc(readings.first().timeMillis))
             .put("end_time", isoUtc(readings.last().timeMillis))
-            .put("source_device", "Health Connect")
+            // The app that wrote the readings, not merely "Health Connect":
+            // the store is shared, so naming it would name the corridor
+            // rather than the device the night actually came from.
+            .put("source_device", sourceLabel)
             .put("data_points", points)
         if (eventId != null) body.put("event_id", eventId)
 

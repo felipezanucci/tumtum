@@ -152,6 +152,15 @@
     -->
     <string name="watch_none_found">Seu relógio não escreveu nenhuma batida nessa janela. Abra o app da marca dele e confira se o Health Connect está ligado lá.</string>
 
+    <!--
+      The source is named because Health Connect is a shared store: two bands
+      on one phone both write into it, and an unnamed report would describe
+      their blend as if it were one device.
+    -->
+    <string name="watch_source_one">%1$s</string>
+    <string name="watch_source_pick">%1$s ▾ (%2$d fontes encontradas — toque para trocar)</string>
+    <string name="watch_source_row">%1$s — %2$d leituras</string>
+
     <string name="watch_report">%1$d leituras em %2$s · uma a cada %3$s · %4$d%% da janela coberta</string>
     <string name="watch_gap_seconds">%1$d s</string>
     <string name="watch_gap_minutes">%1$d min</string>
