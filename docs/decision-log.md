@@ -115,6 +115,49 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-08-28 — a confident number that described no device at all
+
+Felipe bought a Galaxy Fit3 and a Xiaomi Smart Band 9 for the Etapa 0 test,
+and the purchase exposed a defect before the hardware shipped.
+
+**Health Connect is a shared store.** Paired to one phone, both bands write
+heart rate into the same window — and the import screen was measuring their
+union. The arithmetic is ugly: two bands each writing every 10 seconds,
+neither dense enough alone, interleave into an apparent reading every 5
+seconds. The screen would have announced *"Denso o bastante: dá para procurar
+seus momentos"* for a device nobody was wearing.
+
+**It is the project's own bug class, in its nastiest form yet.** Not a control
+without feedback, not a stale display — a *confident number that describes
+nothing real*, with nothing on screen to contradict it. Every previous
+instance of this family announced itself eventually (a control that did
+nothing, a page that said the wrong thing). This one would have looked like a
+clean result and gone into the decision log as fact.
+
+And it would have fired on the exact setup the measurement was about to use:
+one person, two bands, one phone.
+
+**The fix:** every reading now carries the package that wrote it. Cadence and
+upload are computed on exactly one source, never a union. The report names its
+source out loud; with more than one, the row says how many and switches
+between them. Unknown packages keep their raw package name rather than a
+guessed friendly label — the raw name is at least always true. The uploaded
+session is stamped with the app that wrote it instead of "Health Connect",
+which named the corridor rather than the device. A test pins the interleaving
+arithmetic. CI green on 480dc13.
+
+**It also made the experiment better.** Before, comparing two vendors meant
+two nights or two phones. Now: both bands on one person, one wrist each, Polar
+on the chest, one night. Same body, same heart, same window — so any
+difference between Samsung and Xiaomi is the *vendor's*, not the night's, and
+the strap is ground truth for both. Recorded in the Etapa 0 protocol.
+
+**Generalisation worth keeping:** a shared data store makes provenance part of
+the measurement. Any number computed across a store that several apps write to
+must say whose data it describes, or it describes nobody's.
+
+---
+
 ## 2026-08-27 — Huawei is the hole in "Health Connect reaches all of them"
 
 Found while ranking devices for the Etapa 0 test. The 27/08 market entry said

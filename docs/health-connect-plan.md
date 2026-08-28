@@ -108,8 +108,16 @@ uma pulseira de marca desconhecida não é dado, é ruído.
 
 **O protocolo:**
 
+0. **As duas pulseiras podem ir no mesmo celular, na mesma noite** — e é o
+   experimento melhor. Pareadas ao mesmo aparelho, ambas escrevem no mesmo
+   Health Connect, e desde 28/08 o app mede **uma fonte por vez**, nomeando
+   qual app escreveu cada leitura. Um pulso cada, a cinta Polar no peito:
+   mesma noite, mesmo corpo, mesmo coração. Qualquer diferença entre os
+   fabricantes é **do fabricante**, não da noite — e o Polar é a verdade
+   contra a qual os dois são medidos.
 1. Duas ou três pessoas com **marcas diferentes** — idealmente uma Samsung, uma
-   Xiaomi/Amazfit — usam o relógio uma noite.
+   Xiaomi/Amazfit — usam o relógio uma noite. (Ou uma pessoa só, com as duas
+   pulseiras, conforme o item acima.)
 2. **Cada uma faz as duas noites:** uma trecho de uso normal e um trecho com
    **treino iniciado à mão**, no mesmo aparelho. É o único jeito de separar o
    que o relógio não mede do que o fabricante não repassa.
