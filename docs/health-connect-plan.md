@@ -93,6 +93,19 @@ São **duas** perguntas, e a primeira é mais básica do que parecia:
 
 Nenhuma dessas linhas é medição nossa. São o motivo de a Etapa 0 existir.
 
+**Armadilha que corrompe o resultado: o clone.** Marketplaces brasileiros
+vendem genéricos com nome montado para busca — um anúncio real trazia
+*"Amazfit Mi Band 10"*, duas marcas concorrentes num nome só, com specs de um
+terceiro modelo. Esses aparelhos **não rodam Zepp nem Mi Fitness**; rodam apps
+genéricos (DaFit, FitCloudPro, Wearfit) que não escrevem no Health Connect.
+
+Medir um clone produz *"não escreveu nenhuma batida"* e a conclusão errada de
+que **a marca** não funciona — um falso negativo que descartaria um fabricante
+bom. Antes de aceitar um aparelho no teste, confirme que o app é
+**Samsung Health, Mi Fitness ou Zepp**. Se for outro nome, o aparelho não
+responde a pergunta e não entra. Vale igual para o piloto: alguém aparecer com
+uma pulseira de marca desconhecida não é dado, é ruído.
+
 **O protocolo:**
 
 1. Duas ou três pessoas com **marcas diferentes** — idealmente uma Samsung, uma
