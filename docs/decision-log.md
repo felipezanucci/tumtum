@@ -11,7 +11,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
 | **Android app (native)** | **No longer a WebView shell.** Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
-| **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
+| **Path 2 — fans' own watches** | **Health Connect half-measured, 29/08: Samsung writes heart rate all night, no gap** — nine consecutive hourly records from a Fit3, ordinary sleep, no workout. The exercise-only fear is dead. Cadence still unknown: Health Connect's browser shows records, not the samples inside them, so only the 0.2 screen can count them. **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
@@ -112,6 +112,59 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-29 — Etapa 0, half answered: Samsung does write, all night
+
+Felipe wore the Galaxy Fit3 overnight and read Health Connect in the morning.
+The first of Etapa 0's two questions is answered with data instead of forum
+reports.
+
+**Samsung Health writes heart rate to Health Connect, continuously.** Nine
+consecutive hourly records, 00:00 through 08:46, no gap:
+
+| | |
+|---|---|
+| 00:00–00:59 | 57–76 bpm |
+| 01:00–01:59 | 47–72 bpm |
+| 01:41 | 60 bpm |
+| 02:00–02:59 | 53–64 bpm |
+| 03:00–03:59 | 51–70 bpm |
+| 04:00–04:59 | 47–60 bpm |
+| 05:00–05:59 | 50–63 bpm |
+| 06:00–06:59 | 51–66 bpm |
+| 07:00–07:59 | 53–64 bpm |
+| 08:00–08:46 | 56–69 bpm |
+
+The values are physiologically sensible (minimum at 04:00, rising on waking),
+and the access log shows *"Gravação: Sinais vitais"* — writes, the direction
+we need — at 00:09, 00:22, 00:31, 01:36, 01:42, 03:42, 07:53 and 08:46.
+
+**The worst case is off the table.** The reports that Samsung only passes
+exercise heart rate to Health Connect do not hold here: this was ordinary
+sleep, no workout, and it all crossed. That was the single most consequential
+unknown in `docs/health-connect-plan.md`.
+
+**But the second question is invisible on that screen, and the reason is
+structural.** Each row is a *record*, not a reading — and a Health Connect
+heart-rate record is a **series**: start, end, and many samples inside. The
+proof is in the row itself: `01:00–01:59 · 47–72 bpm` cannot come from one
+reading, since a single sample has no minimum and maximum. The contrast row
+`01:41–01:41 · 60 bpm` is a single-sample record; Health Connect knows the
+difference and simply does not display it.
+
+**So the cadence can only be measured by unpacking the series** — which is
+precisely what `HealthConnectReader.readHeartRate` does, and what the
+Conexão Saúde browser will not do. The measurement we designed to need no
+code turns out to need exactly the screen we built: Etapa 0's question A is
+answerable by hand, question B is not.
+
+**Consequence for the setup steps, worth keeping:** the phone-side check
+still earns its place — it proved the bridge is open and the night is
+recorded, before any APK existed on that phone. It just cannot finish the
+job. The 0.2 screen reads it on Sunday, against the same night, plus whatever
+the Realness night adds.
 
 ---
 
