@@ -11,7 +11,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
 | **Android app (native)** | **No longer a WebView shell.** Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
-| **Path 2 — fans' own watches** | **Health Connect half-measured, 29/08: Samsung writes heart rate all night, no gap** — nine consecutive hourly records from a Fit3, ordinary sleep, no workout. The exercise-only fear is dead. Cadence still unknown: Health Connect's browser shows records, not the samples inside them, so only the 0.2 screen can count them. **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
+| **Path 2 — fans' own watches** | **Health Connect measured, 29/08: Samsung writes all night at exactly 1 reading/minute** (Fit3, ordinary sleep, no workout). The exercise-only fear is dead; the cadence is the middle outcome — 10× better than the 10-minute nightmare, 12× short of the detector's gate. Six hours gives 360 points: a true curve, but a 30–60 s emotional peak yields one sample or none. **The workout stretch is now the decisive measurement**, running tonight at Realness. **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
@@ -112,6 +112,64 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-29 — the cadence is one per minute, and that is the middle outcome
+
+Tapping into a Health Connect record opens **Detalhes da entrada**, and the
+samples are there after all. From the 03:00–03:59 record, sleeping, no
+workout:
+
+```
+03:00 55  03:09 62  03:18 59  03:27 61
+03:01 59  03:10 61  03:19 57  03:28 58
+03:02 57  03:11 61  03:20 58  03:29 58
+03:03 59  03:12 62  03:21 60  03:30 59
+03:04 59  03:13 63  03:22 59  03:31 59
+03:05 60  03:14 62  03:23 60  03:32 60
+03:06 61  03:15 64  03:24 60
+03:07 60  03:16 53  03:25 61
+03:08 61  03:17 53  03:26 61
+```
+
+**One reading per minute, exactly, not a minute missed.** 33 consecutive
+samples across 32 minutes.
+
+| | |
+|---|---|
+| Measured cadence | **1 / 60 s** |
+| Etapa 0 gate | 1 / 5 s |
+| Feared worst case | 1 / 10 min |
+| `Cadence.denseEnough` | **false** — median gap 60,000 ms, 5-second slot coverage 8.6% |
+
+Ten times better than the nightmare, twelve times short of the detector.
+Exactly the middle outcome `docs/health-connect-plan.md` anticipated, which
+means the plan's branch applies rather than a redesign.
+
+**What 1/min delivers, honestly split.** Six hours is 360 points — a true,
+continuous, good-looking curve of the night, no pretence needed. What it does
+not deliver is *moments*: a chill through a chorus lasts 30–60 seconds, so at
+one sample a minute that peak yields **one sample, or none**, depending where
+the minute falls. And the detector's own arithmetic says the same: its
+5-second smoothing window would hold 0.08 of a point and its 300-second
+baseline 5 points — no reliable standard deviation lives in five numbers. It
+would run, and what it found would be noise wearing the name of a moment.
+
+**So the workout stretch is now the decisive measurement of the project.**
+The single remaining question is whether a hand-started workout lifts the Fit3
+off 1/min. Yes and the onboarding sentence is promoted from advice to
+requirement, and the path delivers moments. No and Health Connect delivers
+*the curve*, not *the moments* — which changes the card's promise, not the
+schedule, precisely as the plan said in §2.
+
+Felipe runs it tonight at Realness: start a workout on the Fit3 when the show
+starts, leave it running. The strap remains the night's real capture.
+
+**Worth correcting from this morning:** the record view does expose its
+samples, one tap deeper than I looked. The earlier note that only our app
+could unpack them was wrong about the browser, right about everything else —
+and question B got answered by hand after all.
 
 ---
 
