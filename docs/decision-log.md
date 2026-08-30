@@ -16,7 +16,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
-| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture. Sharing opens the system sheet **with the image attached**. |
+| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **This is the open question of Phase 0**, not a polish task. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
 | **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
 
@@ -109,6 +109,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
 23. **Xiaomi Mi Band 9 untested.** Bought, unopened as far as the log knows.
     One night answers whether the 1/min ceiling is Samsung's or Health
     Connect's — the last open question of Etapa 0.
+24. **The card does not make anyone want to post it.** Felipe generated the
+    Realness card 2026-08-30 and said so plainly: too plain, no desire, no
+    need to share. **This is the Phase 0 hypothesis itself** — the card is the
+    viral engine and nothing downstream of it matters if it does not travel.
+    Four things are wrong and only two are visual; see the entry below.
+    Next session's work.
 19. **The Brazilian age/sex split for wearables is still unknown — and Super
     Panorama does not carry it.** Felipe opened the June 2026 edition on 27/08:
     it gives penetration (30,1%), the class cut and the function ranking, but
@@ -125,6 +131,91 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-30 — the card came out, and it does not make anyone want to post it
+
+Felipe generated the first card from the Realness night and gave the verdict
+the project needed most: **"está muito simples e não gera esse desejo e
+necessidade de postar."**
+
+That is not a complaint about polish. **The share card is the viral engine.**
+Everything upstream of it — the capture, the detection, the watch path, the
+quality score fixed this same morning — exists to produce an object somebody
+wants to put on their Story. If the object does not travel, Phase 0 answers
+its own question with a no, and it answers it regardless of how good the
+plumbing underneath is. So this is the top of the list, not the bottom.
+
+Four things are wrong with the card. Only two of them are visual.
+
+### 1. The hero number is 92, and 92 is not a number
+
+The card picked **92 bpm às 02h05**. The night's maximum was **116 às 01h24**.
+`cards.py` orders peaks by `rank` and takes the first, and `rank` comes from
+the detector's **magnitude — z-score × duration**. That ranking is right for
+*finding moments*: it favours a long, sustained, statistically unusual rise
+over a brief spike. It is wrong for *choosing the hero of a card*, where the
+only job is to be striking.
+
+But swapping it for `max(bpm)` only trades 92 for 116, and 116 is not
+striking either. **The deeper problem is that an absolute BPM means nothing
+without the person's own baseline.** Ninety-two reads as a flight of stairs.
+The dramatic fact of that night is not 92 or 116 — it is that Felipe sat
+still for six hours at **78 average** and something pulled him to 116 anyway.
+The card shows the destination and hides the journey, which is the entire
+story. Whatever the design becomes, it has to carry the **jump**, not the
+value.
+
+### 2. The headline is a constant, and it may be a lie
+
+```python
+MOMENT_COPY = ("EU TAVA TRANQUILO.", "AÍ VEIO ISSO.")
+```
+
+Every card TumTum has ever generated says this, and every card it generates
+tomorrow will too. A thing that travels has to be *different each time* —
+part of why anyone posts is that the object says something specific about
+them, and a fixed line says the same thing about everybody.
+
+Worse, it is a **claim about a state nobody measured**. "Eu tava tranquilo"
+asserts a calm baseline before the moment. If the baseline was already
+elevated the card is simply asserting something false, confidently, in the
+largest text on it. That is this project's bug class — the app stating
+something untrue about its own state — now the **fourteenth** instance and
+the first one on a public object. The line has real data sitting right next
+to it (the baseline the detector already computes for every peak) and uses
+none of it.
+
+### 3. Cover the wordmark and nothing says TumTum
+
+A black field, a lime number, centred type. It is clean, it is on-manual, and
+it is anonymous. **Mutante Pop is the declared territory** — one recognisable
+structure surviving thousands of surfaces — and the skins have been parked
+since 25/08. The card is the one place in the product where the surface is
+supposed to be doing the work, and it is the one place still showing the
+base. Nothing here is a shape a person learns to recognise while scrolling.
+
+### 4. There is no evidence on it
+
+Card 01 is "Só o momento" by design and deliberately carries no chart; the
+time series belongs to card 03, "Minha noite". That decision is defensible
+and it is also what leaves this frame empty. The manual explicitly permits
+the real heart-rate line as *product information* — and the curve is the
+proof that something happened, the thing that separates this from a poster
+anyone could type. Realness has a curve worth showing: six hours, twenty
+moments, a visible climb.
+
+Related and unresolved: **the moment has no name** (open item 22). There are
+no timeline rows for Realness, so `02h05` is a timestamp where a story should
+be. "Durante *Vogue*" is a card. "02h05" is a receipt.
+
+### What tomorrow starts from
+
+Not a restyle. The order is: decide what number the card leads with (the
+jump, almost certainly), give the headline something real to say, then make
+the surface unmistakable. Design last, because two of the four problems are
+about what the card *knows*, not how it looks.
 
 ---
 
