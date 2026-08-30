@@ -18,6 +18,7 @@ from app.schemas.event import (
     PeakResponse,
     TimelineEntryResponse,
 )
+from app.services import data_quality
 from app.services.display_downsample import downsample_for_display
 from app.services.event_correlator import correlate_peaks_to_timeline
 from app.services.peak_detection import detect_peaks
@@ -54,6 +55,18 @@ async def analyze_session(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Dados insuficientes para análise",
         )
+
+    # Restate the session's quality from what is actually stored.
+    #
+    # Until 2026-08-30 the score measured volume against an assumed 1
+    # reading/5 s and capped at 1.0, so any session captured at strap density
+    # reads 100% however much of the night is missing — including the
+    # Realness capture that exposed it, which holds a 79-minute hole behind a
+    # perfect score. Re-analysing a night is the natural moment to correct
+    # that, and it costs one pass over rows already fetched.
+    session.data_quality_score = data_quality.score(
+        session.start_time, session.end_time, (dp.time for dp in data_points)
+    )
 
     # Fetch event timeline if session is linked to an event
     timeline_entries = []
