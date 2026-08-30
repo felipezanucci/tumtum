@@ -12,7 +12,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
 | **Android app (native)** | **Proven at a real six-hour event, 29/08.** The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. |
-| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. **Open defect:** the `data_quality_score` saturates — it assumes 1 reading/5 s, the strap gives 1/s, so a capture can lose 80% of its readings and still read "Qualidade 100%". Fix is continuity instead of volume; awaiting Felipe's go since it touches the deployed backend. |
+| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
@@ -97,12 +97,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
 18. **An event cannot cross midnight** — one date, two bare times, so
     "termina 03:00" cannot say it means the next day. A capture attaches by
     event id, so Saturday is unaffected; the model change waits.
-21. **`data_quality_score` cannot see a hole.** It scores volume against an
-    assumed 1 reading/5 s; the strap delivers 1/s, so coverage saturates at
-    100% until 80% of the night is missing. Realness reported "Qualidade 100%"
-    over a 79-minute gap. Fix: measure how many minutes of the window contain
-    a reading. Touches a deployed backend and restates existing sessions, so
-    it waits on Felipe.
+21. ~~**`data_quality_score` cannot see a hole.**~~ Fixed 2026-08-30. The
+    score counts 5-second slots now, so a gap empties its slots and shows.
+    Realness reads 78 instead of 100. **What is left is one deploy and one
+    tap:** the row in the database still carries the old 100 until that night
+    is analysed again, and the app itself is the thing that does it —
+    "Procurar meus momentos" restates the score from the stored readings.
 22. **The Realness moments have no names.** No timeline rows for the event, so
     `116 bpm às 01:24` has no story attached — and the story is the card.
     Felipe's memory of the night is the only source.
@@ -125,6 +125,76 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-30 — "Qualidade 100%" over a 79-minute hole: the score measured the wrong thing
+
+The twelfth instance of this project's oldest bug class was a document. The
+thirteenth is a number, and it is the most confident one the app has shown.
+
+The night screen for Realness read **Qualidade 100%**. The capture ran
+21:11 → 03:17, and the strap was only on for the last 287 of those 366
+minutes — Felipe connected it briefly at home, then again at the venue. A
+**79-minute hole**, a fifth of the window, and the score was perfect.
+
+Nothing was broken. The formula was:
+
+```python
+expected_points = duration_minutes * 12   # ~1 reading per 5 seconds
+coverage = min(len(bpm_values) / expected_points, 1.0)
+```
+
+It measures **volume**, and the cap is what makes volume a lie. The strap
+delivers **one reading per second** — twelve times the assumed rate — so the
+ratio only falls below 1.0 once **more than 11 readings in 12 are gone**. A
+capture can lose eighty percent of a night and still be announced as
+complete. The rate was assumed in 2026, the strap arrived later, and nothing
+connected the two.
+
+### The tell was on the same screen
+
+The curve drew the hole as one long straight diagonal, because that is what
+two readings 79 minutes apart look like when you join them. **The chart was
+honest and the number was not**, side by side, in the same view. That is the
+whole bug class in one screenshot: the drawing came from the data, the number
+came from an assumption about the data.
+
+It surfaced only because Felipe volunteered, unprompted, that 21:11 was a
+brief test at home. Nothing in the app said so. No test failed. Nothing
+would ever have failed — the formula was correct against its own premise.
+
+### The fix is a change of question
+
+`backend/app/services/data_quality.py` counts **5-second slots**: how many
+of the window's slots hold at least one reading. 5 seconds because that is
+the detector's own smoothing window — the finest resolution any answer
+downstream depends on — and it is the same measure `Cadence` already
+performs on the phone before an upload is offered.
+
+One measure closes both failures. A hole empties its slots, so it shows.
+A watch writing once a minute fills one slot in twelve and scores **8**,
+which is the truth about what it can and cannot find. Volume alone buys
+nothing: a thousand readings crammed into one minute of an hour describe one
+minute. Realness now reads **78**, and the missing 22 is the hole.
+
+Nine tests, the first of them the Realness capture at its real numbers, so
+the case that exposed this is now the case that guards it.
+
+### Restating the past
+
+`analyze_session` recomputes the score from the stored rows on every
+analysis. Old sessions are not migrated and not left stranded either: the
+night corrects itself the next time someone opens it. **The Realness row
+still says 100 until then** — one deploy, then "Procurar meus momentos" on
+that night.
+
+### What it costs to learn
+
+Both numbers came from the same readings and only one of them was checked
+against reality. **A derived number needs a case where it must be wrong,
+and the test has to be written from a real capture, not from the formula.**
+Nine tests written against that formula would all have passed.
 
 ---
 
