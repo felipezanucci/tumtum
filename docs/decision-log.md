@@ -5,13 +5,14 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-08-27
+## Where things stand — 2026-08-30
 
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **No longer a WebView shell.** Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
-| **Path 2 — fans' own watches** | **Health Connect measured, 29/08: Samsung writes all night at exactly 1 reading/minute** (Fit3, ordinary sleep, no workout). The exercise-only fear is dead; the cadence is the middle outcome — 10× better than the 10-minute nightmare, 12× short of the detector's gate. Six hours gives 360 points: a true curve, but a 30–60 s emotional peak yields one sample or none. **The workout stretch is now the decisive measurement**, running tonight at Realness. **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
+| **Android app (native)** | **Proven at a real six-hour event, 29/08.** The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. |
+| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. **Open defect:** the `data_quality_score` saturates — it assumes 1 reading/5 s, the strap gives 1/s, so a capture can lose 80% of its readings and still read "Qualidade 100%". Fix is continuity instead of volume; awaiting Felipe's go since it touches the deployed backend. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
@@ -96,6 +97,18 @@ the linked documents — this file is the index and the reasoning, not a diary.
 18. **An event cannot cross midnight** — one date, two bare times, so
     "termina 03:00" cannot say it means the next day. A capture attaches by
     event id, so Saturday is unaffected; the model change waits.
+21. **`data_quality_score` cannot see a hole.** It scores volume against an
+    assumed 1 reading/5 s; the strap delivers 1/s, so coverage saturates at
+    100% until 80% of the night is missing. Realness reported "Qualidade 100%"
+    over a 79-minute gap. Fix: measure how many minutes of the window contain
+    a reading. Touches a deployed backend and restates existing sessions, so
+    it waits on Felipe.
+22. **The Realness moments have no names.** No timeline rows for the event, so
+    `116 bpm às 01:24` has no story attached — and the story is the card.
+    Felipe's memory of the night is the only source.
+23. **Xiaomi Mi Band 9 untested.** Bought, unopened as far as the log knows.
+    One night answers whether the 1/min ceiling is Samsung's or Health
+    Connect's — the last open question of Etapa 0.
 19. **The Brazilian age/sex split for wearables is still unknown — and Super
     Panorama does not carry it.** Felipe opened the June 2026 edition on 27/08:
     it gives penetration (30,1%), the class cut and the function ranking, but
@@ -112,6 +125,120 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-30 — the Realness night: six hours, twenty moments, and the number that settles the watch question
+
+The festival capture ran. **21:11 → 03:17, six hours and six minutes, twenty
+moments detected, Média 78 · Máx 116 · Mín 58.** The strap held, the upload
+went through, the night opened, and the card button is sitting there. The
+capture path is no longer "proven in a rehearsal" — it is proven at a real
+six-hour event.
+
+### The cross-validation nobody planned
+
+The Fit3 was on the wrist the whole night with a workout running (22:28–03:17,
+4h48). Two independent technologies, one body, one night:
+
+| | Strap (chest, ECG-grade) | Fit3 (wrist, optical) |
+|---|---|---|
+| Maximum of the night | **116 bpm** | **115 bpm** |
+| Time of that peak | **01:24** | **01:24** |
+
+One bpm apart, same minute. That validates both instruments at once, and
+settles that the 01:24 peak was real rather than an artefact.
+
+### The finding that closes the watch question
+
+The twenty moments the detector found have durations:
+
+```
+22 21 19 19 17 17 16 14 13 13 13 13 12 12 12 11 11 10 10 8   (seconds)
+```
+
+Median **13 s**, longest **22 s**. And the Fit3, in its best case — workout
+running — samples once every **32 s**.
+
+> **All twenty moments are shorter than the interval between two Fit3
+> readings.**
+
+| | Samples falling inside one moment |
+|---|---|
+| Strap | 8 to 22 |
+| Fit3 with a workout | **0.25 to 0.69** |
+| Fit3 without | 0.13 to 0.37 |
+
+That is not an argument, it is arithmetic on measured data: a 13-second moment
+has nowhere to exist in a series sampled every 32 seconds. **The watch path
+delivers the curve of the night; the moments are too small for it.** The
+morning's verdict was right; this is the reason it is right.
+
+### Correcting the correction
+
+The record is worth keeping honest. This morning I read only the hourly
+background records, found 1/min, and concluded the workout changed nothing.
+At midday the workout record showed ~32 s and peaks to 115, so I corrected to
+"between the curve and the moments". Tonight the moment durations settle it
+properly, back at the original verdict by a better road. **The first
+conclusion was right for the wrong reason, which is not the same as being
+right.**
+
+### A defect Felipe found by asking a good question
+
+He mentioned the session starts at 21:11 because he tested the strap briefly
+at home, then connected for real at the venue around 22:30 — so the night
+should contain a **79-minute hole**. The app reported **Qualidade 100%**.
+
+The scoring formula assumes a full night is one reading every 5 s:
+
+```
+expected = duration_minutes × 12
+coverage = min(actual / expected, 1.0)
+```
+
+The strap delivers one reading per *second* — twelve times the assumed rate —
+so coverage saturates:
+
+| | |
+|---|---|
+| 6h06 → "expected" | 4,392 points |
+| Strap at 1 Hz | 21,960 points |
+| With the 79-minute hole | ~17,220 points |
+| Score, either way | **100%** |
+
+**The strap can lose 80% of its readings and the app still says "Qualidade
+100%".** This project's signature bug class again, with an extra twist worth
+keeping: **the chart is honest and the number is not** — the curve draws the
+gap as one long straight diagonal at the start, exactly where the data is
+missing, while the score beside it claims perfection.
+
+The fix is to measure *continuity* (how many minutes of the window contain a
+reading) rather than *volume*. Not yet applied: it touches a deployed backend
+and would restate the score on existing sessions, so it waits on Felipe's
+word.
+
+### Sitting made it the hard case, and it passed
+
+Felipe spent most of the night seated. That is not a weakness in the test —
+it is the strongest version of it. TumTum exists to capture emotion in a body
+that is **not moving**, and stationary response is precisely the condition
+where the J-Style V8 failed: its firmware clamps amplitude when the
+accelerometer reads still. A seated night that still yields twenty moments
+between 84 and 116 bpm, against a resting 58, is the core hypothesis holding
+in the adverse condition rather than the flattering one. Dancing would have
+made the peaks bigger and the detection easier.
+
+The Fit3's agreement is worth the same reading: an optical wrist sensor on a
+seated person is a hard case for optical, and it still landed within 1 bpm of
+the chest strap.
+
+### What the night did not produce
+
+**The moments have no names.** The Realness has no timeline in the database,
+so `116 bpm às 01:24` is a number without a story — and the card's whole point
+is the story. Felipe's own memory of the night is, for now, the only source
+for that timeline.
 
 ---
 
@@ -155,6 +282,14 @@ the minute falls. And the detector's own arithmetic says the same: its
 5-second smoothing window would hold 0.08 of a point and its 300-second
 baseline 5 points — no reliable standard deviation lives in five numbers. It
 would run, and what it found would be noise wearing the name of a moment.
+
+> **Corrected the same day — see the 30/08 entry.** Samsung writes *two kinds
+> of record* for one night, and this reads only one of them. The hourly
+> background records are 1/min; the **workout record** is one every ~32 s and
+> carries peaks the hourly ones never saw (115 bpm against their 97). The
+> conclusion below — that the workout changes nothing — was drawn from half
+> the data. The final answer is in the 30/08 entry, and it agrees with this
+> one's *verdict* for a different and better reason.
 
 **So the workout stretch is now the decisive measurement of the project.**
 The single remaining question is whether a hand-started workout lifts the Fit3
