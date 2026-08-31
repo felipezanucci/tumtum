@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/tumtum_lime" />
+            android:textColor="@color/tumtum_pink" />
 
         <!-- The matched moment when the event has a timeline; the clock otherwise. -->
         <TextView

@@ -42,7 +42,7 @@
         android:text="@string/chosen_mark"
         android:textSize="18sp"
         android:visibility="gone"
-        android:textColor="@color/tumtum_lime" />
+        android:textColor="@color/tumtum_pink" />
 
     <!--
       Editing is its own explicit door. Tapping the row chooses the night, and

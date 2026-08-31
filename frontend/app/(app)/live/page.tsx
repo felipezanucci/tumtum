@@ -451,7 +451,7 @@ export default function LivePage() {
               style={{
                 transition: `stroke-dashoffset ${holdingExit ? QUIET_EXIT_HOLD_MS : 200}ms linear`,
               }}
-              className="text-tumtum-lime"
+              className="text-tumtum-pink"
             />
           </svg>
           <span className="px-6 text-center text-sm text-tumtum-muted">
@@ -675,7 +675,7 @@ export default function LivePage() {
                     id="event"
                     value={eventId}
                     onChange={(e) => setEventId(e.target.value)}
-                    className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none"
+                    className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none"
                   >
                     <option value="">Sem evento — só a curva</option>
                     {eventList.map((item) => (
@@ -710,7 +710,7 @@ export default function LivePage() {
               )}
 
               {sampleCount > 0 && confirmingFinish && (
-                <Card className="mt-6 border-tumtum-lime/50">
+                <Card className="mt-6 border-tumtum-pink/50">
                   <Card.Header>
                     <Card.Title>Encerrar a captura?</Card.Title>
                   </Card.Header>

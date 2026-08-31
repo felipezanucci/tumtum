@@ -133,7 +133,7 @@ function ExperienceContent() {
               <div className="mt-2 flex flex-wrap gap-4 text-sm text-tumtum-muted">
                 {session.avg_bpm && <span>Média: {session.avg_bpm} bpm</span>}
                 {session.max_bpm && (
-                  <span className="text-tumtum-lime">Máx: {session.max_bpm} bpm</span>
+                  <span className="text-tumtum-pink">Máx: {session.max_bpm} bpm</span>
                 )}
                 {session.min_bpm && <span>Mín: {session.min_bpm} bpm</span>}
                 {session.data_quality_score !== null && (

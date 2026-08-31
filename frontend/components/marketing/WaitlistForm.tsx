@@ -27,7 +27,7 @@ type State =
  * A failure keeps what they typed and says the server was the problem.
  */
 const FIELD =
-  'min-w-[220px] flex-1 rounded-full border-2 border-tumtum-black bg-transparent px-[22px] py-3.5 text-base text-tumtum-black outline-none placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-tumtum-black focus-visible:ring-offset-2 focus-visible:ring-offset-tumtum-lime disabled:opacity-60'
+  'min-w-[220px] flex-1 rounded-full border-2 border-tumtum-black bg-transparent px-[22px] py-3.5 text-base text-tumtum-black outline-none placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-tumtum-black focus-visible:ring-offset-2 focus-visible:ring-offset-tumtum-pink disabled:opacity-60'
 
 export function WaitlistForm({ source }: { source?: string }) {
   const [firstName, setFirstName] = useState('')
@@ -150,7 +150,7 @@ export function WaitlistForm({ source }: { source?: string }) {
         <button
           type="submit"
           disabled={sending}
-          className="rounded-full bg-tumtum-black px-[30px] py-3.5 text-base font-headline text-tumtum-lime transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-tumtum-black focus-visible:ring-offset-2 focus-visible:ring-offset-tumtum-lime disabled:scale-100 disabled:opacity-70 motion-reduce:transition-none motion-reduce:hover:scale-100"
+          className="rounded-full bg-tumtum-black px-[30px] py-3.5 text-base font-headline text-tumtum-pink transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-tumtum-black focus-visible:ring-offset-2 focus-visible:ring-offset-tumtum-pink disabled:scale-100 disabled:opacity-70 motion-reduce:transition-none motion-reduce:hover:scale-100"
         >
           {sending ? 'Entrando…' : 'Entrar na lista'}
         </button>

@@ -41,7 +41,7 @@ export default function SoloCard({
 
         {/* Peak BPM */}
         <div className="text-center">
-          <p className="text-7xl font-bold text-tumtum-lime">{peakBpm}</p>
+          <p className="text-7xl font-bold text-tumtum-pink">{peakBpm}</p>
           <p className="text-xl font-semibold text-tumtum-yellow">BPM</p>
           {matchedLabel && (
             <p className="mt-2 text-sm text-tumtum-white">
@@ -70,7 +70,7 @@ export default function SoloCard({
       </div>
 
       {/* Decorative glow */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-tumtum-lime/5 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-tumtum-pink/5 to-transparent" />
     </div>
   )
 }

@@ -78,7 +78,7 @@
             android:layout_marginTop="16dp"
             android:text="@string/sign_in"
             android:textColor="@color/tumtum_black"
-            android:backgroundTint="@color/tumtum_lime" />
+            android:backgroundTint="@color/tumtum_pink" />
 
         <!--
           Which night this is. Without it the backend has no timeline to match
@@ -111,7 +111,7 @@
             android:text="--"
             android:textSize="96sp"
             android:textStyle="bold"
-            android:textColor="@color/tumtum_lime" />
+            android:textColor="@color/tumtum_pink" />
 
         <TextView
             android:id="@+id/bpmLabel"
@@ -139,7 +139,7 @@
             android:gravity="center"
             android:textSize="13sp"
             android:visibility="gone"
-            android:textColor="@color/tumtum_lime" />
+            android:textColor="@color/tumtum_pink" />
 
         <Button
             android:id="@+id/action"
@@ -149,7 +149,7 @@
             android:minHeight="56dp"
             android:text="@string/connect"
             android:textColor="@color/tumtum_black"
-            android:backgroundTint="@color/tumtum_lime" />
+            android:backgroundTint="@color/tumtum_pink" />
 
         <!--
           A door into the app that does not depend on an upload having worked.
@@ -168,7 +168,7 @@
             android:paddingBottom="12dp"
             android:text="@string/open_nights"
             android:textSize="15sp"
-            android:textColor="@color/tumtum_lime" />
+            android:textColor="@color/tumtum_pink" />
     </LinearLayout>
     </ScrollView>
 </LinearLayout>

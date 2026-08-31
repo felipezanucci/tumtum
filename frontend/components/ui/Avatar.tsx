@@ -47,7 +47,7 @@ export default function Avatar({ src, name, size = 'md', className = '' }: Avata
     <div
       className={`
         inline-flex items-center justify-center rounded-full
-        bg-tumtum-lime font-medium text-tumtum-black
+        bg-tumtum-pink font-medium text-tumtum-black
         ${sizeStyles[size]}
         ${className}
       `}

@@ -36,11 +36,15 @@ def _font(role: str, size: int) -> ImageFont.FreeTypeFont:
         return ImageFont.load_default()
 
 
-# Brand manual MVP v0.1: two neutrals and one acid pair. Nothing from the
-# previous red/cyan palette survives.
+# Brand manual MVP v0.4: two neutrals and a proprietary pop duo. Acid Lime
+# #C6FF00 was the primary accent through v0.1 and does not survive.
+#
+# On this black canvas Pink measures 7.93:1 against Lime's 17.7:1 — still AA
+# everywhere and AAA at the sizes the hero number uses, but roughly half as
+# loud. The card already answers that with scale rather than a brighter tint.
 TUMTUM_BLACK = (0, 0, 0)  # #000000 — canvas
 TUMTUM_WHITE = (255, 255, 255)  # #FFFFFF — supporting information
-TUMTUM_LIME = (198, 255, 0)  # #C6FF00 — primary accent
+TUMTUM_PINK = (255, 111, 145)  # #FF6F91 — primary accent
 TUMTUM_YELLOW = (239, 255, 0)  # #EFFF00 — secondary accent
 
 # The palette has no greys, so separation on the black canvas comes from white
@@ -177,9 +181,9 @@ def _draw_curve(
         pts = [px(i, v) for i, v in run]
         if len(pts) == 1:
             x, y = pts[0]
-            draw.ellipse([x - 3, y - 3, x + 3, y + 3], fill=TUMTUM_LIME)
+            draw.ellipse([x - 3, y - 3, x + 3, y + 3], fill=TUMTUM_PINK)
         else:
-            draw.line(pts, fill=TUMTUM_LIME, width=5, joint="curve")
+            draw.line(pts, fill=TUMTUM_PINK, width=5, joint="curve")
 
     if peak_slot is not None and curve[peak_slot] is not None:
         x, y = px(peak_slot, curve[peak_slot])
@@ -275,7 +279,7 @@ def generate_moment_card(
         num_font = _fit_text(draw, number, "hero", num_size, inner - 160)
         num_top = copy_y + (34 if format == "story" else 18)
         draw.text(
-            (margin - 12, num_top), number, fill=TUMTUM_LIME, font=num_font, anchor="lt"
+            (margin - 12, num_top), number, fill=TUMTUM_PINK, font=num_font, anchor="lt"
         )
         nb = draw.textbbox((margin - 12, num_top), number, font=num_font, anchor="lt")
         draw.text(
@@ -292,7 +296,7 @@ def generate_moment_card(
         # Centre the number in what is left between the copy and the footer,
         # so it sits in the part of the frame the viewer actually sees.
         num_y = (copy_y + foot_top) // 2
-        draw.text((w // 2, num_y), number, fill=TUMTUM_LIME, font=num_font, anchor="mm")
+        draw.text((w // 2, num_y), number, fill=TUMTUM_PINK, font=num_font, anchor="mm")
         y = draw.textbbox((w // 2, num_y), number, font=num_font, anchor="mm")[3] + 12
         draw.text(
             (w // 2, y), "bpm", fill=TUMTUM_YELLOW, font=_font("hero", 46), anchor="mt"
@@ -404,7 +408,7 @@ def _moment_card_landscape(
     stack = num_h + 8 + 32 + (34 if label else 0)
     top = 178 + max(0, (h - 178 - 132 - stack) // 2)
 
-    draw.text((w // 2, top), number, fill=TUMTUM_LIME, font=num_font, anchor="mt")
+    draw.text((w // 2, top), number, fill=TUMTUM_PINK, font=num_font, anchor="mt")
     y = top + num_h + 8
     draw.text((w // 2, y), "bpm", fill=TUMTUM_YELLOW, font=bpm_font, anchor="mt")
     y += 32
@@ -476,7 +480,7 @@ def generate_solo_card(
 
     # The canvas is flat black. The previous version washed a gradient of the
     # accent across it by mixing only the accent's red channel — harmless while
-    # the accent was red, meaningless once it became lime. Accents concentrate
+    # the accent was red, meaningless once it became Pink. Accents concentrate
     # emphasis in this system; they are not a background wash.
 
     # Logo
@@ -504,7 +508,7 @@ def generate_solo_card(
     # Peak BPM highlight
     peak_y = (h // 2) + (100 if format == "story" else 50)
     draw.text(
-        (w // 2, peak_y), str(peak_bpm), fill=TUMTUM_LIME, font=font_large, anchor="mm"
+        (w // 2, peak_y), str(peak_bpm), fill=TUMTUM_PINK, font=font_large, anchor="mm"
     )
     draw.text(
         (w // 2, peak_y + 80), "BPM", fill=TUMTUM_YELLOW, font=font_medium, anchor="mt"
@@ -621,7 +625,7 @@ def generate_comparison_card(
     draw.text(
         (col_left, vs_y),
         str(user_peak_bpm),
-        fill=TUMTUM_LIME,
+        fill=TUMTUM_PINK,
         font=font_large,
         anchor="mt",
     )
@@ -706,7 +710,7 @@ def _draw_hr_curve(
             (points[0][0], y_start + height),
         ]
         overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
-        ImageDraw.Draw(overlay).polygon(area_points, fill=(*TUMTUM_LIME, 38))
+        ImageDraw.Draw(overlay).polygon(area_points, fill=(*TUMTUM_PINK, 38))
         img.alpha_composite(overlay) if img.mode == "RGBA" else img.paste(
             Image.alpha_composite(img.convert("RGBA"), overlay).convert(img.mode)
         )
@@ -714,4 +718,4 @@ def _draw_hr_curve(
         # Redraw on the composited surface: the line is the evidence.
         draw = ImageDraw.Draw(img)
         for i in range(len(points) - 1):
-            draw.line([points[i], points[i + 1]], fill=TUMTUM_LIME, width=3)
+            draw.line([points[i], points[i + 1]], fill=TUMTUM_PINK, width=3)

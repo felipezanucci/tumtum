@@ -110,7 +110,7 @@ export default function ProfilePage() {
             ].map(({ label, value, href }) => (
               <Card
                 key={label}
-                className={`text-center ${href ? 'cursor-pointer transition-colors hover:border-tumtum-lime/50' : ''}`}
+                className={`text-center ${href ? 'cursor-pointer transition-colors hover:border-tumtum-pink/50' : ''}`}
                 onClick={href ? () => router.push(href) : undefined}
               >
                 <p className="text-2xl font-bold text-tumtum-white">{value}</p>
@@ -130,7 +130,7 @@ export default function ProfilePage() {
                   Nenhum dispositivo conectado.{' '}
                   <button
                     onClick={() => router.push('/onboarding')}
-                    className="text-tumtum-lime hover:underline"
+                    className="text-tumtum-pink hover:underline"
                   >
                     Conectar agora
                   </button>

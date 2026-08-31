@@ -81,7 +81,7 @@ export default function SessionsPage() {
                   href={`/experience?session=${session.id}`}
                   className="block"
                 >
-                  <Card className="transition-colors hover:border-tumtum-lime/50">
+                  <Card className="transition-colors hover:border-tumtum-pink/50">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-tumtum-white">
@@ -102,7 +102,7 @@ export default function SessionsPage() {
                       </div>
                       <div className="text-right">
                         {session.max_bpm && (
-                          <p className="text-lg font-semibold text-tumtum-lime">
+                          <p className="text-lg font-semibold text-tumtum-pink">
                             {session.max_bpm} <span className="text-xs">máx</span>
                           </p>
                         )}

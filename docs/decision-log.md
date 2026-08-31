@@ -106,14 +106,11 @@ the linked documents — this file is the index and the reasoning, not a diary.
 22. **The Realness moments have no names.** No timeline rows for the event, so
     `116 bpm às 01:24` has no story attached — and the story is the card.
     Felipe's memory of the night is the only source.
-26. **The palette changed and the code has not.** Manual v0.4 (31/08) replaces
-    Acid Lime `#C6FF00` with **TumTum Pink `#FF6F91`** as the primary accent.
-    `CLAUDE.md` and `docs/design-brief.md` are current; **the product is not**
-    — `TUMTUM_LIME` in `card_generator.py`, the Android drawing code, and
-    `frontend/tailwind.config.ts` all still ship lime, so every card generated
-    today is off-brand. It is a mechanical change (a handful of constants) but
-    a visible one, and Felipe may want it timed with the screen design rather
-    than landing on its own. His call.
+26. ~~**The palette changed and the code has not.**~~ Done 2026-08-31, forced
+    by the design-system sync: syncing components whose accent is a deleted
+    colour would have seeded every screen designed in Claude Design with lime.
+    70 usages across 34 files, all three codebases. Every `bg-tumtum-lime`
+    already carried `text-tumtum-black`, so contrast survived the swap intact.
 23. **Xiaomi Mi Band 9 untested.** Bought, unopened as far as the log knows.
     One night answers whether the 1/min ceiling is Samsung's or Health
     Connect's — the last open question of Etapa 0.
@@ -154,6 +151,46 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-31 — the palette migration, forced by a sync that would have spread the old one
+
+Item 26 was left open with the timing as Felipe's call. Starting a design-system
+sync to Claude Design answered it: the sync uploads the real compiled
+components, and **the design agent then builds every screen out of them**. Push
+a library whose primary accent is a colour the manual deleted, and every screen
+designed afterwards is lime — the code and the designs both need redoing.
+
+So the migration ran first. **70 usages across 34 files**, in all three
+codebases: `tailwind.config.ts` and 12 components plus the pages that use them,
+`colors.xml` and `HRCurveView` on Android, `card_generator.py` on the backend.
+
+### Mostly a rename, and one reason that is not luck
+
+**Every `bg-tumtum-lime` in the codebase already carried
+`text-tumtum-black`.** Not one white-on-accent pairing existed, so the swap
+preserved contrast without a single judgement call. That is not luck: white on
+Acid Lime was 1.19:1 and already forbidden by v0.1, so the rule that protected
+the old palette is what made the new one land clean. Black on Pink is 7.93:1.
+
+The literal colours were the part that needed care rather than `sed` — the
+Tailwind token, the `PINK` constant in `HRCurve.tsx`, two SVG attributes on the
+landing page, and the RGB tuple in the card generator.
+
+### The change makes one thing visibly better
+
+Rendering the card in Pink showed something the argument had missed. **Acid
+Lime and Toxic Yellow were nearly the same hue**, so the yellow moment-marker
+sat on a lime curve and all but vanished — the very element whose job is to
+say *this is the moment*. Against Pink it reads immediately. The palette
+change bought a legibility fix nobody asked for.
+
+Against that, the loss is real and already recorded: Pink is 7.93:1 on black
+where Lime was 17.7:1. The hero number is large enough that AAA still holds,
+but anything small and Pink is now carrying less weight than it did.
+
+Verified: 65 backend tests, 55 frontend tests, ruff clean, lint unchanged.
 
 ---
 

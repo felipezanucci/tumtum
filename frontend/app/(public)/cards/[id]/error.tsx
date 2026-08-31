@@ -8,7 +8,7 @@ export default function SharedCardError() {
       <div className="text-center">
         <p className="text-lg text-tumtum-white">Não foi possível abrir esse momento.</p>
         <Link href="/" className="mt-6 inline-block">
-          <span className="rounded-lg bg-tumtum-lime px-8 py-3 text-lg font-label text-tumtum-black">
+          <span className="rounded-lg bg-tumtum-pink px-8 py-3 text-lg font-label text-tumtum-black">
             Conhecer a TumTum
           </span>
         </Link>

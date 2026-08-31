@@ -60,7 +60,7 @@
                 android:minHeight="48dp"
                 android:visibility="gone"
                 android:textColor="@color/tumtum_black"
-                android:backgroundTint="@color/tumtum_lime" />
+                android:backgroundTint="@color/tumtum_pink" />
 
             <TextView
                 android:id="@+id/windowTitle"
@@ -87,7 +87,7 @@
                     android:textSize="15sp"
                     android:visibility="gone"
                     android:textColor="@color/tumtum_white"
-                    android:buttonTint="@color/tumtum_lime" />
+                    android:buttonTint="@color/tumtum_pink" />
 
                 <RadioButton
                     android:id="@+id/optionRecent"
@@ -98,7 +98,7 @@
                     android:textSize="15sp"
                     android:visibility="gone"
                     android:textColor="@color/tumtum_white"
-                    android:buttonTint="@color/tumtum_lime" />
+                    android:buttonTint="@color/tumtum_pink" />
             </RadioGroup>
 
             <!-- Why the event option is absent, when it is: no event chosen,
@@ -121,7 +121,7 @@
                 android:text="@string/watch_read"
                 android:visibility="gone"
                 android:textColor="@color/tumtum_black"
-                android:backgroundTint="@color/tumtum_lime" />
+                android:backgroundTint="@color/tumtum_pink" />
 
             <!--
               Which app wrote the readings being described. Two bands on one
@@ -157,7 +157,7 @@
                 android:layout_marginTop="8dp"
                 android:textSize="14sp"
                 android:visibility="gone"
-                android:textColor="@color/tumtum_lime" />
+                android:textColor="@color/tumtum_pink" />
 
             <Button
                 android:id="@+id/send"
@@ -168,7 +168,7 @@
                 android:text="@string/watch_send"
                 android:visibility="gone"
                 android:textColor="@color/tumtum_black"
-                android:backgroundTint="@color/tumtum_lime" />
+                android:backgroundTint="@color/tumtum_pink" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

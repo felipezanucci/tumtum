@@ -13,7 +13,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-tumtum-lime text-tumtum-black hover:bg-tumtum-yellow active:bg-tumtum-lime',
+    'bg-tumtum-pink text-tumtum-black hover:bg-tumtum-yellow active:bg-tumtum-pink',
   secondary:
     'bg-tumtum-surface text-tumtum-white border border-tumtum-border hover:bg-tumtum-border',
   ghost:
@@ -37,7 +37,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={`
           inline-flex items-center justify-center rounded-lg font-medium
           transition-colors duration-150 focus:outline-none focus:ring-2
-          focus:ring-tumtum-lime focus:ring-offset-2 focus:ring-offset-tumtum-black
+          focus:ring-tumtum-pink focus:ring-offset-2 focus:ring-offset-tumtum-black
           disabled:opacity-50 disabled:cursor-not-allowed
           ${variantStyles[variant]}
           ${sizeStyles[size]}

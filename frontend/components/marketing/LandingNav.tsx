@@ -32,7 +32,7 @@ export function LandingNav() {
         <Wordmark className="w-[132px] text-tumtum-white" />
         <a
           href="#lista"
-          className="rounded-full bg-tumtum-lime px-5 py-2.5 text-sm font-headline text-tumtum-black transition-transform hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100"
+          className="rounded-full bg-tumtum-pink px-5 py-2.5 text-sm font-headline text-tumtum-black transition-transform hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100"
         >
           Entrar na lista
         </a>

@@ -121,7 +121,7 @@ export default function LandingPage() {
             <h1 className="text-[clamp(34px,5vw,62px)] font-hero uppercase leading-none tracking-[-0.02em] [text-shadow:0_2px_24px_rgba(0,0,0,0.5)]">
               Você sentiu.
               <br />
-              <span className="text-tumtum-lime">Agora tem prova.</span>
+              <span className="text-tumtum-pink">Agora tem prova.</span>
             </h1>
             <p className="mt-5 max-w-[40ch] text-[clamp(15px,1.6vw,18px)] text-white/80 [text-shadow:0_1px_16px_rgba(0,0,0,0.6)]">
               Os momentos mais marcantes da sua vida têm hora, lugar e batida. A
@@ -130,7 +130,7 @@ export default function LandingPage() {
             <div className="mt-9 flex flex-wrap items-center gap-[18px]">
               <a
                 href="#lista"
-                className="rounded-full bg-tumtum-lime px-8 py-4 text-base font-headline text-tumtum-black transition-transform hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100"
+                className="rounded-full bg-tumtum-pink px-8 py-4 text-base font-headline text-tumtum-black transition-transform hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100"
               >
                 Quero no meu próximo show
               </a>
@@ -145,20 +145,20 @@ export default function LandingPage() {
 
           {/* The card, as the product makes it */}
           <div className="flex justify-center md:justify-end">
-            <div className="flex aspect-[9/16] w-[min(248px,74vw)] rotate-[2.5deg] flex-col rounded-3xl border border-tumtum-lime/40 bg-black/80 px-[22px] py-6 shadow-[0_0_80px_rgba(198,255,0,0.15),0_24px_60px_rgba(0,0,0,0.8)] backdrop-blur-[6px] motion-reduce:rotate-0">
+            <div className="flex aspect-[9/16] w-[min(248px,74vw)] rotate-[2.5deg] flex-col rounded-3xl border border-tumtum-pink/40 bg-black/80 px-[22px] py-6 shadow-[0_0_80px_rgba(198,255,0,0.15),0_24px_60px_rgba(0,0,0,0.8)] backdrop-blur-[6px] motion-reduce:rotate-0">
               <Wordmark className="w-[82px] text-tumtum-white" />
               <p className="mt-[22px] text-[19px] font-hero uppercase leading-[1.12]">
                 Eu tava tranquilo.
                 <br />
                 Aí veio isso.
               </p>
-              <p className="mt-auto text-[100px] font-hero leading-[0.9] tracking-[-0.04em] text-tumtum-lime tabular-nums">
+              <p className="mt-auto text-[100px] font-hero leading-[0.9] tracking-[-0.04em] text-tumtum-pink tabular-nums">
                 187
                 <span className="ml-1.5 text-[17px] font-headline tracking-[0.08em] text-tumtum-muted">
                   BPM
                 </span>
               </p>
-              <span className="mt-3 self-start rounded-full bg-tumtum-lime px-[13px] py-[5px] text-[13.5px] font-headline text-tumtum-black tabular-nums">
+              <span className="mt-3 self-start rounded-full bg-tumtum-pink px-[13px] py-[5px] text-[13.5px] font-headline text-tumtum-black tabular-nums">
                 22:47
               </span>
               <p className="mt-3.5 text-base font-headline leading-tight">
@@ -179,7 +179,7 @@ export default function LandingPage() {
       <section className="border-t border-tumtum-border py-20 pb-[120px] md:py-[104px]">
         <div className="mx-auto max-w-[1120px] px-6">
           <Reveal>
-            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-lime">
+            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-pink">
               A comoção é real
             </p>
             <h2 className="max-w-[20ch] text-[clamp(32px,4.6vw,56px)] font-hero uppercase leading-[1.02] tracking-[-0.02em]">
@@ -201,12 +201,12 @@ export default function LandingPage() {
                 >
                   <VideoSlot label={reel.label} className="absolute inset-0" />
                   <div className="absolute inset-0 z-[1] bg-[linear-gradient(180deg,transparent_45%,rgba(0,0,0,0.85))]" />
-                  <span className="absolute right-4 top-4 z-[2] rounded-full bg-tumtum-lime px-[13px] py-1.5 text-[15px] font-hero text-tumtum-black tabular-nums">
+                  <span className="absolute right-4 top-4 z-[2] rounded-full bg-tumtum-pink px-[13px] py-1.5 text-[15px] font-hero text-tumtum-black tabular-nums">
                     {reel.bpm}
                   </span>
                   <p className="absolute inset-x-5 bottom-5 z-[2] text-xl font-hero uppercase leading-[1.12]">
                     {reel.caption}
-                    <span className="mt-2 block text-[12.5px] font-label uppercase tracking-[0.1em] text-tumtum-lime">
+                    <span className="mt-2 block text-[12.5px] font-label uppercase tracking-[0.1em] text-tumtum-pink">
                       {reel.meta}
                     </span>
                   </p>
@@ -221,7 +221,7 @@ export default function LandingPage() {
       <section className="border-t border-tumtum-border py-20 md:py-[104px]">
         <div className="mx-auto max-w-[1120px] px-6">
           <Reveal>
-            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-lime">
+            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-pink">
               O que a TumTum faz
             </p>
             <h2 className="max-w-[24ch] text-[clamp(32px,4.6vw,56px)] font-hero uppercase leading-[1.02] tracking-[-0.02em]">
@@ -246,7 +246,7 @@ export default function LandingPage() {
       <section id="como" className="border-t border-tumtum-border py-20 md:py-[104px]">
         <div className="mx-auto max-w-[1120px] px-6">
           <Reveal>
-            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-lime">
+            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-pink">
               Como funciona
             </p>
             <h2 className="max-w-[20ch] text-[clamp(32px,4.6vw,56px)] font-hero uppercase leading-[1.02] tracking-[-0.02em]">
@@ -255,7 +255,7 @@ export default function LandingPage() {
             <div className="mt-14 grid grid-cols-1 gap-px border border-tumtum-border bg-tumtum-border md:grid-cols-3">
               {STEPS.map((step) => (
                 <div key={step.n} className="bg-tumtum-black px-7 pb-11 pt-9">
-                  <p className="text-[15px] font-hero tracking-[0.06em] text-tumtum-lime tabular-nums">
+                  <p className="text-[15px] font-hero tracking-[0.06em] text-tumtum-pink tabular-nums">
                     {step.n}
                   </p>
                   <h3 className="mt-4 text-[21px] font-headline leading-tight">
@@ -273,7 +273,7 @@ export default function LandingPage() {
       <section className="border-t border-tumtum-border py-20 md:py-[104px]">
         <div className="mx-auto max-w-[1120px] px-6">
           <Reveal>
-            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-lime">
+            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-pink">
               O card é a prova
             </p>
             <h2 className="max-w-[20ch] text-[clamp(32px,4.6vw,56px)] font-hero uppercase leading-[1.02] tracking-[-0.02em]">
@@ -294,7 +294,7 @@ export default function LandingPage() {
                 <p className="mt-2.5 text-[17px] font-hero uppercase leading-[1.15]">
                   Aqui acabou meu psicológico.
                 </p>
-                <p className="mt-3.5 text-[52px] font-hero leading-[0.9] tracking-[-0.03em] text-tumtum-lime tabular-nums">
+                <p className="mt-3.5 text-[52px] font-hero leading-[0.9] tracking-[-0.03em] text-tumtum-pink tabular-nums">
                   187
                 </p>
                 <p className="mt-2.5 text-[12.5px] text-tumtum-muted">
@@ -322,11 +322,11 @@ export default function LandingPage() {
                   <polyline
                     points="0,72 22,68 40,70 58,62 76,66 96,58 112,62 130,50 148,56 160,18 172,54 190,60 210,56 240,62"
                     fill="none"
-                    stroke="#C6FF00"
+                    stroke="#FF6F91"
                     strokeWidth="2.5"
                     strokeLinejoin="round"
                   />
-                  <circle cx="160" cy="18" r="4.5" fill="#C6FF00" />
+                  <circle cx="160" cy="18" r="4.5" fill="#FF6F91" />
                 </svg>
                 <p className="mt-2.5 text-[12.5px] text-tumtum-muted">
                   O pico marcado no seu tempo real da noite.
@@ -344,7 +344,7 @@ export default function LandingPage() {
                 </p>
                 <div className="mt-3.5 flex gap-5">
                   <div>
-                    <b className="block text-[34px] font-hero tracking-[-0.02em] text-tumtum-lime tabular-nums">
+                    <b className="block text-[34px] font-hero tracking-[-0.02em] text-tumtum-pink tabular-nums">
                       187
                     </b>
                     <span className="text-[11px] uppercase tracking-[0.1em] text-tumtum-muted">
@@ -383,7 +383,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 z-[1] bg-[linear-gradient(90deg,rgba(0,0,0,0.92)_0%,rgba(0,0,0,0.7)_55%,rgba(0,0,0,0.45)_100%)]" />
         <div className="relative z-[2] mx-auto max-w-[1120px] px-6">
           <Reveal>
-            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-lime">
+            <p className="mb-5 text-[13px] font-headline uppercase tracking-[0.16em] text-tumtum-pink">
               O próximo nível
             </p>
             <h2 className="max-w-[20ch] text-[clamp(32px,4.6vw,56px)] font-hero uppercase leading-[1.02] tracking-[-0.02em]">
@@ -407,7 +407,7 @@ export default function LandingPage() {
       {/* Lista de espera */}
       <section
         id="lista"
-        className="border-t border-tumtum-border bg-tumtum-lime py-20 text-tumtum-black md:py-[104px]"
+        className="border-t border-tumtum-border bg-tumtum-pink py-20 text-tumtum-black md:py-[104px]"
       >
         <div className="mx-auto max-w-[1120px] px-6">
           <Reveal>
@@ -444,7 +444,7 @@ export default function LandingPage() {
                   aria-label={social.name}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-[42px] w-[42px] items-center justify-center rounded-full border border-tumtum-border text-tumtum-white transition-colors hover:border-tumtum-lime hover:text-tumtum-lime"
+                  className="flex h-[42px] w-[42px] items-center justify-center rounded-full border border-tumtum-border text-tumtum-white transition-colors hover:border-tumtum-pink hover:text-tumtum-pink"
                 >
                   <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor">
                     <path d={social.path} />
