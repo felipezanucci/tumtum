@@ -13,6 +13,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+from app.services import card_curve
+
 FONT_DIR = Path(__file__).resolve().parent.parent / "assets" / "fonts"
 
 # Weights named for the roles the brand manual assigns them.
@@ -87,9 +89,102 @@ def _paste_wordmark(img: Image.Image, centre_x: int, top: int, height: int) -> N
 
 # Share card 01 — "Só o momento". The manual's universal default: the only
 # format that needs nothing but the user's own moment, so it is always
-# available. The data dominates, the wordmark is small and never the subject,
-# and there is no chart — a time series belongs to card 03, "Minha noite".
-MOMENT_COPY = ("EU TAVA TRANQUILO.", "AÍ VEIO ISSO.")
+# available. The data dominates and the wordmark is small and never the
+# subject. It now carries the night's curve when the caller has one; see
+# app/services/card_curve.py for why that reverses an earlier decision.
+
+
+def moment_copy(
+    peak_bpm: int,
+    avg_bpm: int | None,
+    moment_time: str | None,
+) -> tuple[str, str]:
+    """Two lines built from facts this card can actually prove.
+
+    This replaces a module-level constant — ``EU TAVA TRANQUILO. / AÍ VEIO
+    ISSO.`` — that every card ever generated carried. It failed twice at once.
+    A line identical on everybody's card says nothing about anybody, and a
+    viral object has to be specific to the person holding it. Worse, "eu tava
+    tranquilo" asserted a **calm baseline nobody measured**: if the person's
+    night ran high the largest text on the card was simply false, which is
+    this project's oldest bug class printed on a public object.
+
+    So every branch here states something the card's own numbers establish,
+    and the fallbacks claim less rather than inventing more. The night's
+    average is the reference because it is the honest one available — the
+    detector's local baseline is not stored on a peak, and a card must never
+    reach for a number it does not have.
+    """
+    at = moment_time.upper() if moment_time else None
+
+    # The night as the reference, and the moment as the departure from it.
+    # Only when there is a rise: "até" promises one, and a promise the data
+    # does not keep is the thing this function exists to stop.
+    if avg_bpm and peak_bpm > avg_bpm:
+        return (
+            f"{avg_bpm} A NOITE INTEIRA.",
+            f"ATÉ {at}." if at else "ATÉ ESSE MOMENTO.",
+        )
+
+    # No average, or no rise above it. State the moment and nothing else.
+    return ("SEU CORAÇÃO,", f"ÀS {at}." if at else "NAQUELE MOMENTO.")
+
+
+def _draw_curve(
+    draw: ImageDraw.ImageDraw,
+    box: tuple[int, int, int, int],
+    curve: list[int | None],
+    peak_slot: int | None,
+    avg_bpm: int | None,
+) -> None:
+    """The night's shape, with the moment marked. Evidence, not decoration.
+
+    Breaks in the capture are drawn as breaks — `card_curve.segments` hands
+    them over already split, and joining them here would redraw the exact lie
+    that the quality score was fixed to stop telling.
+    """
+    x0, y0, x1, y1 = box
+    readings = [v for v in curve if v is not None]
+    if len(readings) < 2:
+        return
+
+    lo, hi = min(readings), max(readings)
+    if avg_bpm:
+        lo, hi = min(lo, avg_bpm), max(hi, avg_bpm)
+    lo, hi = lo - 3, hi + 4
+    span = max(hi - lo, 1)
+    slots = max(len(curve) - 1, 1)
+
+    def px(i: int, bpm: int) -> tuple[float, float]:
+        return (x0 + i * (x1 - x0) / slots, y1 - (bpm - lo) / span * (y1 - y0))
+
+    # The night's average, as a quiet reference the curve is read against.
+    if avg_bpm:
+        avg_y = px(0, avg_bpm)[1]
+        for x in range(x0, x1, 22):
+            draw.line(
+                [(x, avg_y), (min(x + 11, x1), avg_y)], fill=TUMTUM_BORDER, width=3
+            )
+        draw.text(
+            (x0, avg_y - 12),
+            f"MÉDIA {avg_bpm}",
+            fill=TUMTUM_MUTED,
+            font=_font("label", 28),
+            anchor="lb",
+        )
+
+    for run in card_curve.segments(curve):
+        pts = [px(i, v) for i, v in run]
+        if len(pts) == 1:
+            x, y = pts[0]
+            draw.ellipse([x - 3, y - 3, x + 3, y + 3], fill=TUMTUM_LIME)
+        else:
+            draw.line(pts, fill=TUMTUM_LIME, width=5, joint="curve")
+
+    if peak_slot is not None and curve[peak_slot] is not None:
+        x, y = px(peak_slot, curve[peak_slot])
+        draw.line([(x, y0 - 18), (x, y - 16)], fill=TUMTUM_YELLOW, width=3)
+        draw.ellipse([x - 14, y - 14, x + 14, y + 14], fill=TUMTUM_YELLOW)
 
 
 def _fit_text(
@@ -112,6 +207,9 @@ def generate_moment_card(
     moment_label: str | None = None,
     moment_time: str | None = None,
     format: str = "story",
+    avg_bpm: int | None = None,
+    curve: list[int | None] | None = None,
+    peak_slot: int | None = None,
 ) -> bytes:
     """Build share card 01, "Só o momento".
 
@@ -123,10 +221,21 @@ def generate_moment_card(
         moment_label: What was happening — a song, a penalty, a goal
         moment_time: Clock time of the moment, e.g. "22h47"
         format: "story" (1080x1920), "feed" (1080x1080) or "og" (1200x630)
+        avg_bpm: The night's average, the reference the peak is read against
+        curve: The night on a uniform time grid, `None` where nothing was
+            captured. Omit it and the card draws without evidence rather than
+            drawing an invented line.
+        peak_slot: Index into `curve` where the moment falls
     """
     if format == "og":
         return _moment_card_landscape(
-            user_name, event_name, event_date, peak_bpm, moment_label, moment_time
+            user_name,
+            event_name,
+            event_date,
+            peak_bpm,
+            moment_label,
+            moment_time,
+            avg_bpm,
         )
 
     size = FEED_SIZE if format == "feed" else STORY_SIZE
@@ -145,41 +254,66 @@ def generate_moment_card(
     breathe = 28
     _paste_wordmark(img, w // 2, safe_top + breathe, 30)
 
-    # The copy calibrates the tone; the number carries the card.
-    copy_size = 62 if format == "story" else 48
-    copy_y = safe_top + breathe + (110 if format == "story" else 86)
-    for line in MOMENT_COPY:
+    # The copy calibrates the tone; the number carries the card. Both lines are
+    # built from this night's own figures — see `moment_copy`.
+    copy_size = 58 if format == "story" else 46
+    copy_y = safe_top + breathe + (110 if format == "story" else 82)
+    for line in moment_copy(peak_bpm, avg_bpm, moment_time):
         font = _fit_text(draw, line, "hero", copy_size, inner)
         draw.text((margin, copy_y), line, fill=TUMTUM_WHITE, font=font, anchor="lt")
-        copy_y += round(copy_size * 1.12)
+        copy_y += round(copy_size * 1.14)
 
-    # The peak, as large as the card can carry it.
+    has_curve = bool(curve) and sum(v is not None for v in curve) >= 2
+    foot_top = h - safe_bottom - breathe - 190
+
+    # The peak, as large as the card can carry it. With a curve below it the
+    # number moves off centre and sets flush left: the two together are the
+    # composition, and a centred number would leave the curve orphaned.
     number = str(peak_bpm)
-    num_size = 460 if format == "story" else 300
-    num_font = _fit_text(draw, number, "hero", num_size, inner)
-    # Centre the number in what is left between the copy and the footer, so it
-    # sits in the part of the frame the viewer actually sees.
-    num_y = (copy_y + (h - safe_bottom - breathe - 190)) // 2
-    draw.text((w // 2, num_y), number, fill=TUMTUM_LIME, font=num_font, anchor="mm")
-
-    y = draw.textbbox((w // 2, num_y), number, font=num_font, anchor="mm")[3] + 12
-    draw.text(
-        (w // 2, y), "bpm", fill=TUMTUM_YELLOW, font=_font("hero", 46), anchor="mt"
-    )
-    y += 96
+    if has_curve:
+        num_size = 380 if format == "story" else 240
+        num_font = _fit_text(draw, number, "hero", num_size, inner - 160)
+        num_top = copy_y + (34 if format == "story" else 18)
+        draw.text(
+            (margin - 12, num_top), number, fill=TUMTUM_LIME, font=num_font, anchor="lt"
+        )
+        nb = draw.textbbox((margin - 12, num_top), number, font=num_font, anchor="lt")
+        draw.text(
+            (nb[2] + 18, nb[3] - 24),
+            "bpm",
+            fill=TUMTUM_YELLOW,
+            font=_font("hero", 54 if format == "story" else 40),
+            anchor="ls",
+        )
+        y = nb[3] + 20
+    else:
+        num_size = 460 if format == "story" else 300
+        num_font = _fit_text(draw, number, "hero", num_size, inner)
+        # Centre the number in what is left between the copy and the footer,
+        # so it sits in the part of the frame the viewer actually sees.
+        num_y = (copy_y + foot_top) // 2
+        draw.text((w // 2, num_y), number, fill=TUMTUM_LIME, font=num_font, anchor="mm")
+        y = draw.textbbox((w // 2, num_y), number, font=num_font, anchor="mm")[3] + 12
+        draw.text(
+            (w // 2, y), "bpm", fill=TUMTUM_YELLOW, font=_font("hero", 46), anchor="mt"
+        )
+        y += 96
 
     if moment_label:
         label = f'durante "{moment_label}"'
+        anchor = "lt" if has_curve else "mt"
         draw.text(
-            (w // 2, y),
+            (margin if has_curve else w // 2, y),
             label,
             fill=TUMTUM_WHITE,
             font=_fit_text(draw, label, "body", 40, inner),
-            anchor="mt",
+            anchor=anchor,
         )
         y += 62
 
-    if moment_time:
+    if moment_time and not has_curve:
+        # With a curve the time is already in the copy and on the marker;
+        # printing it a third time is clutter, not emphasis.
         draw.text(
             (w // 2, y),
             moment_time,
@@ -187,6 +321,14 @@ def generate_moment_card(
             font=_font("body", 32),
             anchor="mt",
         )
+
+    if has_curve:
+        top = y + (74 if format == "story" else 40)
+        bottom = foot_top - (60 if format == "story" else 30)
+        if bottom - top > 120:
+            _draw_curve(
+                draw, (margin, top, w - margin, bottom), curve, peak_slot, avg_bpm
+            )
 
     # Event context sits at the foot: it identifies the night, it is not the
     # point — but it has to be above the reply bar to be read at all.
@@ -228,6 +370,7 @@ def _moment_card_landscape(
     peak_bpm: int,
     moment_label: str | None,
     moment_time: str | None,
+    avg_bpm: int | None = None,
 ) -> bytes:
     """The same moment, laid out for a link preview.
 
@@ -245,7 +388,7 @@ def _moment_card_landscape(
     _paste_wordmark(img, w // 2, 34, 22)
 
     copy_font = _font("hero", 30)
-    for i, line in enumerate(MOMENT_COPY):
+    for i, line in enumerate(moment_copy(peak_bpm, avg_bpm, moment_time)):
         draw.text(
             (margin, 92 + i * 36), line, fill=TUMTUM_WHITE, font=copy_font, anchor="lt"
         )

@@ -16,7 +16,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
-| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **This is the open question of Phase 0**, not a polish task. |
+| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
 | **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
 
@@ -109,12 +109,27 @@ the linked documents — this file is the index and the reasoning, not a diary.
 23. **Xiaomi Mi Band 9 untested.** Bought, unopened as far as the log knows.
     One night answers whether the 1/min ceiling is Samsung's or Health
     Connect's — the last open question of Etapa 0.
-24. **The card does not make anyone want to post it.** Felipe generated the
-    Realness card 2026-08-30 and said so plainly: too plain, no desire, no
-    need to share. **This is the Phase 0 hypothesis itself** — the card is the
-    viral engine and nothing downstream of it matters if it does not travel.
-    Four things are wrong and only two are visual; see the entry below.
-    Next session's work.
+24. **The card does not make anyone want to post it.** Raised 2026-08-30,
+    **half closed 2026-08-31**: the card now leads with the highest peak
+    instead of the highest-ranked one, says something built from the night's
+    own numbers instead of a constant, and carries the curve as evidence.
+    **Still open is the surface** — cover the wordmark and it is still a black
+    field with a lime number. Mutante Pop is the declared territory and the
+    skins are still parked; that is the remaining half.
+25. **Which card people actually want to post is a research question, not a
+    design opinion.** Felipe's call, 2026-08-31, choosing layout D: *"esse é um
+    ponto que vale pesquisarmos com o público da TumTum."* He is right, and it
+    is worth writing down why. Four layouts were argued from first principles —
+    what the number means, what the copy can prove, what the manual permits —
+    and every one of those arguments is about **whether the card is honest and
+    well made**, which is not the same question as **whether a stranger posts
+    it**. Nobody here can answer the second from a screen. What makes it
+    answerable: the four renders already exist, so the material for a
+    side-by-side is built. The cheapest real signal is the 25/09 pilot — 3–5
+    people who will each have a night of their own — and the honest measure is
+    not "which is prettiest" but **which one someone actually sends to
+    somebody**. Do not let the taste of the people who built it stand in for
+    that.
 19. **The Brazilian age/sex split for wearables is still unknown — and Super
     Panorama does not carry it.** Felipe opened the June 2026 edition on 27/08:
     it gives penetration (30,1%), the class cut and the function ranking, but
@@ -131,6 +146,80 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-31 — the card says what the night says: highest peak, generated copy, and the curve as evidence
+
+Four layouts were rendered from the Realness numbers and compared side by
+side. Felipe chose **D — the number plus the curve** — and added the sentence
+that matters more than the choice: *"esse é um ponto que vale pesquisarmos com
+o público da TumTum."* That is open item 25, and it is the right instinct.
+Everything below is an argument about whether the card is **honest and well
+made**. Whether a stranger posts it is a different question and nobody in this
+repo can answer it from a screen.
+
+### The comparison earned its cost
+
+Rendering all four was not ceremony. **Variant C was the control** — the
+shipped layout with the right number and honest copy — and it came back still
+empty. That killed a hypothesis of mine that fixing the number and the copy
+would be enough on its own, and it killed it with an image rather than an
+argument. Without C, D would have looked like over-building.
+
+### Three changes, and the reason each one is not cosmetic
+
+**The peak.** `cards.py` ordered by `rank`, which is the detector's magnitude
+— z-score × duration. That favours a long statistically unusual rise over a
+brief spike, which is right for *finding* moments and wrong for choosing the
+subject of a card. At Realness rank 1 was **92 bpm on a night that reached
+116**: the card led with the smaller number. Now ordered by `bpm`.
+
+**The copy.** `MOMENT_COPY = ("EU TAVA TRANQUILO.", "AÍ VEIO ISSO.")` is gone,
+replaced by `moment_copy()`, which builds two lines from the night's own
+figures. The constant failed twice at once: identical on everybody's card, so
+it said nothing about anybody; and *"eu tava tranquilo"* asserted **a calm
+baseline nobody measured** — on a night that ran high it was simply false, in
+the largest text on a public object.
+
+The reference is the **session average**, not the detector's local baseline,
+because the local baseline is not stored on a peak and a card must never reach
+for a number it does not have. Every branch of the function states something
+the card's own figures establish, and the fallbacks claim less rather than
+inventing more: no average, or no rise above it, and the copy drops to
+*"SEU CORAÇÃO, ÀS 01H24."* Four tests exist purely to prove it never dresses a
+flat moment as a climb.
+
+**The curve.** Card 01 deliberately carried no chart, and `cards.py` held a
+comment explaining that the readings were not loaded for exactly that reason.
+That is now reversed, and the reversal is the interesting part: the old
+decision was right while the card was a number on a black field, and wrong
+once the card had to give a stranger a reason to believe it. The manual
+permits this precisely — the person's own data, as product information.
+
+### The part that came from this morning
+
+The curve resamples onto a **uniform time grid**, not onto the readings.
+Spacing the readings evenly would have squeezed the Realness gap down to
+nothing and drawn a continuous line across 79 minutes nobody measured — **the
+same lie the quality score was telling until this morning**. An empty slot
+stays empty, `segments()` hands the runs over already split, and the card
+draws a night with a hole in it as a night with a hole in it. Rendered against
+the real shape, the first fifth of the frame is bare, and that is correct.
+
+The card also **stores the curve it drew** in its metadata. `get_card_image`
+regenerates from metadata once the Redis TTL lapses, so without this the image
+served a week later would quietly differ from the one that was shared. A card
+is a snapshot of a moment, not a live view of a session that may since have
+been re-analysed.
+
+### Left undone, deliberately
+
+The surface. Cover the wordmark and it is still a black field with a lime
+number — no skin, no texture, nothing a person learns to recognise while
+scrolling. That was the third of the four problems and it is untouched,
+because the first two decide what the design has to accommodate. It is the
+remaining half of item 24.
 
 ---
 
