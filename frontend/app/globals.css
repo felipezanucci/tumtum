@@ -16,3 +16,14 @@ body {
   color: #ffffff;
   overscroll-behavior-y: contain;
 }
+
+/* The preview bundle for Claude Design has no next/font runtime, so
+   --font-instrument-sans is undefined there and the whole font-family
+   declaration falls back to the browser default — serif, which is not this
+   brand. Declaring the variable here keeps every surface on a sans stack.
+   next/font sets the same variable at runtime and wins in the real app.
+   The remaining gap is shipping the real Instrument Sans face to the sync;
+   see .design-sync/NOTES.md. */
+:root {
+  --font-instrument-sans: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+}
