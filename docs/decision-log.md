@@ -106,6 +106,14 @@ the linked documents — this file is the index and the reasoning, not a diary.
 22. **The Realness moments have no names.** No timeline rows for the event, so
     `116 bpm às 01:24` has no story attached — and the story is the card.
     Felipe's memory of the night is the only source.
+26. **The palette changed and the code has not.** Manual v0.4 (31/08) replaces
+    Acid Lime `#C6FF00` with **TumTum Pink `#FF6F91`** as the primary accent.
+    `CLAUDE.md` and `docs/design-brief.md` are current; **the product is not**
+    — `TUMTUM_LIME` in `card_generator.py`, the Android drawing code, and
+    `frontend/tailwind.config.ts` all still ship lime, so every card generated
+    today is off-brand. It is a mechanical change (a handful of constants) but
+    a visible one, and Felipe may want it timed with the screen design rather
+    than landing on its own. His call.
 23. **Xiaomi Mi Band 9 untested.** Bought, unopened as far as the log knows.
     One night answers whether the 1/min ceiling is Samsung's or Health
     Connect's — the last open question of Etapa 0.
@@ -146,6 +154,62 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-08-31 — manual v0.4: the accent is TumTum Pink, and the code is now out of date
+
+Felipe brought manual **v0.4 (31 Aug 2026)** and said the palette changes
+again. **Acid Lime `#C6FF00` is gone. TumTum Pink `#FF6F91` is the primary
+accent.** Toxic Yellow `#EFFF00` stays as the secondary. Black and white are
+unchanged.
+
+Written up as `docs/design-brief.md` — a self-contained handoff he can paste
+into Claude Design, since he intends to design the screens there. `CLAUDE.md`
+was corrected in the same pass: it stated the lime palette as fact, and it is
+the file every future session reads first. **A stale instruction file is this
+project's bug class with the widest blast radius** — it does not mislead one
+screen, it misleads everything built after it.
+
+### The change is not a swap of one hex for another
+
+Two things behave differently and both affect layout:
+
+**Pink can hold large surfaces.** The old accent was an acid highlight that
+only worked in small doses. Pink may be a full background, a colour field, a
+whole panel. That widens what a layout can do rather than just recolouring it.
+
+**Pink is roughly half as loud on black.** Measured: **7.93:1** against Acid
+Lime's 17.7:1. It still passes AA everywhere and AAA at large sizes, so nothing
+is inaccessible — but emphasis that used to come free from the colour now has
+to come from **scale**. The correct response is bigger, not brighter; reaching
+for a lighter tint would leave the palette.
+
+White on Pink is **2.65:1** and fails even large-text AA, so the "never white on
+an accent" rule survives intact, with a new number.
+
+### A constraint that lands squarely on the design tool
+
+The Typozon EULA (v3.4) carries an **explicit AI/machine-learning restriction**
+on Chosmos. So the rule "never let a generator redraw the logo" is not only
+brand hygiene here — handing Chosmos to an AI tool, or having one imitate it,
+is a legal question. The brief says it plainly and offers the two acceptable
+moves: place the official asset, or leave a marked placeholder. A lookalike
+rendered from a substitute font is worse than no logo, because it gets mistaken
+for approved artwork later.
+
+### What is now inconsistent, deliberately
+
+**The product still ships lime.** `TUMTUM_LIME` in `card_generator.py`, the
+Android drawing code, and `frontend/tailwind.config.ts` are all the old
+palette, so every card generated today is off-brand — including the ones
+rendered this morning. The change is mechanical, a handful of constants, but it
+is visible in a shipped app, so it is Felipe's call whether it lands now or
+with the screen design. Recorded as open item 26 rather than done quietly.
+
+The manual also notes something worth keeping in view: any TumTum artwork or
+screenshot from before 31/08 is **historical, not a variant**. It should be
+rebuilt in the new palette, never matched.
 
 ---
 
