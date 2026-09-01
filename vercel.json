@@ -1,0 +1,6 @@
+{
+  "$comment": "Esta branch é o app Android — o site mora na main. Sem deploys da Vercel aqui.",
+  "git": {
+    "deploymentEnabled": false
+  }
+}
