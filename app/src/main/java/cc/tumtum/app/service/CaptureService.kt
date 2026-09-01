@@ -337,7 +337,8 @@ class CaptureService : Service() {
 
     private fun buildNotification(): android.app.Notification {
         val status = CaptureBus.status.value
-        val connected = status.connection is BleConnectionState.Connected
+        // Protocolo do teste (§8): BPM nunca aparece — nem aqui. Ver o próprio
+        // número muda o número. A notificação diz só que está funcionando.
         val text = if (!status.active) {
             getString(R.string.capture_notif_starting)
         } else {
@@ -349,9 +350,6 @@ class CaptureService : Service() {
                         else -> getString(R.string.capture_notif_disconnected)
                     },
                 )
-                if (connected && status.lastBpm != null && status.contactStatus != HrMeasurementParser.CONTACT_NOT_DETECTED) {
-                    append(" · ${status.lastBpm} bpm")
-                }
                 append(" · ${status.samplesWritten} ").append(getString(R.string.capture_notif_samples))
                 status.sensorBatteryPct?.let { append(" · 🔋$it%") }
             }
