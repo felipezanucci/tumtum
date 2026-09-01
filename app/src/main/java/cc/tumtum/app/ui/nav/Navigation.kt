@@ -27,6 +27,7 @@ import cc.tumtum.app.ui.screens.feed.FeedScreen
 import cc.tumtum.app.ui.screens.gallery.GalleryScreen
 import cc.tumtum.app.ui.screens.live.CaptureScreen
 import cc.tumtum.app.ui.screens.live.LiveTabScreen
+import cc.tumtum.app.ui.screens.login.LoginScreen
 import cc.tumtum.app.ui.screens.onboarding.OnboardingScreen
 import cc.tumtum.app.ui.screens.permission.PermissionScreen
 import cc.tumtum.app.ui.screens.profile.PublicProfileScreen
@@ -38,6 +39,7 @@ import cc.tumtum.app.ui.screens.you.YouScreen
 object Routes {
     const val Onboarding = "onboarding"
     const val Account = "account"
+    const val Login = "login"
     const val Permission = "permission"
     const val SourcesSetup = "sources_setup"
     const val Feed = "feed"
@@ -109,6 +111,7 @@ fun TumTumRoot(startDestination: String, nav: NavHostController = rememberNavCon
             // Entrada
             composable(Routes.Onboarding) { OnboardingScreen(nav) }
             composable(Routes.Account) { CreateAccountScreen(nav) }
+            composable(Routes.Login) { LoginScreen(nav) }
             composable(Routes.Permission) { PermissionScreen(nav) }
             composable(Routes.SourcesSetup) { WatchSourcesScreen(nav, setupMode = true) }
 

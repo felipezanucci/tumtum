@@ -101,7 +101,7 @@ fun OnboardingScreen(nav: NavHostController) {
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(interactionSource = interaction, indication = null) { nav.navigate(Routes.Account) }
+                .clickable(interactionSource = interaction, indication = null) { nav.navigate(Routes.Login) }
                 .padding(10.dp),
         )
     }

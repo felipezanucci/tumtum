@@ -188,7 +188,7 @@
     <string name="sensor_remove">REMOVER</string>
     <string name="sensor_footnote">Sensor de peito ou braço com perfil padrão de batimento (Polar H10, Verity Sense). A captura fica ao vivo, segundo a segundo, com HRV.</string>
     <string name="sensor_scan_title">Buscando sensores</string>
-    <string name="sensor_scan_searching">Ligue o sensor e molhe os eletrodos. Ele aparece aqui.</string>
+    <string name="sensor_scan_searching">Ligue o sensor e espera um instante. Ele aparece aqui.</string>
     <string name="sensor_scan_tap">Toque no seu para parear.</string>
     <string name="sensor_scan_needs_permission">Sem a permissão de Bluetooth não tem varredura.</string>
     <string name="sensor_scan_grant">Permitir Bluetooth</string>
@@ -230,6 +230,16 @@
     <string name="export_session">Exportar sessão</string>
     <string name="export_running">Gerando o ZIP…</string>
 
-    <!-- b4 com sensor -->
-    <string name="sources_only_sensor">Seguir só com o sensor</string>
+    <!-- b4 no setup -->
+    <string name="sources_skip">Fazer isso depois</string>
+
+    <!-- Entrar (quem já tem conta) -->
+    <string name="login_title">Entrar</string>
+    <string name="login_subtitle">Bom te ver de novo.</string>
+    <string name="login_handle_label">@USERNAME OU EMAIL</string>
+    <string name="login_cta">Entrar</string>
+    <string name="login_note">Sem servidor ainda: a conta vive neste aparelho. Quando o backend chegar, seu @ e suas noites entram nele.</string>
+
+    <!-- b3 — aviso sobre a tela do sistema -->
+    <string name="perm_system_note">O pedido em si aparece numa tela do próprio Android (Health Connect) — é lá que você confirma a leitura de frequência cardíaca.</string>
 </resources>

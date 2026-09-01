@@ -114,6 +114,9 @@ fun PermissionScreen(nav: NavHostController) {
 
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.perm_footnote), style = TTType.Footnote, color = TT.Gray45)
+        Spacer(Modifier.height(6.dp))
+        // A tela seguinte é do sistema e a gente não controla a cara dela — avisar antes.
+        Text(stringResource(R.string.perm_system_note), style = TTType.Footnote, color = TT.Gray45)
         if (!hcAvailable) {
             Spacer(Modifier.height(10.dp))
             Text(stringResource(R.string.perm_hc_missing), style = TTType.Footnote, color = TT.Gray70)

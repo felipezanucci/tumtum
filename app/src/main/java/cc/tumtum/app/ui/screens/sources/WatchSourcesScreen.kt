@@ -127,6 +127,8 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
         }
 
         Spacer(Modifier.height(30.dp))
+        // No setup, um botão morto confunde: o CTA só aparece quando há fonte utilizável.
+        if (!setupMode || selectedSource?.hasData == true) {
         TTButton(
             text = selectedSource?.let { stringResource(R.string.sources_use, it.label) }
                 ?: stringResource(R.string.sources_title),
@@ -155,22 +157,21 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                 }
             },
         )
+        }
         if (setupMode) {
-            val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
-            if (user?.sensorPaired == true) {
-                Spacer(Modifier.height(10.dp))
-                // Quem só tem o sensor BLE (sem app escrevendo no Health Connect) segue por aqui.
-                TTButton(
-                    stringResource(R.string.sources_only_sensor),
-                    TTButtonStyle.Outline,
-                    onClick = {
-                        scope.launch {
-                            container.prefs.setOnboarded()
-                            nav.navigate(Routes.Feed) { popUpTo(0) { inclusive = true } }
-                        }
-                    },
-                )
-            }
+            Spacer(Modifier.height(10.dp))
+            // Sempre dá para seguir e resolver depois — sensor pareado conta, e o
+            // caminho de volta mora em Configurações e no vazio (a5).
+            TTButton(
+                stringResource(R.string.sources_skip),
+                TTButtonStyle.Outline,
+                onClick = {
+                    scope.launch {
+                        container.prefs.setOnboarded()
+                        nav.navigate(Routes.Feed) { popUpTo(0) { inclusive = true } }
+                    }
+                },
+            )
         }
     }
 }
