@@ -51,7 +51,9 @@ fun LoginScreen(nav: NavHostController) {
     var password by rememberSaveable { mutableStateOf("") }
     var saving by androidx.compose.runtime.remember { mutableStateOf(false) }
 
-    val handleClean = handle.trim().removePrefix("@").lowercase()
+    // Email vira @ só com a parte antes do arroba: "voce@email.com" → @voce.
+    val handleClean = handle.trim().removePrefix("@").substringBefore("@").lowercase()
+        .filter { it.isLetterOrDigit() || it == '_' || it == '.' }
     val valid = handleClean.length >= 3 && password.length >= 4
 
     Column(
