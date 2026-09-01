@@ -20,7 +20,7 @@ export interface SiteCopy {
   lang: Lang
   /** Path to the other language, for the switcher. */
   otherHref: string
-  nav: { how: string; cards: string; feed: string; gallery: string; signIn: string; cta: string }
+  nav: { how: string; cards: string; feed: string; gallery: string; signIn: string; cta: string; menu: string }
   hero: {
     title: string[]
     sub: string
@@ -35,6 +35,8 @@ export interface SiteCopy {
     eyebrow: string
     title: string[]
     intro: string
+    /** Only shown where the cards are a swipe carousel — below md. */
+    swipeHint: string
     disclaimer: string
     items: {
       label: string
@@ -92,11 +94,12 @@ export const PT: SiteCopy = {
     gallery: 'Galeria',
     signIn: 'Entrar',
     cta: 'Entrar na lista',
+    menu: 'MENU',
   },
   hero: {
     title: ['VOCÊ SENTIU.', 'AGORA TEM', 'PROVA.'],
     sub: 'Os momentos mais marcantes da sua vida têm hora, lugar e batida. A TumTum guarda os três.',
-    ctaPrimary: 'Quero no meu próximo show',
+    ctaPrimary: 'Quero no meu próximo evento',
     ctaSecondary: 'Como funciona',
     card: {
       event: 'LOLLAPALOOZA — DIA 2 · 23H47',
@@ -142,6 +145,7 @@ export const PT: SiteCopy = {
     title: ['Um momento.', 'Vários jeitos de contar.'],
     intro:
       'Cada noite gera cards diferentes do mesmo instante — e cada noite escolhe uma pele. Você decide qual história vai pro feed.',
+    swipeHint: 'Arrasta pro lado →',
     disclaimer:
       'Os cards acima são exemplos ilustrativos. Cada formato aparece pra você quando os dados daquela noite permitem.',
     items: [
@@ -194,7 +198,7 @@ export const PT: SiteCopy = {
   },
   waitlist: {
     eyebrow: 'LISTA DE ESPERA',
-    title: ['Quero isso no meu', 'próximo show.'],
+    title: ['Quero isso no meu', 'próximo evento.'],
     body: 'A TumTum está começando em São Paulo, evento por evento. Entra na lista e a gente te chama quando for a sua vez.',
     placeholder: 'seu@email.com',
     button: 'Entrar na lista',
@@ -231,6 +235,7 @@ export const EN: SiteCopy = {
     gallery: 'Gallery',
     signIn: 'Sign in',
     cta: 'Join the list',
+    menu: 'MENU',
   },
   hero: {
     title: ['YOU FELT IT.', 'NOW YOU HAVE', 'PROOF.'],
@@ -281,6 +286,7 @@ export const EN: SiteCopy = {
     title: ['One moment.', 'Many ways to tell it.'],
     intro:
       'Every night generates different cards of the same instant — and every night picks a skin. You decide which story hits the feed.',
+    swipeHint: 'Swipe →',
     disclaimer:
       'The cards above are illustrative. Each format appears for you when that night’s data allows it.',
     items: [

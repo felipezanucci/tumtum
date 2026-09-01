@@ -5,7 +5,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-08-30
+## Where things stand — 2026-09-01
 
 | Track | Status |
 |---|---|
@@ -13,9 +13,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Android app (native)** | **Proven at a real six-hour event, 29/08.** The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. |
-| **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
-| **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
-| **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
+| **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
+| **Frontend** | **The v0.4 redesign is live on tumtum.cc**, merged 01/09 (PR #45). Ten sections built from the Claude Design handoff, bilingual — `/` in PT and `/en` in English, one layout, `hreflang` alternates. The handoff's ~25 MB of GIFs ship as 1.4 MB of MP4. The waitlist kept its honesty and dropped to one email field. **The landing finally has a sign-in link** (item 17 closed). **Mobile is correct but not designed**: verified at 390×844 with nothing overflowing, yet everything below `md` is stacking rather than composition — a real mobile handoff is being commissioned (item 27). |
+| **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
 | **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
@@ -111,6 +111,22 @@ the linked documents — this file is the index and the reasoning, not a diary.
     colour would have seeded every screen designed in Claude Design with lime.
     70 usages across 34 files, all three codebases. Every `bg-tumtum-lime`
     already carried `text-tumtum-black`, so contrast survived the swap intact.
+27. ~~**Mobile is adapted, not designed.**~~ Closed 2026-09-01: the v0.5
+    handoff arrived with the mobile design and all four questions answered —
+    the cards became a swipe carousel, the gallery went full-width with its
+    copy first, the feed's screenshots stayed side by side at half width, and
+    the nav got a text MENU panel. Implemented as one responsive page.
+    *(Original:)* **Mobile was adapted, not designed.** The Claude Design handoff specified
+    desktop only (~1440px), so everything below `md` is engineering: where the
+    desktop composes, the site stacks. It is correct — verified at 390×844,
+    nothing overflows — and it is not a design. Felipe is commissioning a
+    mobile handoff. The four places the adaptation is dumbest, and which only
+    design can answer: **the four share cards** (stacked into a long scroll;
+    a snapping horizontal swipe is the obvious alternative), **the 2×2
+    gallery** of rotated posters (two 196px columns do not breathe in 390px),
+    **the feed's two phone screenshots** (showing a phone inside a phone
+    needs another composition), and **the nav**, whose section links simply
+    disappear below `md`, leaving wordmark + CTA + PT/EN.
 23. **Xiaomi Mi Band 9 untested.** Bought, unopened as far as the log knows.
     One night answers whether the 1/min ceiling is Samsung's or Health
     Connect's — the last open question of Etapa 0.
@@ -238,6 +254,107 @@ where Lime was 17.7:1. The hero number is large enough that AAA still holds,
 but anything small and Pink is now carrying less weight than it did.
 
 Verified: 65 backend tests, 55 frontend tests, ruff clean, lint unchanged.
+
+---
+
+## 2026-09-01 — the mobile handoff, and a breakpoint that was in the wrong place
+
+The v0.5 handoff answered all four questions open item 27 had named, and the
+answers were better than the adaptation they replace: the four cards become a
+**snap-scrolling swipe carousel** with an explicit "Arrasta pro lado" hint,
+the proof strip becomes full-width rows with the number on the left, the
+gallery leads with its copy and takes the grid full width, and the nav trades
+its vanished links for a **text MENU panel** — text rather than an invented
+icon, which the handoff states as a brand rule.
+
+Implemented as **one responsive page**, which the handoff explicitly asks for
+over two.
+
+### The correction the measurements forced
+
+The first pass used Tailwind's `md` (768px) as the switch between the two
+designs, which is the reflex. It was wrong, and measurably: **at 768px the
+page overflowed by 64px**, because the hero had already become two columns
+while there was not room for both. Moving the structural switches to `lg`
+fixed most of it and left **23px**, from the proof strip — its wrapper turned
+into a row at `md` while its children only became rows at `lg`, so each block
+was a row inside a row, forcing its own width.
+
+The handoff had said it plainly: **desktop ≥1024, mobile ≤480**. The lesson is
+not "use lg": it is that a design's own stated breakpoints are part of the
+spec, and substituting a framework default for them is a silent
+reinterpretation.
+
+Verified at six widths — 360, 390, 480, 768, 1024, 1440 — `scrollWidth` equals
+the viewport at every one.
+
+### Worth noting about the copy
+
+The handoff's one copy change was **"próximo show" → "próximo evento"** in both
+CTAs — the same change Felipe had asked for an hour earlier, arrived at
+independently. TumTum is concerts *and* football, and the CTA was the last
+place still naming only half of it.
+
+---
+
+## 2026-09-01 — PR #45 merged: everything that was true only on a branch is now true in production
+
+Thirty commits, five days, and until this morning **none of it existed for
+anybody but us**. `tumtum.cc` still served the old page, the app still
+generated lime cards, and the Realness night still claimed a quality it did
+not have. The merge is the moment the work stopped being a description of
+itself.
+
+What crossed into production, and what each one had been waiting on:
+
+| Change | Was blocked on |
+|---|---|
+| The whole tumtum.cc redesign, PT + `/en` | the merge alone — built, verified, never live |
+| TumTum Pink replacing Acid Lime, all three codebases | the merge; every card generated before today is off-brand |
+| The quality score counting continuity | a deploy, since 31/08 |
+| The card leading with the highest peak, carrying the curve | the same deploy |
+| Health Connect, "Trazer do meu relógio" | an APK build, now running |
+
+### The one thing that does not fix itself
+
+The Realness session **still holds `data_quality_score = 100` in the
+database**. The new code recomputes on analysis rather than migrating, so the
+number corrects when that night is opened and "Procurar meus momentos" is
+tapped — not before. This is deliberate and was designed that way, but it
+means the fix is not finished by the deploy. **Nobody should read 100 on that
+night and conclude the fix failed.**
+
+### What the mobile detour cost, and bought
+
+The site went out with three real mobile defects that only a measured browser
+found: the feed's two 220px screenshots summed to 452px on a 390px screen and
+put the whole page into horizontal scroll; the nav CTA wrapped onto two lines;
+the nav overflowed by 12px. All three are fixed and verified at 390×844
+(`scrollWidth` equals the viewport).
+
+The lesson is narrower than "test on mobile": **resizing a desktop browser
+would have shown the wrap and hidden the overflow**, because the page scrolls
+sideways rather than visibly breaking. It took reading `document.scrollWidth`
+against `innerWidth` to see it at all.
+
+**Mobile is correct, not designed.** The handoff specified desktop only
+(~1440px); everything below `md` is engineering adaptation — where the desktop
+composes, this stacks. Felipe is commissioning a real mobile handoff, and the
+four places the adaptation is dumbest are named in open item 27.
+
+### A trap this session walked into twice
+
+Two long debugging detours had the same root: **a stale process serving a
+stale build.** A zombie `next-server` survived `pkill`, kept port 3111, and
+served CSS from two builds earlier — which looked exactly like "Tailwind is
+not generating arbitrary values", a completely wrong diagnosis that cost
+several rounds. Then `pkill -9 -f "next|node"` matched its own command line
+and killed the shell running it.
+
+Both are the project's own bug class wearing work clothes: **the tool stating
+something false about its own state.** The rule that would have caught it
+first: when a rendered page disagrees with the source, verify *which build is
+being served* before questioning the build system.
 
 ---
 

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { Wordmark } from '@/components/brand/Wordmark'
+import { SiteNav } from '@/components/marketing/SiteNav'
 import { SiteWaitlistForm } from '@/components/marketing/SiteWaitlistForm'
 import type { SiteCopy } from '@/lib/site-copy'
 
@@ -68,55 +69,30 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
 
   return (
     <div className="bg-tumtum-white text-tumtum-black">
-      {/* ---------------------------------------------------------- nav */}
-      <header className="sticky top-0 z-20 border-b border-[#E6E6E6] bg-tumtum-white">
-        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-[18px] md:gap-6 md:px-16 md:py-[22px]">
-          <Link href={copy.lang === 'pt' ? '/' : '/en'} aria-label="TumTum">
-            <Wordmark className="h-4 w-[106px] text-tumtum-black md:h-5 md:w-[132px]" />
-          </Link>
-          <div className="hidden items-center gap-7 text-sm font-headline md:flex">
-            <a href="#como" className="transition-colors hover:text-tumtum-pink motion-reduce:transition-none">{copy.nav.how}</a>
-            <a href="#cards" className="transition-colors hover:text-tumtum-pink motion-reduce:transition-none">{copy.nav.cards}</a>
-            <a href="#feed" className="transition-colors hover:text-tumtum-pink motion-reduce:transition-none">{copy.nav.feed}</a>
-            <a href="#galeria" className="transition-colors hover:text-tumtum-pink motion-reduce:transition-none">{copy.nav.gallery}</a>
-            <Link href="/login" className="text-[#8A8A8A] transition-colors hover:text-tumtum-black motion-reduce:transition-none">
-              {copy.nav.signIn}
-            </Link>
-          </div>
-          <div className="flex items-center gap-3 md:gap-5">
-            <a
-              href="#lista"
-              className="whitespace-nowrap rounded-full bg-tumtum-pink px-4 py-2 text-[13px] font-headline md:px-5 md:py-2.5 md:text-sm text-tumtum-black transition-colors hover:bg-tumtum-yellow motion-reduce:transition-none"
-            >
-              {copy.nav.cta}
-            </a>
-            <LangSwitch copy={copy} />
-          </div>
-        </nav>
-      </header>
+      <SiteNav copy={copy} />
 
       {/* --------------------------------------------------------- hero */}
       <section className="bg-tumtum-pink">
-        <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-14 px-6 pb-24 pt-[88px] md:flex-row md:items-start md:justify-between md:px-16">
-          <div className="max-w-[640px]">
-            <h1 className="font-hero text-[clamp(54px,6vw,88px)] leading-[0.94] tracking-[-0.035em] text-tumtum-black">
+        <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-12 px-6 pb-[72px] pt-12 lg:flex-row lg:items-start lg:justify-between lg:gap-14 md:px-16 md:pb-24 md:pt-[88px]">
+          <div className="w-full max-w-[640px]">
+            <h1 className="font-hero text-[52px] leading-[0.94] tracking-[-0.035em] text-tumtum-black md:text-[clamp(54px,6vw,88px)]">
               {copy.hero.title.map((line) => (
                 <span key={line} className="block md:whitespace-nowrap">
                   {line}
                 </span>
               ))}
             </h1>
-            <p className="mt-7 max-w-[480px] text-xl leading-relaxed text-black/75">{copy.hero.sub}</p>
-            <div className="mt-10 flex flex-wrap gap-4">
+            <p className="mt-6 max-w-[480px] text-[17px] leading-relaxed text-black/75 md:mt-7 md:text-xl">{copy.hero.sub}</p>
+            <div className="mt-8 flex flex-col gap-3 md:mt-10 sm:flex-row sm:flex-wrap sm:gap-4">
               <a
                 href="#lista"
-                className="rounded-xl bg-tumtum-black px-7 py-4 text-base font-headline text-tumtum-white transition-colors hover:bg-tumtum-yellow hover:text-tumtum-black motion-reduce:transition-none"
+                className="rounded-xl bg-tumtum-black px-7 py-4 text-center text-base font-headline text-tumtum-white transition-colors hover:bg-tumtum-yellow hover:text-tumtum-black motion-reduce:transition-none"
               >
                 {copy.hero.ctaPrimary}
               </a>
               <a
                 href="#como"
-                className="rounded-xl border-2 border-tumtum-black px-7 py-4 text-base font-headline text-tumtum-black transition-colors hover:bg-tumtum-black hover:text-tumtum-white motion-reduce:transition-none"
+                className="rounded-xl border-2 border-tumtum-black px-7 py-4 text-center text-base font-headline text-tumtum-black transition-colors hover:bg-tumtum-black hover:text-tumtum-white motion-reduce:transition-none"
               >
                 {copy.hero.ctaSecondary}
               </a>
@@ -125,8 +101,8 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
 
           {/* The 9:16 share-card mock. Everything on the white plate is black:
               the plate is the one light surface inside a pink section. */}
-          <div className="w-[310px] shrink-0 overflow-hidden rounded-none bg-tumtum-black shadow-[0_40px_80px_rgba(0,0,0,0.28)]">
-            <div className="relative h-[265px]">
+          <div className="w-[280px] shrink-0 overflow-hidden rounded-none bg-tumtum-black shadow-[0_40px_80px_rgba(0,0,0,0.28)] lg:w-[310px]">
+            <div className="relative h-[238px] lg:h-[265px]">
               <Clip src="event-clip" />
               <span className="absolute left-4 top-4 rounded-full bg-tumtum-yellow px-3 py-1 text-[10px] font-headline tracking-[0.08em] text-tumtum-black">
                 {copy.hero.card.event}
@@ -140,7 +116,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
                   </span>
                 ))}
               </p>
-              <p className="mt-2 font-hero text-[126px] leading-none tracking-[-0.055em] text-tumtum-black tabular-nums">
+              <p className="mt-2 font-hero text-[112px] leading-none tracking-[-0.055em] text-tumtum-black tabular-nums lg:text-[126px]">
                 187
               </p>
               <p className="mt-1 text-[11px] text-black/60">{copy.hero.card.unit}</p>
@@ -151,12 +127,12 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
       </section>
 
       {/* ------------------------------------------------- proof strip */}
-      <section className="flex flex-col md:flex-row">
+      <section className="flex flex-col lg:flex-row">
         {copy.proof.map((item, i) => (
           <div
             key={item.meta}
             className={
-              'flex-1 px-8 py-12 ' +
+              'flex items-baseline gap-5 px-6 py-8 lg:block lg:flex-1 lg:px-8 lg:py-12 ' +
               (i === 0
                 ? 'bg-tumtum-black text-tumtum-white'
                 : i === 1
@@ -164,17 +140,19 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
                   : 'bg-tumtum-white text-tumtum-black')
             }
           >
-            <p className={`font-hero text-[64px] leading-none tracking-[-0.04em] tabular-nums ${i === 0 ? 'text-tumtum-pink' : ''}`}>
+            <p className={`shrink-0 font-hero text-[48px] leading-none tracking-[-0.04em] tabular-nums md:text-[64px] ${i === 0 ? 'text-tumtum-pink' : ''}`}>
               {item.value}
             </p>
-            <p className="mt-3 text-[15px] font-headline">{item.caption}</p>
-            <p className={`mt-1 text-[12.5px] ${i === 0 ? 'text-[#8A8A8A]' : 'text-black/55'}`}>{item.meta}</p>
+            <div className="lg:contents">
+              <p className="text-[15px] font-headline md:mt-3">{item.caption}</p>
+              <p className={`mt-1 text-[12.5px] ${i === 0 ? 'text-[#8A8A8A]' : 'text-black/55'}`}>{item.meta}</p>
+            </div>
           </div>
         ))}
       </section>
 
       {/* --------------------------------------------------------- does */}
-      <section className="bg-tumtum-white px-6 py-28 text-center">
+      <section className="bg-tumtum-white px-6 py-[72px] text-center md:py-28">
         <div className="mx-auto max-w-[860px]">
           <p className="text-xs font-headline tracking-[0.16em] text-[#8A8A8A]">{copy.does.eyebrow}</p>
           <h2 className="mt-5 font-hero text-[clamp(34px,4vw,52px)] leading-tight tracking-[-0.03em]">
@@ -193,7 +171,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
       </section>
 
       {/* ---------------------------------------------------- how #como */}
-      <section id="como" className="bg-tumtum-black px-6 py-28 text-tumtum-white md:px-16">
+      <section id="como" className="bg-tumtum-black px-6 py-[72px] text-tumtum-white md:px-16 md:py-28">
         <div className="mx-auto max-w-[1200px]">
           <p className="text-xs font-headline tracking-[0.16em] text-[#8A8A8A]">{copy.how.eyebrow}</p>
           <h2 className="mt-5 font-hero text-[clamp(34px,4vw,52px)] leading-tight tracking-[-0.03em]">
@@ -203,12 +181,12 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
               </span>
             ))}
           </h2>
-          <div className="mt-14 flex flex-col gap-0.5 md:flex-row">
+          <div className="mt-10 flex flex-col gap-0.5 md:mt-14 lg:flex-row">
             {copy.how.steps.map((step) => (
-              <div key={step.n} className="flex-1 bg-[#0F0F0F] px-8 py-10">
-                <p className="font-hero text-[44px] leading-none text-tumtum-pink tabular-nums">{step.n}</p>
-                <h3 className="mt-5 text-xl font-headline text-tumtum-white">{step.title}</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-[#8A8A8A]">{step.body}</p>
+              <div key={step.n} className="flex-1 bg-[#0F0F0F] px-6 py-8 md:px-8 md:py-10">
+                <p className="font-hero text-[36px] leading-none text-tumtum-pink tabular-nums md:text-[44px]">{step.n}</p>
+                <h3 className="mt-4 text-lg font-headline text-tumtum-white md:mt-5 md:text-xl">{step.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-[#8A8A8A] md:text-[15px]">{step.body}</p>
               </div>
             ))}
           </div>
@@ -216,20 +194,22 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
       </section>
 
       {/* ------------------------------------------------- cards #cards */}
-      <section id="cards" className="bg-tumtum-white px-6 py-28 text-center">
-        <p className="text-xs font-headline tracking-[0.16em] text-[#8A8A8A]">{copy.cards.eyebrow}</p>
-        <h2 className="mt-5 font-hero text-[clamp(34px,4vw,52px)] leading-tight tracking-[-0.03em]">
+      <section id="cards" className="bg-tumtum-white py-[72px] text-center md:py-28">
+        <p className="px-6 text-xs font-headline tracking-[0.16em] text-[#8A8A8A]">{copy.cards.eyebrow}</p>
+        <h2 className="mt-5 px-6 font-hero text-[clamp(34px,4vw,52px)] leading-tight tracking-[-0.03em]">
           {copy.cards.title.map((line) => (
             <span key={line} className="block">
               {line}
             </span>
           ))}
         </h2>
-        <p className="mx-auto mt-6 max-w-[620px] text-base leading-relaxed text-black/70">{copy.cards.intro}</p>
+        <p className="mx-auto mt-6 max-w-[620px] px-6 text-base leading-relaxed text-black/70">
+          {copy.cards.intro} <span className="text-[#8A8A8A] lg:hidden">{copy.cards.swipeHint}</span>
+        </p>
 
-        <div className="mx-auto mt-14 flex max-w-[1040px] flex-wrap justify-center gap-3.5">
+        <div className="mx-auto mt-10 flex max-w-[1040px] snap-x snap-mandatory gap-3 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mt-14 lg:flex-wrap lg:justify-center lg:gap-3.5 lg:overflow-visible lg:px-0">
           {/* Só o momento — white, media on top */}
-          <article className="flex h-[412px] min-w-[170px] max-w-[248px] flex-1 basis-0 flex-col overflow-hidden border border-[#E6E6E6] bg-tumtum-white text-left">
+          <article className="flex h-[412px] w-[236px] shrink-0 snap-start flex-col overflow-hidden lg:w-auto lg:min-w-[170px] lg:max-w-[248px] lg:flex-1 lg:basis-0 border border-[#E6E6E6] bg-tumtum-white text-left">
             <div className="relative h-[226px] shrink-0">
               <Clip src="cold-play" />
               <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[9px] font-headline tracking-[0.1em] text-tumtum-white">
@@ -250,7 +230,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
           </article>
 
           {/* Minha noite — black, with the continuous sparkline */}
-          <article className="flex h-[412px] min-w-[170px] max-w-[248px] flex-1 basis-0 flex-col overflow-hidden bg-tumtum-black px-5 py-5 text-left text-tumtum-white">
+          <article className="flex h-[412px] w-[236px] shrink-0 snap-start flex-col overflow-hidden lg:w-auto lg:min-w-[170px] lg:max-w-[248px] lg:flex-1 lg:basis-0 bg-tumtum-black px-5 py-5 text-left text-tumtum-white">
             <span className="text-[9px] font-headline tracking-[0.1em] text-[#8A8A8A]">{minhaNoite.label}</span>
             <p className="mt-4 text-[15px] font-hero leading-snug">
               {minhaNoite.copy.map((line) => (
@@ -278,7 +258,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
           </article>
 
           {/* A galera — pink, media on top, black type */}
-          <article className="flex h-[412px] min-w-[170px] max-w-[248px] flex-1 basis-0 flex-col overflow-hidden bg-tumtum-pink text-left">
+          <article className="flex h-[412px] w-[236px] shrink-0 snap-start flex-col overflow-hidden lg:w-auto lg:min-w-[170px] lg:max-w-[248px] lg:flex-1 lg:basis-0 bg-tumtum-pink text-left">
             <div className="relative h-[226px] shrink-0">
               <Clip src="torcida" />
               <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[9px] font-headline tracking-[0.1em] text-tumtum-white">
@@ -308,7 +288,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
           </article>
 
           {/* Na mesma vibe — yellow, all black */}
-          <article className="flex h-[412px] min-w-[170px] max-w-[248px] flex-1 basis-0 flex-col overflow-hidden bg-tumtum-yellow px-5 py-5 text-left text-tumtum-black">
+          <article className="flex h-[412px] w-[236px] shrink-0 snap-start flex-col overflow-hidden lg:w-auto lg:min-w-[170px] lg:max-w-[248px] lg:flex-1 lg:basis-0 bg-tumtum-yellow px-5 py-5 text-left text-tumtum-black">
             <span className="text-[9px] font-headline tracking-[0.1em]">{mesmaVibe.label}</span>
             <p className="mt-4 text-[15px] font-hero leading-snug">
               {mesmaVibe.copy.map((line) => (
@@ -322,11 +302,11 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
           </article>
         </div>
 
-        <p className="mx-auto mt-8 max-w-[620px] text-[12.5px] text-[#8A8A8A]">{copy.cards.disclaimer}</p>
+        <p className="mx-auto mt-8 max-w-[620px] px-6 text-[12.5px] text-[#8A8A8A]">{copy.cards.disclaimer}</p>
       </section>
 
       {/* --------------------------------------------------- feed #feed */}
-      <section id="feed" className="overflow-hidden bg-tumtum-black px-6 py-28 text-tumtum-white md:px-16">
+      <section id="feed" className="overflow-hidden bg-tumtum-black px-6 py-[72px] text-tumtum-white md:px-16 md:py-28">
         <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-16 md:flex-row md:justify-between">
           <div className="flex w-full max-w-full shrink-0 justify-center gap-4 md:w-auto md:gap-6">
             {/* eslint-disable-next-line @next/next/no-img-element -- static mockups, exact size, no optimization pipeline needed */}
@@ -335,7 +315,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
               alt=""
               width={264}
               height={572}
-              className="w-[43vw] max-w-[220px] rounded-[22px] border border-[#2E2E2E] md:w-[264px] md:max-w-none"
+              className="w-1/2 max-w-[200px] rounded-2xl border border-[#2E2E2E] lg:w-[264px] lg:max-w-none md:rounded-[22px]"
             />
             {/* eslint-disable-next-line @next/next/no-img-element -- static mockups, exact size, no optimization pipeline needed */}
             <img
@@ -343,7 +323,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
               alt=""
               width={264}
               height={572}
-              className="mt-14 w-[43vw] max-w-[220px] rounded-[22px] border border-[#2E2E2E] md:w-[264px] md:max-w-none"
+              className="mt-8 w-1/2 max-w-[200px] rounded-2xl border border-[#2E2E2E] md:mt-14 lg:w-[264px] lg:max-w-none md:rounded-[22px]"
             />
           </div>
           <div className="max-w-[520px]">
@@ -367,9 +347,9 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
       </section>
 
       {/* --------------------------------------------- gallery #galeria */}
-      <section id="galeria" className="overflow-hidden bg-tumtum-pink px-6 py-28 text-tumtum-black md:px-16">
-        <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-16 md:flex-row md:justify-between">
-          <div className="max-w-[520px]">
+      <section id="galeria" className="overflow-hidden bg-tumtum-pink px-6 py-[72px] text-tumtum-black md:px-16 md:py-28">
+        <div className="mx-auto flex max-w-[1200px] flex-col items-start gap-12 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
+          <div className="w-full max-w-[520px]">
             <p className="text-xs font-headline tracking-[0.16em] text-black/55">{copy.gallery.eyebrow}</p>
             <h2 className="mt-5 font-hero text-[clamp(34px,4vw,52px)] leading-tight tracking-[-0.03em]">{copy.gallery.title}</h2>
             <p className="mt-6 text-base leading-relaxed text-black/70">{copy.gallery.body}</p>
@@ -386,10 +366,10 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
           {/* Four nights, four skins, one silhouette — each mini leans its own
               way. Numbers are pink only over the dark scrim; on the yellow
               mini everything is black. */}
-          <div className="grid shrink-0 grid-cols-2 gap-x-[22px] gap-y-[18px]">
+          <div className="grid w-full shrink-0 grid-cols-2 gap-x-[18px] gap-y-[14px] lg:w-auto lg:gap-x-[22px] lg:gap-y-[18px]">
             {copy.gallery.minis.map((mini, i) => {
               const rotations = ['-rotate-2', 'rotate-[1.6deg]', 'rotate-[1.2deg]', '-rotate-[1.6deg]']
-              const offsets = ['translate-y-[30px]', '-translate-y-[14px]', 'translate-y-[18px]', '']
+              const offsets = ['translate-y-5 md:translate-y-[30px]', '-translate-y-2 md:-translate-y-[14px]', 'translate-y-3 md:translate-y-[18px]', '']
               const clips = ['event-clip', 'torcida', 'cold-play', null]
               const numberColor = ['text-tumtum-pink', 'text-tumtum-white', 'text-tumtum-white', 'text-tumtum-black']
               const chips = [
@@ -401,7 +381,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
               return (
                 <div
                   key={mini.label}
-                  className={`relative aspect-[9/14] w-[160px] overflow-hidden shadow-[0_28px_56px_rgba(0,0,0,0.28)] md:w-[196px] ${rotations[i]} ${offsets[i]} ${clips[i] ? 'bg-tumtum-black' : 'bg-tumtum-yellow'}`}
+                  className={`relative aspect-[9/14] w-full overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.28)] lg:w-[196px] md:shadow-[0_28px_56px_rgba(0,0,0,0.28)] ${rotations[i]} ${offsets[i]} ${clips[i] ? 'bg-tumtum-black' : 'bg-tumtum-yellow'}`}
                 >
                   {clips[i] && (
                     <>
@@ -417,7 +397,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
                     {mini.time}
                   </span>
                   <div className="absolute bottom-4 left-4">
-                    <p className={`font-hero text-[56px] leading-none tracking-[-0.04em] tabular-nums ${numberColor[i]}`}>
+                    <p className={`font-hero text-[44px] leading-none tracking-[-0.04em] tabular-nums md:text-[56px] ${numberColor[i]}`}>
                       {mini.value}
                     </p>
                     <p
@@ -434,16 +414,16 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
       </section>
 
       {/* ----------------------------------------------- waitlist #lista */}
-      <section id="lista" className="bg-tumtum-black px-6 py-28 text-center text-tumtum-white">
+      <section id="lista" className="bg-tumtum-black px-6 py-[72px] text-left text-tumtum-white md:py-28 lg:text-center">
         <p className="text-xs font-headline tracking-[0.16em] text-[#8A8A8A]">{copy.waitlist.eyebrow}</p>
-        <h2 className="mt-5 font-hero text-[clamp(34px,4vw,52px)] leading-tight tracking-[-0.03em]">
+        <h2 className="mt-5 font-hero text-[40px] leading-tight tracking-[-0.03em] md:text-[clamp(34px,4vw,52px)]">
           {copy.waitlist.title.map((line) => (
             <span key={line} className="block">
               {line}
             </span>
           ))}
         </h2>
-        <p className="mx-auto mt-6 max-w-[520px] text-base leading-relaxed text-[#B4B4B4]">{copy.waitlist.body}</p>
+        <p className="mt-6 max-w-[520px] text-base leading-relaxed text-[#B4B4B4] lg:mx-auto">{copy.waitlist.body}</p>
         <SiteWaitlistForm copy={copy.waitlist} />
       </section>
 
