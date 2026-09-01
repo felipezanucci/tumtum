@@ -57,8 +57,6 @@ fun LiveTabScreen(nav: NavHostController) {
     val vm: LiveViewModel = viewModel { LiveViewModel(container) }
     val activeEvent by vm.activeEvent.collectAsStateWithLifecycle()
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
-    val scope = rememberCoroutineScope()
-    var showCreate by remember { mutableStateOf(false) }
 
     LaunchedEffect(activeEvent) {
         if (activeEvent != null) {
@@ -66,28 +64,7 @@ fun LiveTabScreen(nav: NavHostController) {
         }
     }
 
-    val context = androidx.compose.ui.platform.LocalContext.current
-    var pendingEvent by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var showBatteryGate by remember { mutableStateOf(false) }
-
     val state = user ?: return
-
-    // §6 — com sensor BLE pareado, a sessão só começa com a isenção de bateria concedida.
-    fun createEvent(name: String, venue: String) {
-        val paired = state.sensorPaired
-        if (paired && !cc.tumtum.app.service.BatteryExemption.isExempt(context)) {
-            pendingEvent = name to venue
-            showBatteryGate = true
-            return
-        }
-        scope.launch {
-            val eventId = vm.startEvent(name, venue)
-            val address = state.bleAddress
-            if (paired && address != null) {
-                cc.tumtum.app.service.CaptureService.start(context, eventId, address)
-            }
-        }
-    }
     Column(
         Modifier
             .fillMaxSize()
@@ -100,7 +77,11 @@ fun LiveTabScreen(nav: NavHostController) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Wordmark(width = 92.dp)
-            Avatar(state.account?.initials ?: "TT", Skin.BLACK)
+            cc.tumtum.app.ui.components.UserAvatar(
+                state.account?.initials ?: "TT",
+                Skin.BLACK,
+                photoPath = state.avatarPath,
+            )
         }
         // a5 — Vazio: convida a marcar o próximo evento, não a comprar nada.
         Column(
@@ -160,42 +141,22 @@ fun LiveTabScreen(nav: NavHostController) {
                 }
             }
             Spacer(Modifier.height(14.dp))
-            if (state.watchConnected) {
-                TTButton(stringResource(R.string.empty_create_event), TTButtonStyle.Rose, onClick = { showCreate = true })
-            } else {
+            if (!state.watchConnected && !state.sensorPaired) {
                 TTButton(
                     stringResource(R.string.empty_connect),
                     TTButtonStyle.Rose,
                     onClick = { nav.navigate(Routes.Permission) },
                 )
-                Spacer(Modifier.height(10.dp))
-                TTButton(stringResource(R.string.empty_create_event), TTButtonStyle.Outline, onClick = { showCreate = true })
+                Spacer(Modifier.height(14.dp))
             }
+            // O evento não é criado pelo participante: o operador marca (Configurações →
+            // EXPERIMENTO) e a captura aparece aqui sozinha.
+            Text(
+                stringResource(R.string.empty_event_note),
+                style = TTType.Footnote,
+                color = TT.Gray45,
+            )
         }
-    }
-
-    if (showCreate) {
-        CreateEventSheet(
-            onDismiss = { showCreate = false },
-            onCreate = { name, venue ->
-                showCreate = false
-                createEvent(name, venue)
-            },
-        )
-    }
-
-    if (showBatteryGate) {
-        BatteryExemptionSheet(
-            onDismiss = {
-                showBatteryGate = false
-                pendingEvent = null
-            },
-            onExempt = {
-                showBatteryGate = false
-                pendingEvent?.let { (name, venue) -> createEvent(name, venue) }
-                pendingEvent = null
-            },
-        )
     }
 }
 

@@ -244,8 +244,15 @@
     <!-- b3 — aviso sobre a tela do sistema -->
     <string name="perm_system_note">O pedido em si aparece numa tela do próprio Android (Health Connect) — é lá que você confirma a leitura de frequência cardíaca.</string>
 
-    <!-- Perfil: foto -->
+    <!-- Perfil: foto e edição -->
     <string name="profile_photo">TROCAR FOTO</string>
     <string name="settings_profile_section">SEU PERFIL</string>
     <string name="settings_photo_change">TROCAR FOTO</string>
+    <string name="profile_edit">Editar perfil</string>
+    <string name="profile_edit_title">Editar perfil</string>
+    <string name="profile_save">Salvar</string>
+
+    <!-- a5 sem criação de evento pelo participante -->
+    <string name="empty_event_note">O evento da sua noite aparece aqui sozinho quando for marcado.</string>
+    <string name="settings_create_event">Marcar evento — operador</string>
 </resources>

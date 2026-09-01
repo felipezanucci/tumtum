@@ -37,6 +37,10 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.AvatarStore
 import cc.tumtum.app.domain.Skin
+import cc.tumtum.app.service.BatteryExemption
+import cc.tumtum.app.service.CaptureService
+import cc.tumtum.app.ui.screens.live.BatteryExemptionSheet
+import cc.tumtum.app.ui.screens.live.CreateEventSheet
 import cc.tumtum.app.ui.components.UserAvatar
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -66,6 +70,28 @@ fun SettingsScreen(nav: NavHostController) {
     var participantDraft by remember { mutableStateOf("") }
     var nameDraft by remember { mutableStateOf("") }
     var draftsLoaded by remember { mutableStateOf(false) }
+    var showCreateEvent by remember { mutableStateOf(false) }
+    var showBatteryGate by remember { mutableStateOf(false) }
+    var pendingEvent by remember { mutableStateOf<Pair<String, String>?>(null) }
+
+    // §6 — com sensor pareado, a sessão só começa com a isenção de bateria concedida.
+    fun createEvent(name: String, venue: String) {
+        val paired = user?.sensorPaired == true
+        val address = user?.bleAddress
+        if (paired && !BatteryExemption.isExempt(context)) {
+            pendingEvent = name to venue
+            showBatteryGate = true
+            return
+        }
+        scope.launch {
+            val eventId = container.nights.startEvent(name, venue)
+            if (paired && address != null) {
+                container.prefs.setActiveCapture(eventId)
+                CaptureService.start(context, eventId, address)
+            }
+            nav.navigate(Routes.Live) { launchSingleTop = true }
+        }
+    }
     LaunchedEffect(user) {
         if (!draftsLoaded && user != null) {
             participantDraft = user?.participantId ?: ""
@@ -174,6 +200,14 @@ fun SettingsScreen(nav: NavHostController) {
             },
             placeholder = "P01",
         )
+        Spacer(Modifier.height(14.dp))
+        // O participante não cria evento (a5): o operador marca aqui e a captura
+        // aparece sozinha na aba AO VIVO de quem está com o aparelho.
+        TTButton(
+            stringResource(R.string.settings_create_event),
+            TTButtonStyle.Outline,
+            onClick = { showCreateEvent = true },
+        )
 
         Spacer(Modifier.height(40.dp))
         Text(stringResource(R.string.settings_account_section), style = TTType.Meta, color = TT.Gray70)
@@ -184,6 +218,30 @@ fun SettingsScreen(nav: NavHostController) {
             stringResource(R.string.settings_delete),
             TTButtonStyle.Outline,
             onClick = { confirmDelete = true },
+        )
+    }
+
+    if (showCreateEvent) {
+        CreateEventSheet(
+            onDismiss = { showCreateEvent = false },
+            onCreate = { name, venue ->
+                showCreateEvent = false
+                createEvent(name, venue)
+            },
+        )
+    }
+
+    if (showBatteryGate) {
+        BatteryExemptionSheet(
+            onDismiss = {
+                showBatteryGate = false
+                pendingEvent = null
+            },
+            onExempt = {
+                showBatteryGate = false
+                pendingEvent?.let { (name, venue) -> createEvent(name, venue) }
+                pendingEvent = null
+            },
         )
     }
 

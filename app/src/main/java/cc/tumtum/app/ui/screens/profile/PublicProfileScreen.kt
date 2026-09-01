@@ -23,9 +23,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +50,9 @@ import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.domain.SocialUser
 import cc.tumtum.app.ui.components.Avatar
 import cc.tumtum.app.ui.components.Badge
+import cc.tumtum.app.ui.components.TTButton
+import cc.tumtum.app.ui.components.TTButtonStyle
+import cc.tumtum.app.ui.components.TTField
 import cc.tumtum.app.ui.components.UserAvatar
 import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
@@ -65,6 +72,7 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
 
     val isMe = user?.account?.username == handle
     var followTick by remember { mutableIntStateOf(0) }
+    var showEdit by remember { mutableStateOf(false) }
     val profile: PublicProfile? = if (isMe) {
         user?.account?.let { acc ->
             PublicProfile(
@@ -88,6 +96,24 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
         remember(handle, followTick) { container.social.profile(handle) }
     }
     val p = profile ?: return
+
+    if (showEdit && isMe) {
+        val editScope = rememberCoroutineScope()
+        EditProfileSheet(
+            initialName = user?.account?.name ?: "",
+            initialHandle = user?.account?.username ?: "",
+            onDismiss = { showEdit = false },
+            onSave = { newName, newHandle ->
+                showEdit = false
+                editScope.launch {
+                    container.prefs.setProfile(newName, newHandle)
+                    // A rota carrega o @ antigo; reabre no novo para continuar "isMe".
+                    nav.popBackStack()
+                    nav.navigate(Routes.profile(newHandle))
+                }
+            },
+        )
+    }
 
     Column(
         Modifier
@@ -176,6 +202,21 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
                     DarkStat(p.recordBpm.toString(), stringResource(R.string.profile_record), TT.Rose)
                 }
             }
+            if (isMe) {
+                Spacer(Modifier.height(18.dp))
+                Text(
+                    stringResource(R.string.profile_edit),
+                    style = TTType.Button.copy(fontSize = 14.sp),
+                    color = TT.Paper,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, TT.Ink600, RoundedCornerShape(12.dp))
+                        .clickable { showEdit = true }
+                        .padding(vertical = 12.dp),
+                )
+            }
             if (!isMe) {
                 Spacer(Modifier.height(18.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -240,5 +281,41 @@ private fun DarkStat(value: String, label: String, valueColor: androidx.compose.
     Column {
         Text(value, style = TTType.NumberMedium.copy(fontSize = 24.sp), color = valueColor)
         Text(label, style = TTType.MetaSmall.copy(fontSize = 10.5.sp), color = TT.Gray45)
+    }
+}
+
+/** Editar o próprio perfil: nome e @ — o @ é sempre escolhido pela pessoa. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditProfileSheet(
+    initialName: String,
+    initialHandle: String,
+    onDismiss: () -> Unit,
+    onSave: (String, String) -> Unit,
+) {
+    var name by rememberSaveable { mutableStateOf(initialName) }
+    var handle by rememberSaveable { mutableStateOf(initialHandle) }
+    val handleClean = handle.trim().removePrefix("@").substringBefore("@").lowercase()
+        .filter { it.isLetterOrDigit() || it == '_' }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = TT.Paper,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, bottom = 40.dp)) {
+            Text(stringResource(R.string.profile_edit_title), style = TTType.TitleSmall, color = TT.Ink)
+            Spacer(Modifier.height(24.dp))
+            TTField(stringResource(R.string.account_name_label), name, { name = it })
+            Spacer(Modifier.height(12.dp))
+            TTField(stringResource(R.string.account_username_label), handle, { handle = it }, placeholder = "@voce")
+            Spacer(Modifier.height(26.dp))
+            TTButton(
+                stringResource(R.string.profile_save),
+                TTButtonStyle.Rose,
+                enabled = name.isNotBlank() && handleClean.length >= 3,
+                onClick = { onSave(name.trim(), handleClean) },
+            )
+        }
     }
 }

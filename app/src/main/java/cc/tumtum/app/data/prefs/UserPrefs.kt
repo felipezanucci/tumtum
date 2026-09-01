@@ -128,6 +128,14 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { p -> if (name.isNotBlank()) p[Keys.name] = name.trim() }
     }
 
+    /** Nome e @ editáveis — o @ é sempre o que a pessoa escolheu. */
+    suspend fun setProfile(name: String, username: String) {
+        context.dataStore.edit { p ->
+            if (name.isNotBlank()) p[Keys.name] = name.trim()
+            if (username.isNotBlank()) p[Keys.username] = username
+        }
+    }
+
     suspend fun setAvatarPath(path: String?) {
         context.dataStore.edit { p ->
             if (path == null) p.remove(Keys.avatarPath) else p[Keys.avatarPath] = path
