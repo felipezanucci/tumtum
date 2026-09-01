@@ -38,7 +38,7 @@ class HRCurveView @JvmOverloads constructor(
     private fun dp(value: Float) = value * density
 
     /**
-     * The wash of lime under the line, fading to nothing.
+     * The wash of Pink under the line, fading to nothing.
      *
      * The site's chart fills the area under the curve and the bare polyline
      * looked thin next to it — Felipe's words, and he was right. Same visual
@@ -55,7 +55,7 @@ class HRCurveView @JvmOverloads constructor(
         strokeWidth = dp(2f)
         strokeJoin = Paint.Join.ROUND
         strokeCap = Paint.Cap.ROUND
-        color = resources.getColor(R.color.tumtum_lime, null)
+        color = resources.getColor(R.color.tumtum_pink, null)
     }
 
     private val peakPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -66,7 +66,7 @@ class HRCurveView @JvmOverloads constructor(
     private val peakRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = dp(2f)
-        color = resources.getColor(R.color.tumtum_lime, null)
+        color = resources.getColor(R.color.tumtum_pink, null)
     }
 
     private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -127,8 +127,8 @@ class HRCurveView @JvmOverloads constructor(
         // bottom, which change with the view's size.
         fillPaint.shader = LinearGradient(
             0f, top, 0f, bottom,
-            resources.getColor(R.color.tumtum_lime, null) and 0x00FFFFFF or (0x66 shl 24),
-            resources.getColor(R.color.tumtum_lime, null) and 0x00FFFFFF,
+            resources.getColor(R.color.tumtum_pink, null) and 0x00FFFFFF or (0x66 shl 24),
+            resources.getColor(R.color.tumtum_pink, null) and 0x00FFFFFF,
             Shader.TileMode.CLAMP,
         )
         canvas.drawPath(fillPath, fillPaint)

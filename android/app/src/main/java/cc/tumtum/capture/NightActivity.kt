@@ -1,6 +1,5 @@
 package cc.tumtum.capture
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -9,6 +8,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -31,7 +31,7 @@ import java.util.concurrent.Executors
  * a lie, and it is the thirteenth time this project has found the app claiming
  * something it never checked.
  */
-class NightActivity : Activity() {
+class NightActivity : ComponentActivity() {
 
     private lateinit var api: TumtumApi
     private lateinit var whenView: TextView

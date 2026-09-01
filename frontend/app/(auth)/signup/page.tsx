@@ -99,7 +99,7 @@ export default function SignupPage() {
 
         <p className="mt-6 text-center text-sm text-tumtum-muted">
           Já tem conta?{' '}
-          <Link href="/login" className="text-tumtum-lime hover:underline">
+          <Link href="/login" className="text-tumtum-pink hover:underline">
             Fazer login
           </Link>
         </p>

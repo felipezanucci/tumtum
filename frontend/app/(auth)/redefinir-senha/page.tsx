@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
         </Suspense>
 
         <p className="mt-6 text-center text-sm text-tumtum-muted">
-          <Link href="/login" className="text-tumtum-lime hover:underline">
+          <Link href="/login" className="text-tumtum-pink hover:underline">
             Voltar para o login
           </Link>
         </p>

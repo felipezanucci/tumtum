@@ -128,7 +128,7 @@ export default function WaitlistAdminPage() {
             <>
               <div className="mt-6 flex items-center justify-between gap-4">
                 <p className="text-tumtum-white">
-                  <span className="font-hero text-2xl text-tumtum-lime tabular-nums">
+                  <span className="font-hero text-2xl text-tumtum-pink tabular-nums">
                     {entries.length}
                   </span>{' '}
                   <span className="text-sm text-tumtum-muted">
@@ -138,7 +138,7 @@ export default function WaitlistAdminPage() {
                 <button
                   type="button"
                   onClick={download}
-                  className="rounded-lg bg-tumtum-lime px-4 py-2 text-sm font-headline text-tumtum-black transition-colors hover:bg-tumtum-yellow"
+                  className="rounded-lg bg-tumtum-pink px-4 py-2 text-sm font-headline text-tumtum-black transition-colors hover:bg-tumtum-yellow"
                 >
                   Baixar CSV
                 </button>

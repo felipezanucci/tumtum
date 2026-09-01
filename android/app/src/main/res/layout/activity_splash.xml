@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The heartbeat, before anything else.
+
+  The video is 16:9 on a portrait screen, so the VideoView letterboxes — and
+  because the film is black on a black background, the letterbox is invisible:
+  the wordmark simply beats in the middle of the dark.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/splashRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tumtum_black">
+
+    <VideoView
+        android:id="@+id/splashVideo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
+</FrameLayout>

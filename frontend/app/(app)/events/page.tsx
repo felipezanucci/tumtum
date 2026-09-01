@@ -48,7 +48,7 @@ export default function EventsPage() {
           <div className="mb-6 flex items-center justify-between gap-4">
             <h1 className="text-3xl font-hero text-tumtum-white">Eventos</h1>
             <Link href="/events/novo">
-              <span className="shrink-0 rounded-lg bg-tumtum-lime px-4 py-2 text-sm font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow">
+              <span className="shrink-0 rounded-lg bg-tumtum-pink px-4 py-2 text-sm font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow">
                 Novo evento
               </span>
             </Link>
@@ -70,7 +70,7 @@ export default function EventsPage() {
                   onClick={() => setTypeFilter(type)}
                   className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                     typeFilter === type
-                      ? 'bg-tumtum-lime text-tumtum-black'
+                      ? 'bg-tumtum-pink text-tumtum-black'
                       : 'bg-tumtum-surface text-tumtum-muted hover:text-tumtum-white'
                   }`}
                 >

@@ -79,7 +79,7 @@ export default function OnboardingPage() {
                     onClick={() => setSelectedProvider(option.id)}
                     className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors ${
                       isSelected
-                        ? 'border-tumtum-lime bg-tumtum-lime/10'
+                        ? 'border-tumtum-pink bg-tumtum-pink/10'
                         : isDisabled
                         ? 'border-tumtum-border opacity-40 cursor-not-allowed'
                         : 'border-tumtum-border hover:border-tumtum-muted'
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
             <div
               key={s}
               className={`h-2 w-2 rounded-full transition-colors ${
-                step === s ? 'bg-tumtum-lime' : 'bg-tumtum-border'
+                step === s ? 'bg-tumtum-pink' : 'bg-tumtum-border'
               }`}
             />
           ))}

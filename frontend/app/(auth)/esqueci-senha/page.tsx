@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
 
         <p className="mt-6 text-center text-sm text-tumtum-muted">
           Lembrou?{' '}
-          <Link href="/login" className="text-tumtum-lime hover:underline">
+          <Link href="/login" className="text-tumtum-pink hover:underline">
             Fazer login
           </Link>
         </p>

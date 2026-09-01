@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -15,11 +15,10 @@ from app.schemas.health import (
     HRSessionCreateRequest,
     HRSessionDetailResponse,
     HRSessionResponse,
-    SyncRequest,
-    SyncStatusResponse,
     WearableConnectionResponse,
     WearableConnectRequest,
 )
+from app.services import data_quality
 
 router = APIRouter(prefix="/api/health", tags=["health"])
 
@@ -127,11 +126,12 @@ async def create_hr_session(
     max_bpm = max(bpm_values) if bpm_values else None
     min_bpm = min(bpm_values) if bpm_values else None
 
-    # Data quality: based on coverage (points per minute) and variance
-    duration_minutes = (body.end_time - body.start_time).total_seconds() / 60
-    expected_points = duration_minutes * 12  # ~1 reading per 5 seconds
-    coverage = min(len(bpm_values) / expected_points, 1.0) if expected_points > 0 else 0
-    data_quality_score = round(coverage * 100)
+    # How much of the night we actually hold — continuity, not volume. The
+    # reasoning, and the Realness capture that exposed the old formula, are
+    # in app/services/data_quality.py.
+    data_quality_score = data_quality.score(
+        body.start_time, body.end_time, (dp.time for dp in unique_points)
+    )
 
     session = HRSession(
         user_id=user.id,
@@ -200,48 +200,3 @@ async def get_hr_session(
     )
     session.data_points = data_result.scalars().all()
     return session
-
-
-# --- Sync ---
-
-
-@router.post("/sync", response_model=SyncStatusResponse)
-async def trigger_sync(
-    body: SyncRequest,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(
-        select(WearableConnection).where(
-            WearableConnection.id == body.connection_id,
-            WearableConnection.user_id == user.id,
-            WearableConnection.status == "active",
-        )
-    )
-    connection = result.scalar_one_or_none()
-    if not connection:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Conexão não encontrada ou inativa",
-        )
-
-    # Dispatch async sync task
-    from app.services.health_sync import sync_health_data
-
-    records_synced = await sync_health_data(
-        db=db,
-        user_id=user.id,
-        connection=connection,
-        start_time=body.start_time,
-        end_time=body.end_time,
-    )
-
-    connection.last_sync_at = datetime.now(UTC)
-    await db.flush()
-
-    return SyncStatusResponse(
-        connection_id=connection.id,
-        status="completed",
-        records_synced=records_synced,
-        last_sync_at=connection.last_sync_at,
-    )

@@ -6,12 +6,6 @@ export {
 } from './apple-health'
 
 export {
-  getGoogleFitAuthUrl,
-  exchangeGoogleCode,
-  isHealthConnectAvailable,
-} from './google-health-connect'
-
-export {
   parseHRFile,
   parseTimestamp,
   filterSamplesByWindow,

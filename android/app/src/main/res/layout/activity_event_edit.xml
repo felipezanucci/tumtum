@@ -175,7 +175,7 @@
                     android:text="@string/edit_midnight"
                     android:textSize="12sp"
                     android:visibility="gone"
-                    android:textColor="@color/tumtum_lime" />
+                    android:textColor="@color/tumtum_pink" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -227,7 +227,7 @@
                     android:minHeight="56dp"
                     android:text="@string/save"
                     android:textColor="@color/tumtum_black"
-                    android:backgroundTint="@color/tumtum_lime" />
+                    android:backgroundTint="@color/tumtum_pink" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

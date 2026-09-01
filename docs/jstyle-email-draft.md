@@ -391,3 +391,132 @@ and I will come back to you after the pilot with real demand data either way.
 Best regards,
 Felipe Zanucci
 Founder, TumTum
+
+---
+
+## 5. Reply to Arena's 10–50 unit offer — drafted 2026-08-28, **not sent**
+
+> **What arrived (2026-08-28).** Arena broke J-Style's own MOQ and offered a
+> first batch of **10–50 units** of the customized V8 with raw PPG at
+> **USD 80/unit**, with **NRE USD 30,000**. The package: SDK/API licensing,
+> protocol documentation, tailored firmware support, integration assistance,
+> 12 months of technical support. She proposes defining the firmware
+> acceptance criteria together before development, and explicitly accepts
+> **our Polar H10 protocol as the objective evaluation**. She closes by
+> saying there is no need to rush, and that we can pick this up after the
+> Phase 0 results.
+>
+> **How it compares to the previous counter:**
+>
+> | | 2026-08-24 counter | 2026-08-28 offer |
+> |---|---|---|
+> | Batch | 3,000 units (pilot refused) | **10–50 units** ✅ |
+> | Unit price | USD 40–80 | USD 80 (top of range) |
+> | NRE | USD 15,000 | **USD 30,000** |
+> | Rebate | 20% ladder, 100% at 50,000 units | **not mentioned** |
+>
+> Total exposure fell from ~USD 255,000 to **USD 34,000** — genuinely a
+> different conversation. But the NRE doubled and the path back disappeared,
+> so per device the validation costs **USD 680** at 50 units and
+> **USD 3,080** at 10.
+>
+> **Three things this reply is built on:**
+>
+> 1. **The letter does not answer the question.** Draft 4 asked directly
+>    whether the customized firmware removes the motion-conditioned
+>    processing. The reply proposes to develop it and define criteria
+>    together — so USD 30,000 buys an *attempt*, not an answer. That is not
+>    bad faith; it is probably honest. It is also why payment structure
+>    matters more than price.
+> 2. **Their own sentence is the lever.** If the Polar protocol is objective
+>    enough for both teams to evaluate the result, it is objective enough to
+>    gate payment. Asking for milestone-staged NRE is fair *because Arena
+>    proposed the test*.
+> 3. **They removed the deadline themselves.** "No need to rush… once you
+>    have your Phase 0 results." Phase 0 validates demand; custom hardware is
+>    Phase 1. Deciding USD 30,000 of hardware economics before knowing
+>    whether people want the product is the inversion the phase order exists
+>    to prevent.
+>
+> **So this reply does not negotiate.** It banks the concession warmly, keeps
+> the relationship live, and plants the three structural questions so they
+> are already on the table when the conversation resumes after 25 September.
+> Negotiating terms now would spend goodwill on a decision we are not ready
+> to make — and would signal we might pay USD 30,000 before demand exists.
+>
+> **Do not** counter-offer on price in this reply. The unit price is not the
+> problem; the NRE structure is, and that argument is stronger with pilot
+> data behind it.
+
+**Subject:** Thank you — and how we would like to proceed after our pilot
+
+Dear Arena,
+
+Thank you. I know that making an exception to a 3,000-unit MOQ is not a
+small thing internally, and I want to acknowledge it properly: you went back
+to your team with our problem and came back with a real answer. That matters
+to me more than the terms themselves, and it is the reason I want to keep
+building this with J-Style.
+
+Two things in your message stood out.
+
+First, that you are willing to define the firmware acceptance criteria
+together **before** development, rather than after. That is exactly the right
+order, and it is not how most suppliers work.
+
+Second, that you accept our Polar H10 protocol as the objective way for both
+teams to judge the result. That protocol is the one thing we have that is
+genuinely rigorous — it is what told us the current firmware clamps amplitude
+while the wearer is still, and it will tell us just as plainly whether the
+customized firmware fixes it. Having both sides agree in advance on how the
+answer gets measured removes the argument that would otherwise happen later.
+
+I would also like to take you up on your closing suggestion. You are right
+that there is no need to rush the production discussion, and I would rather
+be straight with you about why I agree.
+
+Our Phase 0 exists to answer one question: do people actually want this? We
+have a six-hour live capture this Saturday and a structured pilot on
+25 September. Until those tell us something, any hardware commitment I make
+is a guess — and I would rather not spend your engineering team's time on a
+specification written before I know what the product needs to be. If Phase 0
+says people love this, I will come back with real usage data and a much
+clearer picture of what the band has to do. If it does not, you will not have
+built firmware for a product that stopped.
+
+So: I would like to accept the shape of what you are proposing — a small
+first batch, custom raw-PPG firmware, acceptance criteria agreed in advance —
+and pick up the commercial detail once the pilot results are in, as you
+suggested.
+
+When we do, there are three points I would want us to work through together,
+and I mention them now only so they are not a surprise later:
+
+1. **Staging the NRE against the acceptance test.** Since we will have agreed
+   the criteria in advance and both trust the protocol, it would be natural
+   to tie the final portion of the NRE to the firmware passing it. I am not
+   asking you to carry the development risk alone — I am asking that we share
+   it in the same way the small batch shares the volume risk.
+
+2. **What happens if the firmware does not pass.** The motion-conditioned
+   processing is a real engineering unknown for both of us. It would be worth
+   agreeing up front what we each do in that case, so that outcome ends in a
+   second iteration or a clean stop rather than a dispute.
+
+3. **Whether the NRE can be credited against a first production order.** Your
+   earlier proposal included a rebate mechanism; if something similar can
+   apply here, it would make the internal case much easier for me when the
+   volume conversation comes.
+
+None of that needs answering today. I raise it so that when we resume, we are
+picking up a conversation rather than starting one.
+
+I will write to you after the September pilot with what we learned — good or
+bad, and with the numbers either way.
+
+Thank you again for the flexibility, and for staying with this while we get
+the evidence we need.
+
+Best regards,
+Felipe Zanucci
+Founder, TumTum

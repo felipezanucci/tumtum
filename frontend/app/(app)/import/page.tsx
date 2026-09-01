@@ -255,7 +255,7 @@ export default function ImportPage() {
                     id="event"
                     value={eventId}
                     onChange={(e) => handleEventChange(e.target.value)}
-                    className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none"
+                    className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none"
                   >
                     <option value="">Sem evento — só a curva</option>
                     {eventList.map((item) => (
@@ -280,7 +280,7 @@ export default function ImportPage() {
                       type="datetime-local"
                       value={startInput}
                       onChange={(e) => setStartInput(e.target.value)}
-                      className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none"
+                      className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none"
                     />
                   </div>
                   <div>
@@ -292,7 +292,7 @@ export default function ImportPage() {
                       type="datetime-local"
                       value={endInput}
                       onChange={(e) => setEndInput(e.target.value)}
-                      className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none"
+                      className="w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none"
                     />
                   </div>
                 </div>

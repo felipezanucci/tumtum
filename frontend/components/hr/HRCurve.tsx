@@ -24,7 +24,7 @@ interface HRCurveProps {
  * brand manual allows, and never an ECG trace, which it forbids. D3 takes
  * literal colour strings, so the palette lives here rather than in Tailwind.
  */
-const LIME = '#C6FF00' // primary accent: the line itself
+const PINK = '#FF6F91' // primary accent: the line itself
 const YELLOW = '#EFFF00' // secondary accent: the peak markers
 const WHITE = '#FFFFFF'
 const MUTED = 'rgba(255, 255, 255, 0.6)' // axes, ticks, secondary labels
@@ -104,8 +104,8 @@ export default function HRCurve({
       .attr('y1', '0%')
       .attr('x2', '0%')
       .attr('y2', '100%')
-    gradient.append('stop').attr('offset', '0%').attr('stop-color', LIME).attr('stop-opacity', 0.3)
-    gradient.append('stop').attr('offset', '100%').attr('stop-color', LIME).attr('stop-opacity', 0)
+    gradient.append('stop').attr('offset', '0%').attr('stop-color', PINK).attr('stop-opacity', 0.3)
+    gradient.append('stop').attr('offset', '100%').attr('stop-color', PINK).attr('stop-opacity', 0)
 
     // Area
     const area = d3
@@ -131,7 +131,7 @@ export default function HRCurve({
       .append('path')
       .datum(parsed)
       .attr('fill', 'none')
-      .attr('stroke', LIME)
+      .attr('stroke', PINK)
       .attr('stroke-width', 2)
       .attr('d', line)
 

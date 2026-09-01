@@ -64,7 +64,7 @@
             android:text="@string/retry"
             android:visibility="gone"
             android:textColor="@color/tumtum_black"
-            android:backgroundTint="@color/tumtum_lime" />
+            android:backgroundTint="@color/tumtum_pink" />
 
         <cc.tumtum.capture.HRCurveView
             android:id="@+id/curve"
@@ -114,7 +114,7 @@
             android:text="@string/find_moments"
             android:visibility="gone"
             android:textColor="@color/tumtum_black"
-            android:backgroundTint="@color/tumtum_lime" />
+            android:backgroundTint="@color/tumtum_pink" />
 
         <LinearLayout
             android:id="@+id/moments"
@@ -132,7 +132,7 @@
             android:text="@string/make_card"
             android:visibility="gone"
             android:textColor="@color/tumtum_black"
-            android:backgroundTint="@color/tumtum_lime" />
+            android:backgroundTint="@color/tumtum_pink" />
 
     </LinearLayout>
     </ScrollView>

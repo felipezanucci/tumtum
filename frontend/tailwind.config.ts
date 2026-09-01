@@ -7,11 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand manual MVP v0.1: two neutrals and one acid pair. Nothing from
-        // the previous red/cyan palette survives.
+        // Brand manual MVP v0.4: two neutrals and a proprietary pop duo.
+        // Acid Lime #C6FF00 was the primary accent through v0.1 and does not
+        // survive — anything still lime is out of date, not a variant.
         'tumtum-black': '#000000',
         'tumtum-white': '#FFFFFF',
-        'tumtum-lime': '#C6FF00', // primary accent
+        // Pink is 7.93:1 on black against Lime's 17.7:1 — it still passes AA
+        // everywhere and AAA at large sizes, but it is roughly half as loud,
+        // so emphasis comes from scale now rather than from the colour.
+        // Never white on it: 2.65:1. Black on it is 7.93:1.
+        'tumtum-pink': '#FF6F91', // primary accent
         'tumtum-yellow': '#EFFF00', // secondary accent
 
         // UI-only neutrals. The palette has no greys, so separation comes from

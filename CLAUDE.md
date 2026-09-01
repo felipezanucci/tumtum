@@ -32,6 +32,9 @@ The other durable documents:
 | `docs/jstyle-v8-evaluation.md` | Everything learned about the J-Style bands |
 | `shared/brand/README.md` | Brand implementation details beyond this file |
 | `docs/handoff-2026-08-26.md` | Session handoff: state, config, traps, and what was still Felipe's to do two days before the festival |
+| `docs/health-connect-plan.md` | The next phase: reading the fans' own watches, its stages, its estimate, and the sampling risk that decides it |
+| `docs/wear-os-plan.md` | The Wear OS app costed honestly: what it actually buys (guaranteed 1 Hz, not "live"), and why it waits on a measurement |
+| `docs/design-brief.md` | **Self-contained brand + product handoff for design tools and outside collaborators.** Paste it whole before asking for design work |
 
 One working rule the log records, learned four times: push everything first,
 open the pull request last, and anything pushed after a PR is merged gets a
@@ -200,28 +203,39 @@ waitlist_entries: id (uuid PK), email (unique), source, created_at
 
 ## Brand identity
 
-Source of truth: **TUMTUM Manual de Marca, MVP v0.1 (2026-08-24)**. It supersedes
-the red/cyan palette and the Georgia wordmark this section used to describe —
-none of those colours survive. The manual marks each rule LOCKED (approved,
-do not change), WORKING (current recommendation, still being refined) or NEVER
-(rejected). Where anything here is thinner than the manual, the manual wins.
+Source of truth: **TUMTUM Manual de Marca, MVP v0.4 (2026-08-31)**. It marks
+each rule LOCKED (approved, do not change), WORKING (current recommendation,
+still being refined) or NEVER (rejected). Where anything here is thinner than
+the manual, the manual wins. **`docs/design-brief.md` is this section expanded
+into a self-contained handoff** for design tools and outside collaborators.
 
-### Colour — two neutrals and one acid pair
+**v0.4 replaced the palette.** Acid Lime `#C6FF00` is gone — it was the primary
+accent through v0.1 and appears in code and artwork built before 31/08 (the
+card generator, `tailwind.config.ts`, the rendered cards). Anything still lime
+is out of date, not a variant.
+
+### Colour — two neutrals and a proprietary pop duo
 
 | Token | Hex | Role |
 |---|---|---|
 | Black | `#000000` | Primary canvas and text |
 | White | `#FFFFFF` | Neutral / inverse |
-| Acid Lime | `#C6FF00` | **Primary accent** |
+| **TumTum Pink** | **`#FF6F91`** | **Primary accent** |
 | Toxic Yellow | `#EFFF00` | Secondary accent |
 
 - Black and white are the structural neutrals; the accents carry emphasis.
-- Roughly **70% Acid Lime / 30% Toxic Yellow** in accent use. A working balance,
-  not a layout quota.
-- Digital default: black canvas, white for supporting information, Acid Lime for
-  the main emphasis, Toxic Yellow as a second explosion.
-- **Never set text in white on Acid Lime or Toxic Yellow** — 1.19:1 and 1.11:1.
-  Black on either is excellent (17.7:1 and 19:1). Lime on yellow is not a pair.
+- **Pink may occupy large surfaces** — full backgrounds and colour fields — which
+  the previous acid accent could not. Yellow works best on labels, CTAs,
+  highlights and data markers.
+- Roughly **70% TumTum Pink / 30% Toxic Yellow** in accent use. A working
+  balance, not a layout quota.
+- Digital default: black canvas, white for supporting information, Pink for the
+  main emphasis, Toxic Yellow as a second explosion.
+- **Never set text in white on Pink or Toxic Yellow** — 2.65:1 and 1.11:1. Black
+  on either is excellent (7.93:1 and 18.97:1). Pink on yellow is not a pair.
+- **Pink on black is 7.93:1**, against Acid Lime's 17.7:1. It passes AA
+  everywhere and AAA at large sizes, but it is roughly half as loud: emphasis
+  now needs **scale**, not a brighter tint.
 - Mutation skins may introduce other colours; this palette stays the anchor.
 
 ### Type
@@ -240,10 +254,15 @@ AI-generated approximation is not a master. Never stretch, compress, slant,
 redraw the letters, or alter the silhouette.
 
 **Approved finishes: black, white, or an approved graphic version** (the
-mutation skins — zebra, inflável, cromado and so on). **The Acid Lime and Toxic
-Yellow wordmarks are forbidden** — a correction to manual v0.1, which still
-lists them among the institutional versions. The accents colour the interface
-around the logo, never the logo itself.
+mutation skins — zebra, inflável, cromado and so on). **Flat coloured wordmarks
+are forbidden** — no Pink, no Toxic Yellow, no other colour. The accents colour
+the interface around the logo, never the logo itself. On Pink or Yellow
+surfaces the logo defaults to black.
+
+**Chosmos must never be given to an AI tool.** The Typozon EULA (v3.4) carries
+an explicit AI/machine-learning restriction, so a lookalike rendered from
+another font is a legal problem as well as a brand one. In any mockup, place
+the official asset or a marked placeholder.
 
 ### Name
 
@@ -280,9 +299,11 @@ is surface treatment, never redesign.
 **A real heart-rate line is allowed** when it is the user's own data and the
 chart is product information — specifically the "Minha noite" card and
 community/comparison contexts where the line adds evidence. Simple BPM over
-time, never an ECG trace; Acid Lime for the main emphasis on dark surfaces; no
-heart zones, risk colours, "normal ranges" or recovery scores. The chart answers
-*"when did this happen?"*, never *"what does this mean clinically?"*.
+time, never an ECG trace; TumTum Pink for the main emphasis on dark surfaces and
+Toxic Yellow for highlight points and labels; no heart zones, risk colours,
+"normal ranges" or recovery scores. The chart answers *"when did this happen?"*,
+never *"what does this mean clinically?"*. **A gap in a capture is drawn as a
+gap** — the line breaks rather than crossing minutes nobody measured.
 
 ### Share cards — five narratives for one moment
 

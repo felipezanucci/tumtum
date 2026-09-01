@@ -206,7 +206,7 @@ export default function CardsPage() {
                     {shareMenuId === card.id && (
                       <div
                         ref={(node) => node?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })}
-                        className="mt-3 rounded-lg border border-tumtum-lime/50 bg-tumtum-black p-3"
+                        className="mt-3 rounded-lg border border-tumtum-pink/50 bg-tumtum-black p-3"
                       >
                         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-tumtum-muted">
                           Compartilhar em

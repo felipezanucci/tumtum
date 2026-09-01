@@ -47,7 +47,7 @@ export default function ComparisonCard({
         {/* Comparison */}
         <div className="flex w-full items-center justify-around">
           <div className="text-center">
-            <p className="text-4xl font-bold text-tumtum-lime">{userPeakBpm}</p>
+            <p className="text-4xl font-bold text-tumtum-pink">{userPeakBpm}</p>
             <p className="mt-1 text-xs text-tumtum-muted">Seu pico</p>
           </div>
           <span className="text-lg font-medium text-tumtum-muted">vs</span>

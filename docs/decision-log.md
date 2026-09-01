@@ -5,17 +5,18 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-08-27
+## Where things stand — 2026-08-30
 
 | Track | Status |
 |---|---|
-| **Hardware supplier** | J-Style **parked, not closed — and they reopened it themselves.** Their counter (pilot batch refused; MOQ 5,000 → 3,000; NRE US$ 15k with a rebate ladder paying back only from 10,000 units) was declined on timing. Arena then asked for "more vision", and **Draft 4 was sent 2026-08-26** — it argues the small batch as *their* risk reduction on the unanswered firmware question. **Ball in their court.** No NRE and no volume before the pilot. |
-| **Android app (native)** | **No longer a WebView shell.** Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. What remains is Health Connect. |
-| **Path 2 — fans' own watches** | **Phase 1 validated in the field, and rehearsed on the phone.** A 25-minute capture recorded 1,504 readings in 1,504 seconds — one per second, nothing lost. Reconnection that never gives up, R-R intervals. |
+| **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
+| **Android app (native)** | **Proven at a real six-hour event, 29/08.** The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. |
+| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. |
 | **Backend** | Railway trial had expired and paused all services; upgraded to Hobby, `/health` responding again. |
 | **Frontend** | Deployed on Vercel via its native git integration, on **tumtum.cc**. Preview builds work per branch. **`/` is a real landing page and is live** — the whole public loop was driven end to end on the real deployment (form → API → table, count 0 → 1) — information and sales, with a working waitlist; the app screens live under `(app)` and are what the Android WebView loads. |
 | **Brand** | MVP v0.1 manual adopted and live: black canvas, Acid Lime, Instrument Sans, the official Chosmos wordmark. Mutation skins **parked**. |
-| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture. Sharing opens the system sheet **with the image attached**. |
+| **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
 | **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
 
@@ -90,12 +91,1111 @@ the linked documents — this file is the index and the reasoning, not a diary.
     column silently does not happen in production; 007 is written and
     dormant. Decide after the festival: run migrations on deploy, or keep
     create_all and know its limits.
-17. **The landing page has no sign-in link.** The only "Entrar" on it is the
-    waitlist. Decide before the 25 September pilot how a person with an
-    account gets in without typing an address.
+17. ~~**The landing page has no sign-in link.**~~ Closed 2026-09-01 by the
+    site redesign: "Entrar" in the nav and "Entrar na sua conta" in the
+    footer, both to `/login`.
 18. **An event cannot cross midnight** — one date, two bare times, so
     "termina 03:00" cannot say it means the next day. A capture attaches by
     event id, so Saturday is unaffected; the model change waits.
+21. ~~**`data_quality_score` cannot see a hole.**~~ Fixed 2026-08-30. The
+    score counts 5-second slots now, so a gap empties its slots and shows.
+    Realness reads 78 instead of 100. **What is left is one deploy and one
+    tap:** the row in the database still carries the old 100 until that night
+    is analysed again, and the app itself is the thing that does it —
+    "Procurar meus momentos" restates the score from the stored readings.
+22. **The Realness moments have no names.** No timeline rows for the event, so
+    `116 bpm às 01:24` has no story attached — and the story is the card.
+    Felipe's memory of the night is the only source.
+26. ~~**The palette changed and the code has not.**~~ Done 2026-08-31, forced
+    by the design-system sync: syncing components whose accent is a deleted
+    colour would have seeded every screen designed in Claude Design with lime.
+    70 usages across 34 files, all three codebases. Every `bg-tumtum-lime`
+    already carried `text-tumtum-black`, so contrast survived the swap intact.
+23. **Xiaomi Mi Band 9 untested.** Bought, unopened as far as the log knows.
+    One night answers whether the 1/min ceiling is Samsung's or Health
+    Connect's — the last open question of Etapa 0.
+24. **The card does not make anyone want to post it.** Raised 2026-08-30,
+    **half closed 2026-08-31**: the card now leads with the highest peak
+    instead of the highest-ranked one, says something built from the night's
+    own numbers instead of a constant, and carries the curve as evidence.
+    **Still open is the surface** — cover the wordmark and it is still a black
+    field with a lime number. Mutante Pop is the declared territory and the
+    skins are still parked; that is the remaining half.
+25. **Which card people actually want to post is a research question, not a
+    design opinion.** Felipe's call, 2026-08-31, choosing layout D: *"esse é um
+    ponto que vale pesquisarmos com o público da TumTum."* He is right, and it
+    is worth writing down why. Four layouts were argued from first principles —
+    what the number means, what the copy can prove, what the manual permits —
+    and every one of those arguments is about **whether the card is honest and
+    well made**, which is not the same question as **whether a stranger posts
+    it**. Nobody here can answer the second from a screen. What makes it
+    answerable: the four renders already exist, so the material for a
+    side-by-side is built. The cheapest real signal is the 25/09 pilot — 3–5
+    people who will each have a night of their own — and the honest measure is
+    not "which is prettiest" but **which one someone actually sends to
+    somebody**. Do not let the taste of the people who built it stand in for
+    that.
+19. **The Brazilian age/sex split for wearables is still unknown — and Super
+    Panorama does not carry it.** Felipe opened the June 2026 edition on 27/08:
+    it gives penetration (30,1%), the class cut and the function ranking, but
+    **crosses wearables with nothing demographic** — its gender and age figures
+    are about smartphones. The only route to the split is the raw crossing
+    tables, on request from `fernando.paiva@mobiletime.com.br`. Felipe's to
+    ask; it does not block Health Connect. Until then the only figure we have
+    is global (Counterpoint, women ~35%), and it should not be guessed at.
+20. **The iOS/Apple Watch path is real but uncosted.** Reading the Health app
+    export through `/import` already works today; an iPhone app reading
+    HealthKit is the exact mirror of the Health Connect plan and needs no watch
+    app at all. What is not written down is the plan: stages, gates and an
+    honest estimate, in the same shape as the other two, so the three can be
+    compared before the order is fixed. Felipe was offered it 2026-08-27 and
+    has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
+    runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-09-01 — the site is redesigned from the Claude Design handoff, and the deploy is one merge away
+
+Felipe designed a full replacement for tumtum.cc in Claude Design and brought
+the export. **The handoff was excellent** — a README that names itself a spec,
+final copy in both languages, hard rules restated (never white on the accents,
+a number is pink only on a dark ground, the wordmark only ever from the SVG),
+and honest notes about its own limits: measurements are desktop-only, and its
+~25 MB of GIFs "far too heavy to ship".
+
+Rebuilt in the site's own stack, per the README's instruction, not copied:
+
+- **One layout, two languages.** `SiteLanding` renders from a `SiteCopy`
+  object; `/` passes PT and the new `/en` passes EN, with hreflang alternates.
+  The type demands both languages, so a section cannot exist in one and
+  silently miss the other. The prototype's localStorage switcher became routes
+  — the handoff itself recommends that for production.
+- **The GIFs became 8-second muted MP4 loops: 25 MB → 1.4 MB**, plus poster
+  frames for the moment before load. Largest slot in the design is 310px, so
+  620px-wide video covers retina.
+- **The waitlist form kept its honesty and dropped its questions.** The new
+  design has one email field; the names were optional in the API all along,
+  and the page beneath the form promises "a gente só usa seu e-mail". Every
+  outcome is still visible — sending locks and says so, a repeat submission is
+  warm rather than red, a failure keeps what was typed and blames the server.
+- **The landing finally has a sign-in link** — two, nav and footer. Open item
+  17 closes: the design solved it, the rebuild shipped it.
+- `LandingNav`, `VideoSlot`, `Reveal`, `WaitlistForm` deleted with the old
+  page — nothing else imported them. `Reveal` goes unmourned: the new design
+  specifies no scroll animation at all, in line with the motion rules.
+- Verified by rendering, not only by building: production build served
+  locally, screenshotted at 1440 and 390 wide, both routes. Mobile was not
+  designed in the handoff and follows the site's existing stacking.
+
+**Not yet live.** The site deploys from `main`; this is pushed to the branch,
+where Vercel builds a preview per branch. Going live is merging PR #45 —
+deliberately left as Felipe's act, since it also carries eleven days of other
+work: the palette, the quality score, the card with the curve, Health Connect.
+
+### Open item 17 — closed by design, literally
+
+The item read "decide before the pilot how a person with an account gets in
+without typing an address." The decision arrived from the design side: the
+redesign simply included the link, twice. Some open items are closed by
+engineering; this one was closed by someone drawing what was missing.
+
+---
+
+## 2026-08-31 — the palette migration, forced by a sync that would have spread the old one
+
+Item 26 was left open with the timing as Felipe's call. Starting a design-system
+sync to Claude Design answered it: the sync uploads the real compiled
+components, and **the design agent then builds every screen out of them**. Push
+a library whose primary accent is a colour the manual deleted, and every screen
+designed afterwards is lime — the code and the designs both need redoing.
+
+So the migration ran first. **70 usages across 34 files**, in all three
+codebases: `tailwind.config.ts` and 12 components plus the pages that use them,
+`colors.xml` and `HRCurveView` on Android, `card_generator.py` on the backend.
+
+### Mostly a rename, and one reason that is not luck
+
+**Every `bg-tumtum-lime` in the codebase already carried
+`text-tumtum-black`.** Not one white-on-accent pairing existed, so the swap
+preserved contrast without a single judgement call. That is not luck: white on
+Acid Lime was 1.19:1 and already forbidden by v0.1, so the rule that protected
+the old palette is what made the new one land clean. Black on Pink is 7.93:1.
+
+The literal colours were the part that needed care rather than `sed` — the
+Tailwind token, the `PINK` constant in `HRCurve.tsx`, two SVG attributes on the
+landing page, and the RGB tuple in the card generator.
+
+### The change makes one thing visibly better
+
+Rendering the card in Pink showed something the argument had missed. **Acid
+Lime and Toxic Yellow were nearly the same hue**, so the yellow moment-marker
+sat on a lime curve and all but vanished — the very element whose job is to
+say *this is the moment*. Against Pink it reads immediately. The palette
+change bought a legibility fix nobody asked for.
+
+Against that, the loss is real and already recorded: Pink is 7.93:1 on black
+where Lime was 17.7:1. The hero number is large enough that AAA still holds,
+but anything small and Pink is now carrying less weight than it did.
+
+Verified: 65 backend tests, 55 frontend tests, ruff clean, lint unchanged.
+
+---
+
+## 2026-08-31 — manual v0.4: the accent is TumTum Pink, and the code is now out of date
+
+Felipe brought manual **v0.4 (31 Aug 2026)** and said the palette changes
+again. **Acid Lime `#C6FF00` is gone. TumTum Pink `#FF6F91` is the primary
+accent.** Toxic Yellow `#EFFF00` stays as the secondary. Black and white are
+unchanged.
+
+Written up as `docs/design-brief.md` — a self-contained handoff he can paste
+into Claude Design, since he intends to design the screens there. `CLAUDE.md`
+was corrected in the same pass: it stated the lime palette as fact, and it is
+the file every future session reads first. **A stale instruction file is this
+project's bug class with the widest blast radius** — it does not mislead one
+screen, it misleads everything built after it.
+
+### The change is not a swap of one hex for another
+
+Two things behave differently and both affect layout:
+
+**Pink can hold large surfaces.** The old accent was an acid highlight that
+only worked in small doses. Pink may be a full background, a colour field, a
+whole panel. That widens what a layout can do rather than just recolouring it.
+
+**Pink is roughly half as loud on black.** Measured: **7.93:1** against Acid
+Lime's 17.7:1. It still passes AA everywhere and AAA at large sizes, so nothing
+is inaccessible — but emphasis that used to come free from the colour now has
+to come from **scale**. The correct response is bigger, not brighter; reaching
+for a lighter tint would leave the palette.
+
+White on Pink is **2.65:1** and fails even large-text AA, so the "never white on
+an accent" rule survives intact, with a new number.
+
+### A constraint that lands squarely on the design tool
+
+The Typozon EULA (v3.4) carries an **explicit AI/machine-learning restriction**
+on Chosmos. So the rule "never let a generator redraw the logo" is not only
+brand hygiene here — handing Chosmos to an AI tool, or having one imitate it,
+is a legal question. The brief says it plainly and offers the two acceptable
+moves: place the official asset, or leave a marked placeholder. A lookalike
+rendered from a substitute font is worse than no logo, because it gets mistaken
+for approved artwork later.
+
+### What is now inconsistent, deliberately
+
+**The product still ships lime.** `TUMTUM_LIME` in `card_generator.py`, the
+Android drawing code, and `frontend/tailwind.config.ts` are all the old
+palette, so every card generated today is off-brand — including the ones
+rendered this morning. The change is mechanical, a handful of constants, but it
+is visible in a shipped app, so it is Felipe's call whether it lands now or
+with the screen design. Recorded as open item 26 rather than done quietly.
+
+The manual also notes something worth keeping in view: any TumTum artwork or
+screenshot from before 31/08 is **historical, not a variant**. It should be
+rebuilt in the new palette, never matched.
+
+---
+
+## 2026-08-31 — the card says what the night says: highest peak, generated copy, and the curve as evidence
+
+Four layouts were rendered from the Realness numbers and compared side by
+side. Felipe chose **D — the number plus the curve** — and added the sentence
+that matters more than the choice: *"esse é um ponto que vale pesquisarmos com
+o público da TumTum."* That is open item 25, and it is the right instinct.
+Everything below is an argument about whether the card is **honest and well
+made**. Whether a stranger posts it is a different question and nobody in this
+repo can answer it from a screen.
+
+### The comparison earned its cost
+
+Rendering all four was not ceremony. **Variant C was the control** — the
+shipped layout with the right number and honest copy — and it came back still
+empty. That killed a hypothesis of mine that fixing the number and the copy
+would be enough on its own, and it killed it with an image rather than an
+argument. Without C, D would have looked like over-building.
+
+### Three changes, and the reason each one is not cosmetic
+
+**The peak.** `cards.py` ordered by `rank`, which is the detector's magnitude
+— z-score × duration. That favours a long statistically unusual rise over a
+brief spike, which is right for *finding* moments and wrong for choosing the
+subject of a card. At Realness rank 1 was **92 bpm on a night that reached
+116**: the card led with the smaller number. Now ordered by `bpm`.
+
+**The copy.** `MOMENT_COPY = ("EU TAVA TRANQUILO.", "AÍ VEIO ISSO.")` is gone,
+replaced by `moment_copy()`, which builds two lines from the night's own
+figures. The constant failed twice at once: identical on everybody's card, so
+it said nothing about anybody; and *"eu tava tranquilo"* asserted **a calm
+baseline nobody measured** — on a night that ran high it was simply false, in
+the largest text on a public object.
+
+The reference is the **session average**, not the detector's local baseline,
+because the local baseline is not stored on a peak and a card must never reach
+for a number it does not have. Every branch of the function states something
+the card's own figures establish, and the fallbacks claim less rather than
+inventing more: no average, or no rise above it, and the copy drops to
+*"SEU CORAÇÃO, ÀS 01H24."* Four tests exist purely to prove it never dresses a
+flat moment as a climb.
+
+**The curve.** Card 01 deliberately carried no chart, and `cards.py` held a
+comment explaining that the readings were not loaded for exactly that reason.
+That is now reversed, and the reversal is the interesting part: the old
+decision was right while the card was a number on a black field, and wrong
+once the card had to give a stranger a reason to believe it. The manual
+permits this precisely — the person's own data, as product information.
+
+### The part that came from this morning
+
+The curve resamples onto a **uniform time grid**, not onto the readings.
+Spacing the readings evenly would have squeezed the Realness gap down to
+nothing and drawn a continuous line across 79 minutes nobody measured — **the
+same lie the quality score was telling until this morning**. An empty slot
+stays empty, `segments()` hands the runs over already split, and the card
+draws a night with a hole in it as a night with a hole in it. Rendered against
+the real shape, the first fifth of the frame is bare, and that is correct.
+
+The card also **stores the curve it drew** in its metadata. `get_card_image`
+regenerates from metadata once the Redis TTL lapses, so without this the image
+served a week later would quietly differ from the one that was shared. A card
+is a snapshot of a moment, not a live view of a session that may since have
+been re-analysed.
+
+### Left undone, deliberately
+
+The surface. Cover the wordmark and it is still a black field with a lime
+number — no skin, no texture, nothing a person learns to recognise while
+scrolling. That was the third of the four problems and it is untouched,
+because the first two decide what the design has to accommodate. It is the
+remaining half of item 24.
+
+---
+
+## 2026-08-30 — the card came out, and it does not make anyone want to post it
+
+Felipe generated the first card from the Realness night and gave the verdict
+the project needed most: **"está muito simples e não gera esse desejo e
+necessidade de postar."**
+
+That is not a complaint about polish. **The share card is the viral engine.**
+Everything upstream of it — the capture, the detection, the watch path, the
+quality score fixed this same morning — exists to produce an object somebody
+wants to put on their Story. If the object does not travel, Phase 0 answers
+its own question with a no, and it answers it regardless of how good the
+plumbing underneath is. So this is the top of the list, not the bottom.
+
+Four things are wrong with the card. Only two of them are visual.
+
+### 1. The hero number is 92, and 92 is not a number
+
+The card picked **92 bpm às 02h05**. The night's maximum was **116 às 01h24**.
+`cards.py` orders peaks by `rank` and takes the first, and `rank` comes from
+the detector's **magnitude — z-score × duration**. That ranking is right for
+*finding moments*: it favours a long, sustained, statistically unusual rise
+over a brief spike. It is wrong for *choosing the hero of a card*, where the
+only job is to be striking.
+
+But swapping it for `max(bpm)` only trades 92 for 116, and 116 is not
+striking either. **The deeper problem is that an absolute BPM means nothing
+without the person's own baseline.** Ninety-two reads as a flight of stairs.
+The dramatic fact of that night is not 92 or 116 — it is that Felipe sat
+still for six hours at **78 average** and something pulled him to 116 anyway.
+The card shows the destination and hides the journey, which is the entire
+story. Whatever the design becomes, it has to carry the **jump**, not the
+value.
+
+### 2. The headline is a constant, and it may be a lie
+
+```python
+MOMENT_COPY = ("EU TAVA TRANQUILO.", "AÍ VEIO ISSO.")
+```
+
+Every card TumTum has ever generated says this, and every card it generates
+tomorrow will too. A thing that travels has to be *different each time* —
+part of why anyone posts is that the object says something specific about
+them, and a fixed line says the same thing about everybody.
+
+Worse, it is a **claim about a state nobody measured**. "Eu tava tranquilo"
+asserts a calm baseline before the moment. If the baseline was already
+elevated the card is simply asserting something false, confidently, in the
+largest text on it. That is this project's bug class — the app stating
+something untrue about its own state — now the **fourteenth** instance and
+the first one on a public object. The line has real data sitting right next
+to it (the baseline the detector already computes for every peak) and uses
+none of it.
+
+### 3. Cover the wordmark and nothing says TumTum
+
+A black field, a lime number, centred type. It is clean, it is on-manual, and
+it is anonymous. **Mutante Pop is the declared territory** — one recognisable
+structure surviving thousands of surfaces — and the skins have been parked
+since 25/08. The card is the one place in the product where the surface is
+supposed to be doing the work, and it is the one place still showing the
+base. Nothing here is a shape a person learns to recognise while scrolling.
+
+### 4. There is no evidence on it
+
+Card 01 is "Só o momento" by design and deliberately carries no chart; the
+time series belongs to card 03, "Minha noite". That decision is defensible
+and it is also what leaves this frame empty. The manual explicitly permits
+the real heart-rate line as *product information* — and the curve is the
+proof that something happened, the thing that separates this from a poster
+anyone could type. Realness has a curve worth showing: six hours, twenty
+moments, a visible climb.
+
+Related and unresolved: **the moment has no name** (open item 22). There are
+no timeline rows for Realness, so `02h05` is a timestamp where a story should
+be. "Durante *Vogue*" is a card. "02h05" is a receipt.
+
+### What tomorrow starts from
+
+Not a restyle. The order is: decide what number the card leads with (the
+jump, almost certainly), give the headline something real to say, then make
+the surface unmistakable. Design last, because two of the four problems are
+about what the card *knows*, not how it looks.
+
+---
+
+## 2026-08-30 — "Qualidade 100%" over a 79-minute hole: the score measured the wrong thing
+
+The twelfth instance of this project's oldest bug class was a document. The
+thirteenth is a number, and it is the most confident one the app has shown.
+
+The night screen for Realness read **Qualidade 100%**. The capture ran
+21:11 → 03:17, and the strap was only on for the last 287 of those 366
+minutes — Felipe connected it briefly at home, then again at the venue. A
+**79-minute hole**, a fifth of the window, and the score was perfect.
+
+Nothing was broken. The formula was:
+
+```python
+expected_points = duration_minutes * 12   # ~1 reading per 5 seconds
+coverage = min(len(bpm_values) / expected_points, 1.0)
+```
+
+It measures **volume**, and the cap is what makes volume a lie. The strap
+delivers **one reading per second** — twelve times the assumed rate — so the
+ratio only falls below 1.0 once **more than 11 readings in 12 are gone**. A
+capture can lose eighty percent of a night and still be announced as
+complete. The rate was assumed in 2026, the strap arrived later, and nothing
+connected the two.
+
+### The tell was on the same screen
+
+The curve drew the hole as one long straight diagonal, because that is what
+two readings 79 minutes apart look like when you join them. **The chart was
+honest and the number was not**, side by side, in the same view. That is the
+whole bug class in one screenshot: the drawing came from the data, the number
+came from an assumption about the data.
+
+It surfaced only because Felipe volunteered, unprompted, that 21:11 was a
+brief test at home. Nothing in the app said so. No test failed. Nothing
+would ever have failed — the formula was correct against its own premise.
+
+### The fix is a change of question
+
+`backend/app/services/data_quality.py` counts **5-second slots**: how many
+of the window's slots hold at least one reading. 5 seconds because that is
+the detector's own smoothing window — the finest resolution any answer
+downstream depends on — and it is the same measure `Cadence` already
+performs on the phone before an upload is offered.
+
+One measure closes both failures. A hole empties its slots, so it shows.
+A watch writing once a minute fills one slot in twelve and scores **8**,
+which is the truth about what it can and cannot find. Volume alone buys
+nothing: a thousand readings crammed into one minute of an hour describe one
+minute. Realness now reads **78**, and the missing 22 is the hole.
+
+Nine tests, the first of them the Realness capture at its real numbers, so
+the case that exposed this is now the case that guards it.
+
+### Restating the past
+
+`analyze_session` recomputes the score from the stored rows on every
+analysis. Old sessions are not migrated and not left stranded either: the
+night corrects itself the next time someone opens it. **The Realness row
+still says 100 until then** — one deploy, then "Procurar meus momentos" on
+that night.
+
+### What it costs to learn
+
+Both numbers came from the same readings and only one of them was checked
+against reality. **A derived number needs a case where it must be wrong,
+and the test has to be written from a real capture, not from the formula.**
+Nine tests written against that formula would all have passed.
+
+---
+
+## 2026-08-30 — the Realness night: six hours, twenty moments, and the number that settles the watch question
+
+The festival capture ran. **21:11 → 03:17, six hours and six minutes, twenty
+moments detected, Média 78 · Máx 116 · Mín 58.** The strap held, the upload
+went through, the night opened, and the card button is sitting there. The
+capture path is no longer "proven in a rehearsal" — it is proven at a real
+six-hour event.
+
+### The cross-validation nobody planned
+
+The Fit3 was on the wrist the whole night with a workout running (22:28–03:17,
+4h48). Two independent technologies, one body, one night:
+
+| | Strap (chest, ECG-grade) | Fit3 (wrist, optical) |
+|---|---|---|
+| Maximum of the night | **116 bpm** | **115 bpm** |
+| Time of that peak | **01:24** | **01:24** |
+
+One bpm apart, same minute. That validates both instruments at once, and
+settles that the 01:24 peak was real rather than an artefact.
+
+### The finding that closes the watch question
+
+The twenty moments the detector found have durations:
+
+```
+22 21 19 19 17 17 16 14 13 13 13 13 12 12 12 11 11 10 10 8   (seconds)
+```
+
+Median **13 s**, longest **22 s**. And the Fit3, in its best case — workout
+running — samples once every **32 s**.
+
+> **All twenty moments are shorter than the interval between two Fit3
+> readings.**
+
+| | Samples falling inside one moment |
+|---|---|
+| Strap | 8 to 22 |
+| Fit3 with a workout | **0.25 to 0.69** |
+| Fit3 without | 0.13 to 0.37 |
+
+That is not an argument, it is arithmetic on measured data: a 13-second moment
+has nowhere to exist in a series sampled every 32 seconds. **The watch path
+delivers the curve of the night; the moments are too small for it.** The
+morning's verdict was right; this is the reason it is right.
+
+### Correcting the correction
+
+The record is worth keeping honest. This morning I read only the hourly
+background records, found 1/min, and concluded the workout changed nothing.
+At midday the workout record showed ~32 s and peaks to 115, so I corrected to
+"between the curve and the moments". Tonight the moment durations settle it
+properly, back at the original verdict by a better road. **The first
+conclusion was right for the wrong reason, which is not the same as being
+right.**
+
+### A defect Felipe found by asking a good question
+
+He mentioned the session starts at 21:11 because he tested the strap briefly
+at home, then connected for real at the venue around 22:30 — so the night
+should contain a **79-minute hole**. The app reported **Qualidade 100%**.
+
+The scoring formula assumes a full night is one reading every 5 s:
+
+```
+expected = duration_minutes × 12
+coverage = min(actual / expected, 1.0)
+```
+
+The strap delivers one reading per *second* — twelve times the assumed rate —
+so coverage saturates:
+
+| | |
+|---|---|
+| 6h06 → "expected" | 4,392 points |
+| Strap at 1 Hz | 21,960 points |
+| With the 79-minute hole | ~17,220 points |
+| Score, either way | **100%** |
+
+**The strap can lose 80% of its readings and the app still says "Qualidade
+100%".** This project's signature bug class again, with an extra twist worth
+keeping: **the chart is honest and the number is not** — the curve draws the
+gap as one long straight diagonal at the start, exactly where the data is
+missing, while the score beside it claims perfection.
+
+The fix is to measure *continuity* (how many minutes of the window contain a
+reading) rather than *volume*. Not yet applied: it touches a deployed backend
+and would restate the score on existing sessions, so it waits on Felipe's
+word.
+
+### Sitting made it the hard case, and it passed
+
+Felipe spent most of the night seated. That is not a weakness in the test —
+it is the strongest version of it. TumTum exists to capture emotion in a body
+that is **not moving**, and stationary response is precisely the condition
+where the J-Style V8 failed: its firmware clamps amplitude when the
+accelerometer reads still. A seated night that still yields twenty moments
+between 84 and 116 bpm, against a resting 58, is the core hypothesis holding
+in the adverse condition rather than the flattering one. Dancing would have
+made the peaks bigger and the detection easier.
+
+The Fit3's agreement is worth the same reading: an optical wrist sensor on a
+seated person is a hard case for optical, and it still landed within 1 bpm of
+the chest strap.
+
+### What the night did not produce
+
+**The moments have no names.** The Realness has no timeline in the database,
+so `116 bpm às 01:24` is a number without a story — and the card's whole point
+is the story. Felipe's own memory of the night is, for now, the only source
+for that timeline.
+
+---
+
+## 2026-08-29 — the cadence is one per minute, and that is the middle outcome
+
+Tapping into a Health Connect record opens **Detalhes da entrada**, and the
+samples are there after all. From the 03:00–03:59 record, sleeping, no
+workout:
+
+```
+03:00 55  03:09 62  03:18 59  03:27 61
+03:01 59  03:10 61  03:19 57  03:28 58
+03:02 57  03:11 61  03:20 58  03:29 58
+03:03 59  03:12 62  03:21 60  03:30 59
+03:04 59  03:13 63  03:22 59  03:31 59
+03:05 60  03:14 62  03:23 60  03:32 60
+03:06 61  03:15 64  03:24 60
+03:07 60  03:16 53  03:25 61
+03:08 61  03:17 53  03:26 61
+```
+
+**One reading per minute, exactly, not a minute missed.** 33 consecutive
+samples across 32 minutes.
+
+| | |
+|---|---|
+| Measured cadence | **1 / 60 s** |
+| Etapa 0 gate | 1 / 5 s |
+| Feared worst case | 1 / 10 min |
+| `Cadence.denseEnough` | **false** — median gap 60,000 ms, 5-second slot coverage 8.6% |
+
+Ten times better than the nightmare, twelve times short of the detector.
+Exactly the middle outcome `docs/health-connect-plan.md` anticipated, which
+means the plan's branch applies rather than a redesign.
+
+**What 1/min delivers, honestly split.** Six hours is 360 points — a true,
+continuous, good-looking curve of the night, no pretence needed. What it does
+not deliver is *moments*: a chill through a chorus lasts 30–60 seconds, so at
+one sample a minute that peak yields **one sample, or none**, depending where
+the minute falls. And the detector's own arithmetic says the same: its
+5-second smoothing window would hold 0.08 of a point and its 300-second
+baseline 5 points — no reliable standard deviation lives in five numbers. It
+would run, and what it found would be noise wearing the name of a moment.
+
+> **Corrected the same day — see the 30/08 entry.** Samsung writes *two kinds
+> of record* for one night, and this reads only one of them. The hourly
+> background records are 1/min; the **workout record** is one every ~32 s and
+> carries peaks the hourly ones never saw (115 bpm against their 97). The
+> conclusion below — that the workout changes nothing — was drawn from half
+> the data. The final answer is in the 30/08 entry, and it agrees with this
+> one's *verdict* for a different and better reason.
+
+**So the workout stretch is now the decisive measurement of the project.**
+The single remaining question is whether a hand-started workout lifts the Fit3
+off 1/min. Yes and the onboarding sentence is promoted from advice to
+requirement, and the path delivers moments. No and Health Connect delivers
+*the curve*, not *the moments* — which changes the card's promise, not the
+schedule, precisely as the plan said in §2.
+
+Felipe runs it tonight at Realness: start a workout on the Fit3 when the show
+starts, leave it running. The strap remains the night's real capture.
+
+**Worth correcting from this morning:** the record view does expose its
+samples, one tap deeper than I looked. The earlier note that only our app
+could unpack them was wrong about the browser, right about everything else —
+and question B got answered by hand after all.
+
+---
+
+## 2026-08-29 — Etapa 0, half answered: Samsung does write, all night
+
+Felipe wore the Galaxy Fit3 overnight and read Health Connect in the morning.
+The first of Etapa 0's two questions is answered with data instead of forum
+reports.
+
+**Samsung Health writes heart rate to Health Connect, continuously.** Nine
+consecutive hourly records, 00:00 through 08:46, no gap:
+
+| | |
+|---|---|
+| 00:00–00:59 | 57–76 bpm |
+| 01:00–01:59 | 47–72 bpm |
+| 01:41 | 60 bpm |
+| 02:00–02:59 | 53–64 bpm |
+| 03:00–03:59 | 51–70 bpm |
+| 04:00–04:59 | 47–60 bpm |
+| 05:00–05:59 | 50–63 bpm |
+| 06:00–06:59 | 51–66 bpm |
+| 07:00–07:59 | 53–64 bpm |
+| 08:00–08:46 | 56–69 bpm |
+
+The values are physiologically sensible (minimum at 04:00, rising on waking),
+and the access log shows *"Gravação: Sinais vitais"* — writes, the direction
+we need — at 00:09, 00:22, 00:31, 01:36, 01:42, 03:42, 07:53 and 08:46.
+
+**The worst case is off the table.** The reports that Samsung only passes
+exercise heart rate to Health Connect do not hold here: this was ordinary
+sleep, no workout, and it all crossed. That was the single most consequential
+unknown in `docs/health-connect-plan.md`.
+
+**But the second question is invisible on that screen, and the reason is
+structural.** Each row is a *record*, not a reading — and a Health Connect
+heart-rate record is a **series**: start, end, and many samples inside. The
+proof is in the row itself: `01:00–01:59 · 47–72 bpm` cannot come from one
+reading, since a single sample has no minimum and maximum. The contrast row
+`01:41–01:41 · 60 bpm` is a single-sample record; Health Connect knows the
+difference and simply does not display it.
+
+**So the cadence can only be measured by unpacking the series** — which is
+precisely what `HealthConnectReader.readHeartRate` does, and what the
+Conexão Saúde browser will not do. The measurement we designed to need no
+code turns out to need exactly the screen we built: Etapa 0's question A is
+answerable by hand, question B is not.
+
+**Consequence for the setup steps, worth keeping:** the phone-side check
+still earns its place — it proved the bridge is open and the night is
+recorded, before any APK existed on that phone. It just cannot finish the
+job. The 0.2 screen reads it on Sunday, against the same night, plus whatever
+the Realness night adds.
+
+---
+
+## 2026-08-28 — J-Style broke their own MOQ, and doubled the NRE doing it
+
+Arena's reply to Draft 4 arrived. **They gave us the thing that was refused
+twice: a first batch of 10–50 units** of the customized raw-PPG V8. That is a
+real exception to a 3,000-unit floor, and it cost her something internally.
+
+**And the price of that concession is in the next line.** NRE went from
+USD 15,000 to **USD 30,000**, and the rebate ladder is not mentioned at all.
+They conceded on volume and recovered it — with interest — on engineering.
+
+| | 24/08 counter | 28/08 offer |
+|---|---|---|
+| Batch | 3,000 (pilot refused) | **10–50** ✅ |
+| Unit | USD 40–80 | USD 80 (top of range) |
+| NRE | USD 15,000 | **USD 30,000** |
+| Rebate | 20% ladder, 100% at 50k units | **absent** |
+
+Total exposure fell from ~USD 255,000 to USD 34,000 — a genuinely different
+conversation. Per device, though, validation costs **USD 680** at 50 units and
+**USD 3,080** at 10.
+
+**What the letter does not do is answer the question.** Draft 4 asked directly
+whether the customized firmware removes the motion-conditioned processing —
+the question this log has called the one that decides everything. The reply
+proposes to develop it and agree criteria together. So USD 30,000 buys an
+*attempt*, not an answer. Probably honest; still worth naming, because it
+means **the payment structure matters more than the price**.
+
+It also inverts Draft 4's argument. That letter framed the small batch as
+*shared* de-risking. What came back has TumTum funding 100% of the firmware
+development, with J-Style keeping the firmware and free to resell the
+capability.
+
+**Two things in the letter are genuinely valuable, and both are ours to use.**
+Arena proposes agreeing acceptance criteria *before* development, and accepts
+**our Polar H10 protocol as the objective test**. That hands us the lever: if
+the protocol is objective enough for both teams to judge the result, it is
+objective enough to gate payment. Milestone-staged NRE becomes a fair ask
+precisely because Arena proposed the test.
+
+**Decision: reply warmly, decide nothing.** Arena removed the deadline herself
+— *"no need to rush… once you have your Phase 0 results."* Phase 0 validates
+demand; custom hardware is Phase 1. Committing USD 30,000 of hardware
+economics before knowing whether people want the product is exactly the
+inversion the phase order exists to prevent. And the Health Connect path built
+this week reaches 30,1% of Brazilian smartphone owners at zero hardware cost,
+which removes any urgency from the band without closing the option.
+
+**Draft 5 is written and unsent** (`docs/jstyle-email-draft.md`). It banks the
+concession, accepts the *shape* of the proposal, and plants three structural
+questions for after 25/09: staging the NRE against the acceptance test, what
+happens if the firmware fails it, and whether the NRE can be credited against
+a first production order. It deliberately does **not** counter on price —
+the unit price is not the problem, and the NRE argument is far stronger with
+pilot data behind it. Countering now would also signal we might pay
+USD 30,000 before demand exists.
+
+---
+
+## 2026-08-28 — a confident number that described no device at all
+
+Felipe bought a Galaxy Fit3 and a Xiaomi Smart Band 9 for the Etapa 0 test,
+and the purchase exposed a defect before the hardware shipped.
+
+**Health Connect is a shared store.** Paired to one phone, both bands write
+heart rate into the same window — and the import screen was measuring their
+union. The arithmetic is ugly: two bands each writing every 10 seconds,
+neither dense enough alone, interleave into an apparent reading every 5
+seconds. The screen would have announced *"Denso o bastante: dá para procurar
+seus momentos"* for a device nobody was wearing.
+
+**It is the project's own bug class, in its nastiest form yet.** Not a control
+without feedback, not a stale display — a *confident number that describes
+nothing real*, with nothing on screen to contradict it. Every previous
+instance of this family announced itself eventually (a control that did
+nothing, a page that said the wrong thing). This one would have looked like a
+clean result and gone into the decision log as fact.
+
+And it would have fired on the exact setup the measurement was about to use:
+one person, two bands, one phone.
+
+**The fix:** every reading now carries the package that wrote it. Cadence and
+upload are computed on exactly one source, never a union. The report names its
+source out loud; with more than one, the row says how many and switches
+between them. Unknown packages keep their raw package name rather than a
+guessed friendly label — the raw name is at least always true. The uploaded
+session is stamped with the app that wrote it instead of "Health Connect",
+which named the corridor rather than the device. A test pins the interleaving
+arithmetic. CI green on 480dc13.
+
+**It also made the experiment better.** Before, comparing two vendors meant
+two nights or two phones. Now: both bands on one person, one wrist each, Polar
+on the chest, one night. Same body, same heart, same window — so any
+difference between Samsung and Xiaomi is the *vendor's*, not the night's, and
+the strap is ground truth for both. Recorded in the Etapa 0 protocol.
+
+**Generalisation worth keeping:** a shared data store makes provenance part of
+the measurement. Any number computed across a store that several apps write to
+must say whose data it describes, or it describes nobody's.
+
+---
+
+## 2026-08-27 — Huawei is the hole in "Health Connect reaches all of them"
+
+Found while ranking devices for the Etapa 0 test. The 27/08 market entry said
+Health Connect reaches the cheap bands Brazil buys, listing Huawei in the
+volume tier — and for Huawei that is wrong: **Huawei Health does not write to
+Health Connect at all.** Not a missing switch — since the 2019 sanctions
+Huawei runs its own service stack (HMS), and no native bridge to Google's
+health layer exists. The only route is a third-party sync app (Health Sync),
+which is too much friction to ask of a fan.
+
+Huawei Band is a top-3 seller in Brazil, so this is a real slice of the 30,1%
+ceiling that the Health Connect path does not reach. It does not change the
+ordering — the path still reaches Samsung, Xiaomi and Amazfit, which is most
+of the volume — but the reach claim now carries its exception, and the pilot
+onboarding should ask "qual relógio?" before promising anything.
+
+---
+
+## 2026-08-27 — Health Connect built to the screen in one evening, and what it cost
+
+Felipe said go, and Etapas 1, 2 and 3 of `docs/health-connect-plan.md` are
+code — pushed the same evening the plan was written. What remains is what no
+session here can do: a person with a watch in hand (Etapa 4, and the Etapa 0
+measurement the screen itself now performs).
+
+**The zero-dependency rule ended, on purpose and with a successor.** The
+Health Connect client requires AndroidX and its permission flow requires
+`ComponentActivity`; there is no framework-only way to read another app's
+data. The new rule, recorded in `build.gradle`: every runtime dependency must
+be one Health Connect forces — nothing else. Three entered: `androidx.activity`,
+`connect-client` 1.1.0, coroutines.
+
+**The migration was smaller in code and bigger in toolchain than planned.**
+Eight superclass declarations — every screen used `Activity` only as a
+superclass, and the shared helpers take it as a parameter type, which a
+`ComponentActivity` satisfies. But the published artifact demands
+`compileSdk 36` and AGP 8.9.1+ (its docs said 35 — **the artifact's metadata
+outranks the documentation**), which dragged AGP 8.11.1, Gradle 8.13 and
+Kotlin 2.0.21 with it. Three CI rounds, all findable only in CI from here.
+APK is now version 0.2.
+
+**The screen is a corridor of honest gates**, and the cadence is measured,
+never assumed — by median gap *and* 5-second-slot coverage, because either
+alone flatters a sparse night (dense clusters around dead half-hours have a
+lovely median; a 9-second metronome covers the night while starving the
+detector's smoothing window). The verdict names what the data supports:
+moments, or the curve — with the start-a-workout sentence offered right where
+the sparse verdict lands. "Your watch wrote nothing" and "I could not ask"
+never share a message. Eight CI-proven tests on the measurement.
+
+**Etapa 0 got cheaper than the plan priced it.** The screen *is* the
+measurement: no export, no file, no laptop — install 0.2, tap Trazer do
+relógio, and the cadence report is the Etapa 0 reading. The two-stretch
+protocol (normal wear vs. hand-started workout) still applies; the tool for
+it now ships in the APK.
+
+**The dead Google Fit chain went with it**, as section 6 ordered: the
+frontend module that was never Health Connect, the backend `/sync` endpoint
+and service nobody called, the client surface. While they existed under those
+names they claimed half of this work was already done.
+
+**Standing rule, standing:** the 0.1 APK on Felipe's phone is validated for
+Realness on 29/08; 0.2 is not. **No update before the festival.**
+
+---
+
+## 2026-08-27 — Health Connect is the next step, and Etapa 0 just got sharper
+
+Felipe asked whether the best-selling-band argument makes Health Connect the
+natural next thing to build. It does — two independent lines point the same
+way: it is the only path that reaches the cheap bands Brazil actually buys, and
+it costs roughly half of Wear OS. **But the next step is still not code.**
+
+Checking what the vendor apps actually do turned up something that changes
+Etapa 0 from a density check into a two-question check:
+
+> **Writing to Health Connect is the manufacturer's choice, and the list of
+> what a vendor writes is not the list of what its device measures.**
+
+- **Samsung Health** — the watch itself offers *measure continuously*, *every
+  10 minutes*, or *manual only*. And there are user reports that **not all of
+  it crosses into Health Connect: only exercise heart rate arrives reliably.**
+  If that holds, *start a workout when the show starts* stops being a density
+  mitigation and becomes a **functional requirement**. That is the single most
+  consequential unknown in the plan right now.
+- **Zepp / Amazfit** — writes to Health Connect, one-way (write only, never
+  read), with an isolated report of heart rate not coming through.
+- **Mi Fitness** (Xiaomi / Redmi) — writes steps, sleep, heart rate and
+  workouts, chosen per metric at authorisation time.
+
+None of those three lines is our measurement; they are third-party reports and
+are recorded as the reason Etapa 0 exists, not as findings.
+
+**Etapa 0 rewritten accordingly** in `docs/health-connect-plan.md`: two or
+three people on **different brands**, each producing **two stretches on the
+same device** — normal wear and a hand-started workout. Only that split can
+separate *the watch did not measure it* from *the vendor did not pass it on*.
+The gate now has a middle outcome: failing the normal stretch but passing the
+workout stretch keeps the path alive and promotes the onboarding sentence into
+the product.
+
+**And it can be run for free at Realness on 29/08** — anyone in the group
+wearing a band, one export, no code, on a real six-hour night.
+
+---
+
+## 2026-08-27 — "Apple Watch está fora" was a sentence that lied
+
+Felipe read `docs/wear-os-plan.md` and asked, reasonably, whether Apple Watch
+owners simply have no way into TumTum without carrying a second device. They
+do. The document caused the misreading and has been corrected.
+
+**What the sentence meant** was that an Apple Watch does not run Wear OS —
+true, and irrelevant to whether TumTum reaches those people. **What it looked
+like it meant** was that the platform is out of reach. Written inside a
+document about one Android-specific path, with no scope marker, the narrow
+claim read as the broad one.
+
+This is the project's own recurring bug class — *a thing stating something
+false about its own state* — found for the first time in a document rather
+than in the app. The fix is the same fix: say which condition you are
+describing.
+
+**Apple Watch has three routes, and the first already works:**
+
+1. **Today, zero code.** `parseHealthKitExport` in
+   `frontend/lib/health/apple-health.ts` reads the Health app's XML export, and
+   `/import` is live. Real friction to name: the export is a `.zip` of *all*
+   health data, often hundreds of MB, and `/import` accepts `.xml` — the person
+   unzips first.
+2. **An iOS app reading HealthKit.** The exact mirror of the Health Connect
+   plan, and the answer to Felipe's question: the watch already writes into the
+   iPhone's Health store, so **no watchOS app is needed**. HealthKit is in two
+   ways more generous than Health Connect — permission is entirely on-device
+   (no OAuth, no quota) and there is no 30-day history limit.
+3. **A watchOS app.** `HKWorkoutSession` — justified only by the same argument
+   as Wear OS, and therefore last.
+
+**Density behaves the same way, so the same free mitigation applies.** Apple
+Watch samples roughly every 5 minutes outside a workout — ~72 points across six
+hours, and the detector does not run — but continuously during a recorded
+workout. *Start a workout when the show starts* is again the sentence that
+decides it.
+
+**The cost is Apple's gate, not the code.** US$ 99/year, a Mac to build (none
+here; macOS runners on GitHub Actions are the way around it), and no APK link
+at all — TestFlight, with internal testing capped at 100 people and external
+testing gated behind Beta App Review, stricter for a health app. Order of
+magnitude for a minimal iOS app (sign in, pick event, read the window, upload,
+see the night on the site): comparable to Health Connect, ~2–3 weeks of code.
+Full parity with the Android app is materially more. Recorded as open item 20;
+the plan document is offered, not yet written.
+
+**And Etapa 0 is free here too.** One Apple Watch owner exporting one night
+through `/import` measures the real cadence — and if anyone at Realness on
+29/08 wears one, that measurement costs nothing and can be taken against the
+strap on the same person.
+
+---
+
+## 2026-08-27 — Super Panorama: three in ten wrists, and the one that matters
+
+Felipe downloaded the **Super Panorama, junho 2026** (Mobile Time / Opinion
+Box). It answers the market question and refuses the demographic one, so both
+are recorded plainly.
+
+**Penetration: 30,1%.** Of 4.138 Brazilians aged 16+ who own a smartphone,
+30,1% also use a watch or band that talks to it (Gráfico 63). Three in ten
+wrists — the ceiling on the Health Connect path before Apple Watch is
+subtracted from it.
+
+**And the audience we actually have skews above that.** Classes A and B are at
+**37,6%**, against C at 29,6% and D/E at 27,5%. A ticketed festival crowd in
+São Paulo is not the national average; the useful planning number for Realness
+and for the pilot is nearer the top of that range than the middle.
+
+**The function ranking is the finding that changes something** (Gráfico 64,
+base 1.245 owners — what is *most important* to them day to day):
+
+| | |
+|---|---|
+| Monitoramento de exercícios físicos | **30,2%** |
+| Recebimento de notificações do celular | 29,8% |
+| Monitoramento da quantidade de passos | 12,1% |
+| **Monitoramento do batimento cardíaco** | **9,7%** |
+| Calorias queimadas | 8,4% |
+| Qualidade do sono | 8,4% |
+| Outro | 1,4% |
+
+**Exercise tracking is the number one thing Brazilians use a wearable for.**
+That is exactly the gesture the free density mitigation asks for — *start a
+workout when the show starts* — so the instruction is not asking people to
+learn a new behaviour, it is asking them to do the thing they already do most.
+The zero-cost mitigation in `docs/wear-os-plan.md` just got materially more
+likely to work, which strengthens the ordering: Health Connect first, Wear OS
+only if measurement demands it.
+
+**Heart rate at 9,7% is a salience number, not a usage number.** The question
+asked which single function matters most, not which ones the device performs —
+almost every one of those bands reads heart rate continuously whatever its
+owner ranks first. Read correctly it says: HR is not what people bought the
+thing for. That cuts both ways. TumTum is not competing with an entrenched
+habit, and it also cannot assume anyone knows their watch has been recording
+their heart all along. The onboarding copy should tell them.
+
+**The demographic cut is not in this report.** The gender and age splits in its
+analysis (the 48,7%/35,2% on smartphone importance, the 16–29 cuts) are about
+smartphones; wearables are crossed only with social class. The report itself
+offers the raw crossing tables on request — `fernando.paiva@mobiletime.com.br`.
+Open item 19 is updated rather than closed: what is known is now known, what is
+missing is now known to be missing from this source specifically.
+
+Source: `Super Panorama, junho 2026`, Mobile Time / Opinion Box, pages 40–41.
+
+---
+
+## 2026-08-27 — what Brazil actually wears, and what it does to the plan
+
+Researched to put numbers under the capture-path choice. The market answer
+turns out to be sharper than the demographic one.
+
+**Volume in Brazil lives below US$ 150** — Xiaomi, Huawei, Zepp/Amazfit,
+Positivo — and the best-selling wearable on Amazon Brasil in 2025 was the
+Samsung **Galaxy Fit3**, a band rather than a watch. Apple and Samsung hold
+the value share; they do not hold the wrists.
+
+**None of those bands run Wear OS.** Xiaomi Smart Band, Amazfit, Galaxy Fit are
+closed manufacturer systems. So the 3–5 week Wear OS investment would reach
+Galaxy Watch 4+ and Pixel Watch and nothing that most of Brazil is actually
+wearing. That is a much harder argument against it than "narrow reach" was
+yesterday.
+
+**Health Connect reaches all of them.** Mi Fitness, Zepp and Samsung Health all
+write heart rate into Health Connect. It is the only path that touches the
+Brazilian volume, which settles the ordering: Health Connect first, and Wear OS
+only if a specific measurement demands it.
+
+**The demographic cut could not be obtained.** The right source exists — Super
+Panorama 2026 (Mobile Time / Opinion Box, 4,138 respondents, ±1.5 pp, covering
+wearables with gender and age segmentation) — but `mobiletime.com.br` is
+blocked by this environment's egress proxy and the figures do not surface in
+search. The only demographic number found is global, not Brazilian:
+Counterpoint has women at historically ~35% of smartwatch users. **Open item
+19:** Felipe can open the Super Panorama and read the wearables section; until
+then the age/sex split is unknown and should not be guessed at.
+
+---
+
+## 2026-08-27 — what a Wear OS app is actually for
+
+Costed in `docs/wear-os-plan.md`, which supersedes the fase-2 estimate in
+`docs/path-2-roadmap.md` (written before the phone app existed).
+
+**It is not for "live".** Wear OS came up as the way to see the beat during the
+show, but nobody looks at a watch mid-show and the Phase 0 loop does not need
+it: live the event, then see the night. What a watch app actually buys is that
+`ExerciseClient` guarantees ~1 Hz on every Wear OS 3+ device, regardless of any
+setting its owner chose — which is precisely the risk that can kill the Health
+Connect path. That is the reason to build it, and the only one.
+
+**And there is a free mitigation first.** The same watch that samples every ten
+minutes in normal use samples densely while an exercise session is running. One
+sentence in onboarding — *start a workout when the show starts* — buys the
+density for everyone who follows it. The Wear OS app is the version that works
+for everyone who does not, and that is what several weeks would be purchasing.
+
+**The reach is the uncomfortable number.** Wear OS 3+ means Galaxy Watch 4 or
+newer and Pixel Watch. Older Galaxy is Tizen; Fitbit's own watches, Garmin and
+Amazfit are not Wear OS; Apple Watch, the most common smartwatch of all, is
+out. It is the narrowest audience of the three capture paths, for the highest
+build cost.
+
+**Distribution is the practical wall.** There is no "send them the APK" on Wear
+OS: each watch needs developer options, wireless debugging and a PC running
+adb — one in-person session per person. Fine for a concierge pilot of three to
+five; it does not scale without the Play Store, which brings back the health
+declaration form plus Wear review.
+
+**Battery is a real gate, not a formality.** A continuous-heart-rate exercise
+session is the most expensive mode a watch has. If a Galaxy Watch cannot cross
+six hours, the app does not serve festivals — and that is only knowable by
+measuring.
+
+Estimate: 7–11 working sessions, 3–5 weeks of calendar after a watch is bought
+(R$ 800–2,000, no emulator can stand in — a heart-rate sensor cannot be
+emulated). Roughly double Health Connect, for the narrowest reach. It does not
+fit comfortably before 25/09.
+
+**Recommended order, each deciding the next:** the onboarding sentence, then
+Health Connect stage 0 (a night, no code, measures the real density), then Wear
+OS only if that measurement shows the density does not come for free. Building
+it first would be paying weeks for insurance against an unquantified risk.
+
+---
+
+## 2026-08-27 — what Health Connect can and cannot be
+
+Planned in `docs/health-connect-plan.md`, before writing any of it, because
+two facts reframe the whole phase.
+
+**Health Connect reads what a watch already recorded; it does not stream.**
+Live heart rate from somebody's own watch is Health Services in a Wear OS app
+— a different project, on the watch, weeks of it. For the Phase 0 question
+(*is the delivery valuable?*) the after-the-event path is enough: wear your own
+watch, open TumTum afterwards, see the night. That is what this phase builds.
+
+**The risk that can kill it is measurable today, with no code.** The detector
+assumes roughly a reading a second — 5 s smoothing, a 300 s baseline, a 5 s
+minimum peak. But Samsung Health measures continuously *or every ten minutes*
+depending on a setting its owner chose, and Fitbit gives 1–5 s only in training
+mode. At one reading per ten minutes a six-hour festival is **36 points**: the
+detector cannot run, and the curve it would draw is a pretty lie. So stage 0 is
+two or three people exporting a real evening through the `/import` screen that
+already parses Health Connect and already scores quality — a night's work, no
+engineering, and it decides whether this phase promises *moments* or only *a
+curve*.
+
+**The infrastructure cost is real and invisible.** `connect-client` breaks the
+APK's deliberate zero-dependency stance and its permission flow needs
+ComponentActivity, so all seven screens migrate off plain `android.app.Activity`
+before a single byte of health data is read.
+
+**The Play Store is not in the way.** Health permissions need a developer
+declaration form and review to publish, but a hand-installed APK reads Health
+Connect with no approval at all. That is weeks that the pilot does not have to
+spend.
+
+Estimate: 4–6 working sessions, ~2 weeks of calendar with the device-test
+loops, against ~4 weeks until 25/09. It fits if stage 0 passes.
+
+**Debt found while planning:** `frontend/lib/health/google-health-connect.ts`
+is not Health Connect at all — it is the Google Fit REST API, whose developer
+signups closed on 2024-05-01 and which reaches end of life late in 2026. It
+cannot be switched on even if we wanted it. Under that name it implies half of
+Health Connect is done; it should be deleted with stage 1.
 
 ---
 

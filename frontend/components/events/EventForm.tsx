@@ -68,7 +68,7 @@ function TimeField({
   const minutes = minute && !MINUTES.includes(minute) ? [minute, ...MINUTES] : MINUTES
 
   const select =
-    'w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-2 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none'
+    'w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-2 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none'
 
   function set(nextHour: string, nextMinute: string) {
     // Clearing both means "no time", which is a real answer — the column is
@@ -166,7 +166,7 @@ export function EventForm({
   }
 
   const field =
-    'w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-lime focus:outline-none'
+    'w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none'
   const label = 'mb-1 block text-sm text-tumtum-muted'
 
   return (
@@ -235,7 +235,7 @@ export function EventForm({
           create_all, which never alters existing tables).
         */}
         {crossesMidnight(form) && (
-          <p className="mt-2 text-xs text-tumtum-lime">
+          <p className="mt-2 text-xs text-tumtum-pink">
             Termina na madrugada do dia seguinte ({nextDayLabel(form.date)}).
           </p>
         )}

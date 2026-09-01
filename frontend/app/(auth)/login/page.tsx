@@ -54,7 +54,7 @@ export default function LoginPage() {
           <p className="text-right text-sm">
             <Link
               href="/esqueci-senha"
-              className="text-tumtum-muted hover:text-tumtum-lime hover:underline"
+              className="text-tumtum-muted hover:text-tumtum-pink hover:underline"
             >
               Esqueci minha senha
             </Link>
@@ -71,7 +71,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-tumtum-muted">
           Não tem conta?{' '}
-          <Link href="/signup" className="text-tumtum-lime hover:underline">
+          <Link href="/signup" className="text-tumtum-pink hover:underline">
             Criar conta
           </Link>
         </p>

@@ -76,7 +76,7 @@ export default async function SharedCardPage({ params }: { params: { id: string 
               Seu coração também tem histórias assim.
             </p>
             <Link href="/signup" className="mt-4 w-full">
-              <span className="block rounded-lg bg-tumtum-lime px-8 py-3 text-center text-lg font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow">
+              <span className="block rounded-lg bg-tumtum-pink px-8 py-3 text-center text-lg font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow">
                 Descobrir a minha
               </span>
             </Link>
@@ -88,7 +88,7 @@ export default async function SharedCardPage({ params }: { params: { id: string 
               O link pode ter expirado ou o card foi apagado.
             </p>
             <Link href="/" className="mt-8 inline-block">
-              <span className="rounded-lg bg-tumtum-lime px-8 py-3 text-lg font-label text-tumtum-black">
+              <span className="rounded-lg bg-tumtum-pink px-8 py-3 text-lg font-label text-tumtum-black">
                 Conhecer a TumTum
               </span>
             </Link>

@@ -37,7 +37,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             onClick={() => setRevealed((current) => !current)}
             aria-label={revealed ? 'Ocultar senha' : 'Mostrar senha'}
             aria-pressed={revealed}
-            className="rounded-md px-2.5 py-2 text-tumtum-muted transition-colors hover:text-tumtum-white focus:outline-none focus:ring-2 focus:ring-tumtum-lime"
+            className="rounded-md px-2.5 py-2 text-tumtum-muted transition-colors hover:text-tumtum-white focus:outline-none focus:ring-2 focus:ring-tumtum-pink"
           >
             {revealed ? (
               // Struck-through eye: hidden again.

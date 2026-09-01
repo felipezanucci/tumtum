@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { health, type HRSession, type HRSessionDetail, type WearableConnection, type SyncStatus } from '@/lib/api'
+import { health, type HRSession, type HRSessionDetail, type WearableConnection } from '@/lib/api'
 
 interface HRState {
   // Wearable connections
@@ -19,9 +19,6 @@ interface HRState {
   loadSession: (sessionId: string) => Promise<void>
   uploadSession: (data: Parameters<typeof health.createSession>[0]) => Promise<HRSession>
 
-  // Sync
-  syncStatus: SyncStatus | null
-  triggerSync: (connectionId: string, startTime: string, endTime: string) => Promise<void>
 }
 
 export const useHRStore = create<HRState>((set) => ({
@@ -82,11 +79,4 @@ export const useHRStore = create<HRState>((set) => ({
     return session
   },
 
-  // Sync
-  syncStatus: null,
-
-  triggerSync: async (connectionId, startTime, endTime) => {
-    const status = await health.triggerSync(connectionId, startTime, endTime)
-    set({ syncStatus: status })
-  },
 }))

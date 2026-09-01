@@ -118,6 +118,65 @@
     <string name="moment_rank">#%1$d</string>
     <string name="moment_duration">%1$d s</string>
 
+    <!-- Trazer do meu relógio -->
+    <string name="menu_watch">Trazer do relógio</string>
+    <string name="watch_title">Trazer do meu relógio</string>
+    <string name="watch_subtitle">A batida que seu relógio já gravou, lida pelo Health Connect.</string>
+    <string name="watch_checking">Conferindo sua autorização…</string>
+    <string name="watch_not_supported">Este celular não tem o Health Connect. No Android 14 ele já vem de fábrica; no 13 ou anterior, dá para instalar da Play Store.</string>
+    <string name="watch_needs_update">O Health Connect deste celular precisa de uma atualização antes de eu conseguir ler.</string>
+    <string name="watch_get_it">Abrir na Play Store</string>
+
+    <!--
+      Consent copy goes quiet and careful on purpose — the manual's one
+      exception to choosing fun. The sentence is the whole contract.
+    -->
+    <string name="watch_permission_intro">O TumTum pede uma única leitura: o batimento que seu relógio já gravou, só na janela que você escolher, só quando você pedir.</string>
+    <string name="watch_allow">Autorizar leitura</string>
+    <string name="watch_permission_denied">Sem a autorização eu não leio nada. Se a janela nem abriu, o Android lembrou de um não antigo — autorize direto no app do Health Connect.</string>
+
+    <string name="watch_window_title">Qual janela?</string>
+    <string name="watch_window_recent">As últimas 6 horas</string>
+    <string name="watch_no_event">Sem evento escolhido — escolha um em Eventos para ligar a noite aos momentos dele.</string>
+    <string name="watch_event_no_times">%1$s está sem horário definido. Edite o evento para poder usar a janela dele.</string>
+    <string name="watch_event_failed">Não consegui carregar seu evento. A janela das últimas horas continua funcionando.</string>
+
+    <string name="watch_read">Buscar leituras</string>
+    <string name="watch_reading">Buscando…</string>
+    <string name="watch_read_failed">Não consegui ler o Health Connect: %1$s</string>
+
+    <!--
+      "Nothing there" and "I could not ask" never share a sentence. This one
+      is the watch's silence, and it names the likeliest cause instead of
+      shrugging: writing to Health Connect is a setting in the vendor's app.
+    -->
+    <string name="watch_none_found">Seu relógio não escreveu nenhuma batida nessa janela. Abra o app da marca dele e confira se o Health Connect está ligado lá.</string>
+
+    <!--
+      The source is named because Health Connect is a shared store: two bands
+      on one phone both write into it, and an unnamed report would describe
+      their blend as if it were one device.
+    -->
+    <string name="watch_source_one">%1$s</string>
+    <string name="watch_source_pick">%1$s ▾ (%2$d fontes encontradas — toque para trocar)</string>
+    <string name="watch_source_row">%1$s — %2$d leituras</string>
+
+    <string name="watch_report">%1$d leituras em %2$s · uma a cada %3$s · %4$d%% da janela coberta</string>
+    <string name="watch_gap_seconds">%1$d s</string>
+    <string name="watch_gap_minutes">%1$d min</string>
+    <string name="watch_verdict_dense">Denso o bastante: dá para procurar seus momentos.</string>
+    <string name="watch_verdict_sparse">Dá para desenhar a curva da noite, mas os momentos podem não se destacar. Da próxima vez, inicie um treino no relógio quando o show começar — aí ele grava denso.</string>
+    <string name="watch_send">Enviar essas leituras</string>
+    <string name="watch_sending">Enviando…</string>
+
+    <!-- Rationale screen, opened from Health Connect's own permission UI. -->
+    <string name="rationale_title">Sua batida, no seu comando</string>
+    <string name="rationale_body">O TumTum pede uma única permissão: ler o batimento cardíaco que seu relógio já gravou.
+
+Só lemos a janela que você escolher — a noite de um evento ou as últimas horas — e só quando você tocar em buscar. Nada roda em segundo plano, nada além do batimento é lido, e nada é enviado antes de você ver o que foi encontrado e decidir enviar.
+
+Você pode revogar essa permissão a qualquer momento nas configurações do Health Connect.</string>
+
     <!-- Card -->
     <string name="make_card">Gerar card</string>
     <string name="making_card">Gerando…</string>

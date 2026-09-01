@@ -58,7 +58,7 @@ export default function PublicProfilePage() {
           </p>
           <Link
             href="/"
-            className="mt-6 inline-block text-sm text-tumtum-lime hover:underline"
+            className="mt-6 inline-block text-sm text-tumtum-pink hover:underline"
           >
             Ir para a página inicial
           </Link>
@@ -78,7 +78,7 @@ export default function PublicProfilePage() {
           </p>
           <Link
             href="/"
-            className="mt-6 inline-block text-sm text-tumtum-lime hover:underline"
+            className="mt-6 inline-block text-sm text-tumtum-pink hover:underline"
           >
             Ir para a página inicial
           </Link>

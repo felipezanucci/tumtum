@@ -135,7 +135,7 @@ export default function Nav() {
                 href={href}
                 className={`flex items-center border-l-2 px-4 py-4 text-base transition-colors ${
                   isActive(href)
-                    ? 'border-tumtum-lime bg-tumtum-surface font-medium text-tumtum-white'
+                    ? 'border-tumtum-pink bg-tumtum-surface font-medium text-tumtum-white'
                     : 'border-transparent text-tumtum-muted'
                 }`}
               >

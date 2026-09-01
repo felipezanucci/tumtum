@@ -24,7 +24,8 @@ object Chrome {
     private const val ITEM_CAPTURE = 1
     private const val ITEM_NIGHTS = 2
     private const val ITEM_EVENTS = 3
-    private const val ITEM_SIGN_OUT = 4
+    private const val ITEM_WATCH = 4
+    private const val ITEM_SIGN_OUT = 5
 
     /**
      * Attach the menu to a screen's top bar.
@@ -47,7 +48,8 @@ object Chrome {
             popup.menu.add(0, ITEM_CAPTURE, 0, activity.getString(R.string.menu_capture))
             popup.menu.add(0, ITEM_NIGHTS, 1, activity.getString(R.string.menu_nights))
             popup.menu.add(0, ITEM_EVENTS, 2, activity.getString(R.string.menu_events))
-            popup.menu.add(0, ITEM_SIGN_OUT, 3, activity.getString(R.string.menu_sign_out))
+            popup.menu.add(0, ITEM_WATCH, 3, activity.getString(R.string.menu_watch))
+            popup.menu.add(0, ITEM_SIGN_OUT, 4, activity.getString(R.string.menu_sign_out))
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     ITEM_CAPTURE -> goHome(activity)
@@ -58,6 +60,10 @@ object Chrome {
                     ITEM_EVENTS ->
                         if (activity !is EventsActivity) {
                             activity.startActivity(Intent(activity, EventsActivity::class.java))
+                        }
+                    ITEM_WATCH ->
+                        if (activity !is WatchImportActivity) {
+                            activity.startActivity(Intent(activity, WatchImportActivity::class.java))
                         }
                     ITEM_SIGN_OUT -> {
                         // Deliberate and immediate: the person who needs this

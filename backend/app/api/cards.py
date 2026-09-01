@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import get_current_user
 from app.core.database import get_db
 from app.models.card import Card, Share
+from app.models.hr_data import HRData
 from app.models.hr_session import HRSession
 from app.models.peak import Peak
 from app.models.user import User
@@ -18,6 +19,7 @@ from app.schemas.card import (
     ShareRequest,
     ShareResponse,
 )
+from app.services import card_curve
 from app.services.card_generator import generate_moment_card
 from app.services.local_time import format_moment_time
 
@@ -54,12 +56,19 @@ async def create_card(
         )
         peak = peak_result.scalar_one_or_none()
 
-    # If no specific peak, use the top-ranked one
+    # If no specific peak, use the highest one — not the top-ranked one.
+    #
+    # `rank` orders by the detector's magnitude (z-score × duration), which
+    # favours a long, statistically unusual rise over a brief spike. That is
+    # the right ordering for *finding* moments and the wrong one for choosing
+    # the subject of a card, where the only job is to be striking. The
+    # Realness night made the gap concrete: rank 1 was 92 bpm while the night
+    # had reached 116. The card led with the smaller number.
     if not peak:
         peak_result = await db.execute(
             select(Peak)
             .where(Peak.session_id == body.session_id)
-            .order_by(Peak.rank)
+            .order_by(Peak.bpm.desc(), Peak.rank)
             .limit(1)
         )
         peak = peak_result.scalar_one_or_none()
@@ -75,12 +84,33 @@ async def create_card(
         if tl_entry:
             matched_label = tl_entry.label
 
-    # Card 01 carries no chart, so the session's readings are not loaded here.
-    # They were: every point of a four-hour capture, fetched to be discarded.
-    # Card 03 ("Minha noite") will need them, and can fetch them then.
+    # Card 01 now carries the night's curve, so the readings come back — a
+    # deliberate reversal of the note that used to sit here, which was right
+    # while the card was a number on a black field and wrong once the card had
+    # to give a stranger a reason to believe it. They are reduced immediately
+    # to CURVE_SLOTS values and never held at full length.
+    curve: list[int | None] = []
+    peak_slot = None
+    if session.start_time and session.end_time:
+        points = (
+            (
+                await db.execute(
+                    select(HRData)
+                    .where(HRData.session_id == session.id)
+                    .order_by(HRData.time)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        curve = card_curve.resample(session.start_time, session.end_time, points)
 
     # Generate card image
     peak_bpm = peak.bpm if peak else (session.max_bpm or 100)
+    if peak and curve:
+        peak_slot = card_curve.slot_of(
+            session.start_time, session.end_time, peak.timestamp
+        )
     event_name = "Evento"
     event_date = session.start_time.strftime("%d/%m/%Y")
 
@@ -107,6 +137,9 @@ async def create_card(
             moment_label=matched_label,
             moment_time=moment_time,
             format=body.format,
+            avg_bpm=session.avg_bpm,
+            curve=curve,
+            peak_slot=peak_slot,
         )
     except Exception as e:
         import traceback
@@ -133,6 +166,12 @@ async def create_card(
             "moment_time": moment_time,
             "user_name": user.name,
             "image_size": len(image_bytes),
+            # The card is a snapshot, not a live view: it stores the curve it
+            # drew rather than re-reading a session that may since have been
+            # re-analysed. Without this the image served after the Redis TTL
+            # expires would quietly differ from the one that was shared.
+            "curve": curve,
+            "peak_slot": peak_slot,
         },
     )
     db.add(card)
@@ -247,6 +286,9 @@ async def get_card_image(
         moment_label=meta.get("matched_label"),
         moment_time=meta.get("moment_time"),
         format=format or meta.get("format", "story"),
+        avg_bpm=meta.get("avg_bpm") or None,
+        curve=meta.get("curve"),
+        peak_slot=meta.get("peak_slot"),
     )
     try:
         from app.core.redis import redis_client
