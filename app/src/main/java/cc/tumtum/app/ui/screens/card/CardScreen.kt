@@ -22,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.domain.Skin
+import cc.tumtum.app.export.CardRenderer
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.ShareCardView
 import cc.tumtum.app.ui.components.TTButton
@@ -37,7 +39,9 @@ import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo:
@@ -46,11 +50,17 @@ import kotlinx.coroutines.launch
 @Composable
 fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val container = appContainer()
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val night by container.nights.night(nightId).collectAsStateWithLifecycle(initialValue = null)
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     var posted by remember { mutableStateOf(false) }
+    var sharing by remember { mutableStateOf(false) }
     val n = night ?: return
+
+    val cardTitle = stringResource(R.string.reveal_default_title)
+    val cardMeta = stringResource(R.string.reveal_bpm) + " " + stringResource(R.string.reveal_at, Fmt.hour(n.peakAt))
+    val cardChip = "${n.eventName.uppercase()} · ${Fmt.hour(n.peakAt).uppercase()}"
 
     Column(
         Modifier
@@ -104,6 +114,31 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 },
             )
         }
+        Spacer(Modifier.height(10.dp))
+        // Compartilhar é sempre ativo (§1): o card vira PNG 1080×1920 e sai
+        // pelo share sheet do sistema, com a imagem anexa. Nada sai sem este toque.
+        TTButton(
+            if (sharing) stringResource(R.string.card_share_running) else stringResource(R.string.card_share),
+            TTButtonStyle.Acid,
+            enabled = !sharing,
+            onClick = {
+                sharing = true
+                scope.launch {
+                    runCatching {
+                        val intent = withContext(Dispatchers.IO) {
+                            val bitmap = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip)
+                            CardRenderer.shareIntent(
+                                context,
+                                bitmap,
+                                "tumtum-${n.id}-${skin.name.lowercase()}.png",
+                            )
+                        }
+                        context.startActivity(intent)
+                    }
+                    sharing = false
+                }
+            },
+        )
         Spacer(Modifier.height(2.dp))
     }
 }

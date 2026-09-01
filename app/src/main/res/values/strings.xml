@@ -163,6 +163,8 @@
     <string name="card_label">SEU CARD</string>
     <string name="card_post">Postar no feed</string>
     <string name="card_posted">No feed. A galera já pode sentir também.</string>
+    <string name="card_share">Compartilhar</string>
+    <string name="card_share_running">Gerando o card…</string>
 
     <!-- VOCÊ + Configurações §7 -->
     <string name="you_gallery">Sua galeria</string>
