@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Número de build vindo do CI (GitHub Actions) — cada APK novo instala por cima do anterior.
+val buildNumber = System.getenv("TUMTUM_VERSION_CODE")?.toIntOrNull() ?: 1
+
 android {
     namespace = "cc.tumtum.app"
     compileSdk = 35
@@ -13,8 +16,19 @@ android {
         applicationId = "cc.tumtum.app"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = buildNumber
+        versionName = "1.0-b$buildNumber"
+    }
+
+    signingConfigs {
+        // Chave de TESTE, commitada de propósito para builds de sideload no CI.
+        // Nunca usar para publicar na Play Store.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

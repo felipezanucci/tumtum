@@ -8,3 +8,7 @@
 .externalNativeBuild
 .cxx
 app/build/
+
+# handoff bundle fica só na branch de design
+/chats/
+/project/

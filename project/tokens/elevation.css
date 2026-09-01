@@ -1,8 +1,0 @@
-:root {
-  /* On a black canvas a shadow is invisible. Separation comes from hairlines
-     and flat colour fields, not from depth. */
-  --elev-flat: none;
-  --elev-hairline: inset 0 0 0 1px var(--border-hairline);
-  --elev-sheet: 0 -8px 40px rgba(0, 0, 0, 0.7); /* only for sheets over content */
-  --focus-ring: 0 0 0 2px var(--tt-black), 0 0 0 4px var(--tt-yellow);
-}
