@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TumTum</string>
+    <string name="wordmark_cd">TUMTUM</string>
+
+    <!-- Navegação §5 -->
+    <string name="nav_feed">FEED</string>
+    <string name="nav_live">AO VIVO</string>
+    <string name="nav_you">VOCÊ</string>
+
+    <!-- b1 · Onboarding -->
+    <string name="ob1_headline">O QUE VOCÊ\nSENTIU VIRA\nHISTÓRIA.</string>
+    <string name="ob1_plate">Com prova.</string>
+    <string name="ob1_body">Seu relógio captura como você reagiu no show ou no jogo. A gente conecta com o que tava acontecendo naquele exato segundo.</string>
+    <string name="ob2_headline">SUA NOITE\nVIRA UMA\nCURVA.</string>
+    <string name="ob2_plate">Com buracos e tudo.</string>
+    <string name="ob2_body">A gente mostra onde o coração disparou e o que tocava naquele segundo. Buraco de dado aparece como buraco — nunca inventamos batida.</string>
+    <string name="ob3_headline">VOCÊ DECIDE\nO QUE SAI.</string>
+    <string name="ob3_plate">Sempre.</string>
+    <string name="ob3_body">Nada deixa seu aparelho sem você mandar. Compartilhar é sempre ativo, momento por momento.</string>
+    <string name="ob_start">Começar</string>
+    <string name="ob_have_account">Já tenho conta</string>
+
+    <!-- b2 · Criar conta -->
+    <string name="account_title">Criar conta</string>
+    <string name="account_subtitle">Leva menos que uma música.</string>
+    <string name="account_name_label">SEU NOME</string>
+    <string name="account_username_label">@USERNAME</string>
+    <string name="account_username_free">disponível</string>
+    <string name="account_username_taken">já tem alguém com esse</string>
+    <string name="account_email_label">EMAIL</string>
+    <string name="account_email_hint">voce@email.com</string>
+    <string name="account_password_label">SENHA</string>
+    <string name="account_tribes_label">SUAS TRIBOS</string>
+    <string name="account_tribes_optional">· opcional</string>
+    <string name="account_cta">Criar minha conta</string>
+
+    <!-- b3 · Permissão — a tela quieta -->
+    <string name="perm_title">Seus batimentos,\nsuas regras.</string>
+    <string name="perm_body">Para contar a história da sua noite, o TumTum precisa ler a frequência cardíaca que o seu relógio já registra.</string>
+    <string name="perm_do_1">Lemos batimentos só nas janelas dos seus eventos</string>
+    <string name="perm_do_2">Você escolhe o que compartilha, sempre</string>
+    <string name="perm_dont_1">Não fazemos leitura de saúde, diagnóstico ou alerta</string>
+    <string name="perm_dont_2">Não vendemos nem cruzamos seus dados com anúncios</string>
+    <string name="perm_footnote">Dá para revogar quando quiser, em Configurações. Apagar sua conta apaga os dados.</string>
+    <string name="perm_allow">Permitir leitura</string>
+    <string name="perm_not_now">Agora não</string>
+    <string name="perm_hc_missing">O Health Connect não está disponível neste aparelho. Sem ele, não tem leitura.</string>
+
+    <!-- b4 · Trazer do meu relógio -->
+    <string name="sources_title">Trazer do meu relógio</string>
+    <string name="sources_subtitle">Achamos essas fontes no Health Connect.</string>
+    <string name="sources_best">MELHOR FONTE</string>
+    <string name="sources_coverage">%1$d%% da noite coberta · leitura a cada %2$s</string>
+    <string name="sources_coverage_24h">%1$d%% das últimas 24h coberto · leitura a cada %2$s</string>
+    <string name="sources_no_data">sem dados nessa janela</string>
+    <string name="sources_footnote">A gente mede a densidade de cada fonte na janela do evento e usa a melhor. Buracos ficam visíveis — nunca inventamos batida.</string>
+    <string name="sources_use">Usar %1$s</string>
+    <string name="sources_empty">Não achamos batida nessa janela.</string>
+    <string name="sources_interval_s">%1$ds</string>
+    <string name="sources_interval_min">%1$dmin</string>
+
+    <!-- a5 · Vazio — primeiro uso -->
+    <string name="empty_title">Nenhum show\nainda.</string>
+    <string name="empty_subtitle">Seu coração tá de folga.</string>
+    <string name="empty_no_watch">Nenhum relógio conectado</string>
+    <string name="empty_watch_ok">Relógio conectado</string>
+    <string name="empty_connect">Conectar meu relógio</string>
+    <string name="empty_create_event">Criar um evento</string>
+
+    <!-- Criar evento (sheet mínima — a janela §7 precisa de início/fim) -->
+    <string name="event_new_title">Marcar evento</string>
+    <string name="event_name_label">EVENTO</string>
+    <string name="event_name_hint">Lollapalooza — Dia 2</string>
+    <string name="event_venue_label">LUGAR</string>
+    <string name="event_venue_hint">Autódromo de Interlagos</string>
+    <string name="event_starts_now">Começa agora</string>
+
+    <!-- a2 · Captura ao vivo -->
+    <string name="live_label">AO VIVO</string>
+    <string name="live_started_at">começou %1$s</string>
+    <string name="live_playing_for">TOCANDO HÁ</string>
+    <string name="live_bpm_now">bpm agora</string>
+    <string name="live_moments">%1$d MOMENTOS</string>
+    <string name="live_peak_so_far">MAIOR ATÉ AGORA %1$d</string>
+    <string name="live_hint">A gente só olha depois. Aproveita o show.</string>
+    <string name="live_end">Encerrar a noite</string>
+    <string name="live_blocked_title">Leitura revogada.</string>
+    <string name="live_blocked_body">Suas noites continuam aqui. Para capturar de novo, permita a leitura em Configurações.</string>
+    <string name="live_blocked_cta">Permitir leitura</string>
+
+    <!-- a3 · A noite — a revela -->
+    <string name="reveal_label">A NOITE</string>
+    <string name="reveal_default_title">EU TAVA TRANQUILO.\nAÍ VEIO ISSO.</string>
+    <string name="reveal_bpm">bpm</string>
+    <string name="reveal_at">às %1$s</string>
+    <string name="reveal_gap">%1$d MIN SEM DADO</string>
+    <string name="reveal_biggest">MAIOR</string>
+    <string name="reveal_moment_meta">às %1$s · %2$ds</string>
+    <string name="reveal_share">Escolher como compartilhar</string>
+    <string name="reveal_no_data">Não achamos batida nessa janela.</string>
+
+    <!-- a1 · Suas noites -->
+    <string name="nights_title">Suas noites</string>
+    <string name="nights_moments">%1$d MOMENTOS</string>
+    <string name="nights_captured_pct">%1$d%% CAPTURADO</string>
+
+    <!-- a4 · A galera -->
+    <string name="crowd_label">A GALERA · %1$s</string>
+    <string name="crowd_headline">NINGUÉM TAVA\nTRANQUILO.</string>
+    <string name="crowd_plate">APARENTEMENTE FOI COLETIVO.</string>
+    <string name="crowd_body">De %1$s pessoas que compartilharam dados nesse show, %2$d%% bateram o próprio pico entre %3$s e %4$s.</string>
+    <string name="crowd_you">SUA NOITE</string>
+    <string name="crowd_them">A GALERA</string>
+    <string name="crowd_peak_1">O pico coletivo da noite</string>
+    <string name="crowd_peak_2">Segundo momento mais coletivo</string>
+    <string name="crowd_peak_3">Abertura do set</string>
+    <string name="crowd_people">%1$s PESSOAS</string>
+    <string name="crowd_footnote">Só entra na conta quem escolheu compartilhar. Nenhum dado individual aparece — só o agregado, e só quando o grupo é grande o bastante.</string>
+
+    <!-- b5 · Feed — seus amigos -->
+    <string name="feed_tonight">%1$s · hoje à noite</string>
+    <string name="feed_confirmed">Você e mais %1$d amigos confirmaram</string>
+    <string name="feed_capture">CAPTURAR</string>
+    <string name="feed_senti_tb">SENTI TB</string>
+    <string name="feed_senti_tb_count">SENTI TB · %1$d</string>
+
+    <!-- b6 · Feed do evento -->
+    <string name="event_feed_back">← FEED</string>
+    <string name="event_feed_shared">%1$s COMPARTILHARAM</string>
+    <string name="event_feed_peak">PICO COLETIVO %1$s</string>
+    <string name="event_feed_headline">NINGUÉM TAVA TRANQUILO.</string>
+    <string name="event_feed_body">De %1$s pessoas que compartilharam, %2$d%% bateram o próprio pico durante a mesma música.</string>
+    <string name="event_feed_you_were_there">Você tava lá. Postar sua noite?</string>
+    <string name="event_feed_post">POSTAR</string>
+
+    <!-- b7 · Galeria -->
+    <string name="gallery_title">Sua galeria</string>
+    <string name="gallery_subtitle">Tudo que você sentiu desde %1$s.</string>
+    <string name="gallery_nights">NOITES</string>
+    <string name="gallery_moments">MOMENTOS</string>
+    <string name="gallery_record">SEU RECORDE</string>
+    <string name="gallery_footnote">Cada noite guarda a pele que você escolheu no card. A forma fica, a pele muda.</string>
+    <string name="gallery_empty">Nenhuma noite publicada ainda. A primeira pele é sua escolha.</string>
+
+    <!-- b8 · Perfil público -->
+    <string name="profile_nights">NOITES</string>
+    <string name="profile_friends">AMIGOS</string>
+    <string name="profile_record">RECORDE</string>
+    <string name="profile_follow">Seguir</string>
+    <string name="profile_following">Seguindo</string>
+    <string name="profile_share">Compartilhar</string>
+    <string name="profile_public_nights">NOITES PÚBLICAS</string>
+
+    <!-- Escolha + Card (UI kit do core loop) -->
+    <string name="choose_label">ESCOLHA COMO CONTAR</string>
+    <string name="choose_title">Um momento.\nQual pele?</string>
+    <string name="choose_subtitle">A forma fica, a pele muda. Toque para escolher.</string>
+    <string name="skin_pink">A ASSINATURA</string>
+    <string name="skin_black">A NOITE</string>
+    <string name="skin_yellow">O GRITO</string>
+    <string name="skin_white">O LIMPO</string>
+    <string name="card_label">SEU CARD</string>
+    <string name="card_post">Postar no feed</string>
+    <string name="card_posted">No feed. A galera já pode sentir também.</string>
+
+    <!-- VOCÊ + Configurações §7 -->
+    <string name="you_gallery">Sua galeria</string>
+    <string name="you_profile">Perfil público</string>
+    <string name="you_settings">Configurações</string>
+    <string name="settings_title">Configurações</string>
+    <string name="settings_hc_section">LEITURA DE BATIMENTOS</string>
+    <string name="settings_hc_granted">Leitura permitida, só nas janelas dos seus eventos</string>
+    <string name="settings_hc_revoked">Leitura revogada. Nova captura está bloqueada.</string>
+    <string name="settings_hc_manage">Gerenciar no Health Connect</string>
+    <string name="settings_account_section">SUA CONTA</string>
+    <string name="settings_delete">Apagar minha conta</string>
+    <string name="settings_delete_warning">Apagar sua conta apaga noites, momentos publicados e reações. Não dá para desfazer.</string>
+    <string name="settings_delete_confirm">Apagar tudo</string>
+    <string name="settings_delete_cancel">Voltar</string>
+
+    <string name="back">Voltar</string>
+</resources>

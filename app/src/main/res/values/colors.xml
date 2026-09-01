@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fundação visual §3 — paleta institucional travada -->
+    <color name="tt_ink">#FF000000</color>
+    <color name="tt_paper">#FFFFFFFF</color>
+    <color name="tt_rose">#FFFF6F91</color>
+    <color name="tt_acid">#FFEFFF00</color>
+    <color name="tt_night">#FF0A0A0A</color>
+</resources>
