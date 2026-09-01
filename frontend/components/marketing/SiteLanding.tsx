@@ -204,7 +204,13 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
           ))}
         </h2>
         <p className="mx-auto mt-6 max-w-[620px] px-6 text-base leading-relaxed text-black/70">
-          {copy.cards.intro} <span className="text-[#8A8A8A] lg:hidden">{copy.cards.swipeHint}</span>
+          {copy.cards.intro}
+        </p>
+        {/* Its own line, and never broken across two: inline it wrapped as
+            "Arrasta pro / lado →", which reads as a layout accident rather
+            than an instruction. Only shown where the row actually swipes. */}
+        <p className="mt-3 whitespace-nowrap px-6 text-base text-[#8A8A8A] lg:hidden">
+          {copy.cards.swipeHint}
         </p>
 
         <div className="mx-auto mt-10 flex max-w-[1040px] snap-x snap-mandatory gap-3 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mt-14 lg:flex-wrap lg:justify-center lg:gap-3.5 lg:overflow-visible lg:px-0">
