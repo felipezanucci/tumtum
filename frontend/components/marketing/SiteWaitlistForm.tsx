@@ -72,8 +72,8 @@ export function SiteWaitlistForm({ copy }: { copy: SiteCopy['waitlist'] }) {
   }
 
   return (
-    <form className="mx-auto mt-10 max-w-[520px]" onSubmit={submit} noValidate>
-      <div className="flex flex-wrap justify-center gap-3">
+    <form className="mt-10 max-w-[520px] lg:mx-auto" onSubmit={submit} noValidate>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
         <input
           type="email"
           name="email"
@@ -87,12 +87,12 @@ export function SiteWaitlistForm({ copy }: { copy: SiteCopy['waitlist'] }) {
             setEmail(event.target.value)
             if (state.kind === 'failed') setState({ kind: 'idle' })
           }}
-          className="w-[340px] max-w-full rounded-xl border border-[#2E2E2E] bg-[#0F0F0F] px-5 py-3.5 text-base text-tumtum-white outline-none placeholder:text-[#6F6F6F] focus-visible:border-tumtum-pink disabled:opacity-60"
+          className="w-full rounded-xl sm:w-[340px] sm:max-w-full border border-[#2E2E2E] bg-[#0F0F0F] px-5 py-3.5 text-base text-tumtum-white outline-none placeholder:text-[#6F6F6F] focus-visible:border-tumtum-pink disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={sending}
-          className="rounded-xl bg-tumtum-pink px-7 py-3.5 text-base font-headline text-tumtum-black transition-colors hover:bg-tumtum-yellow disabled:opacity-60 motion-reduce:transition-none"
+          className="w-full rounded-xl bg-tumtum-pink px-7 py-3.5 text-base font-headline sm:w-auto text-tumtum-black transition-colors hover:bg-tumtum-yellow disabled:opacity-60 motion-reduce:transition-none"
         >
           {sending ? copy.sending : copy.button}
         </button>
