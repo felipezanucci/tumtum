@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { Wordmark } from '@/components/brand/Wordmark'
+import { SiteClip } from '@/components/marketing/SiteClip'
 import { SiteNav } from '@/components/marketing/SiteNav'
 import { SiteWaitlistForm } from '@/components/marketing/SiteWaitlistForm'
 import type { SiteCopy } from '@/lib/site-copy'
@@ -31,20 +32,6 @@ const SOCIALS = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/company/tumtumcc' },
 ]
 
-function Clip({ src, className = '' }: { src: string; className?: string }) {
-  return (
-    <video
-      className={`h-full w-full object-cover ${className}`}
-      src={`/site/${src}.mp4`}
-      poster={`/site/${src}-poster.jpg`}
-      autoPlay
-      muted
-      loop
-      playsInline
-      aria-hidden="true"
-    />
-  )
-}
 
 function LangSwitch({ copy }: { copy: SiteCopy }) {
   const item = (lang: 'PT' | 'EN', href: string, active: boolean) =>
@@ -103,7 +90,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
               the plate is the one light surface inside a pink section. */}
           <div className="w-[280px] shrink-0 overflow-hidden rounded-none bg-tumtum-black shadow-[0_40px_80px_rgba(0,0,0,0.28)] lg:w-[310px]">
             <div className="relative h-[238px] lg:h-[265px]">
-              <Clip src="event-clip" />
+              <SiteClip src="event-clip" />
               <span className="absolute left-4 top-4 rounded-full bg-tumtum-yellow px-3 py-1 text-[10px] font-headline tracking-[0.08em] text-tumtum-black">
                 {copy.hero.card.event}
               </span>
@@ -204,14 +191,20 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
           ))}
         </h2>
         <p className="mx-auto mt-6 max-w-[620px] px-6 text-base leading-relaxed text-black/70">
-          {copy.cards.intro} <span className="text-[#8A8A8A] lg:hidden">{copy.cards.swipeHint}</span>
+          {copy.cards.intro}
+        </p>
+        {/* Its own line, and never broken across two: inline it wrapped as
+            "Arrasta pro / lado →", which reads as a layout accident rather
+            than an instruction. Only shown where the row actually swipes. */}
+        <p className="mt-3 whitespace-nowrap px-6 text-base text-[#8A8A8A] lg:hidden">
+          {copy.cards.swipeHint}
         </p>
 
         <div className="mx-auto mt-10 flex max-w-[1040px] snap-x snap-mandatory gap-3 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mt-14 lg:flex-wrap lg:justify-center lg:gap-3.5 lg:overflow-visible lg:px-0">
           {/* Só o momento — white, media on top */}
           <article className="flex h-[412px] w-[236px] shrink-0 snap-start flex-col overflow-hidden lg:w-auto lg:min-w-[170px] lg:max-w-[248px] lg:flex-1 lg:basis-0 border border-[#E6E6E6] bg-tumtum-white text-left">
             <div className="relative h-[226px] shrink-0">
-              <Clip src="cold-play" />
+              <SiteClip src="cold-play" />
               <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[9px] font-headline tracking-[0.1em] text-tumtum-white">
                 {soMomento.label}
               </span>
@@ -260,7 +253,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
           {/* A galera — pink, media on top, black type */}
           <article className="flex h-[412px] w-[236px] shrink-0 snap-start flex-col overflow-hidden lg:w-auto lg:min-w-[170px] lg:max-w-[248px] lg:flex-1 lg:basis-0 bg-tumtum-pink text-left">
             <div className="relative h-[226px] shrink-0">
-              <Clip src="torcida" />
+              <SiteClip src="torcida" />
               <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[9px] font-headline tracking-[0.1em] text-tumtum-white">
                 {aGalera.label}
               </span>
@@ -386,7 +379,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
                   {clips[i] && (
                     <>
                       <div className="absolute inset-0">
-                        <Clip src={clips[i]!} />
+                        <SiteClip src={clips[i]!} />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent from-[34%] to-black/[.88] to-[84%]" />
                     </>
