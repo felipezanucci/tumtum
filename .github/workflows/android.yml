@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Sinal de que o run começou, legível via git ls-remote (o ambiente que
+      # mantém este repo não tem acesso à API do GitHub).
+      - name: Sinalizar início
+        run: git push -f origin "HEAD:refs/heads/ci-status-b${{ github.run_number }}" || true
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -49,7 +54,14 @@ jobs:
       - name: Renomear APK
         run: cp app/build/outputs/apk/debug/app-debug.apk tumtum-1.0-b${{ github.run_number }}.apk
 
+      - name: Guardar APK como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tumtum-apk-b${{ github.run_number }}
+          path: tumtum-1.0-b${{ github.run_number }}.apk
+
       - name: Publicar Release
+        continue-on-error: true
         uses: softprops/action-gh-release@v2
         with:
           tag_name: app-b${{ github.run_number }}
@@ -65,8 +77,10 @@ jobs:
             Não é um build de loja — nada de Play Store com esta chave.
           files: tumtum-1.0-b${{ github.run_number }}.apk
 
-      - name: Guardar APK como artifact (backup)
+      - name: Guardar log como artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tumtum-apk-b${{ github.run_number }}
-          path: tumtum-1.0-b${{ github.run_number }}.apk
+          name: build-log-b${{ github.run_number }}
+          path: build.log
+          if-no-files-found: ignore
