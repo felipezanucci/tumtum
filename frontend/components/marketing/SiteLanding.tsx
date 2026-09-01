@@ -70,9 +70,9 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
     <div className="bg-tumtum-white text-tumtum-black">
       {/* ---------------------------------------------------------- nav */}
       <header className="sticky top-0 z-20 border-b border-[#E6E6E6] bg-tumtum-white">
-        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-6 px-6 py-[22px] md:px-16">
+        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-[18px] md:gap-6 md:px-16 md:py-[22px]">
           <Link href={copy.lang === 'pt' ? '/' : '/en'} aria-label="TumTum">
-            <Wordmark className="h-5 w-[132px] text-tumtum-black" />
+            <Wordmark className="h-4 w-[106px] text-tumtum-black md:h-5 md:w-[132px]" />
           </Link>
           <div className="hidden items-center gap-7 text-sm font-headline md:flex">
             <a href="#como" className="transition-colors hover:text-tumtum-pink motion-reduce:transition-none">{copy.nav.how}</a>
@@ -83,10 +83,10 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
               {copy.nav.signIn}
             </Link>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3 md:gap-5">
             <a
               href="#lista"
-              className="rounded-full bg-tumtum-pink px-5 py-2.5 text-sm font-headline text-tumtum-black transition-colors hover:bg-tumtum-yellow motion-reduce:transition-none"
+              className="whitespace-nowrap rounded-full bg-tumtum-pink px-4 py-2 text-[13px] font-headline md:px-5 md:py-2.5 md:text-sm text-tumtum-black transition-colors hover:bg-tumtum-yellow motion-reduce:transition-none"
             >
               {copy.nav.cta}
             </a>
@@ -326,16 +326,16 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
       </section>
 
       {/* --------------------------------------------------- feed #feed */}
-      <section id="feed" className="bg-tumtum-black px-6 py-28 text-tumtum-white md:px-16">
+      <section id="feed" className="overflow-hidden bg-tumtum-black px-6 py-28 text-tumtum-white md:px-16">
         <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-16 md:flex-row md:justify-between">
-          <div className="flex shrink-0 gap-6">
+          <div className="flex w-full max-w-full shrink-0 justify-center gap-4 md:w-auto md:gap-6">
             {/* eslint-disable-next-line @next/next/no-img-element -- static mockups, exact size, no optimization pipeline needed */}
             <img
               src="/site/shots/09-feed.png"
               alt=""
               width={264}
               height={572}
-              className="w-[220px] rounded-[22px] border border-[#2E2E2E] md:w-[264px]"
+              className="w-[43vw] max-w-[220px] rounded-[22px] border border-[#2E2E2E] md:w-[264px] md:max-w-none"
             />
             {/* eslint-disable-next-line @next/next/no-img-element -- static mockups, exact size, no optimization pipeline needed */}
             <img
@@ -343,7 +343,7 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
               alt=""
               width={264}
               height={572}
-              className="mt-14 w-[220px] rounded-[22px] border border-[#2E2E2E] md:w-[264px]"
+              className="mt-14 w-[43vw] max-w-[220px] rounded-[22px] border border-[#2E2E2E] md:w-[264px] md:max-w-none"
             />
           </div>
           <div className="max-w-[520px]">
