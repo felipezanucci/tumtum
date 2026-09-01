@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: build-apk
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,15 +25,26 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Testes de unidade
-        run: ./gradlew --no-daemon :app:testDebugUnitTest
+      - name: Testes + APK
+        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug 2>&1 | tee build.log
         env:
           TUMTUM_VERSION_CODE: ${{ github.run_number }}
 
-      - name: Montar APK
-        run: ./gradlew --no-daemon :app:assembleDebug
-        env:
-          TUMTUM_VERSION_CODE: ${{ github.run_number }}
+      # O ambiente que edita este repo só fala protocolo git — em caso de falha,
+      # o log vira uma branch ci-log-bN para ser lida com git fetch.
+      - name: Publicar log de falha
+        if: failure()
+        run: |
+          set -e
+          mkdir -p /tmp/cilog
+          cp build.log /tmp/cilog/build.log 2>/dev/null || echo "falhou antes do gradle rodar" > /tmp/cilog/build.log
+          cd /tmp/cilog
+          git init -q -b "ci-log-b${{ github.run_number }}"
+          git config user.name tumtum-ci
+          git config user.email ci@users.noreply.github.com
+          git add build.log
+          git commit -qm "log do build ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" "HEAD:refs/heads/ci-log-b${{ github.run_number }}"
 
       - name: Renomear APK
         run: cp app/build/outputs/apk/debug/app-debug.apk tumtum-1.0-b${{ github.run_number }}.apk
