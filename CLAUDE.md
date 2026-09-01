@@ -41,7 +41,13 @@ open the pull request last, and anything pushed after a PR is merged gets a
 new PR — never an edit to a merged one. The fourth time proved that knowing
 the rule is not what fixes it: **do not open the PR until the work is finished
 and pushed**, and if one is already open with more commits coming, say so in
-its description so it does not get merged early. And the bug class to watch for, found
+its description so it does not get merged early.
+
+**Always end a piece of work by giving Felipe the merge link.** Standing
+instruction from 2026-09-01. He merges everything himself — nothing reaches
+tumtum.cc or Railway without it — so a finished task that ends without the
+URL leaves him hunting for it. Close with the link, its verified CI state,
+and what the merge puts live. And the bug class to watch for, found
 twelve times in two days: **the app stating something false about its own
 state** — a control with no feedback, a stale display, a message describing
 the wrong condition. None break anything, none show up in tests, all surface
