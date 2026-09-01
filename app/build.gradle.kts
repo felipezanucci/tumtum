@@ -10,7 +10,7 @@ val buildNumber = System.getenv("TUMTUM_VERSION_CODE")?.toIntOrNull() ?: 1
 
 android {
     namespace = "cc.tumtum.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "cc.tumtum.app"
