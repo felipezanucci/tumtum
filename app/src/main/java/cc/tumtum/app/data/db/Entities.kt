@@ -12,6 +12,9 @@ data class EventEntity(
     val venue: String,
     val startAt: Long,
     val endAt: Long? = null,
+    /** Offset wallClock − elapsedRealtime no início e fim da sessão (§8). */
+    val clockOffsetStartMs: Long? = null,
+    val clockOffsetEndMs: Long? = null,
 )
 
 @Entity(tableName = "nights")
@@ -31,6 +34,9 @@ data class NightEntity(
     /** Pele escolhida no card (PINK/BLACK/YELLOW/WHITE); null = não publicada. */
     val skin: String? = null,
     val published: Boolean = false,
+    /** Offset wallClock − elapsedRealtime no início e fim da sessão (§8). */
+    val clockOffsetStartMs: Long? = null,
+    val clockOffsetEndMs: Long? = null,
 )
 
 /** Amostras cruas da noite — guardadas como lidas. Buraco é ausência de linha. */

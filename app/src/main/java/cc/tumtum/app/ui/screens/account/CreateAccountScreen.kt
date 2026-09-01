@@ -56,6 +56,7 @@ fun CreateAccountScreen(nav: NavHostController) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var tribes by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var participant by rememberSaveable { mutableStateOf("") }
     var saving by remember { mutableStateOf(false) }
 
     val usernameClean = username.trim().lowercase()
@@ -127,6 +128,17 @@ fun CreateAccountScreen(nav: NavHostController) {
             }
         }
 
+        Spacer(Modifier.height(22.dp))
+        // §9 — identificador do participante do experimento (P01…P18). Opcional fora dele.
+        TTField(
+            stringResource(R.string.participant_label),
+            participant,
+            { participant = it },
+            placeholder = "P01",
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(stringResource(R.string.participant_hint), style = TTType.Footnote, color = TT.Gray45)
+
         Spacer(Modifier.height(40.dp))
         TTButton(
             stringResource(R.string.account_cta),
@@ -138,6 +150,7 @@ fun CreateAccountScreen(nav: NavHostController) {
                     container.prefs.createAccount(
                         Account(name = name.trim(), username = usernameClean, email = email.trim(), tribes = tribes),
                     )
+                    container.prefs.setParticipantId(participant)
                     nav.navigate(Routes.Permission)
                     saving = false
                 }

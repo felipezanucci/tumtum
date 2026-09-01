@@ -10,15 +10,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -29,7 +33,9 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
+import cc.tumtum.app.ui.components.TTField
 import cc.tumtum.app.ui.nav.Routes
+import cc.tumtum.app.ui.screens.sources.SensorSection
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
@@ -49,6 +55,15 @@ fun SettingsScreen(nav: NavHostController) {
     val granted by produceState(initialValue = false) {
         value = container.health.hasPermission()
     }
+    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
+    var participantDraft by remember { mutableStateOf("") }
+    var participantLoaded by remember { mutableStateOf(false) }
+    LaunchedEffect(user) {
+        if (!participantLoaded && user != null) {
+            participantDraft = user?.participantId ?: ""
+            participantLoaded = true
+        }
+    }
 
     Column(
         Modifier
@@ -56,6 +71,7 @@ fun SettingsScreen(nav: NavHostController) {
             .background(TT.Paper)
             .statusBarsPadding()
             .navigationBarsPadding()
+            .verticalScroll(rememberScrollState())
             .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 30.dp),
     ) {
         Text(
@@ -85,6 +101,25 @@ fun SettingsScreen(nav: NavHostController) {
                     context.startActivity(Intent("androidx.health.ACTION_HEALTH_CONNECT_SETTINGS"))
                 }
             },
+        )
+
+        Spacer(Modifier.height(40.dp))
+        // §10 — sensor BLE: parear/trocar/remover também depois do onboarding.
+        SensorSection(prefs = container.prefs, bleName = user?.bleName)
+
+        Spacer(Modifier.height(40.dp))
+        Text(stringResource(R.string.settings_participant_section), style = TTType.Meta, color = TT.Gray70)
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.settings_participant_hint), style = TTType.Footnote, color = TT.Gray45)
+        Spacer(Modifier.height(10.dp))
+        TTField(
+            label = stringResource(R.string.participant_label),
+            value = participantDraft,
+            onValueChange = {
+                participantDraft = it
+                scope.launch { container.prefs.setParticipantId(it) }
+            },
+            placeholder = "P01",
         )
 
         Spacer(Modifier.height(40.dp))

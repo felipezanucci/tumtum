@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.repo.SourceMeasurement
@@ -95,6 +96,13 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
         Text(stringResource(R.string.sources_subtitle), style = TTType.Body, color = TT.Gray45)
         Spacer(Modifier.height(26.dp))
 
+        if (setupMode) {
+            // §10 — sensor BLE ao vivo: parear aqui, lembrar o endereço, reconectar sozinho.
+            val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
+            SensorSection(prefs = container.prefs, bleName = user?.bleName)
+            Spacer(Modifier.height(26.dp))
+        }
+
         if (m != null && sources.none { it.hasData }) {
             // Erro honesto — sem piada, sem "ops".
             Text(stringResource(R.string.sources_empty), style = TTType.Body, color = TT.Ink)
@@ -147,6 +155,23 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                 }
             },
         )
+        if (setupMode) {
+            val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
+            if (user?.sensorPaired == true) {
+                Spacer(Modifier.height(10.dp))
+                // Quem só tem o sensor BLE (sem app escrevendo no Health Connect) segue por aqui.
+                TTButton(
+                    stringResource(R.string.sources_only_sensor),
+                    TTButtonStyle.Outline,
+                    onClick = {
+                        scope.launch {
+                            container.prefs.setOnboarded()
+                            nav.navigate(Routes.Feed) { popUpTo(0) { inclusive = true } }
+                        }
+                    },
+                )
+            }
+        }
     }
 }
 

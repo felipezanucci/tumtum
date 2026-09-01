@@ -11,6 +11,7 @@ import cc.tumtum.app.domain.EventSession
 import cc.tumtum.app.domain.Gap
 import cc.tumtum.app.domain.GalleryNight
 import cc.tumtum.app.domain.HrSample
+import cc.tumtum.app.domain.HrSource
 import cc.tumtum.app.domain.Moment
 import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.NightAnalyzer
@@ -44,6 +45,8 @@ class NightRepository(
     private val db: TumTumDatabase,
     private val health: HealthConnectSource,
 ) {
+    private val capture get() = db.captureDao()
+
     /** Margem da janela do evento (§7): 30min de cada lado. Fora disso, nenhuma query. */
     private val margin: Duration = Duration.ofMinutes(30)
 
@@ -58,10 +61,26 @@ class NightRepository(
         db.eventDao().close(eventId, at.toEpochMilli())
     }
 
-    /** Snapshot ao vivo: lote retroativo do início da janela até agora. */
+    /** Amostras da fonte BLE ao vivo dentro da janela, no formato comum do pipeline (§2). */
+    private suspend fun bleSamplesIn(eventId: Long, start: Instant, end: Instant): List<HrSample> =
+        capture.samplesBetween(eventId, start.toEpochMilli(), end.toEpochMilli())
+            .map { HrSample(Instant.ofEpochMilli(it.wallClockMs), it.bpm) }
+
+    /** Snapshot ao vivo: sensor BLE quando presente; senão, lote retroativo do Health Connect. */
     suspend fun liveSnapshot(event: EventSession): LiveSnapshot {
         val start = event.startAt.minus(margin)
         val now = Instant.now()
+        val ble = bleSamplesIn(event.id, start, now)
+        if (ble.isNotEmpty()) {
+            val latest = ble.last()
+            return LiveSnapshot(
+                currentBpm = latest.takeIf { Duration.between(it.time, now) <= Duration.ofSeconds(15) }?.bpm,
+                peakBpm = ble.maxOf { it.bpm },
+                momentCount = NightAnalyzer.moments(ble).size,
+                bestSourceLabel = HealthConnectSource.sourceLabel(HrSource.ID_BLE),
+                coveragePct = NightAnalyzer.coveragePct(ble, event.startAt, now),
+            )
+        }
         val bySource = health.readWindowBySource(start, now)
         val best = health.sourceDensities(bySource, start, now).firstOrNull { it.hasData }
         val samples = best?.let { bySource[it.packageName] }.orEmpty()
@@ -77,11 +96,16 @@ class NightRepository(
         )
     }
 
-    /** Mede densidade por fonte na janela fechada do evento (b4, §7). */
+    /**
+     * Mede densidade por fonte na janela fechada do evento (b4, §7), agregando
+     * as fontes ativas: Health Connect + o sensor BLE ao vivo, no mesmo pipeline (§2).
+     */
     suspend fun measureSources(event: EventSession, end: Instant = Instant.now()): SourceMeasurement {
         val windowStart = event.startAt.minus(margin)
         val windowEnd = (event.endAt ?: end).plus(margin).coerceAtMost(Instant.now())
-        val bySource = health.readWindowBySource(windowStart, windowEnd)
+        val bySource = health.readWindowBySource(windowStart, windowEnd).toMutableMap()
+        val ble = bleSamplesIn(event.id, windowStart, windowEnd)
+        if (ble.isNotEmpty()) bySource[HrSource.ID_BLE] = ble
         return SourceMeasurement(
             windowStart = windowStart,
             windowEnd = windowEnd,
@@ -99,6 +123,7 @@ class NightRepository(
         if (samples.isEmpty()) return null
         val moments = NightAnalyzer.moments(samples)
         val peak = samples.maxBy { it.bpm }
+        val eventRow = db.eventDao().byId(event.id)
         val nightId = db.nightDao().insert(
             NightEntity(
                 eventId = event.id,
@@ -112,6 +137,8 @@ class NightRepository(
                 momentCount = moments.size,
                 sourcePackage = sourcePackage,
                 sourceLabel = HealthConnectSource.sourceLabel(sourcePackage),
+                clockOffsetStartMs = eventRow?.clockOffsetStartMs,
+                clockOffsetEndMs = eventRow?.clockOffsetEndMs,
             ),
         )
         db.nightDao().insertSamples(samples.map { SampleEntity(nightId = nightId, time = it.time.toEpochMilli(), bpm = it.bpm) })
@@ -147,6 +174,10 @@ class NightRepository(
         db.nightDao().deleteAllSamples()
         db.nightDao().deleteAll()
         db.eventDao().deleteAll()
+        capture.deleteAllSamples()
+        capture.deleteAllRr()
+        capture.deleteAllMotion()
+        capture.deleteAllConnectionEvents()
     }
 
     private fun NightWithData.toDomain(): Night {

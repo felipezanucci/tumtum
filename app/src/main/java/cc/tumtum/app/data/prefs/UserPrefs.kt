@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -36,8 +37,16 @@ data class UserState(
     val account: Account?,
     val sourcePackage: String?,
     val sourceLabel: String?,
+    /** Sensor BLE pareado (Polar H10/Verity Sense…), lembrado entre sessões (§10). */
+    val bleAddress: String? = null,
+    val bleName: String? = null,
+    /** Identificador do participante do experimento (P01…P18, §9). */
+    val participantId: String? = null,
+    /** Sessão de captura ativa — sobrevive à morte do processo (§4.3). */
+    val activeCaptureEventId: Long? = null,
 ) {
     val watchConnected: Boolean get() = sourcePackage != null
+    val sensorPaired: Boolean get() = bleAddress != null
 }
 
 class UserPrefs(private val context: Context) {
@@ -50,6 +59,10 @@ class UserPrefs(private val context: Context) {
         val tribes = stringSetPreferencesKey("tribes")
         val sourcePackage = stringPreferencesKey("source_package")
         val sourceLabel = stringPreferencesKey("source_label")
+        val bleAddress = stringPreferencesKey("ble_address")
+        val bleName = stringPreferencesKey("ble_name")
+        val participantId = stringPreferencesKey("participant_id")
+        val activeCaptureEventId = longPreferencesKey("active_capture_event_id")
     }
 
     val state: Flow<UserState> = context.dataStore.data.map { p ->
@@ -66,6 +79,10 @@ class UserPrefs(private val context: Context) {
             },
             sourcePackage = p[Keys.sourcePackage],
             sourceLabel = p[Keys.sourceLabel],
+            bleAddress = p[Keys.bleAddress],
+            bleName = p[Keys.bleName],
+            participantId = p[Keys.participantId],
+            activeCaptureEventId = p[Keys.activeCaptureEventId],
         )
     }
 
@@ -87,6 +104,34 @@ class UserPrefs(private val context: Context) {
             p[Keys.sourcePackage] = packageName
             p[Keys.sourceLabel] = label
         }
+    }
+
+    suspend fun setSensor(address: String, name: String) {
+        context.dataStore.edit { p ->
+            p[Keys.bleAddress] = address
+            p[Keys.bleName] = name
+        }
+    }
+
+    suspend fun clearSensor() {
+        context.dataStore.edit { p ->
+            p.remove(Keys.bleAddress)
+            p.remove(Keys.bleName)
+        }
+    }
+
+    suspend fun setParticipantId(id: String) {
+        context.dataStore.edit { p ->
+            if (id.isBlank()) p.remove(Keys.participantId) else p[Keys.participantId] = id.trim()
+        }
+    }
+
+    suspend fun setActiveCapture(eventId: Long) {
+        context.dataStore.edit { it[Keys.activeCaptureEventId] = eventId }
+    }
+
+    suspend fun clearActiveCapture() {
+        context.dataStore.edit { it.remove(Keys.activeCaptureEventId) }
     }
 
     /** Apagar conta apaga tudo (§7). O Room é limpo pelo repositório. */

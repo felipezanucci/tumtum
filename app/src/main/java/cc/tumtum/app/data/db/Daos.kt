@@ -30,6 +30,13 @@ interface EventDao {
     @Query("SELECT * FROM events WHERE id = :id")
     suspend fun byId(id: Long): EventEntity?
 
+    /** Offset wallClock − elapsedRealtime no início (§8): só o primeiro registro vale. */
+    @Query("UPDATE events SET clockOffsetStartMs = :offsetMs WHERE id = :id AND clockOffsetStartMs IS NULL")
+    suspend fun setClockOffsetStart(id: Long, offsetMs: Long)
+
+    @Query("UPDATE events SET clockOffsetEndMs = :offsetMs WHERE id = :id")
+    suspend fun setClockOffsetEnd(id: Long, offsetMs: Long)
+
     @Query("DELETE FROM events")
     suspend fun deleteAll()
 }

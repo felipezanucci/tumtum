@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -57,9 +58,14 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    suspend fun startEvent(name: String, venue: String) {
-        container.nights.startEvent(name, venue)
+    /** Cria o evento e, com sensor pareado, deixa a sessão de captura registrada (§4.3). */
+    suspend fun startEvent(name: String, venue: String): Long {
+        val eventId = container.nights.startEvent(name, venue)
         _snapshot.value = null
+        if (container.prefs.state.first().sensorPaired) {
+            container.prefs.setActiveCapture(eventId)
+        }
+        return eventId
     }
 
     /**

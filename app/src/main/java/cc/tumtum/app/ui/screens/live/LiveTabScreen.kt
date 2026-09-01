@@ -66,7 +66,28 @@ fun LiveTabScreen(nav: NavHostController) {
         }
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var pendingEvent by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var showBatteryGate by remember { mutableStateOf(false) }
+
     val state = user ?: return
+
+    // §6 — com sensor BLE pareado, a sessão só começa com a isenção de bateria concedida.
+    fun createEvent(name: String, venue: String) {
+        val paired = state.sensorPaired
+        if (paired && !cc.tumtum.app.service.BatteryExemption.isExempt(context)) {
+            pendingEvent = name to venue
+            showBatteryGate = true
+            return
+        }
+        scope.launch {
+            val eventId = vm.startEvent(name, venue)
+            val address = state.bleAddress
+            if (paired && address != null) {
+                cc.tumtum.app.service.CaptureService.start(context, eventId, address)
+            }
+        }
+    }
     Column(
         Modifier
             .fillMaxSize()
@@ -119,6 +140,25 @@ fun LiveTabScreen(nav: NavHostController) {
                     color = TT.Gray70,
                 )
             }
+            if (state.sensorPaired) {
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, TT.Gray10, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(9.dp).clip(CircleShape).background(TT.Acid))
+                    Text(
+                        stringResource(R.string.empty_sensor_ok, state.bleName ?: ""),
+                        style = TTType.BodySmall,
+                        color = TT.Gray70,
+                    )
+                }
+            }
             Spacer(Modifier.height(14.dp))
             if (state.watchConnected) {
                 TTButton(stringResource(R.string.empty_create_event), TTButtonStyle.Rose, onClick = { showCreate = true })
@@ -139,7 +179,21 @@ fun LiveTabScreen(nav: NavHostController) {
             onDismiss = { showCreate = false },
             onCreate = { name, venue ->
                 showCreate = false
-                scope.launch { vm.startEvent(name, venue) }
+                createEvent(name, venue)
+            },
+        )
+    }
+
+    if (showBatteryGate) {
+        BatteryExemptionSheet(
+            onDismiss = {
+                showBatteryGate = false
+                pendingEvent = null
+            },
+            onExempt = {
+                showBatteryGate = false
+                pendingEvent?.let { (name, venue) -> createEvent(name, venue) }
+                pendingEvent = null
             },
         )
     }

@@ -2,8 +2,39 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Health Connect: a única fonte de FC. Leitura em lote, retroativa (§2, §7). -->
+    <!-- Health Connect: fonte de FC em lote, retroativa (§2, §7). -->
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+
+    <!-- Captura BLE ao vivo (§5). Android 12+: -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- Android 11 e abaixo (minSdk 28): caminho legado com localização. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+
+    <!-- Foreground service da sessão (§4) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- BLE é desejável, não obrigatório: sem sensor, o Health Connect continua valendo. -->
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="false" />
 
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
@@ -32,6 +63,32 @@
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
         </activity>
+
+        <!-- §4 — a sessão vive aqui, não na Activity. -->
+        <service
+            android:name=".service.CaptureService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!-- §4.3 — reboot no meio da sessão retoma a captura. -->
+        <receiver
+            android:name=".service.BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- §9 — exportação do ZIP via share sheet, sem INTERNET. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <!-- Health Connect (Android 14+): racional via VIEW_PERMISSION_USAGE -->
         <activity-alias

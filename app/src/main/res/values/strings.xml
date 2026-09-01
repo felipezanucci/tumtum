@@ -180,4 +180,56 @@
     <string name="settings_delete_cancel">Voltar</string>
 
     <string name="back">Voltar</string>
+
+    <!-- Sensor BLE ao vivo (§10) -->
+    <string name="sensor_section">SENSOR AO VIVO</string>
+    <string name="sensor_connect">Conectar sensor</string>
+    <string name="sensor_change">TROCAR</string>
+    <string name="sensor_remove">REMOVER</string>
+    <string name="sensor_footnote">Sensor de peito ou braço com perfil padrão de batimento (Polar H10, Verity Sense). A captura fica ao vivo, segundo a segundo, com HRV.</string>
+    <string name="sensor_scan_title">Buscando sensores</string>
+    <string name="sensor_scan_searching">Ligue o sensor e molhe os eletrodos. Ele aparece aqui.</string>
+    <string name="sensor_scan_tap">Toque no seu para parear.</string>
+    <string name="sensor_scan_needs_permission">Sem a permissão de Bluetooth não tem varredura.</string>
+    <string name="sensor_scan_grant">Permitir Bluetooth</string>
+    <string name="empty_sensor_ok">Sensor %1$s pareado</string>
+
+    <!-- Permissão BLE na tela quieta (§5) -->
+    <string name="perm_ble_section">SENSOR NO CORPO · OPCIONAL</string>
+    <string name="perm_ble_body">Com um sensor de peito ou braço, a gente captura a noite ao vivo, batida a batida, direto no aparelho. Precisa da permissão de Bluetooth do Android.</string>
+    <string name="perm_ble_allow">Permitir Bluetooth</string>
+    <string name="perm_ble_granted">Bluetooth permitido.</string>
+
+    <!-- Captura ao vivo com sensor (§4, §10) -->
+    <string name="capture_channel">Captura da noite</string>
+    <string name="capture_notif_title">TumTum · capturando a noite</string>
+    <string name="capture_notif_starting">preparando a sessão</string>
+    <string name="capture_notif_connected">sensor conectado</string>
+    <string name="capture_notif_reconnecting">reconectando ao sensor</string>
+    <string name="capture_notif_disconnected">sensor fora do ar</string>
+    <string name="capture_notif_samples">amostras</string>
+    <string name="capture_reconnecting">reconectando</string>
+    <string name="capture_disconnected">sem sensor</string>
+    <string name="capture_samples">%1$d AMOSTRAS</string>
+    <string name="capture_sensor_battery">SENSOR %1$d%%</string>
+    <string name="capture_hold_to_see">Segura para ver. A gente só olha depois.</string>
+
+    <!-- Isenção de otimização de bateria (§6) -->
+    <string name="battery_title">Seu Android quer\nmatar a captura.</string>
+    <string name="battery_body">Para gravar seis horas de show com a tela apagada, o TumTum precisa ficar fora da otimização de bateria. Sem isso, a sessão não começa — melhor recusar do que perder a noite sem avisar.</string>
+    <string name="battery_allow">Tirar da otimização</string>
+    <string name="battery_check">Já concedi — verificar</string>
+
+    <!-- Participante do experimento (§9) -->
+    <string name="participant_label">PARTICIPANTE · opcional</string>
+    <string name="participant_hint">Só para quem está no experimento (P01…P18). Vai junto na exportação.</string>
+    <string name="settings_participant_section">EXPERIMENTO</string>
+    <string name="settings_participant_hint">Identificador do participante — entra no session.json exportado.</string>
+
+    <!-- Exportação (§9) -->
+    <string name="export_session">Exportar sessão</string>
+    <string name="export_running">Gerando o ZIP…</string>
+
+    <!-- b4 com sensor -->
+    <string name="sources_only_sensor">Seguir só com o sensor</string>
 </resources>

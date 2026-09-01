@@ -1,8 +1,29 @@
 # TumTum — App Android (primeira implementação)
 
-Implementação do handoff `project/design_handoff_app_tumtum/README.md` (v1.0, 1 set 2026).
-Kotlin + Jetpack Compose, Health Connect como única fonte de FC, Room, sem backend
-(social em repositório fake trocável).
+Implementação do handoff `project/design_handoff_app_tumtum/README.md` (v1.0, 1 set 2026)
+mais o brief de captura BLE ao vivo (b6, evento de 25/09).
+Kotlin + Jetpack Compose, Room, sem backend (social em repositório fake trocável).
+Duas fontes de FC sob a mesma abstração (`domain/HrSource.kt`): Health Connect
+(lote, retroativo) e sensor BLE ao vivo (GATT 0x180D — Polar H10/Verity Sense,
+sem SDK proprietário).
+
+## Captura BLE ao vivo (b6)
+
+| Peça | Arquivo |
+|---|---|
+| Parser 0x2A37 (UINT8/16, Energy Expended, RR→ms) | `data/ble/HrMeasurementParser.kt` (+ testes) |
+| Varredura filtrada 0x180D | `data/ble/BleScanner.kt` |
+| GATT + reconexão (backoff 1s→30s, close() sempre) | `data/ble/BleHrSource.kt` |
+| Foreground service (connectedDevice, WakeLock, persistência imediata) | `service/CaptureService.kt` |
+| Retomada pós-morte/reboot | `TumTumApp.kt`, `service/BootReceiver.kt` |
+| Isenção de bateria por fabricante (bloqueia sessão sem ela) | `service/BatteryExemption.kt` + sheet |
+| Acelerômetro 1 Hz (média/desvio) | `domain/MotionAggregator.kt` (+ testes) |
+| Carimbo duplo de tempo + offsets | entidades `*_samples`, `events/nights` |
+| Exportação ZIP (samples/rr/motion/connection_events/session.json) | `export/SessionExporter.kt`, botão na revela |
+| Pareamento (scan → nome+RSSI → tocar) | `ui/screens/sources/SensorPairing.kt` |
+
+Durante sessão com sensor, o BPM não fica na tela — mora atrás de um toque
+longo (contaminação da medição). A notificação mostra conexão, BPM e amostras.
 
 ## Compilar
 

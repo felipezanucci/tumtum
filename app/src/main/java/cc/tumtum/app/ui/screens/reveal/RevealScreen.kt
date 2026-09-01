@@ -23,10 +23,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +47,7 @@ import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import java.time.Duration
+import kotlinx.coroutines.launch
 
 /**
  * a3 — A noite, a revela. O momento de maior impacto do produto:
@@ -52,6 +57,9 @@ import java.time.Duration
 @Composable
 fun RevealScreen(nav: NavHostController, nightId: Long) {
     val container = appContainer()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var exporting by remember { mutableStateOf(false) }
     val night by container.nights.night(nightId).collectAsStateWithLifecycle(initialValue = null)
 
     val progress = remember { Animatable(0f) }
@@ -177,6 +185,23 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             stringResource(R.string.reveal_share),
             TTButtonStyle.Rose,
             onClick = { nav.navigate(Routes.choose(n.id)) },
+        )
+        Spacer(Modifier.height(10.dp))
+        // §9 — extração manual, à prova de 2h da manhã: ZIP → share sheet, sem rede.
+        TTButton(
+            if (exporting) stringResource(R.string.export_running) else stringResource(R.string.export_session),
+            TTButtonStyle.OutlineOnDark,
+            enabled = !exporting,
+            onClick = {
+                exporting = true
+                scope.launch {
+                    runCatching {
+                        val zip = container.exporter.exportNight(n.id)
+                        context.startActivity(container.exporter.shareIntent(zip))
+                    }
+                    exporting = false
+                }
+            },
         )
     }
 }

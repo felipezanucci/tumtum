@@ -7,15 +7,34 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import cc.tumtum.app.domain.HrSample
+import cc.tumtum.app.domain.HrSource
 import cc.tumtum.app.domain.NightAnalyzer
+import cc.tumtum.app.domain.SourceState
 import cc.tumtum.app.domain.WatchSource
 import java.time.Instant
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Health Connect como única fonte de FC (§2). Leitura em lote, retroativa,
- * só dentro da janela do evento (±30min, §7). Sem SDK proprietário.
+ * Health Connect, fonte de FC em lote (§2): leitura retroativa, só dentro da
+ * janela do evento (±30min, §7). Sem SDK proprietário. Coexiste com a fonte
+ * BLE ao vivo sob a mesma abstração HrSource.
  */
-class HealthConnectSource(private val context: Context) {
+class HealthConnectSource(private val context: Context) : HrSource {
+
+    override val id: String = HrSource.ID_HEALTH_CONNECT
+
+    private val _state = MutableStateFlow(SourceState.IDLE)
+    override val state: StateFlow<SourceState> = _state
+
+    /** Fonte de repositório: start/stop só marcam a sessão — a leitura é em lote. */
+    override suspend fun start(sessionId: Long) {
+        _state.value = if (isAvailable && hasPermission()) SourceState.ACTIVE else SourceState.DEGRADED
+    }
+
+    override suspend fun stop() {
+        _state.value = SourceState.STOPPED
+    }
 
     val permissions: Set<String> = setOf(HealthPermission.getReadPermission(HeartRateRecord::class))
 
@@ -96,6 +115,7 @@ class HealthConnectSource(private val context: Context) {
             "com.huawei.health" to "Huawei Health",
             "nl.appyhapps.healthsync" to "Health Sync",
             "com.google.android.apps.healthdata" to "Health Connect",
+            HrSource.ID_BLE to "Sensor ao vivo",
         )
 
         fun sourceLabel(packageName: String): String =
