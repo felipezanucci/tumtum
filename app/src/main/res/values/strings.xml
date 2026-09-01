@@ -251,6 +251,7 @@
     <string name="profile_edit">Editar perfil</string>
     <string name="profile_edit_title">Editar perfil</string>
     <string name="profile_save">Salvar</string>
+    <string name="settings_handle_fixed">@%1$s — o @ é fixo: escolhido uma vez, não muda.</string>
 
     <!-- a5 sem criação de evento pelo participante -->
     <string name="empty_event_note">O evento da sua noite aparece aqui sozinho quando for marcado.</string>

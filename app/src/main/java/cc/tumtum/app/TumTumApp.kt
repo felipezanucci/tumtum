@@ -50,7 +50,30 @@ class TumTumApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        repairLegacyHandle()
         resumeCaptureIfNeeded()
+    }
+
+    /**
+     * Reparo único: builds antigos (≤ b9) deixavam o email inteiro virar @ e nome.
+     * O @ é fixo daqui em diante — mas um @ com formato de email nunca foi um @.
+     */
+    private fun repairLegacyHandle() {
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            runCatching {
+                val account = container.prefs.state.first().account ?: return@launch
+                if ('@' !in account.username) return@launch
+                val fixed = account.username.substringBefore('@').lowercase()
+                    .filter { it.isLetterOrDigit() || it == '_' }
+                    .ifBlank { return@launch }
+                val fixedName = if ('@' in account.name) {
+                    fixed.replaceFirstChar { it.uppercase() }
+                } else {
+                    account.name
+                }
+                container.prefs.setProfile(fixedName, fixed)
+            }
+        }
     }
 
     /**

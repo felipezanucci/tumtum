@@ -101,16 +101,11 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
         val editScope = rememberCoroutineScope()
         EditProfileSheet(
             initialName = user?.account?.name ?: "",
-            initialHandle = user?.account?.username ?: "",
+            handle = user?.account?.username ?: "",
             onDismiss = { showEdit = false },
-            onSave = { newName, newHandle ->
+            onSave = { newName ->
                 showEdit = false
-                editScope.launch {
-                    container.prefs.setProfile(newName, newHandle)
-                    // A rota carrega o @ antigo; reabre no novo para continuar "isMe".
-                    nav.popBackStack()
-                    nav.navigate(Routes.profile(newHandle))
-                }
+                editScope.launch { container.prefs.setName(newName) }
             },
         )
     }
@@ -284,19 +279,16 @@ private fun DarkStat(value: String, label: String, valueColor: androidx.compose.
     }
 }
 
-/** Editar o próprio perfil: nome e @ — o @ é sempre escolhido pela pessoa. */
+/** Editar o próprio perfil: o nome muda quando quiser; o @ é fixo, escolhido uma vez. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditProfileSheet(
     initialName: String,
-    initialHandle: String,
+    handle: String,
     onDismiss: () -> Unit,
-    onSave: (String, String) -> Unit,
+    onSave: (String) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf(initialName) }
-    var handle by rememberSaveable { mutableStateOf(initialHandle) }
-    val handleClean = handle.trim().removePrefix("@").substringBefore("@").lowercase()
-        .filter { it.isLetterOrDigit() || it == '_' }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -307,14 +299,18 @@ private fun EditProfileSheet(
             Text(stringResource(R.string.profile_edit_title), style = TTType.TitleSmall, color = TT.Ink)
             Spacer(Modifier.height(24.dp))
             TTField(stringResource(R.string.account_name_label), name, { name = it })
-            Spacer(Modifier.height(12.dp))
-            TTField(stringResource(R.string.account_username_label), handle, { handle = it }, placeholder = "@voce")
+            Spacer(Modifier.height(10.dp))
+            Text(
+                stringResource(R.string.settings_handle_fixed, handle),
+                style = TTType.Footnote,
+                color = TT.Gray45,
+            )
             Spacer(Modifier.height(26.dp))
             TTButton(
                 stringResource(R.string.profile_save),
                 TTButtonStyle.Rose,
-                enabled = name.isNotBlank() && handleClean.length >= 3,
-                onClick = { onSave(name.trim(), handleClean) },
+                enabled = name.isNotBlank(),
+                onClick = { onSave(name.trim()) },
             )
         }
     }

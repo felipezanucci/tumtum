@@ -176,10 +176,21 @@ fun SettingsScreen(nav: NavHostController) {
         TTField(
             label = stringResource(R.string.account_name_label),
             value = nameDraft,
-            onValueChange = {
-                nameDraft = it
-                scope.launch { container.prefs.setName(it) }
-            },
+            onValueChange = { nameDraft = it },
+        )
+        Spacer(Modifier.height(8.dp))
+        // O @ é fixo: escolhido uma vez na criação da conta, não muda mais.
+        Text(
+            stringResource(R.string.settings_handle_fixed, user?.account?.username ?: ""),
+            style = TTType.Footnote,
+            color = TT.Gray45,
+        )
+        Spacer(Modifier.height(14.dp))
+        TTButton(
+            stringResource(R.string.profile_save),
+            TTButtonStyle.Ink,
+            enabled = nameDraft.isNotBlank() && nameDraft.trim() != (user?.account?.name ?: ""),
+            onClick = { scope.launch { container.prefs.setName(nameDraft) } },
         )
 
         Spacer(Modifier.height(40.dp))
