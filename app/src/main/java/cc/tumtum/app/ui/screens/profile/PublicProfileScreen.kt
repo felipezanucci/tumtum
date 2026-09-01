@@ -97,15 +97,16 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
     }
     val p = profile ?: return
 
+    // Escopo da TELA, não do sheet: fechar o sheet não pode cancelar a gravação.
+    val screenScope = rememberCoroutineScope()
     if (showEdit && isMe) {
-        val editScope = rememberCoroutineScope()
         EditProfileSheet(
             initialName = user?.account?.name ?: "",
             handle = user?.account?.username ?: "",
             onDismiss = { showEdit = false },
             onSave = { newName ->
+                screenScope.launch { container.prefs.setName(newName) }
                 showEdit = false
-                editScope.launch { container.prefs.setName(newName) }
             },
         )
     }
