@@ -91,9 +91,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     column silently does not happen in production; 007 is written and
     dormant. Decide after the festival: run migrations on deploy, or keep
     create_all and know its limits.
-17. **The landing page has no sign-in link.** The only "Entrar" on it is the
-    waitlist. Decide before the 25 September pilot how a person with an
-    account gets in without typing an address.
+17. ~~**The landing page has no sign-in link.**~~ Closed 2026-09-01 by the
+    site redesign: "Entrar" in the nav and "Entrar na sua conta" in the
+    footer, both to `/login`.
 18. **An event cannot cross midnight** — one date, two bare times, so
     "termina 03:00" cannot say it means the next day. A capture attaches by
     event id, so Saturday is unaffected; the model change waits.
@@ -151,6 +151,53 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+
+---
+
+## 2026-09-01 — the site is redesigned from the Claude Design handoff, and the deploy is one merge away
+
+Felipe designed a full replacement for tumtum.cc in Claude Design and brought
+the export. **The handoff was excellent** — a README that names itself a spec,
+final copy in both languages, hard rules restated (never white on the accents,
+a number is pink only on a dark ground, the wordmark only ever from the SVG),
+and honest notes about its own limits: measurements are desktop-only, and its
+~25 MB of GIFs "far too heavy to ship".
+
+Rebuilt in the site's own stack, per the README's instruction, not copied:
+
+- **One layout, two languages.** `SiteLanding` renders from a `SiteCopy`
+  object; `/` passes PT and the new `/en` passes EN, with hreflang alternates.
+  The type demands both languages, so a section cannot exist in one and
+  silently miss the other. The prototype's localStorage switcher became routes
+  — the handoff itself recommends that for production.
+- **The GIFs became 8-second muted MP4 loops: 25 MB → 1.4 MB**, plus poster
+  frames for the moment before load. Largest slot in the design is 310px, so
+  620px-wide video covers retina.
+- **The waitlist form kept its honesty and dropped its questions.** The new
+  design has one email field; the names were optional in the API all along,
+  and the page beneath the form promises "a gente só usa seu e-mail". Every
+  outcome is still visible — sending locks and says so, a repeat submission is
+  warm rather than red, a failure keeps what was typed and blames the server.
+- **The landing finally has a sign-in link** — two, nav and footer. Open item
+  17 closes: the design solved it, the rebuild shipped it.
+- `LandingNav`, `VideoSlot`, `Reveal`, `WaitlistForm` deleted with the old
+  page — nothing else imported them. `Reveal` goes unmourned: the new design
+  specifies no scroll animation at all, in line with the motion rules.
+- Verified by rendering, not only by building: production build served
+  locally, screenshotted at 1440 and 390 wide, both routes. Mobile was not
+  designed in the handoff and follows the site's existing stacking.
+
+**Not yet live.** The site deploys from `main`; this is pushed to the branch,
+where Vercel builds a preview per branch. Going live is merging PR #45 —
+deliberately left as Felipe's act, since it also carries eleven days of other
+work: the palette, the quality score, the card with the curve, Health Connect.
+
+### Open item 17 — closed by design, literally
+
+The item read "decide before the pilot how a person with an account gets in
+without typing an address." The decision arrived from the design side: the
+redesign simply included the link, twice. Some open items are closed by
+engineering; this one was closed by someone drawing what was missing.
 
 ---
 

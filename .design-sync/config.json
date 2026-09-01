@@ -18,10 +18,6 @@
     "TimelineBar": "components/hr/TimelineBar.tsx",
     "Footer": "components/layout/Footer.tsx",
     "Nav": "components/layout/Nav.tsx",
-    "LandingNav": "components/marketing/LandingNav.tsx",
-    "Reveal": "components/marketing/Reveal.tsx",
-    "VideoSlot": "components/marketing/VideoSlot.tsx",
-    "WaitlistForm": "components/marketing/WaitlistForm.tsx",
     "Avatar": "components/ui/Avatar.tsx",
     "Badge": "components/ui/Badge.tsx",
     "Button": "components/ui/Button.tsx",
@@ -30,7 +26,8 @@
     "Loading": "components/ui/Loading.tsx",
     "Modal": "components/ui/Modal.tsx",
     "PasswordInput": "components/ui/PasswordInput.tsx",
-    "SignInRequired": "components/ui/SignInRequired.tsx"
+    "SignInRequired": "components/ui/SignInRequired.tsx",
+    "SiteWaitlistForm": "components/marketing/SiteWaitlistForm.tsx"
   },
   "dtsPropsFor": {
     "ComparisonCard": "eventName: string; eventDate: string; userName: string; artistName: string; userPeakBpm: number; artistPeakBpm: number; syncPercentage: number; className?: string;",
@@ -48,13 +45,10 @@
     "PasswordInput": "label?: string; error?: string; /* also accepts every prop of Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> */",
     "Footer": "/* no props */",
     "Nav": "/* no props */",
-    "LandingNav": "/* no props */",
     "Wordmark": "className?: string;",
-    "VideoSlot": "label: string; src?: string; className?: string;",
-    "Reveal": "children: React.ReactNode;",
     "SignInRequired": "what?: string;",
     "ErrorBoundary": "children: React.ReactNode; fallback?: React.ReactNode;",
-    "WaitlistForm": "source?: string;",
-    "EventForm": "initial: EventFormValues; submitLabel: string; savingLabel: string; onSubmit: (values: EventFormValues) => Promise<void>;"
+    "EventForm": "initial: EventFormValues; submitLabel: string; savingLabel: string; onSubmit: (values: EventFormValues) => Promise<void>;",
+    "SiteWaitlistForm": "copy: SiteCopy['waitlist'];"
   }
 }
