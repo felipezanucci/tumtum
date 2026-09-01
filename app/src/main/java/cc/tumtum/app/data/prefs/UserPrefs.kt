@@ -42,6 +42,8 @@ data class UserState(
     val bleName: String? = null,
     /** Identificador do participante do experimento (P01…P18, §9). */
     val participantId: String? = null,
+    /** Foto de perfil (arquivo local em filesDir); null = avatar de iniciais. */
+    val avatarPath: String? = null,
     /** Sessão de captura ativa — sobrevive à morte do processo (§4.3). */
     val activeCaptureEventId: Long? = null,
 ) {
@@ -62,6 +64,7 @@ class UserPrefs(private val context: Context) {
         val bleAddress = stringPreferencesKey("ble_address")
         val bleName = stringPreferencesKey("ble_name")
         val participantId = stringPreferencesKey("participant_id")
+        val avatarPath = stringPreferencesKey("avatar_path")
         val activeCaptureEventId = longPreferencesKey("active_capture_event_id")
     }
 
@@ -82,6 +85,7 @@ class UserPrefs(private val context: Context) {
             bleAddress = p[Keys.bleAddress],
             bleName = p[Keys.bleName],
             participantId = p[Keys.participantId],
+            avatarPath = p[Keys.avatarPath],
             activeCaptureEventId = p[Keys.activeCaptureEventId],
         )
     }
@@ -117,6 +121,16 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { p ->
             p.remove(Keys.bleAddress)
             p.remove(Keys.bleName)
+        }
+    }
+
+    suspend fun setName(name: String) {
+        context.dataStore.edit { p -> if (name.isNotBlank()) p[Keys.name] = name.trim() }
+    }
+
+    suspend fun setAvatarPath(path: String?) {
+        context.dataStore.edit { p ->
+            if (path == null) p.remove(Keys.avatarPath) else p[Keys.avatarPath] = path
         }
     }
 

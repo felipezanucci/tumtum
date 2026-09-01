@@ -1,5 +1,8 @@
 package cc.tumtum.app.ui.screens.profile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,10 +25,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,21 +40,25 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.AvatarStore
 import cc.tumtum.app.domain.PublicProfile
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.domain.SocialUser
 import cc.tumtum.app.ui.components.Avatar
 import cc.tumtum.app.ui.components.Badge
+import cc.tumtum.app.ui.components.UserAvatar
 import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.screens.gallery.GalleryCover
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
+import kotlinx.coroutines.launch
 
 /** b8 — Perfil público: o que outra pessoa vê. */
 @Composable
 fun PublicProfileScreen(nav: NavHostController, handle: String) {
     val container = appContainer()
+    val context = LocalContext.current
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     val ownNights by container.nights.galleryNights().collectAsStateWithLifecycle(initialValue = emptyList())
     val allNights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
@@ -103,7 +112,36 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
             )
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Avatar(p.user.initials, p.user.avatarSkin, size = 64.dp)
+                if (isMe) {
+                    // Tocar na própria foto abre o picker do sistema — sem permissão extra.
+                    val scopePhoto = rememberCoroutineScope()
+                    val picker = rememberLauncherForActivityResult(
+                        ActivityResultContracts.PickVisualMedia(),
+                    ) { uri ->
+                        if (uri != null) {
+                            scopePhoto.launch {
+                                AvatarStore.import(context, uri, user?.avatarPath)?.let {
+                                    container.prefs.setAvatarPath(it)
+                                }
+                            }
+                        }
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        UserAvatar(
+                            p.user.initials,
+                            p.user.avatarSkin,
+                            photoPath = user?.avatarPath,
+                            size = 64.dp,
+                            modifier = Modifier.clickable {
+                                picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            },
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(stringResource(R.string.profile_photo), style = TTType.MetaSmall.copy(fontSize = 9.sp), color = TT.Gray45)
+                    }
+                } else {
+                    Avatar(p.user.initials, p.user.avatarSkin, size = 64.dp)
+                }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         p.user.displayName,

@@ -1,6 +1,9 @@
 package cc.tumtum.app.ui.screens.settings
 
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -29,8 +32,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Row
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.AvatarStore
+import cc.tumtum.app.domain.Skin
+import cc.tumtum.app.ui.components.UserAvatar
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.components.TTField
@@ -57,11 +64,13 @@ fun SettingsScreen(nav: NavHostController) {
     }
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     var participantDraft by remember { mutableStateOf("") }
-    var participantLoaded by remember { mutableStateOf(false) }
+    var nameDraft by remember { mutableStateOf("") }
+    var draftsLoaded by remember { mutableStateOf(false) }
     LaunchedEffect(user) {
-        if (!participantLoaded && user != null) {
+        if (!draftsLoaded && user != null) {
             participantDraft = user?.participantId ?: ""
-            participantLoaded = true
+            nameDraft = user?.account?.name ?: ""
+            draftsLoaded = true
         }
     }
 
@@ -100,6 +109,50 @@ fun SettingsScreen(nav: NavHostController) {
                 runCatching {
                     context.startActivity(Intent("androidx.health.ACTION_HEALTH_CONNECT_SETTINGS"))
                 }
+            },
+        )
+
+        Spacer(Modifier.height(40.dp))
+        Text(stringResource(R.string.settings_profile_section), style = TTType.Meta, color = TT.Gray70)
+        Spacer(Modifier.height(12.dp))
+        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            val photoScope = rememberCoroutineScope()
+            val picker = rememberLauncherForActivityResult(
+                ActivityResultContracts.PickVisualMedia(),
+            ) { uri ->
+                if (uri != null) {
+                    photoScope.launch {
+                        AvatarStore.import(context, uri, user?.avatarPath)?.let {
+                            container.prefs.setAvatarPath(it)
+                        }
+                    }
+                }
+            }
+            UserAvatar(
+                user?.account?.initials ?: "TT",
+                Skin.PINK,
+                photoPath = user?.avatarPath,
+                size = 48.dp,
+            )
+            Spacer(Modifier.padding(6.dp))
+            Text(
+                stringResource(R.string.settings_photo_change),
+                style = TTType.Meta.copy(fontSize = 12.sp),
+                color = TT.Ink,
+                modifier = Modifier
+                    .clickable {
+                        picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }
+                    .padding(6.dp),
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+        TTField(
+            label = stringResource(R.string.account_name_label),
+            value = nameDraft,
+            onValueChange = {
+                nameDraft = it
+                scope.launch { container.prefs.setName(it) }
             },
         )
 

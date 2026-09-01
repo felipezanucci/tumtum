@@ -84,9 +84,10 @@ fun SensorSection(prefs: UserPrefs, bleName: String?, modifier: Modifier = Modif
                 )
             }
         } else {
+            // CTA principal da seção — rosa, como manda o sistema (acento de criação).
             TTButton(
                 stringResource(R.string.sensor_connect),
-                TTButtonStyle.Outline,
+                TTButtonStyle.Rose,
                 onClick = { showScan = true },
             )
         }

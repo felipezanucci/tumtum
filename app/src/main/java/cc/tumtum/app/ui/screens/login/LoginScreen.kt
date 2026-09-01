@@ -47,14 +47,15 @@ import kotlinx.coroutines.launch
 fun LoginScreen(nav: NavHostController) {
     val container = appContainer()
     val scope = rememberCoroutineScope()
+    var name by rememberSaveable { mutableStateOf("") }
     var handle by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var saving by androidx.compose.runtime.remember { mutableStateOf(false) }
 
-    // Email vira @ só com a parte antes do arroba: "voce@email.com" → @voce.
+    // O @ é o que a pessoa escolheu ao criar a conta — nunca derivado do email.
     val handleClean = handle.trim().removePrefix("@").substringBefore("@").lowercase()
-        .filter { it.isLetterOrDigit() || it == '_' || it == '.' }
-    val valid = handleClean.length >= 3 && password.length >= 4
+        .filter { it.isLetterOrDigit() || it == '_' }
+    val valid = handleClean.length >= 3 && password.isNotEmpty()
 
     Column(
         Modifier
@@ -80,6 +81,12 @@ fun LoginScreen(nav: NavHostController) {
         Spacer(Modifier.height(30.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             TTField(
+                stringResource(R.string.account_name_label),
+                name,
+                { name = it },
+                placeholder = stringResource(R.string.login_name_hint),
+            )
+            TTField(
                 stringResource(R.string.login_handle_label),
                 handle,
                 { handle = it },
@@ -96,9 +103,11 @@ fun LoginScreen(nav: NavHostController) {
             onClick = {
                 saving = true
                 scope.launch {
-                    val email = handle.trim().takeIf { "@" in it && "." in it } ?: ""
+                    val displayName = name.trim().ifBlank {
+                        handleClean.replaceFirstChar { it.uppercase() }
+                    }
                     container.prefs.createAccount(
-                        Account(name = handleClean, username = handleClean, email = email, tribes = emptySet()),
+                        Account(name = displayName, username = handleClean, email = "", tribes = emptySet()),
                     )
                     nav.navigate(Routes.Permission)
                     saving = false

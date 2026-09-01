@@ -51,9 +51,10 @@ fun FeedScreen(nav: NavHostController) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Wordmark(width = 92.dp)
-            Avatar(
+            cc.tumtum.app.ui.components.UserAvatar(
                 user?.account?.initials ?: "TT",
                 Skin.BLACK,
+                photoPath = user?.avatarPath,
                 modifier = Modifier.clickable {
                     user?.account?.let { nav.navigate(Routes.profile(it.username)) }
                 },

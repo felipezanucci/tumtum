@@ -71,7 +71,11 @@ fun GalleryScreen(nav: NavHostController) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Wordmark(width = 92.dp)
-                    Avatar(user?.account?.initials ?: "TT", Skin.BLACK)
+                    cc.tumtum.app.ui.components.UserAvatar(
+                        user?.account?.initials ?: "TT",
+                        Skin.BLACK,
+                        photoPath = user?.avatarPath,
+                    )
                 }
                 Spacer(Modifier.height(24.dp))
                 Text(stringResource(R.string.gallery_title), style = TTType.Title, color = TT.Ink)

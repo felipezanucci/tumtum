@@ -236,10 +236,16 @@
     <!-- Entrar (quem já tem conta) -->
     <string name="login_title">Entrar</string>
     <string name="login_subtitle">Bom te ver de novo.</string>
-    <string name="login_handle_label">@USERNAME OU EMAIL</string>
+    <string name="login_handle_label">@USERNAME</string>
+    <string name="login_name_hint">Como você quer aparecer</string>
     <string name="login_cta">Entrar</string>
     <string name="login_note">Sem servidor ainda: a conta vive neste aparelho. Quando o backend chegar, seu @ e suas noites entram nele.</string>
 
     <!-- b3 — aviso sobre a tela do sistema -->
     <string name="perm_system_note">O pedido em si aparece numa tela do próprio Android (Health Connect) — é lá que você confirma a leitura de frequência cardíaca.</string>
+
+    <!-- Perfil: foto -->
+    <string name="profile_photo">TROCAR FOTO</string>
+    <string name="settings_profile_section">SEU PERFIL</string>
+    <string name="settings_photo_change">TROCAR FOTO</string>
 </resources>
