@@ -30,26 +30,26 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # O ambiente que edita este repo só fala protocolo git — o log do build é
+      # SEMPRE publicado como branch ci-log-bN-exitC, no mesmo passo, antes de
+      # o passo reportar sucesso/falha (um passo if:failure separado se mostrou frágil).
       - name: Testes + APK
-        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug 2>&1 | tee build.log
-        env:
-          TUMTUM_VERSION_CODE: ${{ github.run_number }}
-
-      # O ambiente que edita este repo só fala protocolo git — em caso de falha,
-      # o log vira uma branch ci-log-bN para ser lida com git fetch.
-      - name: Publicar log de falha
-        if: failure()
         run: |
-          set -e
-          mkdir -p /tmp/cilog
-          cp build.log /tmp/cilog/build.log 2>/dev/null || echo "falhou antes do gradle rodar" > /tmp/cilog/build.log
+          set +e
+          ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug 2>&1 | tee build.log
+          code=${PIPESTATUS[0]}
+          mkdir -p /tmp/cilog && cp build.log /tmp/cilog/build.log
           cd /tmp/cilog
-          git init -q -b "ci-log-b${{ github.run_number }}"
+          git init -q -b main
           git config user.name tumtum-ci
           git config user.email ci@users.noreply.github.com
           git add build.log
-          git commit -qm "log do build ${{ github.run_number }}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" "HEAD:refs/heads/ci-log-b${{ github.run_number }}"
+          git commit -qm "log do build ${GITHUB_RUN_NUMBER} exit=${code}"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" "HEAD:refs/heads/ci-log-b${GITHUB_RUN_NUMBER}-exit${code}" || true
+          exit "$code"
+        env:
+          TUMTUM_VERSION_CODE: ${{ github.run_number }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Renomear APK
         run: cp app/build/outputs/apk/debug/app-debug.apk tumtum-1.0-b${{ github.run_number }}.apk
