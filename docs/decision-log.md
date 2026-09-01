@@ -111,7 +111,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
     colour would have seeded every screen designed in Claude Design with lime.
     70 usages across 34 files, all three codebases. Every `bg-tumtum-lime`
     already carried `text-tumtum-black`, so contrast survived the swap intact.
-27. **Mobile is adapted, not designed.** The Claude Design handoff specified
+27. ~~**Mobile is adapted, not designed.**~~ Closed 2026-09-01: the v0.5
+    handoff arrived with the mobile design and all four questions answered —
+    the cards became a swipe carousel, the gallery went full-width with its
+    copy first, the feed's screenshots stayed side by side at half width, and
+    the nav got a text MENU panel. Implemented as one responsive page.
+    *(Original:)* **Mobile was adapted, not designed.** The Claude Design handoff specified
     desktop only (~1440px), so everything below `md` is engineering: where the
     desktop composes, the site stacks. It is correct — verified at 390×844,
     nothing overflows — and it is not a design. Felipe is commissioning a
@@ -249,6 +254,46 @@ where Lime was 17.7:1. The hero number is large enough that AAA still holds,
 but anything small and Pink is now carrying less weight than it did.
 
 Verified: 65 backend tests, 55 frontend tests, ruff clean, lint unchanged.
+
+---
+
+## 2026-09-01 — the mobile handoff, and a breakpoint that was in the wrong place
+
+The v0.5 handoff answered all four questions open item 27 had named, and the
+answers were better than the adaptation they replace: the four cards become a
+**snap-scrolling swipe carousel** with an explicit "Arrasta pro lado" hint,
+the proof strip becomes full-width rows with the number on the left, the
+gallery leads with its copy and takes the grid full width, and the nav trades
+its vanished links for a **text MENU panel** — text rather than an invented
+icon, which the handoff states as a brand rule.
+
+Implemented as **one responsive page**, which the handoff explicitly asks for
+over two.
+
+### The correction the measurements forced
+
+The first pass used Tailwind's `md` (768px) as the switch between the two
+designs, which is the reflex. It was wrong, and measurably: **at 768px the
+page overflowed by 64px**, because the hero had already become two columns
+while there was not room for both. Moving the structural switches to `lg`
+fixed most of it and left **23px**, from the proof strip — its wrapper turned
+into a row at `md` while its children only became rows at `lg`, so each block
+was a row inside a row, forcing its own width.
+
+The handoff had said it plainly: **desktop ≥1024, mobile ≤480**. The lesson is
+not "use lg": it is that a design's own stated breakpoints are part of the
+spec, and substituting a framework default for them is a silent
+reinterpretation.
+
+Verified at six widths — 360, 390, 480, 768, 1024, 1440 — `scrollWidth` equals
+the viewport at every one.
+
+### Worth noting about the copy
+
+The handoff's one copy change was **"próximo show" → "próximo evento"** in both
+CTAs — the same change Felipe had asked for an hour earlier, arrived at
+independently. TumTum is concerts *and* football, and the CTA was the last
+place still naming only half of it.
 
 ---
 
