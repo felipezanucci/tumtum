@@ -1,0 +1,36 @@
+<!-- @dsCard group="Components" viewport="700x460" name="Share" subtitle="ShareCard nas 4 peles + MomentRow" -->
+<!doctype html>
+<html><head>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>body{margin:0;font-family:var(--font-ui)}</style>
+</head><body><div id="root"></div>
+<script>
+window.__NS = (() => {
+  for (const k of Object.getOwnPropertyNames(window)) {
+    try { const v = window[k];
+      if (v && typeof v === "object" && typeof v.Button === "function" && typeof v.ShareCard === "function") return v;
+    } catch (e) {}
+  }
+  return {};
+})();
+</script>
+<script type="text/babel">
+
+const { ShareCard, MomentRow } = window.__NS;
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <div style={{ display: "flex", gap: 10, padding: 14, background: "#F5F5F5", alignItems: "flex-start" }}>
+    <ShareCard skin="pink" width={152} assetsPath="../../assets" />
+    <ShareCard skin="black" width={152} curve title={"DO INÍCIO AO FIM,\nTUDO FEZ SENTIDO."} assetsPath="../../assets" />
+    <ShareCard skin="yellow" width={152} title={"NA MESMA VIBE.\nLITERALMENTE."} assetsPath="../../assets" />
+    <div style={{ flex: 1, background: "#000", padding: "6px 16px", alignSelf: "stretch" }}>
+      <MomentRow bpm={187} meta="às 23h47 · 14s" badge="MAIOR" surface="dark" />
+      <MomentRow bpm={171} meta="às 22h58 · 9s" surface="dark" />
+      <MomentRow bpm={158} meta="às 21h33 · 18s" surface="dark" style={{ borderBottom: "none" }} />
+    </div>
+  </div>
+);
+</script></body></html>

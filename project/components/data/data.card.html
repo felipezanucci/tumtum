@@ -1,0 +1,40 @@
+<!-- @dsCard group="Components" viewport="700x340" name="Data" subtitle="HeroNumber, BpmCurve, StatPair — o vocabulário inteiro de dado" -->
+<!doctype html>
+<html><head>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>body{margin:0;font-family:var(--font-ui)}</style>
+</head><body><div id="root"></div>
+<script>
+window.__NS = (() => {
+  for (const k of Object.getOwnPropertyNames(window)) {
+    try { const v = window[k];
+      if (v && typeof v === "object" && typeof v.Button === "function" && typeof v.ShareCard === "function") return v;
+    } catch (e) {}
+  }
+  return {};
+})();
+</script>
+<script type="text/babel">
+
+const { HeroNumber, BpmCurve, StatPair } = window.__NS;
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <div style={{ display: "flex", height: 340 }}>
+    <div style={{ flex: 1.2, background: "#000", padding: 20, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+      <HeroNumber value={187} meta="às 23h47" surface="black" size={92} />
+      <BpmCurve surface="dark" peak={187} gap height={78} style={{ marginTop: 18 }} />
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 9, fontWeight: 600, color: "#6F6F6F" }}>
+        <span>17H20</span><span style={{ color: "#4A4A4A" }}>52 MIN SEM DADO</span><span style={{ color: "#EFFF00" }}>23H47</span>
+      </div>
+    </div>
+    <div style={{ flex: 1, background: "#fff", padding: 20, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      <HeroNumber value={142} meta="Coldplay · 21h03" surface="white" size={64} />
+      <BpmCurve surface="light" peak={142} gap={false} cohort height={64} />
+      <StatPair a={{ value: 187, label: "Você" }} b={{ value: 172, label: "A torcida" }} surface="white" size={34} />
+    </div>
+  </div>
+);
+</script></body></html>

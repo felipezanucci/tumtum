@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin:0; font-family:'Instrument Sans',system-ui,sans-serif; }
+  doc-page:not(:defined) { visibility:hidden; }
+  a { color:#FF6F91; text-decoration:none; }
+  a:hover { color:#EFFF00; }
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+
+<doc-page size="letter">
+
+  <section class="page" id="p0" data-screen-label="Capa" style="background:#000; display:flex; flex-direction:column; padding:0.75in">
+    <img src="assets/tumtum-wordmark-white.svg" alt="TUMTUM" style="width:2.1in; display:block">
+    <div style="flex:1"></div>
+    <div style="font-size:54px; font-weight:700; letter-spacing:-.03em; line-height:1.0; color:#fff">A jornada,<br>ponta a ponta.</div>
+    <div style="height:18px"></div>
+    <div style="font-size:15px; line-height:1.5; color:#8A8A8A; max-width:4.6in">Treze telas na ordem em que um usuário novo encontra cada uma — da promessa ao feed. Android, rodadas 1 e 2. Impressão para análise.</div>
+    <div style="height:34px"></div>
+    <div style="display:flex; align-items:center; gap:7px; flex-wrap:wrap; max-width:6.5in">
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#000; background:#fff; padding:4px 8px">ONBOARDING</span><span style="color:#4A4A4A">→</span>
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#000; background:#fff; padding:4px 8px">CONTA</span><span style="color:#4A4A4A">→</span>
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#fff; border:1px solid #4A4A4A; padding:4px 8px">PERMISSÃO</span><span style="color:#4A4A4A">→</span>
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#000; background:#fff; padding:4px 8px">RELÓGIO</span><span style="color:#4A4A4A">→</span>
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#000; background:#EFFF00; padding:4px 8px">AO VIVO</span><span style="color:#4A4A4A">→</span>
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#000; background:#EFFF00; padding:4px 8px">A NOITE</span><span style="color:#4A4A4A">→</span>
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#000; background:#FF6F91; padding:4px 8px">FEED</span><span style="color:#4A4A4A">·</span>
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#000; background:#FF6F91; padding:4px 8px">GALERIA</span><span style="color:#4A4A4A">·</span>
+      <span style="font-size:10px; font-weight:600; letter-spacing:.08em; color:#000; background:#FF6F91; padding:4px 8px">PERFIL</span>
+    </div>
+    <div style="height:0.7in"></div>
+    <div style="display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid #2E2E2E; padding-top:12px">
+      <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">PROJETO TUMTUM · APP MVP</span>
+      <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">AGO 2026</span>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Onboarding" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/01-onboarding.png" alt="Onboarding" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#FF6F91; padding:5px 9px; letter-spacing:.06em">01</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">ENTRADA</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Onboarding</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Rosa de tela cheia — a v0.4 na porta de entrada. A promessa em seis palavras, sem explicar BPM.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>&quot;Já tenho conta&quot; visível resolve o problema aberto do sign-in sem link na landing.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Três dots: o carrossel segue com captura e prova, sempre uma ideia por tela.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">B1 · RODADA 2</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Criar conta" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/02-conta.png" alt="Criar conta" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#FF6F91; padding:5px 9px; letter-spacing:.06em">02</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">ENTRADA</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Criar conta</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Username em destaque porque o perfil público (/[username]) já existe no produto.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Tribos opcionais no cadastro — shows, futebol, festivais — alimentam feed e eventos sem formulário chato.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">B2 · RODADA 2</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Permissão" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/03-permissao.png" alt="Permissão de dados" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#E6E6E6; padding:5px 9px; letter-spacing:.06em">03</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">ENTRADA · A TELA QUIETA</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Permissão de dados</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Personalidade desligada: botão preto (não rosa), zero piada, tom de contrato honesto.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>O que NÃO fazemos dito na frente: sem leitura de saúde, sem diagnóstico, sem venda de dados.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>&quot;Agora não&quot; tem o mesmo peso visual de um botão real — recusar não é punido.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">B3 · RODADA 2</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Relógio" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/04-relogio.png" alt="Trazer do meu relógio" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#FF6F91; padding:5px 9px; letter-spacing:.06em">04</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">ENTRADA</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Trazer do meu relógio</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Densidade medida por fonte na janela do evento — Samsung Health 92% vira MELHOR FONTE.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>A promessa do produto impressa na tela: buracos ficam visíveis, nunca inventamos batida.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">B4 · RODADA 2</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Vazio" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/05-vazio.png" alt="Nenhum show ainda" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#FF6F91; padding:5px 9px; letter-spacing:.06em">05</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">PRIMEIRO USO</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Nenhum show ainda</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Copy aprovada do manual: &quot;Nenhum show ainda. Seu coração tá de folga.&quot;</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>O estado vazio já ensina os dois caminhos: conectar relógio e criar evento.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">A5 · RODADA 1</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Ao vivo" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/06-aovivo.png" alt="Captura ao vivo" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#EFFF00; padding:5px 9px; letter-spacing:.06em">06</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">O LOOP · NO ESCURO</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Captura ao vivo</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Preto funcional: é a tela acesa no meio da plateia. Número gigante, nada pra mexer.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>&quot;A gente só olha depois. Aproveita o show.&quot; — o app manda a pessoa de volta pro evento.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">A2 · RODADA 1</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="A noite" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/07-revela.png" alt="A noite — a revela" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#EFFF00; padding:5px 9px; letter-spacing:.06em">07</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">O LOOP · O PAYOFF</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">A noite — a revela</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>187 rosa em escala de pôster; a curva é evidência, não estética — e o buraco de 52 min fica desenhado.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Momentos sem nome já parecem terminados: &quot;187 às 23h47 · 14s&quot;. O caso nomeado vem depois.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>CTA único: escolher como compartilhar. A revela existe pra virar card.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">A3 · RODADA 1</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Suas noites" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/08-noites.png" alt="Suas noites" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#EFFF00; padding:5px 9px; letter-spacing:.06em">08</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">O LOOP</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Suas noites</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Branco de dia: lista limpa, número preto — rosa nunca é texto fora do preto (2,65:1).</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Curva preta com marcador rosa; amarelo em fundo branco some (1,11:1), então vira chip com fundo.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">A1 · RODADA 1</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Feed" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/09-feed.png" alt="Feed — seus amigos" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#FF6F91; padding:5px 9px; letter-spacing:.06em">09</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">O SOCIAL</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Feed — seus amigos</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>A unidade do feed é o card compartilhado + uma frase — não existe post solto.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Reação única: SENTI TB. Sem like genérico, sem comentário aberto no MVP.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>O banner amarelo puxa pro AO VIVO quando tem evento hoje — o feed alimenta o loop.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">B5 · RODADA 2</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Feed do evento" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/10-feed-evento.png" alt="Feed do evento" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#FF6F91; padding:5px 9px; letter-spacing:.06em">10</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">O SOCIAL</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Feed do evento</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Todo mundo que foi no mesmo show, num lugar só — 8.734 compartilharam a noite da Taylor.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>A estatística diz exatamente o que mede: &quot;64% bateram o próprio pico na mesma música&quot;. Nunca ranking de BPM entre corpos.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">B6 · RODADA 2</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Galeria" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/11-galeria.png" alt="Sua galeria" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#FF6F91; padding:5px 9px; letter-spacing:.06em">11</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">O SOCIAL · SUA HISTÓRIA</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Sua galeria</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Tudo que você sentiu desde que entrou: 14 noites, 312 momentos, recorde 187.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Mutante Pop funcionando: cada noite guarda a pele escolhida no card — rosa, preto, amarelo, branco.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">B7 · RODADA 2</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="Perfil" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/12-perfil.png" alt="Perfil público" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#FF6F91; padding:5px 9px; letter-spacing:.06em">12</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">O SOCIAL</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">Perfil público</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Cabeçalho preto com tribos e recorde; grade de noites públicas embaixo.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Só entra na grade o que a pessoa escolheu tornar público — o padrão é privado.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">B8 · RODADA 2</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="A galera" style="background:#fff; display:flex; padding:0.55in 0.6in">
+    <div style="display:flex; flex-direction:column; margin-right:0.45in">
+      <img src="export/shots/13-galera.png" alt="A galera (versão r1)" style="height:9.35in; width:auto; display:block; border-radius:14px">
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; padding-top:0.25in">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; font-weight:700; color:#000; background:#E6E6E6; padding:5px 9px; letter-spacing:.06em">13</span>
+        <span style="font-size:11px; font-weight:600; letter-spacing:.14em; color:#8A8A8A">ANEXO · RODADA 1</span>
+      </div>
+      <div style="height:14px"></div>
+      <div style="font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.05; color:#000">A galera (versão r1)</div>
+      <div style="height:16px"></div>
+      <div style="font-size:12.5px; line-height:1.6; color:#333; display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Versão da rodada 1, antes do social completo — na rodada 2 esse conteúdo vira o feed do evento.</span></div>
+        <div style="display:flex; gap:8px"><span style="color:#FF6F91; font-weight:700">—</span><span>Mantida na análise para comparar: mesma honestidade estatística, sem a camada de posts.</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #E6E6E6; padding-top:10px; display:flex; justify-content:space-between; align-items:baseline">
+        <span style="font-size:10px; font-weight:600; letter-spacing:.12em; color:#8A8A8A">A4 · RODADA 1</span>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:0.72in; display:block">
+      </div>
+    </div>
+  </section>
+
+</doc-page>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+</script>
+</body>
+</html>

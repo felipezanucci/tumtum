@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin:0; background:#fff; font-family:'Instrument Sans',system-ui,sans-serif; }
+  a { color:#000; text-decoration:none; }
+  a:hover { color:#FF6F91; }
+  ::-webkit-scrollbar { display:none; }
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<sc-if value="{{ isPt }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex; flex-direction:column; background:#fff; max-width:480px; margin:0 auto">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 20px; border-bottom:1px solid #E6E6E6; background:#fff; position:sticky; top:0; z-index:10">
+    <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:96px; display:block">
+    <div style="display:flex; align-items:center; gap:12px">
+      <a href="#lista" style="font-size:13px; font-weight:600; background:#FF6F91; color:#000; padding:10px 16px; border-radius:999px">Entrar na lista</a>
+      <button onClick="{{ toggleMenu }}" style="border:0; background:transparent; padding:6px 2px; cursor:pointer; font-family:'Instrument Sans',sans-serif; font-size:12px; font-weight:700; letter-spacing:.1em; color:#000">MENU</button>
+    </div>
+  </div>
+  <sc-if value="{{ menuOpen }}">
+  <div style="position:sticky; top:69px; z-index:9; background:#000; display:flex; flex-direction:column; padding:2px 24px 14px; gap:0">
+    <a href="#como" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#fff; padding:8px 0">Como funciona</a>
+    <a href="#cards" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#fff; padding:8px 0">Os cards</a>
+    <a href="#feed" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#fff; padding:8px 0">O feed</a>
+    <a href="#galeria" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#fff; padding:8px 0">Galeria</a>
+    <a href="#lista" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#8A8A8A; padding:8px 0">Entrar</a>
+    <div style="display:flex; align-items:center; gap:8px; padding-top:10px">
+      <button onClick="{{ setPt }}" style="border:1px solid #FF6F91; background:#FF6F91; padding:5px 10px; cursor:pointer; font-family:'Instrument Sans',sans-serif; font-size:10px; font-weight:700; color:#000">PT</button>
+      <button onClick="{{ setEn }}" style="border:1px solid #2E2E2E; background:transparent; padding:5px 10px; cursor:pointer; font-family:'Instrument Sans',sans-serif; font-size:10px; font-weight:600; color:#8A8A8A">EN</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <div style="background:#FF6F91; display:flex; flex-direction:column; padding:56px 24px 64px">
+    <h1 style="margin:0; font-size:52px; font-weight:700; letter-spacing:-.035em; line-height:.94; color:#000">VOCÊ SENTIU.<br>AGORA TEM<br>PROVA.</h1>
+    <div style="height:18px"></div>
+    <p style="margin:0; font-size:17px; line-height:1.5; color:rgba(0,0,0,.75); text-wrap:pretty">Os momentos mais marcantes da sua vida têm hora, lugar e batida. A TumTum guarda os três.</p>
+    <div style="height:26px"></div>
+    <div style="display:flex; flex-direction:column; gap:10px">
+      <a href="#lista" style="background:#000; color:#fff; font-size:16px; font-weight:600; padding:17px; border-radius:12px; text-align:center">Quero no meu próximo evento</a>
+      <a href="#como" style="border:2px solid #000; color:#000; font-size:16px; font-weight:600; padding:15px; border-radius:12px; text-align:center">Como funciona</a>
+    </div>
+    <div style="height:44px"></div>
+    <div style="align-self:center; width:280px; height:498px; background:#000; position:relative; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 30px 60px rgba(0,0,0,.28)">
+      <div style="position:absolute; top:0; left:0; right:0; height:238px">
+        <image-slot id="site-m-hero-clip" shape="rect" src="assets/event-clip.gif" placeholder="vídeo do evento"></image-slot>
+      </div>
+      <div style="position:relative; padding:16px 22px 0; pointer-events:none">
+        <span style="display:inline-block; background:#EFFF00; padding:5px 9px; font-size:9px; font-weight:600; letter-spacing:.14em; color:#000">LOLLAPALOOZA — DIA 2 · 23H47</span>
+      </div>
+      <div style="flex:1; pointer-events:none"></div>
+      <div style="position:relative; background:#fff; padding:18px 22px 40px">
+        <div style="font-size:20px; font-weight:700; line-height:1.02; letter-spacing:-.025em; color:#000">EU TAVA TRANQUILO.<br>AÍ VEIO ISSO.</div>
+        <div style="font-size:112px; font-weight:700; color:#000; letter-spacing:-.055em; line-height:.78; font-variant-numeric:tabular-nums; margin-left:-5px; margin-top:8px">187</div>
+        <div style="font-size:13px; font-weight:600; color:#000; margin-top:8px">bpm — meu maior da noite</div>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="position:absolute; right:22px; bottom:16px; width:64px; display:block">
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; border-bottom:1px solid #E6E6E6">
+    <div style="background:#000; padding:30px 24px; display:flex; align-items:baseline; gap:14px">
+      <span style="font-size:48px; font-weight:700; color:#FF6F91; letter-spacing:-.04em; line-height:.85; font-variant-numeric:tabular-nums; flex:none">176</span>
+      <div style="display:flex; flex-direction:column; gap:2px"><span style="font-size:14px; font-weight:600; color:#fff">A torcida foi junto.</span><span style="font-size:12px; font-weight:500; color:#8A8A8A">Pênalti · 94:12</span></div>
+    </div>
+    <div style="background:#EFFF00; padding:30px 24px; display:flex; align-items:baseline; gap:14px">
+      <span style="font-size:48px; font-weight:700; color:#000; letter-spacing:-.04em; line-height:.85; font-variant-numeric:tabular-nums; flex:none">191</span>
+      <div style="display:flex; flex-direction:column; gap:2px"><span style="font-size:14px; font-weight:600; color:#000">Quando entrou, meu coração foi junto.</span><span style="font-size:12px; font-weight:500; color:rgba(0,0,0,.6)">Abertura do show · 21:03</span></div>
+    </div>
+    <div style="background:#fff; padding:30px 24px; display:flex; align-items:baseline; gap:14px">
+      <span style="font-size:48px; font-weight:700; color:#000; letter-spacing:-.04em; line-height:.85; font-variant-numeric:tabular-nums; flex:none">183</span>
+      <div style="display:flex; flex-direction:column; gap:2px"><span style="font-size:14px; font-weight:600; color:#000">Ninguém tava tranquilo.</span><span style="font-size:12px; font-weight:500; color:#8A8A8A">O drop · 23:41</span></div>
+    </div>
+  </div>
+
+  <div style="padding:72px 24px; display:flex; flex-direction:column; gap:18px">
+    <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#8A8A8A">O QUE A TUMTUM FAZ</span>
+    <h2 style="margin:0; font-size:30px; font-weight:700; letter-spacing:-.03em; line-height:1.14; color:#000">Todo mundo filmou o show. <span style="background:#EFFF00; padding:0 6px">Ninguém registrou o que sentiu.</span></h2>
+    <p style="margin:0; font-size:16px; line-height:1.55; color:#4A4A4A; text-wrap:pretty">Você guarda o ingresso, a pulseira, o print da setlist. A TumTum guarda a parte que importa: <strong style="color:#000">o exato momento em que você perdeu a compostura</strong> — com hora, música e prova.</p>
+  </div>
+
+  <div id="como" style="background:#000; padding:64px 24px; display:flex; flex-direction:column; gap:30px">
+    <div style="display:flex; flex-direction:column; gap:12px">
+      <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#EFFF00">COMO FUNCIONA</span>
+      <h2 style="margin:0; font-size:34px; font-weight:700; letter-spacing:-.03em; line-height:1.02; color:#fff">Você vive a noite.<br>A gente cuida do resto.</h2>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:2px">
+      <div style="background:#0F0F0F; padding:26px 24px; display:flex; flex-direction:column; gap:10px">
+        <span style="font-size:36px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums">01</span>
+        <span style="font-size:18px; font-weight:600; color:#fff">Conecta o relógio que você já usa</span>
+        <p style="margin:0; font-size:14px; line-height:1.55; color:#8A8A8A">Sem aparelho novo, sem complicação. Seu smartwatch de sempre já registra tudo o que a gente precisa.</p>
+      </div>
+      <div style="background:#0F0F0F; padding:26px 24px; display:flex; flex-direction:column; gap:10px">
+        <span style="font-size:36px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums">02</span>
+        <span style="font-size:18px; font-weight:600; color:#fff">Vai pro evento e esquece da gente</span>
+        <p style="margin:0; font-size:14px; line-height:1.55; color:#8A8A8A">Canta, grita, sofre no pênalti. O relógio fica no pulso fazendo o trabalho dele, como sempre fez.</p>
+      </div>
+      <div style="background:#0F0F0F; padding:26px 24px; display:flex; flex-direction:column; gap:10px">
+        <span style="font-size:36px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums">03</span>
+        <span style="font-size:18px; font-weight:600; color:#fff">Depois, a revelação</span>
+        <p style="margin:0; font-size:14px; line-height:1.55; color:#8A8A8A">A TumTum cruza sua noite com a timeline do evento e te mostra qual momento foi o seu. Aí é só escolher o card e postar.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="cards" style="padding:72px 0; display:flex; flex-direction:column; gap:30px">
+    <div style="display:flex; flex-direction:column; gap:12px; padding:0 24px">
+      <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#8A8A8A">O CARD É A PROVA</span>
+      <h2 style="margin:0; font-size:34px; font-weight:700; letter-spacing:-.03em; line-height:1.02; color:#000">Um momento.<br>Vários jeitos de contar.</h2>
+      <p style="margin:0; font-size:16px; line-height:1.55; color:#4A4A4A">Cada noite gera cards diferentes do mesmo instante — e cada noite escolhe uma pele. Você decide qual história vai pro feed. <span style="color:#8A8A8A">Arrasta pro lado →</span></p>
+    </div>
+    <div style="display:flex; gap:12px; overflow-x:auto; padding:6px 24px 14px; scroll-snap-type:x mandatory">
+      <div style="flex:none; width:236px; height:412px; background:#fff; border:1px solid #E6E6E6; display:flex; flex-direction:column; overflow:hidden; scroll-snap-align:start">
+        <div style="height:226px; position:relative; flex:none"><img src="assets/cold-play.gif?v=2" alt="" style="width:100%; height:100%; object-fit:cover; display:block"><span style="position:absolute; top:10px; left:12px; font-size:9px; font-weight:600; letter-spacing:.16em; color:#fff; background:rgba(0,0,0,.6); padding:4px 8px">SÓ O MOMENTO</span></div>
+        <div style="flex:1; padding:14px 18px 16px; display:flex; flex-direction:column">
+          <div style="flex:1"></div>
+          <div style="font-size:13px; font-weight:700; line-height:1.1; letter-spacing:-.01em; color:#000">AQUI ACABOU<br>MEU PSICOLÓGICO.</div>
+          <div style="font-size:66px; font-weight:700; color:#000; letter-spacing:-.05em; line-height:.78; font-variant-numeric:tabular-nums; margin-top:10px">187</div>
+          <span style="font-size:11.5px; font-weight:600; color:#4A4A4A; margin-top:8px">22:47 · A Sky Full of Stars</span>
+        </div>
+      </div>
+      <div style="flex:none; width:236px; height:412px; background:#000; padding:22px; display:flex; flex-direction:column; overflow:hidden; scroll-snap-align:start">
+        <span style="font-size:9px; font-weight:600; letter-spacing:.16em; color:#8A8A8A">MINHA NOITE</span>
+        <div style="flex:1"></div>
+        <div style="font-size:15px; font-weight:700; line-height:1.05; color:#fff">DO INÍCIO AO FIM,<br>TUDO FEZ SENTIDO.</div>
+        <div style="font-size:66px; font-weight:700; color:#FF6F91; letter-spacing:-.05em; line-height:.78; font-variant-numeric:tabular-nums; margin-top:10px">187</div>
+        <svg viewBox="0 0 1000 260" style="width:100%; height:48px; display:block; margin-top:12px">
+          <path d="{{ pathFull }}" fill="none" stroke="#FF6F91" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></path>
+          <circle cx="{{ peakX }}" cy="{{ peakY }}" r="15" fill="#EFFF00"></circle>
+        </svg>
+        <span style="font-size:10.5px; font-weight:600; color:#8A8A8A; margin-top:8px">O pico marcado no tempo real da noite.</span>
+      </div>
+      <div style="flex:none; width:236px; height:412px; background:#FF6F91; display:flex; flex-direction:column; overflow:hidden; scroll-snap-align:start">
+        <div style="height:226px; position:relative; flex:none"><img src="assets/torcida.gif?v=2" alt="" style="width:100%; height:100%; object-fit:cover; display:block"><span style="position:absolute; top:10px; left:12px; font-size:9px; font-weight:600; letter-spacing:.16em; color:#fff; background:rgba(0,0,0,.6); padding:4px 8px">A GALERA</span></div>
+        <div style="flex:1; padding:14px 18px 16px; display:flex; flex-direction:column">
+          <div style="flex:1"></div>
+          <div style="font-size:15px; font-weight:700; line-height:1.05; color:#000">NINGUÉM TAVA<br>TRANQUILO.</div>
+          <div style="display:flex; gap:12px; margin-top:12px">
+            <div style="display:flex; flex-direction:column"><span style="font-size:32px; font-weight:700; color:#000; letter-spacing:-.03em; line-height:.85; font-variant-numeric:tabular-nums">187</span><span style="font-size:10px; font-weight:600; color:rgba(0,0,0,.6); margin-top:5px">VOCÊ</span></div>
+            <div style="display:flex; flex-direction:column"><span style="font-size:32px; font-weight:700; color:rgba(0,0,0,.45); letter-spacing:-.03em; line-height:.85; font-variant-numeric:tabular-nums">172</span><span style="font-size:10px; font-weight:600; color:rgba(0,0,0,.6); margin-top:5px">A TORCIDA</span></div>
+          </div>
+          <span style="font-size:10.5px; font-weight:600; color:rgba(0,0,0,.6); margin-top:12px">Seu momento comparado com todo mundo que estava lá.</span>
+        </div>
+      </div>
+      <div style="flex:none; width:236px; height:412px; background:#EFFF00; padding:22px; display:flex; flex-direction:column; overflow:hidden; scroll-snap-align:start">
+        <span style="font-size:9px; font-weight:600; letter-spacing:.16em; color:rgba(0,0,0,.55)">NA MESMA VIBE · EM BREVE</span>
+        <div style="flex:1"></div>
+        <div style="font-size:15px; font-weight:700; line-height:1.05; color:#000">NA MESMA VIBE.<br>LITERALMENTE.</div>
+        <div style="font-size:66px; font-weight:700; color:#000; letter-spacing:-.05em; line-height:.78; font-variant-numeric:tabular-nums; margin-top:10px">187</div>
+        <span style="font-size:11.5px; font-weight:600; color:rgba(0,0,0,.6); margin-top:8px">Você sentiu mais que quem tava no palco.</span>
+      </div>
+    </div>
+    <p style="margin:0; font-size:12px; color:#8A8A8A; padding:0 24px">Os cards acima são exemplos ilustrativos. Cada formato aparece pra você quando os dados daquela noite permitem.</p>
+  </div>
+
+  <div id="feed" style="background:#000; padding:72px 24px; display:flex; flex-direction:column; gap:26px">
+    <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#EFFF00">O FEED DO EVENTO</span>
+    <h2 style="margin:0; font-size:34px; font-weight:700; letter-spacing:-.03em; line-height:1.0; color:#fff">Todo mundo que tava lá, num lugar só.</h2>
+    <p style="margin:0; font-size:15px; line-height:1.6; color:#B4B4B4; text-wrap:pretty">Cada show e cada jogo vira um feed. Quem foi posta o próprio card com uma frase, e reage ao dos outros com um só botão: <strong style="color:#EFFF00">SENTI TB</strong>. Seus amigos num feed, a noite inteira no outro.</p>
+    <div style="display:flex; gap:14px; justify-content:center">
+      <img src="export/shots/10-feed-evento.png" alt="Feed do evento" style="width:calc(50% - 7px); max-width:200px; display:block; border-radius:16px; border:1px solid #2E2E2E">
+      <img src="export/shots/09-feed.png" alt="Feed dos amigos" style="width:calc(50% - 7px); max-width:200px; display:block; border-radius:16px; border:1px solid #2E2E2E; margin-top:32px">
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; border-top:1px solid #2E2E2E; padding-top:10px">
+      <div style="display:flex; gap:10px; align-items:baseline">
+        <span style="font-size:24px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums; flex:none">8.734</span>
+        <span style="font-size:13px; color:#8A8A8A">pessoas compartilharam a noite da Taylor em São Paulo</span>
+      </div>
+      <div style="display:flex; gap:10px; align-items:baseline">
+        <span style="font-size:24px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums; flex:none">{{ cohortPct }}%</span>
+        <span style="font-size:13px; color:#8A8A8A">bateram o próprio pico durante a mesma música — cada corpo no seu número, nunca um ranking</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="galeria" style="background:#FF6F91; padding:72px 24px; display:flex; flex-direction:column; gap:26px">
+    <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#000; opacity:.6">A GALERIA DE SENTIMENTOS</span>
+    <h2 style="margin:0; font-size:34px; font-weight:700; letter-spacing:-.03em; line-height:1.0; color:#000">Tudo que você sentiu, desde que chegou.</h2>
+    <p style="margin:0; font-size:15px; line-height:1.6; color:rgba(0,0,0,.72); text-wrap:pretty">Cada noite vira um card, cada card guarda uma pele. Com o tempo, sua galeria conta a história: 14 noites, 312 momentos, um recorde. A forma fica, a pele muda — e a coleção é obviamente sua.</p>
+    <div style="display:flex; gap:22px; border-top:1px solid rgba(0,0,0,.25); padding-top:10px">
+      <div style="display:flex; flex-direction:column"><span style="font-size:30px; font-weight:700; color:#000; font-variant-numeric:tabular-nums">14</span><span style="font-size:10px; font-weight:600; letter-spacing:.1em; color:rgba(0,0,0,.55)">NOITES</span></div>
+      <div style="display:flex; flex-direction:column"><span style="font-size:30px; font-weight:700; color:#000; font-variant-numeric:tabular-nums">312</span><span style="font-size:10px; font-weight:600; letter-spacing:.1em; color:rgba(0,0,0,.55)">MOMENTOS</span></div>
+      <div style="display:flex; flex-direction:column"><span style="font-size:30px; font-weight:700; color:#000; font-variant-numeric:tabular-nums">187</span><span style="font-size:10px; font-weight:600; letter-spacing:.1em; color:rgba(0,0,0,.55)">SEU RECORDE</span></div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px 14px; padding-top:8px">
+      <div style="aspect-ratio:9/14; position:relative; overflow:hidden; transform:rotate(-2deg); box-shadow:0 20px 40px rgba(0,0,0,.28); background:#000">
+        <img src="assets/event-clip.gif" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover"><div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 34%, rgba(0,0,0,.88) 84%)"></div>
+        <span style="position:absolute; top:10px; left:10px; font-size:9px; font-weight:700; letter-spacing:.1em; color:#000; background:#EFFF00; padding:4px 7px">23H47</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column">
+          <span style="font-size:44px; font-weight:700; color:#FF6F91; letter-spacing:-.05em; line-height:.8; font-variant-numeric:tabular-nums">187</span>
+          <span style="font-size:9px; font-weight:700; letter-spacing:.1em; color:#fff; margin-top:7px">LOLLA — DIA 2</span>
+        </div>
+      </div>
+      <div style="aspect-ratio:9/14; position:relative; overflow:hidden; transform:rotate(1.6deg); box-shadow:0 20px 40px rgba(0,0,0,.28); background:#000; margin-top:20px">
+        <img src="assets/torcida.gif?v=2" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover"><div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 34%, rgba(0,0,0,.88) 84%)"></div>
+        <span style="position:absolute; top:10px; left:10px; font-size:9px; font-weight:700; letter-spacing:.1em; color:#000; background:#FF6F91; padding:4px 7px">94:12</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column">
+          <span style="font-size:44px; font-weight:700; color:#fff; letter-spacing:-.05em; line-height:.8; font-variant-numeric:tabular-nums">176</span>
+          <span style="font-size:9px; font-weight:700; letter-spacing:.1em; color:#fff; margin-top:7px">PALMEIRAS 2×1</span>
+        </div>
+      </div>
+      <div style="aspect-ratio:9/14; position:relative; overflow:hidden; transform:rotate(1.2deg); box-shadow:0 20px 40px rgba(0,0,0,.28); background:#000; margin-top:-8px">
+        <img src="assets/cold-play.gif?v=2" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover"><div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 34%, rgba(0,0,0,.88) 84%)"></div>
+        <span style="position:absolute; top:10px; left:10px; font-size:9px; font-weight:700; letter-spacing:.1em; color:#000; background:#EFFF00; padding:4px 7px">21H03</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column">
+          <span style="font-size:44px; font-weight:700; color:#fff; letter-spacing:-.05em; line-height:.8; font-variant-numeric:tabular-nums">142</span>
+          <span style="font-size:9px; font-weight:700; letter-spacing:.1em; color:#fff; margin-top:7px">COLDPLAY</span>
+        </div>
+      </div>
+      <div style="aspect-ratio:9/14; position:relative; overflow:hidden; transform:rotate(-1.6deg); box-shadow:0 20px 40px rgba(0,0,0,.28); background:#EFFF00; margin-top:12px">
+        <span style="position:absolute; top:10px; left:10px; font-size:9px; font-weight:700; letter-spacing:.1em; color:#EFFF00; background:#000; padding:4px 7px">01H24</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column">
+          <span style="font-size:44px; font-weight:700; color:#000; letter-spacing:-.05em; line-height:.8; font-variant-numeric:tabular-nums">116</span>
+          <span style="font-size:9px; font-weight:700; letter-spacing:.1em; color:#000; margin-top:7px">REALNESS FEST</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="lista" style="background:#000; padding:80px 24px 64px; display:flex; flex-direction:column; gap:20px">
+    <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#EFFF00">LISTA DE ESPERA</span>
+    <h2 style="margin:0; font-size:40px; font-weight:700; letter-spacing:-.03em; line-height:1.0; color:#fff">Quero isso no meu próximo evento.</h2>
+    <p style="margin:0; font-size:15px; line-height:1.55; color:#8A8A8A">A TumTum está começando em São Paulo, evento por evento. Entra na lista e a gente te chama quando for a sua vez.</p>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:6px">
+      <div style="border:1px solid #2E2E2E; border-radius:12px; padding:16px 18px; font-size:15px; color:#8A8A8A; background:#0F0F0F">seu@email.com</div>
+      <div style="background:#FF6F91; color:#000; font-size:16px; font-weight:600; padding:17px; border-radius:12px; cursor:pointer; text-align:center">Entrar na lista</div>
+    </div>
+    <p style="margin:0; font-size:12px; color:#6F6F6F">A gente só usa seu e-mail pra te avisar dos próximos eventos. Nada além disso.</p>
+  </div>
+
+  <div style="background:#000; border-top:1px solid #1E1E1E; padding:36px 24px 28px; display:flex; flex-direction:column; gap:20px">
+    <img src="assets/tumtum-wordmark-white.svg" alt="TUMTUM" style="width:96px; display:block">
+    <div style="display:flex; gap:18px; flex-wrap:wrap">
+      <a href="https://www.instagram.com/tumtum.cc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">Instagram</a>
+      <a href="https://www.tiktok.com/@tumtum.cc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">TikTok</a>
+      <a href="https://x.com/TumTumcc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">X</a>
+      <a href="https://www.linkedin.com/company/tumtumcc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">LinkedIn</a>
+      <a href="mailto:oi@tumtum.cc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">oi@tumtum.cc</a>
+    </div>
+    <span style="font-size:12px; color:#4A4A4A; line-height:1.5">Seus dados de batimento são seus. A TumTum só acessa o que você autorizar, só no intervalo do evento, e transforma em história apenas com a sua permissão.</span>
+    <div style="display:flex; justify-content:space-between; border-top:1px solid #1E1E1E; padding-top:16px">
+      <span style="font-size:12px; color:#4A4A4A">TumTum · São Paulo · 2026</span>
+      <a href="#lista" style="font-size:12px; color:#4A4A4A" style-hover="color:#FF6F91">Entrar na sua conta</a>
+    </div>
+  </div>
+
+</div>
+</sc-if>
+
+<sc-if value="{{ isEn }}">
+<div style="display:flex; flex-direction:column; background:#fff; max-width:480px; margin:0 auto">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 20px; border-bottom:1px solid #E6E6E6; background:#fff; position:sticky; top:0; z-index:10">
+    <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="width:96px; display:block">
+    <div style="display:flex; align-items:center; gap:12px">
+      <a href="#lista" style="font-size:13px; font-weight:600; background:#FF6F91; color:#000; padding:10px 16px; border-radius:999px">Join the list</a>
+      <button onClick="{{ toggleMenu }}" style="border:0; background:transparent; padding:6px 2px; cursor:pointer; font-family:'Instrument Sans',sans-serif; font-size:12px; font-weight:700; letter-spacing:.1em; color:#000">MENU</button>
+    </div>
+  </div>
+  <sc-if value="{{ menuOpen }}">
+  <div style="position:sticky; top:69px; z-index:9; background:#000; display:flex; flex-direction:column; padding:2px 24px 14px; gap:0">
+    <a href="#como" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#fff; padding:8px 0">How it works</a>
+    <a href="#cards" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#fff; padding:8px 0">The cards</a>
+    <a href="#feed" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#fff; padding:8px 0">The feed</a>
+    <a href="#galeria" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#fff; padding:8px 0">Gallery</a>
+    <a href="#lista" onClick="{{ closeMenu }}" style="font-size:13px; font-weight:600; color:#8A8A8A; padding:8px 0">Sign in</a>
+    <div style="display:flex; align-items:center; gap:8px; padding-top:10px">
+      <button onClick="{{ setPt }}" style="border:1px solid #2E2E2E; background:transparent; padding:5px 10px; cursor:pointer; font-family:'Instrument Sans',sans-serif; font-size:10px; font-weight:600; color:#8A8A8A">PT</button>
+      <button onClick="{{ setEn }}" style="border:1px solid #FF6F91; background:#FF6F91; padding:5px 10px; cursor:pointer; font-family:'Instrument Sans',sans-serif; font-size:10px; font-weight:700; color:#000">EN</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <div style="background:#FF6F91; display:flex; flex-direction:column; padding:56px 24px 64px">
+    <h1 style="margin:0; font-size:50px; font-weight:700; letter-spacing:-.035em; line-height:.94; color:#000">YOU FELT IT.<br>NOW YOU<br>HAVE PROOF.</h1>
+    <div style="height:18px"></div>
+    <p style="margin:0; font-size:17px; line-height:1.5; color:rgba(0,0,0,.75); text-wrap:pretty">The most defining moments of your life have a time, a place and a heartbeat. TumTum keeps all three.</p>
+    <div style="height:26px"></div>
+    <div style="display:flex; flex-direction:column; gap:10px">
+      <a href="#lista" style="background:#000; color:#fff; font-size:16px; font-weight:600; padding:17px; border-radius:12px; text-align:center">I want this at my next event</a>
+      <a href="#como" style="border:2px solid #000; color:#000; font-size:16px; font-weight:600; padding:15px; border-radius:12px; text-align:center">How it works</a>
+    </div>
+    <div style="height:44px"></div>
+    <div style="align-self:center; width:280px; height:498px; background:#000; position:relative; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 30px 60px rgba(0,0,0,.28)">
+      <div style="position:absolute; top:0; left:0; right:0; height:238px">
+        <image-slot id="site-m-hero-clip-en" shape="rect" src="assets/event-clip.gif" placeholder="event footage"></image-slot>
+      </div>
+      <div style="position:relative; padding:16px 22px 0; pointer-events:none">
+        <span style="display:inline-block; background:#EFFF00; padding:5px 9px; font-size:9px; font-weight:600; letter-spacing:.14em; color:#000">LOLLAPALOOZA — DAY 2 · 11:47PM</span>
+      </div>
+      <div style="flex:1; pointer-events:none"></div>
+      <div style="position:relative; background:#fff; padding:18px 22px 40px">
+        <div style="font-size:20px; font-weight:700; line-height:1.02; letter-spacing:-.025em; color:#000">I WAS FINE.<br>THEN THIS.</div>
+        <div style="font-size:112px; font-weight:700; color:#000; letter-spacing:-.055em; line-height:.78; font-variant-numeric:tabular-nums; margin-left:-5px; margin-top:8px">187</div>
+        <div style="font-size:13px; font-weight:600; color:#000; margin-top:8px">bpm — my highest of the night</div>
+        <img src="assets/tumtum-wordmark-black.svg" alt="TUMTUM" style="position:absolute; right:22px; bottom:16px; width:64px; display:block">
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; border-bottom:1px solid #E6E6E6">
+    <div style="background:#000; padding:30px 24px; display:flex; align-items:baseline; gap:14px">
+      <span style="font-size:48px; font-weight:700; color:#FF6F91; letter-spacing:-.04em; line-height:.85; font-variant-numeric:tabular-nums; flex:none">176</span>
+      <div style="display:flex; flex-direction:column; gap:2px"><span style="font-size:14px; font-weight:600; color:#fff">The whole crowd went with it.</span><span style="font-size:12px; font-weight:500; color:#8A8A8A">Penalty · 94:12</span></div>
+    </div>
+    <div style="background:#EFFF00; padding:30px 24px; display:flex; align-items:baseline; gap:14px">
+      <span style="font-size:48px; font-weight:700; color:#000; letter-spacing:-.04em; line-height:.85; font-variant-numeric:tabular-nums; flex:none">191</span>
+      <div style="display:flex; flex-direction:column; gap:2px"><span style="font-size:14px; font-weight:600; color:#000">When they walked on, my heart went too.</span><span style="font-size:12px; font-weight:500; color:rgba(0,0,0,.6)">Show opener · 21:03</span></div>
+    </div>
+    <div style="background:#fff; padding:30px 24px; display:flex; align-items:baseline; gap:14px">
+      <span style="font-size:48px; font-weight:700; color:#000; letter-spacing:-.04em; line-height:.85; font-variant-numeric:tabular-nums; flex:none">183</span>
+      <div style="display:flex; flex-direction:column; gap:2px"><span style="font-size:14px; font-weight:600; color:#000">Nobody was calm.</span><span style="font-size:12px; font-weight:500; color:#8A8A8A">The drop · 23:41</span></div>
+    </div>
+  </div>
+
+  <div style="padding:72px 24px; display:flex; flex-direction:column; gap:18px">
+    <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#8A8A8A">WHAT TUMTUM DOES</span>
+    <h2 style="margin:0; font-size:30px; font-weight:700; letter-spacing:-.03em; line-height:1.14; color:#000">Everyone filmed the show. <span style="background:#EFFF00; padding:0 6px">Nobody recorded what they felt.</span></h2>
+    <p style="margin:0; font-size:16px; line-height:1.55; color:#4A4A4A; text-wrap:pretty">You keep the ticket stub, the wristband, the setlist screenshot. TumTum keeps the part that matters: <strong style="color:#000">the exact moment you lost your composure</strong> — with the time, the song and the proof.</p>
+  </div>
+
+  <div id="como" style="background:#000; padding:64px 24px; display:flex; flex-direction:column; gap:30px">
+    <div style="display:flex; flex-direction:column; gap:12px">
+      <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#EFFF00">HOW IT WORKS</span>
+      <h2 style="margin:0; font-size:34px; font-weight:700; letter-spacing:-.03em; line-height:1.02; color:#fff">You live the night.<br>We handle the rest.</h2>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:2px">
+      <div style="background:#0F0F0F; padding:26px 24px; display:flex; flex-direction:column; gap:10px">
+        <span style="font-size:36px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums">01</span>
+        <span style="font-size:18px; font-weight:600; color:#fff">Connect the watch you already own</span>
+        <p style="margin:0; font-size:14px; line-height:1.55; color:#8A8A8A">No new gadget, no fuss. The smartwatch you already wear records everything we need.</p>
+      </div>
+      <div style="background:#0F0F0F; padding:26px 24px; display:flex; flex-direction:column; gap:10px">
+        <span style="font-size:36px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums">02</span>
+        <span style="font-size:18px; font-weight:600; color:#fff">Go to the event and forget about us</span>
+        <p style="margin:0; font-size:14px; line-height:1.55; color:#8A8A8A">Sing, scream, suffer through the penalty. The watch stays on your wrist doing its job, like it always has.</p>
+      </div>
+      <div style="background:#0F0F0F; padding:26px 24px; display:flex; flex-direction:column; gap:10px">
+        <span style="font-size:36px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums">03</span>
+        <span style="font-size:18px; font-weight:600; color:#fff">Then, the reveal</span>
+        <p style="margin:0; font-size:14px; line-height:1.55; color:#8A8A8A">TumTum crosses your night with the event timeline and shows you which moment was yours. Then you just pick a card and post it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="cards" style="padding:72px 0; display:flex; flex-direction:column; gap:30px">
+    <div style="display:flex; flex-direction:column; gap:12px; padding:0 24px">
+      <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#8A8A8A">THE CARD IS THE PROOF</span>
+      <h2 style="margin:0; font-size:34px; font-weight:700; letter-spacing:-.03em; line-height:1.02; color:#000">One moment.<br>Many ways to tell it.</h2>
+      <p style="margin:0; font-size:16px; line-height:1.55; color:#4A4A4A">Every night generates different cards of the same instant — and every night picks a skin. You decide which story hits the feed. <span style="color:#8A8A8A">Swipe →</span></p>
+    </div>
+    <div style="display:flex; gap:12px; overflow-x:auto; padding:6px 24px 14px; scroll-snap-type:x mandatory">
+      <div style="flex:none; width:236px; height:412px; background:#fff; border:1px solid #E6E6E6; display:flex; flex-direction:column; overflow:hidden; scroll-snap-align:start">
+        <div style="height:226px; position:relative; flex:none"><img src="assets/cold-play.gif?v=2" alt="" style="width:100%; height:100%; object-fit:cover; display:block"><span style="position:absolute; top:10px; left:12px; font-size:9px; font-weight:600; letter-spacing:.16em; color:#fff; background:rgba(0,0,0,.6); padding:4px 8px">JUST THE MOMENT</span></div>
+        <div style="flex:1; padding:14px 18px 16px; display:flex; flex-direction:column">
+          <div style="flex:1"></div>
+          <div style="font-size:13px; font-weight:700; line-height:1.1; letter-spacing:-.01em; color:#000">THIS IS WHERE<br>I LOST IT.</div>
+          <div style="font-size:66px; font-weight:700; color:#000; letter-spacing:-.05em; line-height:.78; font-variant-numeric:tabular-nums; margin-top:10px">187</div>
+          <span style="font-size:11.5px; font-weight:600; color:#4A4A4A; margin-top:8px">22:47 · A Sky Full of Stars</span>
+        </div>
+      </div>
+      <div style="flex:none; width:236px; height:412px; background:#000; padding:22px; display:flex; flex-direction:column; overflow:hidden; scroll-snap-align:start">
+        <span style="font-size:9px; font-weight:600; letter-spacing:.16em; color:#8A8A8A">MY NIGHT</span>
+        <div style="flex:1"></div>
+        <div style="font-size:15px; font-weight:700; line-height:1.05; color:#fff">START TO FINISH,<br>IT ALL MADE SENSE.</div>
+        <div style="font-size:66px; font-weight:700; color:#FF6F91; letter-spacing:-.05em; line-height:.78; font-variant-numeric:tabular-nums; margin-top:10px">187</div>
+        <svg viewBox="0 0 1000 260" style="width:100%; height:48px; display:block; margin-top:12px">
+          <path d="{{ pathFull }}" fill="none" stroke="#FF6F91" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></path>
+          <circle cx="{{ peakX }}" cy="{{ peakY }}" r="15" fill="#EFFF00"></circle>
+        </svg>
+        <span style="font-size:10.5px; font-weight:600; color:#8A8A8A; margin-top:8px">The peak marked on the night's real timeline.</span>
+      </div>
+      <div style="flex:none; width:236px; height:412px; background:#FF6F91; display:flex; flex-direction:column; overflow:hidden; scroll-snap-align:start">
+        <div style="height:226px; position:relative; flex:none"><img src="assets/torcida.gif?v=2" alt="" style="width:100%; height:100%; object-fit:cover; display:block"><span style="position:absolute; top:10px; left:12px; font-size:9px; font-weight:600; letter-spacing:.16em; color:#fff; background:rgba(0,0,0,.6); padding:4px 8px">THE CROWD</span></div>
+        <div style="flex:1; padding:14px 18px 16px; display:flex; flex-direction:column">
+          <div style="flex:1"></div>
+          <div style="font-size:15px; font-weight:700; line-height:1.05; color:#000">NOBODY WAS<br>CALM.</div>
+          <div style="display:flex; gap:12px; margin-top:12px">
+            <div style="display:flex; flex-direction:column"><span style="font-size:32px; font-weight:700; color:#000; letter-spacing:-.03em; line-height:.85; font-variant-numeric:tabular-nums">187</span><span style="font-size:10px; font-weight:600; color:rgba(0,0,0,.6); margin-top:5px">YOU</span></div>
+            <div style="display:flex; flex-direction:column"><span style="font-size:32px; font-weight:700; color:rgba(0,0,0,.45); letter-spacing:-.03em; line-height:.85; font-variant-numeric:tabular-nums">172</span><span style="font-size:10px; font-weight:600; color:rgba(0,0,0,.6); margin-top:5px">THE CROWD</span></div>
+          </div>
+          <span style="font-size:10.5px; font-weight:600; color:rgba(0,0,0,.6); margin-top:12px">Your moment next to everyone who was there.</span>
+        </div>
+      </div>
+      <div style="flex:none; width:236px; height:412px; background:#EFFF00; padding:22px; display:flex; flex-direction:column; overflow:hidden; scroll-snap-align:start">
+        <span style="font-size:9px; font-weight:600; letter-spacing:.16em; color:rgba(0,0,0,.55)">SAME VIBE · COMING SOON</span>
+        <div style="flex:1"></div>
+        <div style="font-size:15px; font-weight:700; line-height:1.05; color:#000">SAME VIBE.<br>LITERALLY.</div>
+        <div style="font-size:66px; font-weight:700; color:#000; letter-spacing:-.05em; line-height:.78; font-variant-numeric:tabular-nums; margin-top:10px">187</div>
+        <span style="font-size:11.5px; font-weight:600; color:rgba(0,0,0,.6); margin-top:8px">You felt it harder than the person on stage.</span>
+      </div>
+    </div>
+    <p style="margin:0; font-size:12px; color:#8A8A8A; padding:0 24px">The cards above are illustrative. Each format appears for you when that night's data allows it.</p>
+  </div>
+
+  <div id="feed" style="background:#000; padding:72px 24px; display:flex; flex-direction:column; gap:26px">
+    <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#EFFF00">THE EVENT FEED</span>
+    <h2 style="margin:0; font-size:34px; font-weight:700; letter-spacing:-.03em; line-height:1.0; color:#fff">Everyone who was there, in one place.</h2>
+    <p style="margin:0; font-size:15px; line-height:1.6; color:#B4B4B4; text-wrap:pretty">Every show and every match becomes a feed. People who went post their own card with one line, and react to everyone else's with a single button: <strong style="color:#EFFF00">FELT IT TOO</strong>. Your friends in one feed, the whole night in the other.</p>
+    <div style="display:flex; gap:14px; justify-content:center">
+      <img src="export/shots/10-feed-evento.png" alt="Event feed" style="width:calc(50% - 7px); max-width:200px; display:block; border-radius:16px; border:1px solid #2E2E2E">
+      <img src="export/shots/09-feed.png" alt="Friends feed" style="width:calc(50% - 7px); max-width:200px; display:block; border-radius:16px; border:1px solid #2E2E2E; margin-top:32px">
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; border-top:1px solid #2E2E2E; padding-top:10px">
+      <div style="display:flex; gap:10px; align-items:baseline">
+        <span style="font-size:24px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums; flex:none">8,734</span>
+        <span style="font-size:13px; color:#8A8A8A">people shared Taylor's night in São Paulo</span>
+      </div>
+      <div style="display:flex; gap:10px; align-items:baseline">
+        <span style="font-size:24px; font-weight:700; color:#FF6F91; font-variant-numeric:tabular-nums; flex:none">{{ cohortPct }}%</span>
+        <span style="font-size:13px; color:#8A8A8A">hit their own peak during the same song — every body has its own number, never a ranking</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="galeria" style="background:#FF6F91; padding:72px 24px; display:flex; flex-direction:column; gap:26px">
+    <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#000; opacity:.6">THE GALLERY OF FEELINGS</span>
+    <h2 style="margin:0; font-size:34px; font-weight:700; letter-spacing:-.03em; line-height:1.0; color:#000">Everything you've felt, since you joined.</h2>
+    <p style="margin:0; font-size:15px; line-height:1.6; color:rgba(0,0,0,.72); text-wrap:pretty">Every night becomes a card, and every card keeps its skin. Over time your gallery tells the story: 14 nights, 312 moments, one record. The shape stays, the skin changes — and the collection is unmistakably yours.</p>
+    <div style="display:flex; gap:22px; border-top:1px solid rgba(0,0,0,.25); padding-top:10px">
+      <div style="display:flex; flex-direction:column"><span style="font-size:30px; font-weight:700; color:#000; font-variant-numeric:tabular-nums">14</span><span style="font-size:10px; font-weight:600; letter-spacing:.1em; color:rgba(0,0,0,.55)">NIGHTS</span></div>
+      <div style="display:flex; flex-direction:column"><span style="font-size:30px; font-weight:700; color:#000; font-variant-numeric:tabular-nums">312</span><span style="font-size:10px; font-weight:600; letter-spacing:.1em; color:rgba(0,0,0,.55)">MOMENTS</span></div>
+      <div style="display:flex; flex-direction:column"><span style="font-size:30px; font-weight:700; color:#000; font-variant-numeric:tabular-nums">187</span><span style="font-size:10px; font-weight:600; letter-spacing:.1em; color:rgba(0,0,0,.55)">YOUR RECORD</span></div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px 14px; padding-top:8px">
+      <div style="aspect-ratio:9/14; position:relative; overflow:hidden; transform:rotate(-2deg); box-shadow:0 20px 40px rgba(0,0,0,.28); background:#000">
+        <img src="assets/event-clip.gif" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover"><div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 34%, rgba(0,0,0,.88) 84%)"></div>
+        <span style="position:absolute; top:10px; left:10px; font-size:9px; font-weight:700; letter-spacing:.1em; color:#000; background:#EFFF00; padding:4px 7px">23H47</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column">
+          <span style="font-size:44px; font-weight:700; color:#FF6F91; letter-spacing:-.05em; line-height:.8; font-variant-numeric:tabular-nums">187</span>
+          <span style="font-size:9px; font-weight:700; letter-spacing:.1em; color:#fff; margin-top:7px">LOLLA — DAY 2</span>
+        </div>
+      </div>
+      <div style="aspect-ratio:9/14; position:relative; overflow:hidden; transform:rotate(1.6deg); box-shadow:0 20px 40px rgba(0,0,0,.28); background:#000; margin-top:20px">
+        <img src="assets/torcida.gif?v=2" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover"><div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 34%, rgba(0,0,0,.88) 84%)"></div>
+        <span style="position:absolute; top:10px; left:10px; font-size:9px; font-weight:700; letter-spacing:.1em; color:#000; background:#FF6F91; padding:4px 7px">94:12</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column">
+          <span style="font-size:44px; font-weight:700; color:#fff; letter-spacing:-.05em; line-height:.8; font-variant-numeric:tabular-nums">176</span>
+          <span style="font-size:9px; font-weight:700; letter-spacing:.1em; color:#fff; margin-top:7px">PALMEIRAS 2×1</span>
+        </div>
+      </div>
+      <div style="aspect-ratio:9/14; position:relative; overflow:hidden; transform:rotate(1.2deg); box-shadow:0 20px 40px rgba(0,0,0,.28); background:#000; margin-top:-8px">
+        <img src="assets/cold-play.gif?v=2" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover"><div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 34%, rgba(0,0,0,.88) 84%)"></div>
+        <span style="position:absolute; top:10px; left:10px; font-size:9px; font-weight:700; letter-spacing:.1em; color:#000; background:#EFFF00; padding:4px 7px">21H03</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column">
+          <span style="font-size:44px; font-weight:700; color:#fff; letter-spacing:-.05em; line-height:.8; font-variant-numeric:tabular-nums">142</span>
+          <span style="font-size:9px; font-weight:700; letter-spacing:.1em; color:#fff; margin-top:7px">COLDPLAY</span>
+        </div>
+      </div>
+      <div style="aspect-ratio:9/14; position:relative; overflow:hidden; transform:rotate(-1.6deg); box-shadow:0 20px 40px rgba(0,0,0,.28); background:#EFFF00; margin-top:12px">
+        <span style="position:absolute; top:10px; left:10px; font-size:9px; font-weight:700; letter-spacing:.1em; color:#EFFF00; background:#000; padding:4px 7px">01H24</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column">
+          <span style="font-size:44px; font-weight:700; color:#000; letter-spacing:-.05em; line-height:.8; font-variant-numeric:tabular-nums">116</span>
+          <span style="font-size:9px; font-weight:700; letter-spacing:.1em; color:#000; margin-top:7px">REALNESS FEST</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="lista" style="background:#000; padding:80px 24px 64px; display:flex; flex-direction:column; gap:20px">
+    <span style="font-size:11px; font-weight:600; letter-spacing:.16em; color:#EFFF00">WAITLIST</span>
+    <h2 style="margin:0; font-size:40px; font-weight:700; letter-spacing:-.03em; line-height:1.0; color:#fff">I want this at my next event.</h2>
+    <p style="margin:0; font-size:15px; line-height:1.55; color:#8A8A8A">TumTum is starting in São Paulo, one event at a time. Join the list and we'll call you when it's your turn.</p>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:6px">
+      <div style="border:1px solid #2E2E2E; border-radius:12px; padding:16px 18px; font-size:15px; color:#8A8A8A; background:#0F0F0F">you@email.com</div>
+      <div style="background:#FF6F91; color:#000; font-size:16px; font-weight:600; padding:17px; border-radius:12px; cursor:pointer; text-align:center">Join the list</div>
+    </div>
+    <p style="margin:0; font-size:12px; color:#6F6F6F">We only use your email to tell you about upcoming events. Nothing else.</p>
+  </div>
+
+  <div style="background:#000; border-top:1px solid #1E1E1E; padding:36px 24px 28px; display:flex; flex-direction:column; gap:20px">
+    <img src="assets/tumtum-wordmark-white.svg" alt="TUMTUM" style="width:96px; display:block">
+    <div style="display:flex; gap:18px; flex-wrap:wrap">
+      <a href="https://www.instagram.com/tumtum.cc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">Instagram</a>
+      <a href="https://www.tiktok.com/@tumtum.cc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">TikTok</a>
+      <a href="https://x.com/TumTumcc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">X</a>
+      <a href="https://www.linkedin.com/company/tumtumcc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">LinkedIn</a>
+      <a href="mailto:oi@tumtum.cc" style="font-size:13px; font-weight:600; color:#8A8A8A" style-hover="color:#FF6F91">oi@tumtum.cc</a>
+    </div>
+    <span style="font-size:12px; color:#4A4A4A; line-height:1.5">Your heartbeat data is yours. TumTum only reads what you authorize, only during the event window, and only turns it into a story with your permission.</span>
+    <div style="display:flex; justify-content:space-between; border-top:1px solid #1E1E1E; padding-top:16px">
+      <span style="font-size:12px; color:#4A4A4A">TumTum · São Paulo · 2026</span>
+      <a href="#lista" style="font-size:12px; color:#4A4A4A" style-hover="color:#FF6F91">Sign in to your account</a>
+    </div>
+  </div>
+
+</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 390, &quot;height&quot;: 844}, &quot;cohortPct&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 64, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 20, &quot;max&quot;: 95, &quot;step&quot;: 1, &quot;unit&quot;: &quot;%&quot;, &quot;section&quot;: &quot;Dados&quot;}}">
+class Component extends DCLogic {
+  state = { lang: (() => { try { return localStorage.getItem('tt-site-lang') || 'pt'; } catch (err) { return 'pt'; } })(), menuOpen: false };
+  setLang(l) { try { localStorage.setItem('tt-site-lang', l); } catch (err) {} this.setState({ lang: l, menuOpen: false }); }
+  series() {
+    const W = 1000, H = 260, lo = 52, hi = 195;
+    const y = v => H - 14 - ((v - lo) / (hi - lo)) * (H - 34);
+    const val = t => {
+      if (t > 0.93) { const k = (t - 0.93) / 0.07; return 108 + k * k * 79; }
+      return 84 + 26 * t + 13 * Math.sin(t * 21.7) + 7 * Math.sin(t * 6.1 + 1.2) + 5 * Math.sin(t * 47);
+    };
+    const seg = (t0, t1) => {
+      let d = '';
+      const n = Math.max(2, Math.round((t1 - t0) * 150));
+      for (let i = 0; i <= n; i++) {
+        const t = t0 + (t1 - t0) * (i / n);
+        d += (i ? ' L' : 'M') + (12 + t * 966).toFixed(1) + ' ' + y(val(t)).toFixed(1);
+      }
+      return d;
+    };
+    return { pathFull: seg(0, 1), peakX: 978, peakY: y(187) };
+  }
+  renderVals() {
+    return Object.assign({
+      cohortPct: this.props.cohortPct ?? 64,
+      isPt: this.state.lang === 'pt',
+      isEn: this.state.lang === 'en',
+      setPt: () => this.setLang('pt'),
+      setEn: () => this.setLang('en'),
+      menuOpen: this.state.menuOpen,
+      toggleMenu: () => this.setState(s => ({ menuOpen: !s.menuOpen })),
+      closeMenu: () => this.setState({ menuOpen: false })
+    }, this.series());
+  }
+}
+
+</script>
+</body>
+</html>

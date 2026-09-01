@@ -1,0 +1,10 @@
+:root {
+  /* PROPOSAL. TumTum's default is a hard edge — poster, sticker, flyer.
+     Rounding is reserved for things you touch. */
+  --r-0: 0px;      /* colour fields, labels, share-card surfaces */
+  --r-1: 4px;      /* inputs, small tiles */
+  --r-2: 12px;     /* buttons, cards you tap */
+  --r-3: 20px;     /* sheets, previews */
+  --r-4: 44px;     /* device-scale containers */
+  --r-full: 999px; /* switches, dots — never on type containers */
+}

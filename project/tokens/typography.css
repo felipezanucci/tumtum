@@ -1,0 +1,49 @@
+:root {
+  /* Two families only. --font-ui is the entire product and marketing voice.
+     The wordmark face (Chosmos) is a placed asset and has no token here.
+     There is deliberately no monospace token: a system mono would be a third face. */
+  --font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* Hero numbers — the share card's whole reason to exist. 9:16 @1080 scale. */
+  --fs-hero-3: 240px;
+  --fs-hero-2: 180px;
+  --fs-hero-1: 120px;
+  /* Editorial + product */
+  --fs-display: 46px;
+  --fs-title: 31px;
+  --fs-heading: 22px;
+  --fs-subhead: 19px;
+  --fs-body-lg: 17px;
+  --fs-body: 15px;
+  --fs-small: 13px;
+  --fs-meta: 11px;
+
+  --ls-hero: -0.055em;
+  --ls-display: -0.03em;
+  --ls-title: -0.02em;
+  --ls-heading: -0.015em;
+  --ls-body: 0em;
+  --ls-meta: 0.18em; /* uppercase metadata tracking */
+
+  --lh-hero: 0.78;
+  --lh-display: 1.02;
+  --lh-heading: 1.1;
+  --lh-body: 1.5;
+  --lh-tight: 1.25;
+
+  /* Composed roles */
+  --type-hero: var(--fw-bold) var(--fs-hero-1) / var(--lh-hero) var(--font-ui);
+  --type-display: var(--fw-bold) var(--fs-display) / var(--lh-display) var(--font-ui);
+  --type-title: var(--fw-bold) var(--fs-title) / var(--lh-display) var(--font-ui);
+  --type-heading: var(--fw-semibold) var(--fs-heading) / var(--lh-heading) var(--font-ui);
+  --type-body: var(--fw-regular) var(--fs-body) / var(--lh-body) var(--font-ui);
+  --type-label: var(--fw-semibold) var(--fs-small) / var(--lh-tight) var(--font-ui);
+  --type-meta: var(--fw-medium) var(--fs-meta) / var(--lh-tight) var(--font-ui);
+
+  --numeric-data: tabular-nums lining-nums;
+}
