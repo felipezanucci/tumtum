@@ -96,7 +96,7 @@ export const PT: SiteCopy = {
   hero: {
     title: ['VOCÊ SENTIU.', 'AGORA TEM', 'PROVA.'],
     sub: 'Os momentos mais marcantes da sua vida têm hora, lugar e batida. A TumTum guarda os três.',
-    ctaPrimary: 'Quero no meu próximo show',
+    ctaPrimary: 'Quero no meu próximo evento',
     ctaSecondary: 'Como funciona',
     card: {
       event: 'LOLLAPALOOZA — DIA 2 · 23H47',
@@ -194,7 +194,7 @@ export const PT: SiteCopy = {
   },
   waitlist: {
     eyebrow: 'LISTA DE ESPERA',
-    title: ['Quero isso no meu', 'próximo show.'],
+    title: ['Quero isso no meu', 'próximo evento.'],
     body: 'A TumTum está começando em São Paulo, evento por evento. Entra na lista e a gente te chama quando for a sua vez.',
     placeholder: 'seu@email.com',
     button: 'Entrar na lista',
