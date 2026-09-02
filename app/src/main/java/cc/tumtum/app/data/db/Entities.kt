@@ -37,6 +37,8 @@ data class NightEntity(
     /** Offset wallClock − elapsedRealtime no início e fim da sessão (§8). */
     val clockOffsetStartMs: Long? = null,
     val clockOffsetEndMs: Long? = null,
+    /** Trava da revela (protocolo do teste): a noite só abre neste instante. Null = sem trava. */
+    val revealAt: Long? = null,
 )
 
 /** Amostras cruas da noite — guardadas como lidas. Buraco é ausência de linha. */

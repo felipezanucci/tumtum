@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.domain.RevealLock
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.Badge
 import cc.tumtum.app.ui.components.BpmCurve
@@ -74,6 +75,37 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
     }
 
     val n = night ?: return
+
+    // A trava da revela: antes das 10h a curva não existe para quem olha (protocolo).
+    var lockTick by remember { mutableStateOf(0) }
+    val locked = remember(lockTick, n.revealAt) { RevealLock.isLocked(n.revealAt) }
+    LaunchedEffect(n.revealAt) {
+        val at = n.revealAt ?: return@LaunchedEffect
+        val waitMs = java.time.Duration.between(java.time.Instant.now(), at).toMillis()
+        if (waitMs > 0) {
+            kotlinx.coroutines.delay(waitMs + 500)
+            lockTick++
+        }
+    }
+    if (locked) {
+        LockedNightView(
+            night = n,
+            exporting = exporting,
+            onBack = { nav.popBackStack() },
+            onExport = {
+                exporting = true
+                scope.launch {
+                    runCatching {
+                        val zip = container.exporter.exportNight(n.id)
+                        context.startActivity(container.exporter.shareIntent(zip))
+                    }
+                    exporting = false
+                }
+            },
+        )
+        return
+    }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -209,4 +241,60 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
 @Composable
 private fun DividerDark() {
     Box(Modifier.fillMaxWidth().height(1.dp).background(TT.Ink700))
+}
+
+/**
+ * A noite lacrada: nada de curva, nada de número. A memória da pessoa é colhida
+ * no papel antes de qualquer dado; a revela abre sozinha às 10h. O único botão
+ * além de voltar é a exportação — função de operador, dado cru, sem espetáculo.
+ */
+@Composable
+private fun LockedNightView(
+    night: cc.tumtum.app.domain.Night,
+    exporting: Boolean,
+    onBack: () -> Unit,
+    onExport: () -> Unit,
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(TT.Night)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 26.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(stringResource(R.string.reveal_label), style = TTType.MetaWide, color = TT.Acid)
+            Text(
+                "←",
+                style = TTType.ItemSub.copy(fontSize = 14.sp),
+                color = TT.Gray45,
+                modifier = Modifier.clickable(onClick = onBack),
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(night.eventName, style = TTType.ItemSub.copy(fontSize = 14.sp), color = TT.Paper)
+            Text(" · ${Fmt.date(night.date)}", style = TTType.ItemSub.copy(fontSize = 14.sp), color = TT.Gray55)
+        }
+        Spacer(Modifier.weight(1f))
+        Text(
+            stringResource(R.string.locked_title),
+            style = TTType.ShoutSmall.copy(fontSize = 27.sp, lineHeight = 29.sp),
+            color = TT.Paper,
+        )
+        Spacer(Modifier.height(14.dp))
+        Text(
+            stringResource(R.string.locked_body, night.revealAt?.let { Fmt.hour(it) } ?: "10:00"),
+            style = TTType.Body,
+            color = TT.Gray45,
+        )
+        Spacer(Modifier.weight(1f))
+        TTButton(
+            if (exporting) stringResource(R.string.export_running) else stringResource(R.string.locked_export),
+            TTButtonStyle.OutlineOnDark,
+            enabled = !exporting,
+            onClick = onExport,
+        )
+    }
 }

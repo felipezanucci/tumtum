@@ -118,7 +118,12 @@ class NightRepository(
      * Salva a noite com a fonte escolhida. Retorna null quando a fonte não tem
      * amostra nenhuma — "Não achamos batida nessa janela."
      */
-    suspend fun saveNight(event: EventSession, measurement: SourceMeasurement, sourcePackage: String): Long? {
+    suspend fun saveNight(
+        event: EventSession,
+        measurement: SourceMeasurement,
+        sourcePackage: String,
+        revealAt: Instant? = null,
+    ): Long? {
         val samples = measurement.bySource[sourcePackage].orEmpty()
         if (samples.isEmpty()) return null
         val moments = NightAnalyzer.moments(samples)
@@ -139,6 +144,7 @@ class NightRepository(
                 sourceLabel = HealthConnectSource.sourceLabel(sourcePackage),
                 clockOffsetStartMs = eventRow?.clockOffsetStartMs,
                 clockOffsetEndMs = eventRow?.clockOffsetEndMs,
+                revealAt = revealAt?.toEpochMilli(),
             ),
         )
         db.nightDao().insertSamples(samples.map { SampleEntity(nightId = nightId, time = it.time.toEpochMilli(), bpm = it.bpm) })
@@ -199,6 +205,7 @@ class NightRepository(
             sourceLabel = night.sourceLabel,
             skin = night.skin?.let { Skin.valueOf(it) },
             published = night.published,
+            revealAt = night.revealAt?.let(Instant::ofEpochMilli),
             samples = domainSamples,
             gaps = if (domainSamples.isEmpty()) listOf(Gap(start, end)) else NightAnalyzer.gaps(domainSamples, start, end),
             moments = moments.sortedByDescending { it.bpm }

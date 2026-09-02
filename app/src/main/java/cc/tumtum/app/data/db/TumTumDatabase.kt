@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class,
         BleSampleEntity::class, RrIntervalEntity::class, MotionEntity::class, ConnectionEventEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class TumTumDatabase : RoomDatabase() {
@@ -59,9 +59,16 @@ abstract class TumTumDatabase : RoomDatabase() {
             }
         }
 
+        /** v2 → v3: a trava da revela (protocolo do dia 25). */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE nights ADD COLUMN revealAt INTEGER")
+            }
+        }
+
         fun build(context: Context): TumTumDatabase =
             Room.databaseBuilder(context, TumTumDatabase::class.java, "tumtum.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
     }
 }

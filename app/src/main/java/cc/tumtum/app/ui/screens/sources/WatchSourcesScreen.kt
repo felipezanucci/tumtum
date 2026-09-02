@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.repo.SourceMeasurement
+import cc.tumtum.app.domain.RevealLock
 import cc.tumtum.app.domain.WatchSource
 import cc.tumtum.app.ui.components.Badge
 import cc.tumtum.app.ui.components.TTButton
@@ -45,6 +46,7 @@ import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import java.time.Duration
 import java.time.Instant
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -144,7 +146,14 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                     } else {
                         val event = container.endNight.event ?: return@launch
                         val meas = container.endNight.measurement ?: return@launch
-                        val nightId = container.nights.saveNight(event, meas, src.packageName)
+                        // Trava da revela (protocolo): com o modo ligado, a noite
+                        // só abre às 10h da manhã seguinte — o cartão cego vem antes.
+                        val revealAt = if (container.prefs.state.first().revealLockEnabled) {
+                            RevealLock.revealAt(meas.windowEnd)
+                        } else {
+                            null
+                        }
+                        val nightId = container.nights.saveNight(event, meas, src.packageName, revealAt)
                         if (nightId == null) {
                             noData = true
                         } else {

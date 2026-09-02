@@ -46,6 +46,8 @@ data class UserState(
     val avatarPath: String? = null,
     /** Sessão de captura ativa — sobrevive à morte do processo (§4.3). */
     val activeCaptureEventId: Long? = null,
+    /** Trava da revela (protocolo): noites novas só abrem às 10h da manhã seguinte. */
+    val revealLockEnabled: Boolean = false,
 ) {
     val watchConnected: Boolean get() = sourcePackage != null
     val sensorPaired: Boolean get() = bleAddress != null
@@ -66,6 +68,7 @@ class UserPrefs(private val context: Context) {
         val participantId = stringPreferencesKey("participant_id")
         val avatarPath = stringPreferencesKey("avatar_path")
         val activeCaptureEventId = longPreferencesKey("active_capture_event_id")
+        val revealLockEnabled = booleanPreferencesKey("reveal_lock_enabled")
     }
 
     val state: Flow<UserState> = context.dataStore.data.map { p ->
@@ -87,6 +90,7 @@ class UserPrefs(private val context: Context) {
             participantId = p[Keys.participantId],
             avatarPath = p[Keys.avatarPath],
             activeCaptureEventId = p[Keys.activeCaptureEventId],
+            revealLockEnabled = p[Keys.revealLockEnabled] ?: false,
         )
     }
 
@@ -146,6 +150,10 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { p ->
             if (id.isBlank()) p.remove(Keys.participantId) else p[Keys.participantId] = id.trim()
         }
+    }
+
+    suspend fun setRevealLock(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.revealLockEnabled] = enabled }
     }
 
     suspend fun setActiveCapture(eventId: Long) {

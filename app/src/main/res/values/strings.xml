@@ -258,4 +258,15 @@
     <!-- a5 sem criação de evento pelo participante -->
     <string name="empty_event_note">O evento da sua noite aparece aqui sozinho quando for marcado.</string>
     <string name="settings_create_event">Marcar evento — operador</string>
+
+    <!-- Trava da revela (protocolo do teste) -->
+    <string name="settings_reveal_lock">Trava da revela</string>
+    <string name="settings_reveal_lock_hint">Noites novas só abrem às 10h da manhã seguinte. Protege o cartão cego do teste.</string>
+    <string name="settings_toggle_on">LIGADA</string>
+    <string name="settings_toggle_off">DESLIGADA</string>
+    <string name="locked_title">Sua noite está sendo\nrevelada.</string>
+    <string name="locked_body">A curva abre aqui às %1$s. A gente te avisa — vale a espera.</string>
+    <string name="locked_badge">LACRADA</string>
+    <string name="locked_row_hint">Abre às 10h. Sem espiar — é parte da mágica.</string>
+    <string name="locked_export">Exportar sessão — operador</string>
 </resources>

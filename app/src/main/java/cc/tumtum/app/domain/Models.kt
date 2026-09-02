@@ -44,6 +44,8 @@ data class Night(
     val sourceLabel: String,
     val skin: Skin?,        // null = ainda não publicada
     val published: Boolean,
+    /** Trava da revela (protocolo): antes deste instante a curva não aparece. */
+    val revealAt: Instant? = null,
     val samples: List<HrSample> = emptyList(),
     val gaps: List<Gap> = emptyList(),
     val moments: List<Moment> = emptyList(),

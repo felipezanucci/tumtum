@@ -212,6 +212,27 @@ fun SettingsScreen(nav: NavHostController) {
             placeholder = "P01",
         )
         Spacer(Modifier.height(14.dp))
+        // Trava da revela: com ela ligada, noites novas só abrem às 10h da manhã
+        // seguinte — o cartão cego colhe a memória antes de qualquer dado.
+        val lockOn = user?.revealLockEnabled == true
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable { scope.launch { container.prefs.setRevealLock(!lockOn) } }
+                .padding(vertical = 10.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_reveal_lock), style = TTType.Body, color = TT.Ink)
+                Text(stringResource(R.string.settings_reveal_lock_hint), style = TTType.Footnote, color = TT.Gray45)
+            }
+            Text(
+                stringResource(if (lockOn) R.string.settings_toggle_on else R.string.settings_toggle_off),
+                style = TTType.Meta,
+                color = if (lockOn) TT.Ink else TT.Gray45,
+            )
+        }
+        Spacer(Modifier.height(14.dp))
         // O participante não cria evento (a5): o operador marca aqui e a captura
         // aparece sozinha na aba AO VIVO de quem está com o aparelho.
         TTButton(

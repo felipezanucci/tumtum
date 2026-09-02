@@ -119,6 +119,8 @@ fun YouScreen(nav: NavHostController) {
 @Composable
 private fun NightCard(night: Night, onClick: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
+    // Noite lacrada (trava da revela): a lista também não vaza número nem curva.
+    val locked = cc.tumtum.app.domain.RevealLock.isLocked(night.revealAt)
     Column(
         Modifier
             .fillMaxWidth()
@@ -137,6 +139,9 @@ private fun NightCard(night: Night, onClick: () -> Unit) {
                 )
                 Text(night.eventName, style = TTType.ItemTitle, color = TT.Ink)
             }
+            if (locked) {
+                Badge(stringResource(R.string.locked_badge))
+            } else {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text("${night.peakBpm}", style = TTType.NumberLarge, color = TT.Ink)
                 Spacer(Modifier.width(5.dp))
@@ -147,7 +152,15 @@ private fun NightCard(night: Night, onClick: () -> Unit) {
                     modifier = Modifier.padding(bottom = 5.dp),
                 )
             }
+            }
         }
+        if (locked) {
+            Text(
+                stringResource(R.string.locked_row_hint),
+                style = TTType.Footnote,
+                color = TT.Gray45,
+            )
+        } else {
         BpmCurve(
             samples = night.samples,
             windowStart = night.startAt,
@@ -165,6 +178,7 @@ private fun NightCard(night: Night, onClick: () -> Unit) {
             if (night.coveragePct < 90) {
                 OutlineBadge(stringResource(R.string.nights_captured_pct, night.coveragePct))
             }
+        }
         }
     }
 }
