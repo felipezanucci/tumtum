@@ -106,6 +106,25 @@ bom. Antes de aceitar um aparelho no teste, confirme que o app é
 responde a pergunta e não entra. Vale igual para o piloto: alguém aparecer com
 uma pulseira de marca desconhecida não é dado, é ruído.
 
+**Armadilha nº 2, específica da Xiaomi: de fábrica ela mede a cada 30 minutos.**
+No Mi Fitness, em *Dispositivo → Saúde e fitness → Frequência cardíaca*, a
+monitorização contínua tem cinco opções — Desligado, Inteligente, 1 min,
+10 min, 30 min — e a Band 9 sai da caixa **a cada 30 min**. "Inteligente" é
+pior do que parece para uma medição: ele varia sozinho conforme o movimento
+(~10 min parado, ~1 min em atividade), então a cadência passaria a depender de
+quanto a pessoa se mexeu e duas noites deixariam de ser comparáveis. Antes do
+teste, **fixe em 1 min**. Medir com o padrão de fábrica daria 12 leituras numa
+noite de seis horas e a conclusão errada de que a Xiaomi não escreve — o mesmo
+falso negativo do clone, por outro caminho.
+
+**E isso já decide metade do resultado antes da noite.** Em segundo plano, 1
+min é o teto do aparelho — exatamente o teto que o Fit3 mostrou em 30/08. Então
+a pergunta que sobra para a Xiaomi é **a do trecho com treino iniciado à mão**,
+onde o Fit3 deu uma leitura a cada ~32 s, longe dos 5 s do portão. Se o treino
+da Xiaomi gravar denso, o teto de 1/min era da Samsung e vale procurar
+fabricante por fabricante; se gravar igual, o teto é do caminho, e Health
+Connect entrega a curva da noite, não os momentos.
+
 **O protocolo:**
 
 0. **As duas pulseiras podem ir no mesmo celular, na mesma noite** — e é o
