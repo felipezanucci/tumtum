@@ -272,6 +272,30 @@ verdict of that day gets re-read in the light of item 30: long moments are
 the ones a slow watch *can* see. If nothing new appears, the night really was
 made of spikes, and the fix cost nothing.
 
+### What the phone needs, and what it does not
+
+Felipe asked whether the app on his Android has to change for any of this to
+count. **No — the detection runs on the backend.** The app captures, uploads,
+and then calls `POST /api/experience/{id}/analyze`; the moments it draws are
+whatever Railway returns. The merge is the update. "Procurar meus momentos"
+on the Realness night, after the merge, is the confirmation described above,
+from the phone he already has.
+
+What the app *did* hold was a claim about the old detector: a capture under
+five minutes hid the button and said a moment "precisa dos cinco minutos em
+volta para comparar" — `BASELINE_WINDOW_SECONDS = 300` copied from the spec.
+The new detector needs no such minimum: measured against it, a 15 s spike
+shows in a two-minute capture and a three-minute rise needs about eight. So
+that screen would have refused a capture the detector could read, which is
+this project's signature bug class — the app stating something false about
+its own state. Fixed in the same PR: the floor is one minute, the copy names
+no number, and the build is 0.2.1 (versionCode 3) so it installs over 0.2.
+**Optional to install**: it changes only that one empty state. The web
+import screen (`frontend/lib/health/quality.ts`) still describes a 60 s
+baseline in its comments and calls a one-per-minute cadence "insufficient"
+— true for a spike, no longer true for a song or a goal; that verdict waits
+on the Mi Band measurement (item 30) rather than on a guess.
+
 **Departure from this morning's own rule.** Twice today this entry's
 predecessors said "deliberately not changed: a deployed detector, a simulated
 finding, confirm on Realness first." Felipe then asked for the fix directly,

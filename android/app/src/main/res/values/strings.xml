@@ -110,7 +110,7 @@
       would be the app inventing a result.
     -->
     <string name="moments_not_looked">Ainda não procurei seus momentos nesta noite.</string>
-    <string name="moments_too_short">Esta captura tem %1$d min. Para um momento se destacar, ele precisa dos cinco minutos em volta para comparar — numa noite inteira sobra.</string>
+    <string name="moments_too_short">Esta captura tem menos de um minuto. Para um momento se destacar, ele precisa de tempo em volta para comparar — numa noite inteira sobra.</string>
     <string name="moments_none">Nenhum momento se destacou. Sua batida seguiu no mesmo ritmo.</string>
     <string name="find_moments">Procurar meus momentos</string>
     <string name="finding_moments">Procurando…</string>
