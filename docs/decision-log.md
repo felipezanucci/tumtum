@@ -11,8 +11,8 @@ the linked documents — this file is the index and the reasoning, not a diary.
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
 | **Android app (native)** | **Proven at a real six-hour event, 29/08.** The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
-| **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. |
-| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. |
+| **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
+| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **New, 17/09 (simulated):** the 300 s baseline drops any elevation longer than ~150 s, so a goal celebration is exactly the wrong length and two of three simulated goals vanish; 900 s reads 5/5 without costing anything on a concert-shaped night. Not changed yet — confirm on the Realness data first. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
 | **Frontend** | **Live on tumtum.cc, desktop and mobile**, merged 01/09 (#45 then #46). Ten sections from the Claude Design handoff, bilingual — `/` in PT and `/en` in English, one layout, `hreflang` alternates. The v0.5 handoff's mobile design shipped too: the four cards are a snap-scrolling swipe carousel, the nav is a text MENU panel, the proof strip is full-width rows, the gallery leads with copy. **One responsive page**, verified at 360/390/480/768/1024/1440 with no horizontal overflow at any width. The handoff's ~25 MB of GIFs ship as 1.4 MB of MP4. |
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
@@ -184,6 +184,93 @@ the linked documents — this file is the index and the reasoning, not a diary.
     test.** Until one of them is fixed and wired, every pilot timeline is typed
     by hand through `POST /api/events/{id}/timeline` — 6–10 entries for a
     match, ~20–25 for a show.
+29. **The peak detector loses any elevation longer than ~150 s.** Found by
+    simulation 2026-09-17, `scripts/simulate_match_detection.py`. The 300 s
+    baseline window is contaminated by the event it is measuring once that
+    event approaches half the window — the same failure the window was widened
+    to fix, one timescale up. A concert moment (8–22 s) is safe; **a goal
+    celebration is exactly the wrong length**, and two of three simulated goals
+    were dropped. At 600–900 s the match reads 5/5 and a concert-shaped night
+    still reads 20/20, with no false positives on a quiet three hours.
+    **Deliberately not changed**: a deployed detector, a simulated finding.
+    Confirm on real data first by re-running the Realness night at 900 s, then
+    change `detect_peaks()` and the CLAUDE.md spec together, as that file
+    requires.
+30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
+    open item 23 *and* whether a wrist device can carry a football moment: at
+    one reading per 32 s the simulation recovers 4 goals in 5, at one per
+    minute only 1 in 5, and 1/min is the band's documented best continuous
+    setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-17 — the detector loses a goal, and a watch can see one
+
+Felipe asked three things: the fan bases behind the shortlisted shows, whether
+buying a cheap Xiaomi band and handing it to a tester would do, and how the
+match on the pitch gets married to the reading on the wrist. The contacts and
+the alignment protocol are in `docs/pilot-event-options.md`, sections 9 and 10.
+The watch question produced a defect, and it is the one worth recording.
+
+### A goal is the wrong length for our own baseline
+
+No capture we own is a match, so this is a **simulation** —
+`scripts/simulate_match_detection.py`, a 2h15 match at 1 Hz with three goals, a
+near-miss and a saved penalty, decimated to the Health Connect cadences and run
+through the real `detect_peaks()`. It found this before it answered anything:
+
+| Elevation lasting | Detected, 300 s baseline |
+|---|---|
+| 23 · 38 · 68 · 98 · 143 s | yes |
+| **188 · 278 · 368 s** | **no** |
+
+**Any elevation longer than about half the baseline window disappears**, for
+exactly the reason CLAUDE.md gives for widening the window from 60 s to 300 s
+in the first place: a peak that sits inside its own reference window raises the
+mean it is measured against. The 300 s window solved that for a 13-second
+concert moment and **reintroduces it one timescale up**, where a goal lives. At
+1 Hz with today's setting the simulation found the near-miss and the saved
+penalty and **lost two of the three goals** — the biggest moments of the match
+are the ones it drops.
+
+At 600–900 s the same match reads 5/5, and widening costs nothing where we have
+evidence: a concert-shaped night of twenty 8–22 s moments reads 20/20 at both
+300 s and 900 s, and a quiet three hours reports zero peaks at every setting.
+
+**Not changed.** This is a deployed detector and a simulated finding, and the
+precedent is the quality score, which waited on Felipe's word. The honest
+confirmation is cheap and exists: re-run the Realness night at 900 s and check
+the twenty moments survive on real data.
+
+### The first time a wrist device could resolve the moments
+
+| Baseline | Strap, 1 Hz | Watch, 1 per 32 s | Watch, 1 per 60 s |
+|---|---|---|---|
+| 300 s (today) | 3/5 | 0/5 | 0/5 |
+| **900 s** | **5/5** | **4/5** | 1/5 |
+
+Etapa 0 closed with the watch delivering the curve and never the moments. That
+verdict holds for a concert and is arithmetic. **It does not transfer to
+football**, because a goal lasts minutes: at one reading per 32 s the
+simulation recovers four goals in five. At one per minute — which is the Xiaomi
+Smart Band 9's best continuous setting — it recovers one in five.
+
+So the answer to *should I buy a Xiaomi and hand it over* is: **not as a source
+for the pilot, and there is nothing to buy.** Felipe already owns an unopened
+Mi Band 9 (open item 23). Opening it, wearing it a night and measuring what it
+writes into Health Connect inside a workout closes the last open question of
+Etapa 0 and answers this one at no cost. The cadence, not the price, is the
+whole question.
+
+### The alignment protocol, in one line
+
+Absolute clocks, marked live, cross-checked against the published minute of the
+goal — **never `kickoff + elapsed`**, which is the bug in
+`parse_fixture_to_timeline()` recorded this morning, and never a broadcast
+clock, whose delay is as large as the matching window. The piece worth building
+is a **"marcar momento" button** that posts the current UTC time to
+`/api/events/{id}/timeline`: 6–12 taps turn a match into a testable event, and
+the endpoint already exists.
 
 ---
 

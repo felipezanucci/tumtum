@@ -208,6 +208,141 @@ makes the concert test better.
 
 ---
 
+## 8. Can a cheap watch carry the test? — the simulation, 2026-09-17
+
+Felipe asked whether buying a Xiaomi band and handing it to a participant
+would do. The concert answer was settled on 30/08 and is arithmetic: a moment
+lasts 8–22 s and a watch samples every 32 s at best, so there is nowhere for
+the moment to exist. **A football moment is a different shape** — a goal is
+roared, jumped and hugged, and the heart stays up for minutes — so the
+arithmetic has to be redone rather than assumed.
+
+No capture we own is a match, so this is a **simulation**, reproducible at
+`scripts/simulate_match_detection.py`: a 2h15 match at 1 Hz with three goals,
+a near-miss and a saved penalty, decimated to the cadences measured on Health
+Connect, run through the real `detect_peaks()`.
+
+### It found a defect before it answered the question
+
+| Elevation lasting | Detected with the 300 s baseline? |
+|---|---|
+| 23 s · 38 s · 68 s · 98 s · 143 s | yes |
+| **188 s · 278 s · 368 s** | **no** |
+
+**Any elevation longer than roughly half the baseline window disappears.** It
+sits inside its own 300-second reference window and raises the mean it is
+measured against — precisely the contamination the 300 s window was widened to
+prevent (CLAUDE.md says so in as many words), reappearing one timescale up. A
+concert moment is far too short to trigger it. **A goal celebration is exactly
+the wrong length**, so the biggest moments of a match are the ones that vanish:
+at 1 Hz with the current setting the simulation found the near-miss and the
+saved penalty and **lost two of the three goals**.
+
+### With a wider baseline, the picture inverts
+
+| Baseline | Strap, 1 Hz | Watch, 1 per 32 s | Watch, 1 per 60 s |
+|---|---|---|---|
+| **300 s (today)** | 3/5 | **0/5** | **0/5** |
+| 600 s | 5/5 | 3/5 | 1/5 |
+| **900 s** | **5/5** | **4/5** | 1/5 |
+| 1200 s | 5/5 | 4/5 | 1/5 |
+
+And widening it costs nothing where the project already has evidence: on a
+concert-shaped night of twenty 8–22 s moments, 300 s and 900 s both find
+20/20, and both report zero peaks on a quiet three hours with nothing in it.
+
+### So, the watch
+
+- **At one reading per minute — which is the Xiaomi Smart Band 9's best
+  continuous setting — it finds one goal in five.** Not a source for the pilot.
+- **At one reading per 32 s it finds four in five**, once the baseline is
+  widened. That is the first time in this project that a wrist device has been
+  able to resolve the moments, and it is only true because a goal is long.
+- **Felipe already owns a Mi Band 9, unopened** (open item 23). The purchase to
+  make is not another band: it is opening that one, wearing it a night, and
+  measuring what it actually writes into Health Connect inside a workout. That
+  closes the last open question of Etapa 0 and answers this one, for nothing.
+- Practical gate: Xiaomi writes through Mi Fitness → Health Connect, with the
+  permission granted per data type. Verify heart rate arrives at all before
+  counting on the cadence.
+
+**The simulation is a prediction, not a measurement.** The response shape is
+assumed. What it earns is the right to change one number and to open the Mi
+Band before the match rather than after it.
+
+---
+
+## 9. Marrying what happened on the pitch to what the watch read
+
+The rule this project already learned: **alignment uses absolute clocks, never
+by sliding one series against the other until the error looks small.** So every
+step below is about getting one honest wall clock on both sides.
+
+1. **Check the two clocks agree before leaving home.** The phone is NTP-synced;
+   the watch keeps its own time and Health Connect stores what the watch wrote.
+   A 40-second drift is half the matching window.
+2. **Mark the match by hand, live.** Kick-off, each goal, half-time, the
+   restart, each near-miss, the final whistle: 6–12 taps. This is the piece
+   worth building — a "marcar momento" button that POSTs the current UTC time
+   to `/api/events/{id}/timeline`, which already exists and is what the demo
+   seeder uses. Without it, someone writes times on paper.
+3. **Then cross-check against the official match report.** The minute of every
+   goal is published. Convert it as *start of that half + the minute*, never as
+   `kickoff + elapsed` — that is the bug in `parse_fixture_to_timeline()`
+   (section 2), and it is wrong by the whole half-time interval.
+4. **A phone video is the tiebreaker.** Its file carries the second the goal
+   was filmed. One video settles any disagreement between the paper and the
+   report.
+5. **Never take the time off a broadcast.** Stream delay runs 10–60 s — as
+   large as the window itself.
+6. **Expect the peak to lag the goal by 10–40 s.** The heart takes seconds to
+   rise and the celebration is what sustains it. Mark the ball crossing the
+   line; the ±60 s window absorbs the rest.
+7. **The number that proves the product is not one person's peak.** It is *the
+   same second appearing in three chests*. Record every participant against the
+   same event and compare the peak timestamps to each other — that comparison,
+   not any single curve, is card 04 and is the reason to instrument more than
+   one person.
+
+---
+
+## 10. Reaching the fan bases
+
+A distinction worth making first: **to find 3–5 testers, a fan base is the
+slow road** — friends who are fans are faster, safer on consent, and already
+trust the person asking. A fan base is what you need for the *other* half of
+the question: an audience that cares whether the card gets posted. Approach one
+when the test is about reach, not about five people.
+
+Fan bases are run by volunteer admins who organise projects — banners, fan
+chants, cup projects — and are used to being approached. The routes that work
+are the DM on X, the DM on Instagram, and the e-mail in the bio, in that order.
+Handles below were collected from public listings on 2026-09-17 and should be
+confirmed before writing; accounts change hands.
+
+| Artist | Fan base | Route |
+|---|---|---|
+| **BTS** | BTS ⟭⟬ Brasil (`@btsxbrazil` on X, `@oficialbtsxbr` on Instagram) — the first Brazilian fan base dedicated to BTS coverage | DM |
+| | BTS Brasil ON / BBO (`@btsbrasil_on`) | `btsbrasilon@gmail.com` |
+| | Bangtan News Brasil (`@BTSNewsBrasil`, Instagram `@BTSNewsBrasilOficial`) | `contact.btsnewsbr@gmail.com` |
+| | Bangtan Brasil — runs the Brazilian BTS fan club at `bangtan.com.br/faclube/` | site form |
+| **Hayley Williams / Paramore** | Paramore Brasil (`@paramorebrasil` on X) — the largest Brazilian Paramore portal since 2005 | `paramore.brasil@gmail.com` |
+| | Paramore BR (`@paramorebr`) | DM |
+| **TAEMIN** | TAEMIN Brasil (`@TaeminBrasil_`) — the fandom's name is TAEMate | DM |
+| **KARD** | KARD Brasil (`@KDMBrasil`) | DM |
+| **ZAYN** | Zayn Squad Brasil (`@zaynsquadbrasil` on X, Linktree `zaynsquadbra`) | DM |
+| | Zayn Brasil (`@zayn_br`, `@zaynbrfc1` on Instagram) | DM |
+| **Tasha & Tracie** | Central Tasha e Tracie (`@centraltashaetracie`, Instagram, ~46k) and Portal Tasha & Tracie (`@ptashatracie` on X) | DM |
+| | The artists themselves: `@tashaokereke` and `@tracieokereke`; booking and press through the contact page at `tashaetracie.com/contato` | e-mail |
+
+What to send: something small and concrete. Five places, free, we lend the
+strap, you keep your card and we do not post anything without you. Do not ask
+for a post — ask for five people. Say the words *health data* early and say who
+holds it, because a fan base that organises projects has been burned by brands
+before, and because it is the one screen where this brand is quiet and careful.
+
+---
+
 ## Sources
 
 Public listings consulted on 2026-09-17. All dates need confirming on the
