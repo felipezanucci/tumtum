@@ -42,6 +42,25 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        /*
+          The release key, kept out of the repository — 2026-09-17.
+
+          From 30/09 an APK from an unverified developer no longer installs on
+          a Brazilian phone, and the Play Console will not take the committed
+          debug key at all. This is the upload key: Play App Signing holds the
+          definitive one, so losing this key is a support request, not a lost
+          app. CI decodes it from a secret into a temp file; locally, point
+          the same four variables at a keystore on disk.
+        */
+        release {
+            def keystorePath = System.getenv('TUMTUM_UPLOAD_KEYSTORE_PATH')
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword System.getenv('TUMTUM_UPLOAD_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('TUMTUM_UPLOAD_KEY_ALIAS')
+                keyPassword System.getenv('TUMTUM_UPLOAD_KEY_PASSWORD')
+            }
+        }
     }
 
     defaultConfig {
@@ -56,9 +75,17 @@ android {
 
     buildTypes {
         debug {
-            // The pilot installs this by hand, so a debug build is the product.
+            // Installed by hand; the build the pilot ran on until 2026-09-17.
             applicationIdSuffix '.debug'
             signingConfig signingConfigs.debug
+        }
+        release {
+            // The build that goes to the Play Console (as an .aab) and, signed
+            // with the same key, the APK a verified developer may hand out.
+            // No shrinking: a WebView plus BLE plus Health Connect is exactly
+            // the kind of app R8 breaks silently, and nothing here is large.
+            minifyEnabled false
+            signingConfig signingConfigs.release
         }
     }
 
@@ -69,6 +96,22 @@ android {
 
     kotlinOptions {
         jvmTarget = '17'
+    }
+}
+
+// A release build without the key would be an unsigned bundle nobody can
+// use, so it fails here, naming what is missing, rather than in the
+// Play Console with a generic error.
+afterEvaluate {
+    tasks.matching { it.name in ['bundleRelease', 'assembleRelease', 'packageRelease'] }.configureEach {
+        doFirst {
+            if (!System.getenv('TUMTUM_UPLOAD_KEYSTORE_PATH')) {
+                throw new GradleException(
+                    'Release build needs the upload key: set TUMTUM_UPLOAD_KEYSTORE_PATH, ' +
+                    '_KEYSTORE_PASSWORD, _KEY_ALIAS and _KEY_PASSWORD (see .github/workflows/build-capture-apk.yml).'
+                )
+            }
+        }
     }
 }
 
