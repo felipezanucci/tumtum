@@ -215,11 +215,62 @@ the linked documents — this file is the index and the reasoning, not a diary.
     and miss both 30/09 and 10/10. Costs of personal until the upgrade: the
     12 testers × 14 days rule before production, and payments/taxes in
     Felipe's name. Upgrade before monetising.
+32. **Account deletion is a promise kept by hand.** `tumtum.cc/privacidade`
+    (2026-09-17) promises deletion of account, readings, moments and cards
+    on request to oi@tumtum.cc within 7 days; there is no endpoint for it,
+    so Felipe deletes rows. Build `DELETE /api/users/me` (cascade: sessions,
+    hr_data, peaks, cards, shares) and a button on the profile before the
+    Play data-safety form is filled in — it asks exactly this.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-17 — the Play account exists; the release key, the release build and the privacy page follow
+
+Felipe created the Play Console account the same evening — personal, as
+decided — and the identity check is with Google. Two "ação necessária" items
+remain on his side of the console (confirm access to an Android phone via
+the Play Console app; verify the phone number, which waits on identity).
+The pieces on this side, done tonight:
+
+- **An upload key, out of the repository.** Generated here, handed to Felipe
+  as files to keep in a password manager, never committed. With Play App
+  Signing the definitive key is Google's, so this one is recoverable by
+  support request if lost — which is the reason it was acceptable to
+  generate it in a session and hand it over rather than insist on a
+  ceremony. SHA-256
+  `F2:08:8E:B9:EA:8B:39:5E:9B:F0:C3:75:80:92:6A:87:87:1E:C6:54:D2:2F:49:41:A1:46:07:5B:AF:6A:7F:25`.
+  It reaches CI as four repository secrets (`TUMTUM_UPLOAD_KEYSTORE_BASE64`,
+  `_KEYSTORE_PASSWORD`, `_KEY_ALIAS`, `_KEY_PASSWORD`) — **Felipe's to set**;
+  until they exist the release job skips itself with a notice and the debug
+  build is untouched.
+- **A release build type**: `cc.tumtum.capture`, no `.debug` suffix, no
+  shrinking (a WebView plus BLE plus Health Connect is what R8 breaks
+  silently, and nothing here is large). A release build attempted without
+  the key fails at once naming the four variables, rather than producing an
+  unsigned bundle. The workflow builds the `.aab` for the console and a
+  release-signed APK for direct installs by a verified developer, as the
+  `tumtum-captura-aab` artefact.
+- **`tumtum.cc/privacidade` and `/en/privacy`.** The console asks for a
+  privacy-policy URL and the site had none. Written in the one register the
+  manual reserves for this screen — quiet, careful, short — and describing
+  what the product does *today*: e-mail and name, the readings you capture
+  or import, the event, the moments, the cards, which network a share went
+  to; one Health Connect permission, heart rate only, only the event
+  window; no sale, no ads, nothing published without the button; servers
+  we rent; an error monitor that receives errors and not heartbeats.
+  Linked from the site footer in both languages.
+
+**One promise the page makes that the code does not yet keep on its own:**
+deletion. There is no account-deletion endpoint — `users.py` has get, patch
+and public profile — so the page promises deletion *by e-mail to
+oi@tumtum.cc, confirmed within 7 days*, which is a manual process Felipe
+runs. That is honest today and is open item 32; the Play data-safety form
+will ask the same question.
 
 ---
 

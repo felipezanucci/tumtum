@@ -80,7 +80,7 @@ export interface SiteCopy {
     errorInvalid: string
     errorServer: string
   }
-  footer: { privacy: string; line: string; signIn: string }
+  footer: { privacy: string; privacyLink: string; privacyHref: string; line: string; signIn: string }
   meta: { title: string; description: string }
 }
 
@@ -215,6 +215,8 @@ export const PT: SiteCopy = {
   footer: {
     privacy:
       'Seus dados de batimento são seus. A TumTum só acessa o que você autorizar, só no intervalo do evento, e transforma em história apenas com a sua permissão.',
+    privacyLink: 'Política de privacidade',
+    privacyHref: '/privacidade',
     line: 'TumTum · São Paulo · 2026',
     signIn: 'Entrar na sua conta',
   },
@@ -356,6 +358,8 @@ export const EN: SiteCopy = {
   footer: {
     privacy:
       'Your heartbeat data is yours. TumTum only reads what you authorize, only during the event window, and only turns it into a story with your permission.',
+    privacyLink: 'Privacy policy',
+    privacyHref: '/en/privacy',
     line: 'TumTum · São Paulo · 2026',
     signIn: 'Sign in to your account',
   },
