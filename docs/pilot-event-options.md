@@ -218,7 +218,7 @@ roared, jumped and hugged, and the heart stays up for minutes — so the
 arithmetic has to be redone rather than assumed.
 
 No capture we own is a match, so this is a **simulation**, reproducible at
-`scripts/simulate_match_detection.py`: a 2h15 match at 1 Hz with three goals,
+`scripts/simulate_moment_detection.py`: a 2h15 match at 1 Hz with three goals,
 a near-miss and a saved penalty, decimated to the cadences measured on Health
 Connect, run through the real `detect_peaks()`.
 
@@ -250,6 +250,41 @@ saved penalty and **lost two of the three goals**.
 And widening it costs nothing where the project already has evidence: on a
 concert-shaped night of twenty 8–22 s moments, 300 s and 900 s both find
 20/20, and both report zero peaks on a quiet three hours with nothing in it.
+
+### Correction the same evening: this is not a football problem
+
+Felipe asked the question that reframes it: *at a show we want the peak on a
+specific song, and a song lasts 3, 4, 5 minutes — is that not the same case as
+the goal?* It is, and it is worse, because a song is longer than a
+celebration. Simulated: a 1h52 show with three songs of sustained euphoria
+(~3'50" each) and three 15-second spikes inside other songs.
+
+| Baseline | Favourite songs found | 15 s spikes found | Moments reported |
+|---|---|---|---|
+| **300 s (today)** | **0/3** | 3/3 | 3 |
+| 600 s · 900 s | 0/3 | 3/3 | 3 |
+| 1200 s | 3/3 | 3/3 | 16 |
+| **1800 s** | **3/3** | **3/3** | **6** |
+
+At today's setting the detector **cannot see a song**. It reports only the
+short spikes — and reports them with durations of 8–22 s. That is exactly the
+signature of the Realness night: twenty moments, all 8–22 s, none longer.
+**Those durations may be a property of the instrument, not of the night.**
+This is the single most important thing the simulation says, and it is
+testable on data we already hold: re-run Realness at 1800 s and see whether
+moments appear that were never reported.
+
+The rule underneath, from a sweep of single elevations at +32 bpm: **the
+baseline window has to be about five times the length of the emotion.** 300 s
+sees up to ~90 s. A 4-minute song needs ~1200 s; a 5-minute one ~1500 s.
+False positives on a slowly drifting quiet capture start at 2700 s, so the
+working range is **1200–1800 s** — and that is one number for both event
+types, not one per sport.
+
+What "a moment" means is therefore a product decision the window encodes: at
+300 s a moment is a spike relative to the last five minutes; at 1800 s it is a
+song relative to the last half hour. The card promises *"seu coração em
+[música]"*. The window has to be the song's size for that sentence to be true.
 
 ### So, the watch
 

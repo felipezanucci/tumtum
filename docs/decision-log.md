@@ -12,7 +12,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
 | **Android app (native)** | **Proven at a real six-hour event, 29/08.** The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
-| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **New, 17/09 (simulated):** the 300 s baseline drops any elevation longer than ~150 s, so a goal celebration is exactly the wrong length and two of three simulated goals vanish; 900 s reads 5/5 without costing anything on a concert-shaped night. Not changed yet — confirm on the Realness data first. |
+| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **New, 17/09 (simulated):** the 300 s baseline cannot see an emotion longer than ~90 s. A goal celebration is dropped; **a favourite song sung for four minutes is invisible**, and the detector reports only the short spikes inside it — with durations of 8–22 s, which is exactly the Realness signature. Rule: window ≈ 5× the emotion; 1200–1800 s sees a song with no false positives. Not changed yet — re-run Realness at 1800 s first and see what was never reported. Item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
 | **Frontend** | **Live on tumtum.cc, desktop and mobile**, merged 01/09 (#45 then #46). Ten sections from the Claude Design handoff, bilingual — `/` in PT and `/en` in English, one layout, `hreflang` alternates. The v0.5 handoff's mobile design shipped too: the four cards are a snap-scrolling swipe carousel, the nav is a text MENU panel, the proof strip is full-width rows, the gallery leads with copy. **One responsive page**, verified at 360/390/480/768/1024/1440 with no horizontal overflow at any width. The handoff's ~25 MB of GIFs ship as 1.4 MB of MP4. |
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
@@ -184,23 +184,77 @@ the linked documents — this file is the index and the reasoning, not a diary.
     test.** Until one of them is fixed and wired, every pilot timeline is typed
     by hand through `POST /api/events/{id}/timeline` — 6–10 entries for a
     match, ~20–25 for a show.
-29. **The peak detector loses any elevation longer than ~150 s.** Found by
-    simulation 2026-09-17, `scripts/simulate_match_detection.py`. The 300 s
-    baseline window is contaminated by the event it is measuring once that
-    event approaches half the window — the same failure the window was widened
-    to fix, one timescale up. A concert moment (8–22 s) is safe; **a goal
-    celebration is exactly the wrong length**, and two of three simulated goals
-    were dropped. At 600–900 s the match reads 5/5 and a concert-shaped night
-    still reads 20/20, with no false positives on a quiet three hours.
+29. **The peak detector cannot see an emotion longer than ~90 s — which
+    rules out a song.** Found by simulation 2026-09-17,
+    `scripts/simulate_moment_detection.py`. The 300 s baseline window is
+    contaminated by the event it measures once the event approaches a fifth of
+    the window — the same failure the window was widened from 60 s to fix, one
+    timescale up. A goal celebration (2–3 min) is dropped; a favourite song
+    sung for 3'50" is **invisible at 300, 600 and 900 s** and appears at
+    1200–1800 s, with no false positives below 2700 s. Rule: **window ≈ 5× the
+    emotion**. **The Realness durations (all 8–22 s) may be the instrument's
+    ceiling, not the night's shape** — the simulation of a show reports only
+    the short spikes at 300 s, with exactly those durations.
     **Deliberately not changed**: a deployed detector, a simulated finding.
-    Confirm on real data first by re-running the Realness night at 900 s, then
-    change `detect_peaks()` and the CLAUDE.md spec together, as that file
-    requires.
+    Confirm first by re-running the Realness night at 1800 s on the stored
+    readings; then change `detect_peaks()` and the CLAUDE.md spec together, as
+    that file requires, and re-read the 30/08 watch verdict in that light.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-17 — "a song lasts four minutes — is that not the same case?" It is, and worse
+
+Felipe, reading the goal finding: at a show the thing to measure is the peak on
+a specific song, and a song lasts 3, 4, 5 minutes. Is that not the same case as
+the goal? **Yes.** Simulated the same evening
+(`scripts/simulate_moment_detection.py`, scenario 2): a 1h52 show with three
+songs of sustained euphoria (~3'50") and three 15-second spikes inside other
+songs, strap at 1 Hz.
+
+| Baseline | Favourite songs | 15 s spikes | Moments reported |
+|---|---|---|---|
+| **300 s (today)** | **0/3** | 3/3 | 3 |
+| 900 s | 0/3 | 3/3 | 3 |
+| 1200 s | 3/3 | 3/3 | 16 |
+| **1800 s** | **3/3** | **3/3** | **6** |
+
+### The Realness durations may belong to the instrument
+
+At today's setting the detector cannot see a song. What it reports is the
+short spikes, with durations of 8–22 s — **which is exactly what Realness
+reported: twenty moments, all 8–22 s, none longer.** The 30/08 entry took
+those durations as a property of the night and built the watch verdict on
+them ("every moment is shorter than the interval between two Fit3 readings").
+The simulation says they may instead be the ceiling of what a 300 s window can
+report. It does not say which; it says the question exists, and it is
+answerable on data we already hold: **re-run the Realness night at 1800 s and
+see whether moments appear that were never reported.** If they do, the watch
+verdict of 30/08 needs re-reading as well — not reversed, re-read: long
+moments are the ones a slow watch *can* see.
+
+### The rule, and what it encodes
+
+A sweep of single elevations at +32 bpm: **the baseline window must be about
+five times the length of the emotion.** 300 s sees up to ~90 s; a 4-minute song
+needs ~1200 s, a 5-minute one ~1500 s. False positives on a slowly drifting
+quiet capture begin at 2700 s. Working range **1200–1800 s**, one number for
+both a match and a show.
+
+The window is not a tuning constant; it is the definition of a moment. At
+300 s a moment is a spike against the last five minutes. At 1800 s it is a
+song against the last half hour. The card says *"seu coração em [música]"*;
+the window has to be the song's size for the sentence to be true. Whether the
+short spikes are *also* worth reporting — the drop, the guest walking on — is
+a product question, not settled here.
+
+**Still not changed**, for the same reason as this morning, now with a
+sharper test: the Realness re-run is the confirmation, and it costs one
+command against data that exists.
 
 ---
 
@@ -215,7 +269,7 @@ The watch question produced a defect, and it is the one worth recording.
 ### A goal is the wrong length for our own baseline
 
 No capture we own is a match, so this is a **simulation** —
-`scripts/simulate_match_detection.py`, a 2h15 match at 1 Hz with three goals, a
+`scripts/simulate_moment_detection.py`, a 2h15 match at 1 Hz with three goals, a
 near-miss and a saved penalty, decimated to the Health Connect cadences and run
 through the real `detect_peaks()`. It found this before it answered anything:
 
