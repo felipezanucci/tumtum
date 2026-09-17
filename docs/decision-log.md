@@ -193,11 +193,81 @@ the linked documents — this file is the index and the reasoning, not a diary.
     If moments appear that last minutes, the 8–22 s durations of 30/08 were
     the instrument's ceiling and the watch verdict of that day is re-read via
     item 30; if not, the night was spikes and the fix cost nothing.
+31. **From 30/09 the APK will not install on an untouched Brazilian phone**
+    unless TumTum is a verified developer with the package and signing
+    certificate registered (entry of 2026-09-17). Register as a person this
+    week (ID, US$ 25); make a release key out of the repo and a release
+    build; register `cc.tumtum.capture` + that certificate; keep ADB and the
+    24-hour advanced flow written down per phone as the fallback. The Play
+    Store is *not* required. The installed build today is
+    `cc.tumtum.capture.debug`, signed with the committed debug key — which
+    is what would otherwise get registered.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-17 — from 30/09 an APK from an unverified developer will not install in Brazil
+
+Felipe remembered being told that from October the APK could no longer be
+installed by hand and asked whether that is so and what the process is.
+Checked against Google's own pages today: **it is so, with a nuance that
+changes the plan.** Android developer verification reaches Brazil (with
+Indonesia, Singapore and Thailand) on **30 September 2026**: on a certified
+device, an app whose developer is not verified and whose package is not
+registered will not install by the normal route. **It does not require the
+Play Store.** What it requires is a *verified developer* and a *registered
+package name and signing certificate* — in the Android Developer Console
+(distribution outside Play only) or in the Play Console (either). The APK can
+keep travelling as a link.
+
+Two escape hatches remain for an unregistered app, both per phone: **ADB**
+(exempt outright — no wait, no limit, but a laptop and a cable at every
+install) and the **advanced flow** (developer options → "apps de
+desenvolvedores não verificados", confirm you are not being coerced, restart,
+**wait 24 hours**, authenticate). And a **limited-distribution tier**: free, no
+government ID, **up to 20 devices** — sized for a pilot of five.
+
+### What the repository holds that the registration will ask for
+
+- The installed app is **`cc.tumtum.capture.debug`** — the debug build type
+  carries the suffix, and "the pilot installs this by hand, so a debug build
+  is the product" (build.gradle). The package registered must be that string,
+  not `cc.tumtum.capture`.
+- It is signed with **the committed debug keystore** (`android/debug.keystore`,
+  password `android`, alias `androiddebugkey`), fingerprint SHA-256
+  `5F:9F:78:F7:AE:B3:6E:2E:03:D1:E4:4F:84:2C:5D:98:62:98:1F:85:87:BD:25:AF:38:03:6B:30:57:60:78:1A`.
+  Registering that certificate works mechanically and binds TumTum's verified
+  identity to a key anyone with the repository can sign with. The build file
+  already says the release "needs a real release key kept out of the
+  repository". Verification is the moment that stops being optional.
+
+### The process, in order
+
+1. **Register this week, as a person.** Government ID, US$ 25 once. An
+   organisation account needs a D-U-N-S number and takes weeks; a person can
+   be verified in days, and the account can change later. If a Play Console
+   account is going to exist anyway, register there: it covers apps
+   distributed outside Play too, and Play verification carries over.
+2. **Make a release key and a release build.** Keystore out of the repo (a
+   GitHub secret, the workflow signs), `release` build type without the
+   suffix, package `cc.tumtum.capture`. One uninstall and reinstall on
+   Felipe's phone, since a new key cannot update the old install. One
+   session of work.
+3. **Register the package and the certificate.** Whichever pair is chosen —
+   release is the honest one — is the pair every tester's phone will check.
+4. **Keep both hatches written down for the day.** If verification has not
+   landed by the first event (10/10 at the earliest), ADB at a meetup with a
+   laptop, or the advanced flow started at least 24 hours before — per
+   phone, and a frightening screen at exactly the moment the brand goes
+   quiet and careful about health data.
+
+None of this touches the **health-permissions Play review** of Etapa 5 in
+`health-connect-plan.md`: verification is identity, not policy review, and a
+hand-installed APK still reads Health Connect without one.
 
 ---
 
