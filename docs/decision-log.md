@@ -207,6 +207,14 @@ the linked documents — this file is the index and the reasoning, not a diary.
     the foreground-service declaration); **the internal testing track may
     be** — a Play link, automatic updates, verification handled — pending
     one check: whether the Health declaration is enforced on that track.
+    **Account type, decided 17/09 at the sign-up screen:** personal now.
+    A personal Play account can be upgraded to an organisation in place
+    later (a new organisation payments profile, verified with CNPJ + D-U-N-S,
+    then linked — apps, package names and users stay; the reverse is not
+    possible). Organisation now would need a D-U-N-S number, up to 30 days,
+    and miss both 30/09 and 10/10. Costs of personal until the upgrade: the
+    12 testers × 14 days rule before production, and payments/taxes in
+    Felipe's name. Upgrade before monetising.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
