@@ -202,6 +202,11 @@ the linked documents — this file is the index and the reasoning, not a diary.
     Store is *not* required. The installed build today is
     `cc.tumtum.capture.debug`, signed with the committed debug key — which
     is what would otherwise get registered.
+    **A public Play listing by 10/10 is not realistic** (12 testers × 14
+    days for a new personal account, the Health apps declaration review,
+    the foreground-service declaration); **the internal testing track may
+    be** — a Play link, automatic updates, verification handled — pending
+    one check: whether the Health declaration is enforced on that track.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
@@ -268,6 +273,33 @@ government ID, **up to 20 devices** — sized for a pilot of five.
 None of this touches the **health-permissions Play review** of Etapa 5 in
 `health-connect-plan.md`: verification is identity, not policy review, and a
 hand-installed APK still reads Health Connect without one.
+
+### "Is the Play Store itself feasible by then?" — a listing, no; a test track, yes
+
+Felipe asked. Checked the same evening. **A public listing by 10/10 is not
+realistic**: a personal Play Console account created after November 2023
+must run a **closed test with 12 testers opted in for 14 continuous days**
+before it may even apply for production access (organisation accounts are
+exempt, and need a D-U-N-S number that takes weeks); the **Health apps
+declaration** is mandatory for anything on closed, open or production
+tracks, with a review measured in weeks not days (Etapa 5 of the Health
+Connect plan already says so); and the app also carries a Bluetooth
+foreground service, which is its own declaration. Three reviews in thirteen
+days, on a brand-new account, is a bet, not a plan.
+
+**A test track is a different question.** The **internal testing** track —
+up to 100 testers by e-mail list, a Play link, installs and updates through
+the Play Store — needs the account, one upload and an opt-in, and is not
+gated by the 14-day rule. Apps distributed through Play are registered for
+developer verification automatically, so the 30/09 wall disappears with it.
+The one thing to verify on the console itself before relying on it: whether
+the Health Connect declaration is enforced on the internal track (Google's
+own page lists closed, open and production). If it is, the pilot's testers
+install by hand with a verified developer as in the process above; if it
+is not, internal testing is the cleanest route there is — a link, no cable,
+automatic updates, and a first step onto the Play Store taken early rather
+than late. Either way the account is the first move, and it is the same
+account.
 
 ---
 
