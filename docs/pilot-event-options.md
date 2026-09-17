@@ -286,6 +286,24 @@ What "a moment" means is therefore a product decision the window encodes: at
 song relative to the last half hour. The card promises *"seu coração em
 [música]"*. The window has to be the song's size for that sentence to be true.
 
+### Fixed the same evening
+
+Felipe asked how to make the algorithm read both — the songs a fan loves most
+and the moments of a match — and name them correctly. The fix is in
+`backend/app/services/peak_detection.py` and `event_correlator.py`, with 19
+tests; the design is in the decision log entry of 2026-09-17 and the algorithm
+in CLAUDE.md. In short: a rolling **median** instead of a mean, so the window
+can be twenty minutes without a spike being lost to it; **hysteresis** so a
+song is one moment and not a dozen slivers; a **minimum rise of 10 bpm** so a
+quiet hour's wobble is not a moment; and a **causal matching rule** — the
+latest timeline entry between the start of the elevation and the peak — so a
+song's peak three minutes in is named after that song and not the next one.
+On the same simulation: match 5/5 at 1 Hz and 4/5 at one reading per 32 s,
+show 3/3 songs and 3/3 spikes with exactly six moments reported, the
+Realness-shaped night 20/20, zero peaks on a quiet three hours at every
+window up to an hour. The Realness re-run remains the confirmation on real
+data, and it happens the next time that night is analysed.
+
 ### So, the watch
 
 - **At one reading per minute — which is the Xiaomi Smart Band 9's best

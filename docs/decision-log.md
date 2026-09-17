@@ -12,7 +12,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
 | **Android app (native)** | **Proven at a real six-hour event, 29/08.** The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
-| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **New, 17/09 (simulated):** the 300 s baseline cannot see an emotion longer than ~90 s. A goal celebration is dropped; **a favourite song sung for four minutes is invisible**, and the detector reports only the short spikes inside it — with durations of 8–22 s, which is exactly the Realness signature. Rule: window ≈ 5× the emotion; 1200–1800 s sees a song with no false positives. Not changed yet — re-run Realness at 1800 s first and see what was never reported. Item 29. |
+| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **Confirmation on real data is the next re-analysis of Realness** — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
 | **Frontend** | **Live on tumtum.cc, desktop and mobile**, merged 01/09 (#45 then #46). Ten sections from the Claude Design handoff, bilingual — `/` in PT and `/en` in English, one layout, `hreflang` alternates. The v0.5 handoff's mobile design shipped too: the four cards are a snap-scrolling swipe carousel, the nav is a text MENU panel, the proof strip is full-width rows, the gallery leads with copy. **One responsive page**, verified at 360/390/480/768/1024/1440 with no horizontal overflow at any width. The handoff's ~25 MB of GIFs ship as 1.4 MB of MP4. |
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
@@ -184,26 +184,101 @@ the linked documents — this file is the index and the reasoning, not a diary.
     test.** Until one of them is fixed and wired, every pilot timeline is typed
     by hand through `POST /api/events/{id}/timeline` — 6–10 entries for a
     match, ~20–25 for a show.
-29. **The peak detector cannot see an emotion longer than ~90 s — which
-    rules out a song.** Found by simulation 2026-09-17,
-    `scripts/simulate_moment_detection.py`. The 300 s baseline window is
-    contaminated by the event it measures once the event approaches a fifth of
-    the window — the same failure the window was widened from 60 s to fix, one
-    timescale up. A goal celebration (2–3 min) is dropped; a favourite song
-    sung for 3'50" is **invisible at 300, 600 and 900 s** and appears at
-    1200–1800 s, with no false positives below 2700 s. Rule: **window ≈ 5× the
-    emotion**. **The Realness durations (all 8–22 s) may be the instrument's
-    ceiling, not the night's shape** — the simulation of a show reports only
-    the short spikes at 300 s, with exactly those durations.
-    **Deliberately not changed**: a deployed detector, a simulated finding.
-    Confirm first by re-running the Realness night at 1800 s on the stored
-    readings; then change `detect_peaks()` and the CLAUDE.md spec together, as
-    that file requires, and re-read the 30/08 watch verdict in that light.
+29. ~~**The peak detector cannot see an emotion longer than ~90 s — which
+    rules out a song.**~~ Found by simulation 2026-09-17 and **fixed the same
+    day**: rolling median + IQR spread, 1200 s window, hysteresis, a 10 bpm
+    minimum rise, and a causal matching rule in the correlator (entry of
+    2026-09-17, "rebuilt around a median"). 19 tests. **What stays open is the
+    confirmation on real data:** the next re-analysis of the Realness night.
+    If moments appear that last minutes, the 8–22 s durations of 30/08 were
+    the instrument's ceiling and the watch verdict of that day is re-read via
+    item 30; if not, the night was spikes and the fix cost nothing.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-17 — the detector is rebuilt around a median, and a moment is named by its cause
+
+Felipe: *how do we fix the algorithm so it reads these moments — the songs a
+fan loves most and the most emotional moments of a match — and identifies
+them correctly?* Two changes, shipped together with 19 tests, the
+specification in CLAUDE.md rewritten to match, and 84 backend tests green.
+
+### Detection: the median is the fix, the twenty minutes follow from it
+
+The failure was never the width of the window; it was that a **mean contains
+the event it is the reference for.** Widening from 60 s to 300 s bought a
+13-second spike and lost everything longer than ~90 s. Widening again to
+1800 s would buy a song and start to lose an encore, and it was already slow
+— 9 s for a six-hour night, O(n × window). So the baseline is now a rolling
+**median** with an IQR spread, kept as a sorted window that each sample
+enters and leaves once by binary search: a six-hour night analyses in
+~0.05 s, and the reference does not move until an elevation fills half the
+window. With a 1200 s window that is a nine-minute moment before anything is
+lost.
+
+Two smaller pieces made it clean rather than merely correct:
+
+- **Hysteresis.** A region opens at z > 2 and closes at z ≤ 1. Without it a
+  four-minute song fragmented into a dozen slivers wherever the noise dipped
+  for a second — the 1200 s row of this morning's table reported 16 moments
+  for 6 events.
+- **A minimum rise of 10 bpm** to open a region, 5 to keep one open. A robust
+  spread on a quiet, slowly drifting hour is a couple of bpm, so the first
+  median prototype scored a 4 bpm wobble at z > 2 and reported seven moments
+  on a night with nothing in it. A moment is a rise a person would feel.
+
+| Scenario | Before (mean, 300 s) | After (median, 1200 s) |
+|---|---|---|
+| Match, strap 1 Hz — 3 goals, near-miss, saved penalty | 3/5 | **5/5**, five reported |
+| Match, watch at 1 per 32 s | 0/5 | **4/5** |
+| Match, watch at 1 per 60 s | 0/5 | 3/5 |
+| Show — 3 favourite songs sung for 3'50" + 3 spikes of 15 s | 0/3 songs | **3/3 songs, 3/3 spikes, six reported** |
+| Realness-shaped night — twenty 8–22 s moments | 20/20 | **20/20** |
+| Quiet, drifting 3 h (three seeds) | 0 | **0**, at every window up to 3600 s |
+| Longest single elevation seen | ~90 s | **~540 s** |
+| Six-hour night, wall time | 1.7 s | **0.05 s** |
+
+Each peak now carries `start_time` and `end_time` — the whole song, not the
+second it peaked — and merged regions keep the union of their bounds. Not
+stored yet; the card's curve could shade the whole moment with it.
+
+### Naming: the cause precedes the moment
+
+The second half of the question was *identifying them correctly*, and the
+correlator was wrong for the same reason the detector was: it assumed a
+moment is a point. It matched the nearest entry within ±60 s **of the peak**.
+A favourite song peaks wherever the heart was highest — often three minutes
+in — and at that second the song's own entry is out of reach while the next
+song's may be inside it. The rule is now causal: **the latest entry between
+(region start − 60 s) and (peak + 15 s)**, with the old nearest-within-±60 s
+as the fallback for a spike that nothing precedes. A stored peak, which has
+only a timestamp and a duration, is treated as a region ending at the peak,
+so nights already in the database are named on the same rule when
+re-analysed.
+
+### What this does to what is already stored
+
+Nothing until a night is analysed again — the same mechanism as the quality
+score: "Procurar meus momentos" restates a session from its stored readings.
+**Realness is the confirmation.** The next time that night is opened, if
+moments appear that were never reported and last minutes rather than
+seconds, the 30/08 durations were the instrument's ceiling, and the watch
+verdict of that day gets re-read in the light of item 30: long moments are
+the ones a slow watch *can* see. If nothing new appears, the night really was
+made of spikes, and the fix cost nothing.
+
+**Departure from this morning's own rule.** Twice today this entry's
+predecessors said "deliberately not changed: a deployed detector, a simulated
+finding, confirm on Realness first." Felipe then asked for the fix directly,
+which is the word the precedent waited on; the confirmation still happens, on
+the first re-analysis, and the change is reversible by one merge. The
+simulation was the argument for changing; the tests are the reason it is
+safe to.
 
 ---
 

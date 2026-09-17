@@ -24,11 +24,18 @@ Three scenarios:
 
 **This is a simulation, not a measurement.** The response shapes are assumed.
 What it can do is predict a failure that a real event would otherwise
-discover the expensive way, and it predicts this one: the 300 s baseline
-window is contaminated by any elevation approaching half its length. A
-13-second spike is safe. A goal celebration is not. A favourite song is
-not — and the detector then reports only the short spikes, which is exactly
+discover the expensive way, and it predicted this one: a rolling *mean*
+baseline is contaminated by any elevation approaching half its window. A
+13-second spike was safe. A goal celebration was not. A favourite song was
+not — and the detector then reported only the short spikes, which is exactly
 what the Realness night looked like.
+
+**Fixed the same day** — the baseline is a rolling median now, with an IQR
+spread, hysteresis on the regions and a minimum rise (decision log,
+2026-09-17). This script runs against the real `detect_peaks()`, so what it
+prints is the fixed behaviour; the `baseline 300 s` rows still fail on a
+four-minute song because a 300 s window is simply too narrow for one, median
+or not. The guarantees live in `backend/tests/test_peak_detection.py`.
 
 Run: python3 scripts/simulate_moment_detection.py
 """
