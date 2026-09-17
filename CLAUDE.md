@@ -34,6 +34,7 @@ The other durable documents:
 | `docs/handoff-2026-08-26.md` | Session handoff: state, config, traps, and what was still Felipe's to do two days before the festival |
 | `docs/health-connect-plan.md` | The next phase: reading the fans' own watches, its stages, its estimate, and the sampling risk that decides it |
 | `docs/wear-os-plan.md` | The Wear OS app costed honestly: what it actually buys (guaranteed 1 Hz, not "live"), and why it waits on a measurement |
+| `docs/pilot-event-options.md` | **The events that can carry the pilot** after 25/09 was lost: the São Paulo calendar shortlisted against this project's own constraints, and football evaluated honestly against a concert |
 | `docs/design-brief.md` | **Self-contained brand + product handoff for design tools and outside collaborators.** Paste it whole before asking for design work |
 
 One working rule the log records, learned four times: push everything first,

@@ -5,7 +5,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-09-01
+## Where things stand — 2026-09-17
 
 | Track | Status |
 |---|---|
@@ -18,7 +18,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
-| **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
+| **Pilot** | **The 25/09 date is probably lost.** Felipe said on 17/09 he most likely cannot run the test at the Tasha & Tracie show. The calendar was searched and shortlisted in `docs/pilot-event-options.md`: a **football match** as the technical test (objective timestamps, a peak synchronised across every chest in the stadium, tickets that actually exist, and a kick-off that ends before midnight) and a **concert with an engaged fan base** as the product test (which card someone actually sends). Still **decoupled from the supplier decision**. The binding constraint is not the calendar: with one chest strap only one person has moments, and card 04 cannot be tested at all. |
 
 ### Open items
 
@@ -41,7 +41,14 @@ the linked documents — this file is the index and the reasoning, not a diary.
    protection setting, only the wrong URL. The field test runs on
    **https://tumtum.cc**.
 6. **Pilot logistics** — who the 3–5 people are, which event, who carries the
-   strap. The product side is closed; what remains is organising.
+   strap. The product side is closed; what remains is organising. **Reopened
+   2026-09-17:** the 25/09 date is probably lost, and
+   `docs/pilot-event-options.md` holds the shortlist that replaces it — a match
+   first (São Paulo × Vitória 10/10, or Corinthians × Fluminense 20/09 if the
+   Fiel Torcedor biometrics are already registered), a concert second (BTS
+   28–31/10 through people who already hold tickets, Hayley Williams 12–13/11,
+   or Tasha & Tracie in Santos 06/11). **How many straps is the decision that
+   actually sizes the pilot**, not which date.
 7. **Mutation skins** — parked 2026-08-25. Masking a texture inside the master
    works and is built; the textures need to be fine enough to read inside a
    letterform. Nothing depends on this.
@@ -167,6 +174,102 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+28. **The timeline code cannot produce a usable timeline.** Found 2026-09-17.
+    `parse_fixture_to_timeline()` adds the match minute to the kick-off and
+    ignores the ~15-minute half-time interval, so every second-half event is
+    15–20 minutes early — fifteen times outside the correlator's ±60 s window.
+    `parse_setlist_to_timeline()` estimates 4 minutes per song, which drifts
+    past the window by roughly the third song, because Setlist.fm publishes
+    order and never times. **Neither service is imported by any route or
+    test.** Until one of them is fixed and wired, every pilot timeline is typed
+    by hand through `POST /api/events/{id}/timeline` — 6–10 entries for a
+    match, ~20–25 for a show.
+
+---
+
+## 2026-09-17 — the pilot loses its date, and the timeline code turns out to be the real constraint
+
+Felipe: he probably cannot run the test at the Tasha & Tracie show on 25/09.
+He asked for upcoming São Paulo shows with engaged fan bases, and whether the
+test could run at a football match instead. The calendar research and the
+full shortlist are in **`docs/pilot-event-options.md`**; what belongs here is
+what the search found underneath the calendar.
+
+### The question was about events and the answer is about code
+
+Both integrations that were supposed to produce an event timeline are unusable
+as they stand, and **neither is imported by any route or any test** — they are
+dead code:
+
+- **Setlist.fm publishes song order, never times.** `parse_setlist_to_timeline()`
+  therefore estimates, at a flat 4 minutes per song from the start time. The
+  error accumulates: one long intro or one speech and the tenth song is ten
+  minutes out. The correlator matches within **±60 s**, so matching fails from
+  about the third song.
+- **`parse_fixture_to_timeline()` computes `kickoff + elapsed minutes`**, which
+  ignores the ~15-minute half-time interval and first-half stoppage. **Every
+  second-half goal lands 15–20 minutes before it happened** — fifteen times
+  outside the matching window. The first half is roughly right, which is the
+  dangerous kind of wrong.
+
+What works today is `POST /api/events/{id}/timeline`, authenticated, one entry
+at a time. So whichever event is chosen, **a human writes the timeline.** That
+reframes the choice: a concert needs ~20–25 hand-marked song starts, a match
+needs 6–10 entries typed from the match report.
+
+### Football, evaluated honestly
+
+It buys four things a concert cannot: **objective timestamps** (the minute of a
+goal is a published fact), **a synchronised collective peak** — every heart in
+the stadium spikes within the same two seconds, which is the only way to test
+card 04, *A galera* — **a story every Brazilian already understands**, and
+**kick-off times that end before midnight**, so open item 18 never comes up.
+Tickets also exist: a league round is buyable at R$ 45–90 three days out, where
+the concerts with the fan bases worth testing sold out months ago.
+
+It costs: **it can be 0–0**, and then the moments have no names, which is the
+Realness failure repeated by choice; **the biggest spikes are not in any feed**
+(the missed penalty, the near-miss), so someone still notes clock times by
+hand; it is **only ~2 h**, meeting the Phase 5 gate with no margin; and
+**stadium cellular is the worst network in the city**, so the 1.33 MB upload
+(item 15) should be expected to fail at the whistle and be retried on the way
+home.
+
+**They are not the same test.** The match answers *does the correlation hold in
+public, on more than one body*. The concert answers *does anyone send the
+card*, which is the pilot's actual research question (item 25) and is a
+question about a fan base, not a sport. The recommendation is to run both, the
+match first because it is sooner, buyable, and everything it teaches makes the
+concert test better.
+
+### What the search shortlisted
+
+- **Technical test: São Paulo × Vitória, 10/10, 21h, MorumBIS** — buyable
+  tickets, ends before midnight, full stadium. **Corinthians × Fluminense this
+  Sunday, 20/09, 16h** is faster and *earlier than the date being missed*, but
+  the ticket is online-only through Fiel Torcedor **and requires facial
+  biometrics already registered** — nobody joins that one on the day. Maximum
+  emotion, if tickets can be found: **Palmeiras × Fluminense, Libertadores
+  semifinal second leg, 20–22/10, Nubank Parque**.
+- **Product test: BTS at MorumBIS, 28, 30 and 31/10** — three nights, and the
+  most organised fan base in the world, whose sharing culture is precisely the
+  engine the card needs. Sold out since April, so it only works through people
+  who already hold tickets. Otherwise **Hayley Williams, 12–13/11, Espaço
+  Unimed** (both nights sold out fast, indoor, ends before midnight), or
+  **Tasha & Tracie in Santos, 06/11** — the same show being missed, six weeks
+  later, 80 km away.
+- Ruled out on the midnight rule as they stand: ZIG Festival (10/10), Audio
+  late shows, Primavera Sound (05–06/12, two 12-hour days).
+
+### The constraint that is not the calendar
+
+Choosing a date does not fix the thing that limits the pilot. **The moments
+need a chest strap** — Etapa 0 settled that on 30/08 — so the number of people
+with real moments equals the number of straps, not the number of participants.
+The log knows of one. With one strap the collective peak at a goal cannot be
+measured at all, and card 04 cannot be tested. Three straps that broadcast the
+standard BLE Heart Rate Service (0x180D) would change that, and the app already
+speaks that protocol. It is a purchase decision, not an engineering one.
 
 ---
 
