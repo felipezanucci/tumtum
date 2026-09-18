@@ -158,8 +158,10 @@ tumtum-app/
 │   ├── requirements.txt
 │   └── Dockerfile
 │
-├── android/                  # Native capture app (hybrid: native BLE capture,
-│   └── app/                  #   the site's screens in a WebView for the rest)
+├── android/                  # THE app — cc.tumtum.app, Kotlin + Compose + Room: the designed
+│   └── app/                  #   experience, absorbing the proven pipeline (docs/one-app-plan.md)
+├── android-capture/          # cc.tumtum.capture — the proven capture app, kept as the
+│   └── app/                  #   reference until every piece is ported, then retired
 │
 ├── docs/                     # Decision log and durable research documents
 │

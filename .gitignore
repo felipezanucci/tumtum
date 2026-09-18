@@ -55,3 +55,10 @@ ds-bundle/
 frontend/.ds-entry.ts
 frontend/.ds-styles.css
 frontend/ds-process-shim.ts
+
+# Android (android/ and android-capture/)
+.gradle/
+local.properties
+*.iml
+.cxx/
+captures/

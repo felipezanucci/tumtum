@@ -1,0 +1,140 @@
+name: Build TumTum app
+
+# The designed app, cc.tumtum.app (docs/one-app-plan.md). Written without an
+# Android SDK to compile against, so CI is the only place it is verified: a
+# debug APK on every push that touches it, and the release .aab when the
+# upload-key secrets exist.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "android/**"
+      - ".github/workflows/build-app.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # versionCode comes from the run number so builds install over each
+      # other. The old workflow on branch `app` reached the twenties; the
+      # offset keeps every build here above what is already on a phone.
+      - name: Version code above every earlier build
+        run: echo "TUMTUM_VERSION_CODE=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+
+      - name: Unit tests and debug APK
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug
+
+      - name: Name the APK after the build
+        run: cp app/build/outputs/apk/debug/app-debug.apk "tumtum-1.0-b${TUMTUM_VERSION_CODE}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tumtum-app-apk
+          path: android/tumtum-1.0-b*.apk
+
+      # Felipe installs from Releases; a build from a branch stays an artifact.
+      - name: Publish GitHub Release
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-b${{ env.TUMTUM_VERSION_CODE }}
+          name: TumTum app 1.0 — build ${{ env.TUMTUM_VERSION_CODE }}
+          target_commitish: ${{ github.sha }}
+          body: |
+            APK de teste (assinatura de debug) para instalar no celular — Android 9+ com Health Connect.
+
+            **Instalar:** baixe o `tumtum-1.0-b${{ env.TUMTUM_VERSION_CODE }}.apk` abaixo no celular,
+            toque no arquivo e permita a instalação quando o Android pedir. Builds novos
+            instalam por cima deste sem desinstalar.
+
+            Não é o build da loja — esse sai como `.aab` assinado com a chave de upload.
+          files: android/tumtum-1.0-b*.apk
+
+  # The release build: an .aab for the Play Console and a release-signed APK
+  # for direct installs by a verified developer. It needs the upload key,
+  # which lives only in the repository secrets, so before the secrets exist
+  # (or on a fork) the job skips itself instead of failing the debug build.
+  release:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    env:
+      TUMTUM_UPLOAD_KEYSTORE_BASE64: ${{ secrets.TUMTUM_UPLOAD_KEYSTORE_BASE64 }}
+    steps:
+      - name: Is the upload key configured?
+        id: key
+        working-directory: .
+        run: |
+          if [ -n "$TUMTUM_UPLOAD_KEYSTORE_BASE64" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::TUMTUM_UPLOAD_KEYSTORE_BASE64 is not set; skipping the release build."
+          fi
+
+      - if: steps.key.outputs.present == 'true'
+        uses: actions/checkout@v4
+
+      - if: steps.key.outputs.present == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - if: steps.key.outputs.present == 'true'
+        uses: gradle/actions/setup-gradle@v4
+
+      - if: steps.key.outputs.present == 'true'
+        name: Decode the upload key
+        run: |
+          echo "$TUMTUM_UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/tumtum-upload.jks"
+          echo "TUMTUM_UPLOAD_KEYSTORE_PATH=$RUNNER_TEMP/tumtum-upload.jks" >> "$GITHUB_ENV"
+          echo "TUMTUM_VERSION_CODE=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+
+      - if: steps.key.outputs.present == 'true'
+        name: Build release bundle and APK
+        env:
+          TUMTUM_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.TUMTUM_UPLOAD_KEYSTORE_PASSWORD }}
+          TUMTUM_UPLOAD_KEY_ALIAS: ${{ secrets.TUMTUM_UPLOAD_KEY_ALIAS }}
+          TUMTUM_UPLOAD_KEY_PASSWORD: ${{ secrets.TUMTUM_UPLOAD_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon :app:bundleRelease :app:assembleRelease
+
+      - if: steps.key.outputs.present == 'true'
+        name: Name the outputs after the build
+        run: |
+          mkdir -p dist-release
+          cp app/build/outputs/bundle/release/app-release.aab "dist-release/tumtum-b${TUMTUM_VERSION_CODE}.aab"
+          cp app/build/outputs/apk/release/app-release.apk "dist-release/tumtum-b${TUMTUM_VERSION_CODE}.apk"
+
+      - if: steps.key.outputs.present == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tumtum-app-aab
+          path: android/dist-release/*
