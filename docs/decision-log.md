@@ -225,13 +225,51 @@ the linked documents — this file is the index and the reasoning, not a diary.
     Decided 2026-09-18. `docs/one-app-plan.md` is the merge: Etapa 0 one
     repository, 1 a real account, 2 the night uploads and the server's
     moments come back, 3 the event has a name, 4 Play. `cc.tumtum.capture`
-    is the reference until each piece is ported, then retired. **Next
-    act:** Etapa 0.
+    is the reference until each piece is ported, then retired. **Etapa 0
+    done 18/09** (CI green on both trees); **next: Etapa 1.**
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-18 — Etapa 0 done: one repository, the designed app is `android/`
+
+Felipe: *"vai."* The `app` tree (commit `23b10b8`, 02/09, no common
+ancestor with `main`) is in `main` as `android/` in one commit, with the
+source commit named so the branch's 19-commit history stays reachable on
+origin; the capture app is `android-capture/`, the reference until each
+piece is ported. The CLAUDE.md structure block and `android/BUILDING.md` say
+so.
+
+**One workflow for the app** (`build-app.yml`): a debug APK on every push,
+published as a GitHub Release from `main` so builds keep installing over
+each other, and the release `.aab` signed with the upload key of 17/09 when
+the four secrets exist — otherwise the job skips itself with a notice.
+`versionCode = 100 + run number`: a new workflow file restarts the run
+number at 1, and Android refuses a downgrade, so the offset keeps every
+build above whatever the old workflow put on Felipe's phone. The old
+workflow's `ci-status-b*` / `ci-log-b*` branch signalling — built for an
+environment with no GitHub API — is gone; those branches on origin are
+its residue and can be deleted.
+
+**Two judgement calls, stated:** R8 and shrinking are **off** in the
+release block (it had never been built; Room, Compose and a foreground
+service are what an untested minified build breaks silently — on again
+after a minified build has captured a night on a phone, Etapa 4); and the
+capture app's workflow lost its release job, since the key belongs to the
+real app now.
+
+**Gate:** `Build TumTum app` run 1 green on the branch — unit tests and
+`assembleDebug` of `cc.tumtum.app` from `android/`; `Build capture APK
+(reference)` green from `android-capture/`. The second half of the gate,
+"installs over the build Felipe has", is his to confirm with the next
+Release after the merge.
+
+**Next: Etapa 1**, a real account — `TumtumApi.kt` ported, "Criar conta"
+and sign-in against `/api/auth`.
 
 ---
 
