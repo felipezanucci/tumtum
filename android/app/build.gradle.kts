@@ -15,7 +15,14 @@ android {
     defaultConfig {
         applicationId = "cc.tumtum.app"
         minSdk = 28
-        targetSdk = 35
+        // API 36 (Android 16). The Play Console refuses a bundle below it since
+        // 18/09 — "esse nível precisa ser de pelo menos 36". Nothing in the app
+        // depends on the behaviour changes it brings: no orientation lock, so
+        // the large-screen resizability rule is a no-op; edge-to-edge is already
+        // enabled and every screen pads for the system bars; the capture service
+        // already declares foregroundServiceType="connectedDevice" with the
+        // permission to match.
+        targetSdk = 36
         versionCode = buildNumber
         versionName = "1.0-b$buildNumber"
     }
