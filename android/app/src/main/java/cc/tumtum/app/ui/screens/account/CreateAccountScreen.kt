@@ -22,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -45,11 +46,20 @@ private val TAKEN = setOf("mariana", "rodcosta", "jureis", "pbarros", "ltoledo",
 
 private val TRIBES = listOf("SHOWS", "FUTEBOL", "FESTIVAIS")
 
-/** b2 — Criar conta. Leva menos que uma música. */
+/**
+ * b2 — Criar conta. Leva menos que uma música.
+ *
+ * Since 2026-09-18 (Etapa 1) the account is created on the server first and
+ * kept locally second: the @, the tribes and the participant id stay on the
+ * phone, the e-mail, name and password become a real account with a token.
+ * Without the server there is no account — the screen says so instead of
+ * pretending.
+ */
 @Composable
 fun CreateAccountScreen(nav: NavHostController) {
     val container = appContainer()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     var name by rememberSaveable { mutableStateOf("") }
     var username by rememberSaveable { mutableStateOf("") }
@@ -58,6 +68,7 @@ fun CreateAccountScreen(nav: NavHostController) {
     var tribes by rememberSaveable { mutableStateOf(setOf<String>()) }
     var participant by rememberSaveable { mutableStateOf("") }
     var saving by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     val usernameClean = username.trim().lowercase()
     val usernameTaken = usernameClean in TAKEN
@@ -141,20 +152,31 @@ fun CreateAccountScreen(nav: NavHostController) {
 
         Spacer(Modifier.height(40.dp))
         TTButton(
-            stringResource(R.string.account_cta),
+            if (saving) stringResource(R.string.auth_working) else stringResource(R.string.account_cta),
             TTButtonStyle.Rose,
             enabled = valid && !saving,
             onClick = {
                 saving = true
+                error = null
                 scope.launch {
-                    container.prefs.createAccount(
-                        Account(name = name.trim(), username = usernameClean, email = email.trim(), tribes = tribes),
-                    )
-                    container.prefs.setParticipantId(participant)
-                    nav.navigate(Routes.Permission)
-                    saving = false
+                    try {
+                        container.api.register(email = email.trim(), name = name.trim(), password = password)
+                        container.prefs.createAccount(
+                            Account(name = name.trim(), username = usernameClean, email = email.trim(), tribes = tribes),
+                        )
+                        container.prefs.setParticipantId(participant)
+                        nav.navigate(Routes.Permission)
+                    } catch (e: Exception) {
+                        error = AuthErrors.messageFor(e, context)
+                    } finally {
+                        saving = false
+                    }
                 }
             },
         )
+        error?.let {
+            Spacer(Modifier.height(12.dp))
+            Text(it, style = TTType.Body, color = TT.Rose)
+        }
     }
 }

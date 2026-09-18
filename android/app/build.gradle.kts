@@ -88,6 +88,9 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
+    // Android ships org.json, but the stub on the unit-test classpath throws
+    // on every call. AccessToken reads a JWT payload with it. Test-only.
+    testImplementation(libs.json)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
 

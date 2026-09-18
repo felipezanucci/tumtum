@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import cc.tumtum.app.data.api.TumtumApi
 import cc.tumtum.app.data.health.HealthConnectSource
 import cc.tumtum.app.data.prefs.UserPrefs
 import cc.tumtum.app.data.repo.FakeSocialRepository
@@ -35,6 +36,7 @@ class EndNightCache {
 /** DI manual e enxuto — sem framework até precisar de um. */
 class AppContainer(app: Application) {
     val prefs = UserPrefs(app)
+    val api = TumtumApi(prefs)
     val health = HealthConnectSource(app)
     val db = TumTumDatabase.build(app)
     val nights = NightRepository(db, health)

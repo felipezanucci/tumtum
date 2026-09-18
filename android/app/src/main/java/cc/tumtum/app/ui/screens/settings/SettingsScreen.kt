@@ -245,6 +245,35 @@ fun SettingsScreen(nav: NavHostController) {
         Spacer(Modifier.height(40.dp))
         Text(stringResource(R.string.settings_account_section), style = TTType.Meta, color = TT.Gray70)
         Spacer(Modifier.height(10.dp))
+        // The server's side of the account (Etapa 1). Three states, each
+        // said as it is: never signed in, signed in, or a token that has
+        // died — the last one caught here rather than at the end of a night.
+        val session = user?.session
+        val sessionLive = session?.isLive(System.currentTimeMillis()) == true
+        Text(
+            when {
+                session == null -> stringResource(R.string.settings_session_none)
+                sessionLive -> stringResource(R.string.settings_session_live, user?.account?.email.orEmpty())
+                else -> stringResource(R.string.settings_session_expired)
+            },
+            style = TTType.Footnote,
+            color = TT.Gray45,
+        )
+        Spacer(Modifier.height(14.dp))
+        if (sessionLive) {
+            TTButton(
+                stringResource(R.string.settings_sign_out),
+                TTButtonStyle.Outline,
+                onClick = { scope.launch { container.api.signOut() } },
+            )
+        } else {
+            TTButton(
+                stringResource(R.string.settings_sign_in),
+                TTButtonStyle.Outline,
+                onClick = { nav.navigate(Routes.Login) },
+            )
+        }
+        Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.settings_delete_warning), style = TTType.Footnote, color = TT.Gray45)
         Spacer(Modifier.height(14.dp))
         TTButton(

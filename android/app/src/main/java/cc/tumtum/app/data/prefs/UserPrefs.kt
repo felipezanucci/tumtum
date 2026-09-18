@@ -32,9 +32,21 @@ data class Account(
             }
 }
 
+/**
+ * The server's side of the account: a JWT and the user id it names.
+ * Live means the token's own expiry has not passed — the server is still
+ * the authority, this only decides what a screen may promise.
+ */
+data class Session(val token: String, val userId: String?) {
+    fun isLive(nowMillis: Long): Boolean =
+        !cc.tumtum.app.data.api.AccessToken.isExpired(token, nowMillis)
+}
+
 data class UserState(
     val onboarded: Boolean,
     val account: Account?,
+    /** Null until the account has signed in to the server (Etapa 1, 2026-09-18). */
+    val session: Session? = null,
     val sourcePackage: String?,
     val sourceLabel: String?,
     /** Sensor BLE pareado (Polar H10/Verity Sense…), lembrado entre sessões (§10). */
@@ -69,6 +81,8 @@ class UserPrefs(private val context: Context) {
         val avatarPath = stringPreferencesKey("avatar_path")
         val activeCaptureEventId = longPreferencesKey("active_capture_event_id")
         val revealLockEnabled = booleanPreferencesKey("reveal_lock_enabled")
+        val accessToken = stringPreferencesKey("access_token")
+        val userId = stringPreferencesKey("user_id")
     }
 
     val state: Flow<UserState> = context.dataStore.data.map { p ->
@@ -91,7 +105,23 @@ class UserPrefs(private val context: Context) {
             avatarPath = p[Keys.avatarPath],
             activeCaptureEventId = p[Keys.activeCaptureEventId],
             revealLockEnabled = p[Keys.revealLockEnabled] ?: false,
+            session = p[Keys.accessToken]?.let { Session(token = it, userId = p[Keys.userId]) },
         )
+    }
+
+    suspend fun setSession(session: Session) {
+        context.dataStore.edit { p ->
+            p[Keys.accessToken] = session.token
+            session.userId?.let { p[Keys.userId] = it } ?: p.remove(Keys.userId)
+        }
+    }
+
+    /** Sign-out: the token goes, the local profile and the nights stay. */
+    suspend fun clearSession() {
+        context.dataStore.edit { p ->
+            p.remove(Keys.accessToken)
+            p.remove(Keys.userId)
+        }
     }
 
     suspend fun createAccount(account: Account) {
