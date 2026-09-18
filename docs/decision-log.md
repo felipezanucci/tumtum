@@ -235,6 +235,31 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — the merge rule, broken a fifth time, by the assistant
+
+PR #50 was opened as "log only" and merged by Felipe at 00:54. The
+assistant kept pushing to the same branch afterwards — the two-apps entry,
+the one-app plan, Etapa 0, its log — and kept **editing the description of a
+merged PR** and sending its link as "the merge", while `main` had none of
+it. Felipe asked whether he had to do anything for Etapa 1 and was sent the
+link of a PR that was already closed. The four earlier occurrences are in
+this log; CLAUDE.md records the rule in bold; this is the fifth, and the
+first by the assistant knowing the rule word for word.
+
+**What it cost:** an hour of Felipe believing Etapa 0 was in `main`, and a
+question — "eu preciso instalar o app novamente?" — that only made sense
+because the state described to him was false. This is the project's
+signature bug class, in the assistant instead of the app: **stating
+something false about its own state.**
+
+**What is done about it:** the four commits are rebased onto `main` and go
+out as a new PR. And a mechanical guard, since knowing the rule is not what
+fixes it: **before sending any merge link, read the PR's state from GitHub
+and quote it** — `merged: false`, head SHA equal to the branch's — instead of
+remembering it.
+
+---
+
 ## 2026-09-18 — Etapa 0 done: one repository, the designed app is `android/`
 
 Felipe: *"vai."* The `app` tree (commit `23b10b8`, 02/09, no common

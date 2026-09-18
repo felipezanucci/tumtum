@@ -43,7 +43,11 @@ open the pull request last, and anything pushed after a PR is merged gets a
 new PR — never an edit to a merged one. The fourth time proved that knowing
 the rule is not what fixes it: **do not open the PR until the work is finished
 and pushed**, and if one is already open with more commits coming, say so in
-its description so it does not get merged early.
+its description so it does not get merged early. The fifth time (18/09) was
+the assistant pushing to a branch whose PR Felipe had already merged and
+sending that PR's link as "the merge": **before sending a merge link, read
+the PR's state from GitHub — `merged: false`, head SHA equal to the
+branch's — and never from memory.**
 
 **Always end a piece of work by giving Felipe the merge link.** Standing
 instruction from 2026-09-01. He merges everything himself — nothing reaches
