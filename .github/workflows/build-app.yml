@@ -138,3 +138,20 @@ jobs:
         with:
           name: tumtum-app-aab
           path: android/dist-release/*
+
+      # The Play Console wants the .aab from a browser, and a workflow artifact
+      # needs a GitHub login and expires. Attach it to the same release as the
+      # debug APK so it has a plain link (Etapa 4, 2026-09-18).
+      - if: steps.key.outputs.present == 'true' && github.ref == 'refs/heads/main'
+        name: Attach the store bundle to the release
+        continue-on-error: true
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-b${{ env.TUMTUM_VERSION_CODE }}
+          append_body: true
+          body: |
+
+            ---
+            **Para a Play Store:** `tumtum-b${{ env.TUMTUM_VERSION_CODE }}.aab`, assinado com a chave de upload. É este arquivo que sobe no Play Console.
+            `tumtum-b${{ env.TUMTUM_VERSION_CODE }}.apk` (sem "1.0") é o mesmo build assinado para a loja — só instala depois de desinstalar o APK de teste, porque a assinatura é outra.
+          files: android/dist-release/*
