@@ -244,6 +244,28 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — the gallery hid a night, and two things on the header did nothing
+
+Three more from Felipe's hands, on the *Você* tab after the fourth rehearsal.
+
+- **Ensaio 3 was not in the gallery.** The gallery listed only nights with
+  a card chosen (published), so a night just captured, analysed and named
+  was nowhere until the person shared it — while the header counted
+  "2 noites" against a phone holding three. The gallery now shows every
+  night; one without a card is a white cover with *SEM CARD AINDA*, and
+  the skin arrives when the card is chosen. The public profile still shows
+  published nights only. Empty-state copy no longer talks about
+  publishing.
+- **The avatar did nothing on two of the four tabs.** Feed and Você opened
+  the profile; Galeria and Ao vivo did not. All four do now.
+- **The wordmark did nothing anywhere.** It now goes to the feed from every
+  tab, which is what a logo in a header is for.
+
+Same class as the other fifteen: controls with no answer, a list making
+a claim the data contradicts.
+
+---
+
 ## 2026-09-18 — item 32: the privacy page's promise is now code
 
 `tumtum.cc/privacidade` has promised since 17/09 that deleting the account

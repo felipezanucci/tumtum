@@ -83,11 +83,14 @@ fun LiveTabScreen(nav: NavHostController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Wordmark(width = 92.dp)
+            Wordmark(width = 92.dp, modifier = Modifier.clickable { nav.navigate(Routes.Feed) { launchSingleTop = true } })
             cc.tumtum.app.ui.components.UserAvatar(
                 state.account?.initials ?: "TT",
                 Skin.BLACK,
                 photoPath = state.avatarPath,
+                modifier = Modifier.clickable {
+                    state.account?.let { nav.navigate(Routes.profile(it.username)) }
+                },
             )
         }
         // a5 — Vazio: convida a marcar o próximo evento, não a comprar nada.

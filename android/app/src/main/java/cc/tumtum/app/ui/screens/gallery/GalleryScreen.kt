@@ -48,7 +48,7 @@ import cc.tumtum.app.ui.theme.TTType
 @Composable
 fun GalleryScreen(nav: NavHostController) {
     val container = appContainer()
-    val gallery by container.nights.galleryNights().collectAsStateWithLifecycle(initialValue = emptyList())
+    val gallery by container.nights.allGalleryNights().collectAsStateWithLifecycle(initialValue = emptyList())
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
 
@@ -70,11 +70,14 @@ fun GalleryScreen(nav: NavHostController) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Wordmark(width = 92.dp)
+                    Wordmark(width = 92.dp, modifier = Modifier.clickable { nav.navigate(Routes.Feed) { launchSingleTop = true } })
                     cc.tumtum.app.ui.components.UserAvatar(
                         user?.account?.initials ?: "TT",
                         Skin.BLACK,
                         photoPath = user?.avatarPath,
+                        modifier = Modifier.clickable {
+                            user?.account?.let { nav.navigate(Routes.profile(it.username)) }
+                        },
                     )
                 }
                 Spacer(Modifier.height(24.dp))
@@ -88,7 +91,7 @@ fun GalleryScreen(nav: NavHostController) {
                     )
                 }
                 Row(Modifier.padding(top = 18.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
-                    Stat(gallery.size, stringResource(R.string.gallery_nights))
+                    Stat(nights.size, stringResource(R.string.gallery_nights))
                     Stat(momentTotal, stringResource(R.string.gallery_moments))
                     record?.let { Stat(it, stringResource(R.string.gallery_record)) }
                 }
@@ -126,18 +129,28 @@ private fun Stat(value: Int, label: String) {
  */
 @Composable
 fun GalleryCover(night: GalleryNight, compact: Boolean = false, onClick: () -> Unit) {
-    val bg = skinColor(night.skin)
-    val num = if (night.skin == Skin.BLACK) TT.Rose else TT.Ink
-    val fg = if (night.skin == Skin.BLACK) TT.Paper else TT.Ink
+    // Sem card ainda: capa branca com borda, o número em preto, e o aviso.
+    // A pele chega quando a pessoa escolhe o card.
+    val bg = if (night.published) skinColor(night.skin) else TT.Paper
+    val num = if (night.published && night.skin == Skin.BLACK) TT.Rose else TT.Ink
+    val fg = if (night.published && night.skin == Skin.BLACK) TT.Paper else TT.Ink
     Column(
         Modifier
             .aspectRatio(9f / 14f)
             .background(bg)
-            .let { if (night.skin == Skin.WHITE) it.border(1.dp, TT.Gray10) else it }
+            .let { if (!night.published || night.skin == Skin.WHITE) it.border(1.dp, TT.Gray10) else it }
             .clickable(onClick = onClick)
             .padding(if (compact) 10.dp else 14.dp),
         verticalArrangement = Arrangement.Bottom,
     ) {
+        if (!night.published && !compact) {
+            Text(
+                stringResource(R.string.gallery_no_card),
+                style = TTType.MetaSmall.copy(fontSize = 9.5.sp),
+                color = TT.Gray45,
+            )
+            Spacer(Modifier.height(6.dp))
+        }
         Text(
             "${night.peakBpm}",
             style = if (compact) {

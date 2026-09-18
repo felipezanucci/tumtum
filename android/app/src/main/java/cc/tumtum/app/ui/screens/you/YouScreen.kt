@@ -60,7 +60,7 @@ fun YouScreen(nav: NavHostController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Wordmark(width = 92.dp)
+            Wordmark(width = 92.dp, modifier = Modifier.clickable { nav.navigate(Routes.Feed) { launchSingleTop = true } })
             cc.tumtum.app.ui.components.UserAvatar(
                 account?.initials ?: "TT",
                 Skin.BLACK,

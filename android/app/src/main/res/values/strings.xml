@@ -164,7 +164,8 @@
     <string name="gallery_moments">MOMENTOS</string>
     <string name="gallery_record">SEU RECORDE</string>
     <string name="gallery_footnote">Cada noite guarda a pele que você escolheu no card. A forma fica, a pele muda.</string>
-    <string name="gallery_empty">Nenhuma noite publicada ainda. A primeira pele é sua escolha.</string>
+    <string name="gallery_empty">Nenhuma noite ainda. A primeira é a próxima captura.</string>
+    <string name="gallery_no_card">SEM CARD AINDA</string>
 
     <!-- b8 · Perfil público -->
     <string name="profile_nights">NOITES</string>
