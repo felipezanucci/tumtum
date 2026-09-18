@@ -226,12 +226,55 @@ the linked documents — this file is the index and the reasoning, not a diary.
     repository, 1 a real account, 2 the night uploads and the server's
     moments come back, 3 the event has a name, 4 Play. `cc.tumtum.capture`
     is the reference until each piece is ported, then retired. **Etapa 0
-    done 18/09** (CI green on both trees); **next: Etapa 1.**
+    done 18/09; Etapa 1 built 18/09** (CI green; the phone check is
+    Felipe's); **next: Etapa 2.**
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-18 — Etapa 1 built: the designed app has a real account
+
+The first byte `cc.tumtum.app` ever sends to a server. What changed, and
+the two judgement calls inside it:
+
+- **The client is the capture app's, ported** (`data/api/TumtumApi.kt`,
+  `AccessToken.kt`): HttpURLConnection and org.json, suspend functions on
+  IO, a token that knows its own expiry — the 27/08 lesson, a dead token
+  found at the end of a night with no way back to a password field. The
+  session lives in `UserPrefs` beside the account (`UserState.session`), so
+  every screen sees signed-in and signed-out through the same state flow.
+- **"Criar conta" creates the account on the server first** (`POST
+  /api/auth/register`) and keeps it locally second. **"Entrar"** is e-mail
+  and password against `/api/auth/login`, the name filled from
+  `/api/auth/me`. The @, the tribes and the participant id stay on the
+  phone: the server has no @ — the site's public profile is by name —
+  and inventing one server-side is a decision for later, not a port.
+- **Every failure says what it is:** wrong credentials (401), an e-mail
+  that already has an account (409, the server's own sentence), no
+  internet, or the server's sentence with its code. The old note on the
+  login screen — *"Sem servidor ainda: a conta vive neste aparelho"* — is
+  gone; it would now be the app stating something false about its own
+  state.
+- **Settings shows the server's side of the account** in three states —
+  never signed in, signed in as *e-mail*, or expired — with sign-in and
+  sign-out. The token lasts 24 h (`ACCESS_TOKEN_EXPIRE_MINUTES`), so
+  "expired" will be the normal state of a phone opened a day later; the
+  night upload (Etapa 2) has to ask for the password before it tries, not
+  after, and this state is where it will look.
+- INTERNET permission added — the app had none, being local; org.json as
+  a test dependency, since the stub on the unit-test classpath throws; five
+  tests on the token and the session.
+
+**Gate:** CI green — unit tests, `assembleDebug`, and the release `.aab`.
+The half that is Felipe's: sign in on the phone with the tumtum.cc account,
+kill the app, open it, see Settings still say *Conectada como …*; then a
+wrong password, and see it say so.
+
+**Next: Etapa 2** — the night uploads and the server's moments come back.
 
 ---
 
