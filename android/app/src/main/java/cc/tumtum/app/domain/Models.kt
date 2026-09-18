@@ -17,7 +17,15 @@ data class Moment(
     val at: Instant,
     val durationSec: Int,
     val isPeak: Boolean = false,
+    /** What caused it, when the event has a timeline — server moments only. */
+    val label: String? = null,
 )
+
+/** Where a night stands with the server (Etapa 2). */
+enum class UploadState { PENDING, SENT, ANALYSED, FAILED }
+
+/** Who found the moments on screen: the phone's top-N, or the server's detector. */
+enum class MomentsSource { LOCAL, SERVER }
 
 /** O evento marcado pelo usuário — define a janela de leitura (§7). */
 data class EventSession(
@@ -49,6 +57,10 @@ data class Night(
     val samples: List<HrSample> = emptyList(),
     val gaps: List<Gap> = emptyList(),
     val moments: List<Moment> = emptyList(),
+    val serverSessionId: String? = null,
+    val uploadState: UploadState = UploadState.PENDING,
+    val uploadError: String? = null,
+    val momentsSource: MomentsSource = MomentsSource.LOCAL,
 )
 
 /** Fonte disponível no Health Connect, com densidade real medida na janela (b4). */

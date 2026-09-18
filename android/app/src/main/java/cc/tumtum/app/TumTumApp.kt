@@ -14,6 +14,7 @@ import cc.tumtum.app.data.health.HealthConnectSource
 import cc.tumtum.app.data.prefs.UserPrefs
 import cc.tumtum.app.data.repo.FakeSocialRepository
 import cc.tumtum.app.data.repo.NightRepository
+import cc.tumtum.app.data.repo.NightSync
 import cc.tumtum.app.data.repo.SocialRepository
 import cc.tumtum.app.data.repo.SourceMeasurement
 import cc.tumtum.app.domain.EventSession
@@ -40,6 +41,7 @@ class AppContainer(app: Application) {
     val health = HealthConnectSource(app)
     val db = TumTumDatabase.build(app)
     val nights = NightRepository(db, health)
+    val sync = NightSync(db, api, prefs)
     val social: SocialRepository = FakeSocialRepository()
     val endNight = EndNightCache()
     val exporter = SessionExporter(app, db, prefs)
@@ -54,6 +56,8 @@ class TumTumApp : Application() {
         container = AppContainer(this)
         repairLegacyHandle()
         resumeCaptureIfNeeded()
+        // Etapa 2: a night that never reached the server tries again on every start.
+        container.sync.retryPendingLater()
     }
 
     /**

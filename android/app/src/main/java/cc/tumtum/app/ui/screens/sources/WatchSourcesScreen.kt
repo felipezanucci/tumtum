@@ -154,6 +154,8 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                             null
                         }
                         val nightId = container.nights.saveNight(event, meas, src.packageName, revealAt)
+                        // Etapa 2: saved on the phone first, then offered to the server. A failure costs a retry, never the night.
+                        nightId?.let { container.sync.uploadLater(it) }
                         if (nightId == null) {
                             noData = true
                         } else {

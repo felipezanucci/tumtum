@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.repo.NightSync
+import cc.tumtum.app.domain.UploadState
 import cc.tumtum.app.domain.RevealLock
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.Badge
@@ -67,6 +69,8 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
     val peaksAlpha = remember { Animatable(0f) }
     LaunchedEffect(night?.id) {
         if (night != null) {
+            // Etapa 2: opening a night that never reached the server is a natural moment to try again.
+            if (night?.uploadState != UploadState.ANALYSED) container.sync.uploadLater(night!!.id)
             progress.snapTo(0f)
             peaksAlpha.snapTo(0f)
             progress.animateTo(1f, tween(durationMillis = 1_200, easing = FastOutSlowInEasing))
@@ -189,17 +193,42 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                         color = TT.Paper,
                         modifier = Modifier.width(52.dp),
                     )
-                    Text(
-                        stringResource(R.string.reveal_moment_meta, Fmt.hour(moment.at), moment.durationSec),
-                        style = TTType.BodySmall,
-                        color = TT.Gray45,
-                        modifier = Modifier.weight(1f),
-                    )
+                    Column(Modifier.weight(1f)) {
+                        // The cause, when the event has a timeline: the song, the goal.
+                        moment.label?.let { Text(it, style = TTType.BodySmall, color = TT.Paper) }
+                        Text(
+                            stringResource(R.string.reveal_moment_meta, Fmt.hour(moment.at), moment.durationSec),
+                            style = TTType.BodySmall,
+                            color = TT.Gray45,
+                        )
+                    }
                     if (moment.isPeak) {
                         Badge(stringResource(R.string.reveal_biggest), hPad = 7.dp, vPad = 3.dp)
                     }
                 }
                 DividerDark()
+            }
+            Spacer(Modifier.height(10.dp))
+            // Where the night stands with the server, said as it is — and
+            // which moments these are. Three honest states, never a blend.
+            val uploading by container.sync.uploading.collectAsStateWithLifecycle()
+            val syncText = when {
+                n.id in uploading -> stringResource(R.string.sync_sending)
+                n.uploadState == UploadState.ANALYSED -> stringResource(R.string.sync_server_moments)
+                n.uploadError == NightSync.ERR_NO_SESSION -> stringResource(R.string.sync_no_account)
+                n.uploadError == NightSync.ERR_EXPIRED -> stringResource(R.string.sync_failed_expired)
+                n.uploadError == NightSync.ERR_OFFLINE -> stringResource(R.string.sync_failed_offline)
+                n.uploadError != null -> stringResource(R.string.sync_failed_server, n.uploadError.orEmpty())
+                else -> stringResource(R.string.sync_local_pending)
+            }
+            Text(syncText, style = TTType.MetaSmall, color = TT.Gray55)
+            if (n.id !in uploading && n.uploadState != UploadState.ANALYSED && n.uploadError != NightSync.ERR_NO_SESSION) {
+                Text(
+                    stringResource(R.string.sync_retry),
+                    style = TTType.MetaSmall,
+                    color = TT.Acid,
+                    modifier = Modifier.clickable { container.sync.uploadLater(n.id) }.padding(vertical = 6.dp),
+                )
             }
             Spacer(Modifier.height(12.dp))
             Text(

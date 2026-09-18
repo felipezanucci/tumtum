@@ -229,6 +229,15 @@
     <string name="settings_participant_hint">Identificador do participante — entra no session.json exportado.</string>
 
     <!-- Exportação (§9) -->
+    <!-- Etapa 2: where the night stands with the server. Each line names the real state. -->
+    <string name="sync_sending">Enviando a noite pro servidor…</string>
+    <string name="sync_server_moments">Momentos encontrados pelo servidor</string>
+    <string name="sync_local_pending">Momentos calculados neste aparelho · a noite ainda não subiu</string>
+    <string name="sync_no_account">Momentos calculados neste aparelho · sem conta no servidor ainda</string>
+    <string name="sync_failed_offline">Não subiu: sem internet. A noite fica guardada aqui.</string>
+    <string name="sync_failed_expired">Não subiu: sessão expirada. Entra de novo em Configurações.</string>
+    <string name="sync_failed_server">Não subiu: o servidor respondeu %1$s</string>
+    <string name="sync_retry">Enviar de novo</string>
     <string name="export_session">Exportar sessão</string>
     <string name="export_running">Gerando o ZIP…</string>
 

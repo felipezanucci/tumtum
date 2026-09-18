@@ -13,6 +13,8 @@ import cc.tumtum.app.domain.GalleryNight
 import cc.tumtum.app.domain.HrSample
 import cc.tumtum.app.domain.HrSource
 import cc.tumtum.app.domain.Moment
+import cc.tumtum.app.domain.MomentsSource
+import cc.tumtum.app.domain.UploadState
 import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.NightAnalyzer
 import cc.tumtum.app.domain.Skin
@@ -209,7 +211,11 @@ class NightRepository(
             samples = domainSamples,
             gaps = if (domainSamples.isEmpty()) listOf(Gap(start, end)) else NightAnalyzer.gaps(domainSamples, start, end),
             moments = moments.sortedByDescending { it.bpm }
-                .map { Moment(it.bpm, Instant.ofEpochMilli(it.at), it.durationSec, it.isPeak) },
+                .map { Moment(it.bpm, Instant.ofEpochMilli(it.at), it.durationSec, it.isPeak, it.label) },
+            serverSessionId = night.serverSessionId,
+            uploadState = runCatching { UploadState.valueOf(night.uploadState) }.getOrDefault(UploadState.PENDING),
+            uploadError = night.uploadError,
+            momentsSource = runCatching { MomentsSource.valueOf(night.momentsSource) }.getOrDefault(MomentsSource.LOCAL),
         )
     }
 
