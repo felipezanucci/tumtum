@@ -203,6 +203,10 @@
     <string name="settings_delete_warning">Apagar sua conta apaga noites, momentos publicados e reações. Não dá para desfazer.</string>
     <string name="settings_delete_confirm">Apagar tudo</string>
     <string name="settings_delete_cancel">Voltar</string>
+    <string name="settings_delete_running">Apagando…</string>
+    <string name="settings_delete_failed_offline">Não deu para apagar no servidor: sem rede. Nada foi apagado. Tenta de novo com internet.</string>
+    <string name="settings_delete_failed_expired">Sua sessão expirou. Entra de novo e tenta apagar. Nada foi apagado.</string>
+    <string name="settings_delete_failed_server">O servidor não apagou sua conta: %1$s. Nada foi apagado.</string>
 
     <string name="back">Voltar</string>
 

@@ -219,12 +219,13 @@ the linked documents — this file is the index and the reasoning, not a diary.
     and miss both 30/09 and 10/10. Costs of personal until the upgrade: the
     12 testers × 14 days rule before production, and payments/taxes in
     Felipe's name. Upgrade before monetising.
-32. **Account deletion is a promise kept by hand.** `tumtum.cc/privacidade`
-    (2026-09-17) promises deletion of account, readings, moments and cards
-    on request to oi@tumtum.cc within 7 days; there is no endpoint for it,
-    so Felipe deletes rows. Build `DELETE /api/users/me` (cascade: sessions,
-    hr_data, peaks, cards, shares) and a button on the profile before the
-    Play data-safety form is filled in — it asks exactly this.
+32. ~~**Account deletion is a promise kept by hand.**~~ Built 2026-09-18:
+    `DELETE /api/users/me` removes shares, cards, readings, peaks, sessions,
+    wearable connections and reset tokens before the user, in that order
+    (tested); "Apagar minha conta" in the app calls it first and wipes the
+    phone only when the server confirmed, saying so when it did not. The
+    privacy page now names the in-app path first, the e-mail second. The
+    Play data-safety form can answer "yes, in the app".
 33. **Two Android apps existed; the pilot's app is `cc.tumtum.app`.**
     Decided 2026-09-18. `docs/one-app-plan.md` is the merge: Etapa 0 one
     repository, 1 a real account, 2 the night uploads and the server's
@@ -240,6 +241,32 @@ the linked documents — this file is the index and the reasoning, not a diary.
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-18 — item 32: the privacy page's promise is now code
+
+`tumtum.cc/privacidade` has promised since 17/09 that deleting the account
+deletes the account, the readings, the moments and the cards. There was no
+endpoint; the "Apagar minha conta" button in the app wiped the phone and
+left the server untouched, which is the exact shape of defect this log
+keeps counting — the app announcing a state that is not true.
+
+- **`DELETE /api/users/me`.** One service, `account_deletion.py`, deletes
+  in foreign-key order: shares, cards, readings, peaks, sessions, wearable
+  connections, password-reset tokens, then the user. Three of those keys
+  carry no `ON DELETE`, so a bulk delete in the wrong order is refused by
+  Postgres rather than cascaded; the order is pinned by a test. Events and
+  their timelines are shared and stay.
+- **The app asks the server first and the phone second.** If the server
+  did not delete — offline, expired token, an error — the dialog says so
+  and nothing local is touched. Only a confirmed deletion (or a 404, the
+  account already gone) wipes the phone and returns to onboarding.
+- **The privacy page now names the in-app path first**, PT and EN, and
+  keeps the e-mail path as the alternative with its 7-day promise.
+
+**What it settles:** the Play data-safety form's deletion question, and a
+promise that until today depended on Felipe deleting rows by hand.
 
 ---
 

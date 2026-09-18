@@ -31,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import cc.tumtum.app.data.api.TumtumApi
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Row
@@ -64,6 +66,8 @@ fun SettingsScreen(nav: NavHostController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var confirmDelete by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    var deleteError by remember { mutableStateOf<String?>(null) }
 
     val granted by produceState(initialValue = false) {
         value = container.health.hasPermission()
@@ -342,20 +346,54 @@ fun SettingsScreen(nav: NavHostController) {
                 )
             },
             text = {
-                Text(stringResource(R.string.settings_delete_warning), style = TTType.Body, color = TT.Gray70)
+                Column {
+                    Text(stringResource(R.string.settings_delete_warning), style = TTType.Body, color = TT.Gray70)
+                    deleteError?.let {
+                        Spacer(Modifier.height(10.dp))
+                        Text(it, style = TTType.BodySmall, color = TT.Ink)
+                    }
+                }
             },
             confirmButton = {
+                // The server first, the phone second. If the server did not
+                // delete, nothing local goes either: the privacy page promises
+                // the account is gone, and a wiped phone over a live account
+                // would be the app lying about its own state (item 32).
+                val offlineText = stringResource(R.string.settings_delete_failed_offline)
+                val expiredText = stringResource(R.string.settings_delete_failed_expired)
+                val serverText = stringResource(R.string.settings_delete_failed_server)
                 Text(
-                    stringResource(R.string.settings_delete_confirm),
+                    stringResource(if (deleting) R.string.settings_delete_running else R.string.settings_delete_confirm),
                     style = TTType.Button.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-                    color = TT.Ink,
+                    color = if (deleting) TT.Gray45 else TT.Ink,
                     modifier = Modifier
-                        .clickable {
-                            confirmDelete = false
+                        .clickable(enabled = !deleting) {
+                            deleting = true
+                            deleteError = null
                             scope.launch {
-                                container.nights.wipeAll()
-                                container.prefs.wipe()
-                                nav.navigate(Routes.Onboarding) { popUpTo(0) { inclusive = true } }
+                                val session = container.prefs.state.first().session
+                                val serverDone = if (session == null) {
+                                    true // never signed in: nothing on the server to delete
+                                } else {
+                                    runCatching { container.api.deleteAccount() }.fold(
+                                        onSuccess = { true },
+                                        onFailure = { e ->
+                                            when {
+                                                e is TumtumApi.ApiException && e.code == 404 -> true // already gone
+                                                e is TumtumApi.ApiException && e.code == 401 -> { deleteError = expiredText; false }
+                                                e is TumtumApi.ApiException -> { deleteError = serverText.format(e.detail); false }
+                                                else -> { deleteError = offlineText; false }
+                                            }
+                                        },
+                                    )
+                                }
+                                deleting = false
+                                if (serverDone) {
+                                    confirmDelete = false
+                                    container.nights.wipeAll()
+                                    container.prefs.wipe()
+                                    nav.navigate(Routes.Onboarding) { popUpTo(0) { inclusive = true } }
+                                }
                             }
                         }
                         .padding(12.dp),

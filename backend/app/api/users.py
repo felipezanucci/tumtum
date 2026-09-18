@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +12,7 @@ from app.schemas.user import (
     UserProfileResponse,
     UserUpdateRequest,
 )
+from app.services.account_deletion import delete_account
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -87,6 +88,18 @@ async def update_profile(
         created_at=user.created_at,
         **stats,
     )
+
+
+# Delete the account and everything it owns: the privacy page's promise, kept
+# by code instead of by hand (decision log, item 32). Irreversible; the app
+# asks first and wipes the phone only after this answered 204.
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_profile(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    await delete_account(db, user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/{user_id}", response_model=PublicProfileResponse)

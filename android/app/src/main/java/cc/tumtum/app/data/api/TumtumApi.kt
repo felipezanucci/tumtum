@@ -55,6 +55,16 @@ class TumtumApi(private val prefs: UserPrefs) {
     /** Forget the token. On sign-out, and when the server refuses it. */
     suspend fun signOut() = prefs.clearSession()
 
+    /**
+     * Deletes the account on the server — readings, moments, cards, all of
+     * it — then forgets the token. Throws when the server did not do it, so
+     * the caller never wipes the phone believing the server followed.
+     */
+    suspend fun deleteAccount() {
+        request("DELETE", "/api/users/me", null, token = requireToken())
+        prefs.clearSession()
+    }
+
     // --- Nights (Etapa 2) ---
 
     // --- Events (Etapa 3) ---
