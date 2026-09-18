@@ -239,6 +239,45 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — first rehearsal on `app-b111`: the permission sheet told nobody what to press
+
+Felipe ran the Block 1 rehearsal and sent four screenshots. Two are
+defects, both of the class this project keeps finding — the app being
+unclear or false about its own state — and neither showed in a test.
+
+- **The battery sheet did not say what to do.** It opened with "Seu Android
+  quer matar a captura", two black-and-white buttons, and no word about
+  which one to press or what the Android dialog behind it would ask. On a
+  permission screen the brand goes quiet and careful; this one was loud and
+  vague. Rewritten: the title is *Uma permissão antes de começar*, the body
+  names the permission (run without battery optimisation, nothing else), and
+  three numbered steps say exactly what happens — **tap the pink button,
+  Tirar da otimização; Android asks "Parar a otimização do uso da bateria?",
+  tap OK; you come back and the capture starts by itself.** The button that
+  must be pressed is now **Rose**, the only pink thing on the sheet, and the
+  step names it. Two behaviours changed with the copy: coming back from the
+  Android dialog the sheet **checks by itself** and moves on when the
+  exemption is there, so the third step is true; and the verify button,
+  which used to do nothing when the exemption was missing, now says so
+  (*Ainda não está liberado*). A control with no feedback was defect
+  thirteen of that class.
+- **The event picker showed the word `null` as a venue.** "Realness Festival
+  2026 · null". Android's `org.json` renders a JSON null as the text "null"
+  in `optString`; the reference `org.json` the unit tests run on returns the
+  fallback, so the test asserting a null venue passed and the phone
+  disagreed. Fixed by checking `isNull` before reading; the test now covers
+  missing, null and blank, with the divergence written down in the code so
+  the next `optString` does not repeat it.
+- **Open question:** the first screenshot shows *"Não achamos batida nessa
+  janela"* on the watch-sources screen. That line is the honest empty state
+  for a Health Connect read with no samples; which step produced it is not
+  known from the picture and is asked below rather than guessed.
+
+**Cost:** one rehearsal to find both; nothing in a test could have. Both
+are on the branch that follows #54.
+
+---
+
 ## 2026-09-18 — Etapa 3 built: the event has a name
 
 The last piece the pilot needs from the app before Play: a night attached

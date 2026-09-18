@@ -232,11 +232,16 @@
     <string name="capture_sensor_battery">SENSOR %1$d%%</string>
     <string name="capture_hold_to_see">Segura para ver. A gente só olha depois.</string>
 
-    <!-- Isenção de otimização de bateria (§6) -->
-    <string name="battery_title">Seu Android quer\nmatar a captura.</string>
-    <string name="battery_body">Para gravar seis horas de show com a tela apagada, o TumTum precisa ficar fora da otimização de bateria. Sem isso, a sessão não começa — melhor recusar do que perder a noite sem avisar.</string>
+    <!-- Isenção de otimização de bateria (§6). Tela de permissão: a marca fica quieta e explica. -->
+    <string name="battery_title">Uma permissão\nantes de começar.</string>
+    <string name="battery_body">Para gravar a noite inteira com a tela apagada, o Android precisa deixar o TumTum funcionar sem otimização de bateria. É só isso — nenhum outro dado do celular.</string>
+    <string name="battery_steps_label">O QUE FAZER</string>
+    <string name="battery_step_1">Toque no botão rosa abaixo, Tirar da otimização.</string>
+    <string name="battery_step_2">O Android vai perguntar \"Parar a otimização do uso da bateria?\". Toque em OK.</string>
+    <string name="battery_step_3">Você volta pra cá e a captura começa sozinha.</string>
     <string name="battery_allow">Tirar da otimização</string>
-    <string name="battery_check">Já concedi — verificar</string>
+    <string name="battery_check">Já toquei em OK — verificar</string>
+    <string name="battery_not_yet">Ainda não está liberado. Toque no botão rosa e, na janela do Android, em OK.</string>
 
     <!-- Participante do experimento (§9) -->
     <string name="participant_label">PARTICIPANTE · opcional</string>

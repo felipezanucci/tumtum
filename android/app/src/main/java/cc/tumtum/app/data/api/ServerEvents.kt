@@ -30,10 +30,19 @@ object ServerEvents {
         id = item.getString("id"),
         name = item.optString("name", "Evento"),
         date = runCatching { LocalDate.parse(item.getString("date")) }.getOrNull(),
-        venue = item.optString("venue", "").ifBlank { null },
-        city = item.optString("city", "").ifBlank { null },
+        venue = item.text("venue"),
+        city = item.text("city"),
         eventType = item.optString("event_type", "concert"),
     )
+
+    /**
+     * A string field that may be absent, JSON null or blank — all three mean "none".
+     * Android's org.json turns a JSON null into the text "null" in optString (the
+     * reference library, which the unit tests run on, returns the fallback), so
+     * the venue "null" showed up on the phone and not in the tests: check isNull first.
+     */
+    private fun JSONObject.text(key: String): String? =
+        if (!has(key) || isNull(key)) null else optString(key, "").ifBlank { null }
 
     /**
      * The events worth offering before a capture: nearest to today first,
