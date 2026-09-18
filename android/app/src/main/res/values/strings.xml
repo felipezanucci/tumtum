@@ -75,6 +75,22 @@
     <string name="event_venue_label">LUGAR</string>
     <string name="event_venue_hint">Autódromo de Interlagos</string>
     <string name="event_starts_now">Começa agora</string>
+    <!-- Etapa 3: the server's events, and the kind of the one being typed -->
+    <string name="event_pick_title">EVENTOS JÁ MARCADOS</string>
+    <string name="event_pick_loading">Perguntando ao servidor…</string>
+    <string name="event_pick_offline">Não deu pra perguntar ao servidor agora. Dá pra digitar o evento mesmo assim.</string>
+    <string name="event_pick_none">Nenhum evento marcado no servidor ainda.</string>
+    <string name="event_or_type">OU DIGITA O SEU</string>
+    <string name="event_type_label">TIPO</string>
+    <string name="event_type_concert">SHOW</string>
+    <string name="event_type_sports">JOGO</string>
+    <string name="event_type_festival">FESTIVAL</string>
+    <!-- Etapa 3: marking a moment during the capture -->
+    <string name="mark_label">MARCAR O MOMENTO</string>
+    <string name="mark_count">%1$d marcados</string>
+    <string name="mark_goal">GOL</string>
+    <string name="mark_song">MÚSICA</string>
+    <string name="mark_moment">MOMENTO</string>
 
     <!-- a2 · Captura ao vivo -->
     <string name="live_label">AO VIVO</string>

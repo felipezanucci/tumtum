@@ -15,6 +15,28 @@ data class EventEntity(
     /** Offset wallClock − elapsedRealtime no início e fim da sessão (§8). */
     val clockOffsetStartMs: Long? = null,
     val clockOffsetEndMs: Long? = null,
+    /** The server's id for this event (Etapa 3): chosen from its list, or created at upload. Null = not there yet. */
+    val serverEventId: String? = null,
+    /** concert · sports · festival — what the server's schema accepts. */
+    val eventType: String = "concert",
+)
+
+/**
+ * A mark: one tap during the capture — the goal, the song, the moment —
+ * with the wall clock of the tap. It becomes a timeline entry on the server
+ * the next time the night syncs, and until then it lives here.
+ */
+@Entity(
+    tableName = "marks",
+    indices = [Index("eventId")],
+)
+data class MarkEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val eventId: Long,
+    val at: Long,
+    val label: String,
+    val entryType: String,
+    val synced: Boolean = false,
 )
 
 @Entity(tableName = "nights")

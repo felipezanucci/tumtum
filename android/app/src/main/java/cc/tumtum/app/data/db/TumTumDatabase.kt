@@ -10,16 +10,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 /** Persistência local primeiro (§2). O feed social vem depois do backend. */
 @Database(
     entities = [
-        EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class,
+        EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class, MarkEntity::class,
         BleSampleEntity::class, RrIntervalEntity::class, MotionEntity::class, ConnectionEventEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class TumTumDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
     abstract fun nightDao(): NightDao
     abstract fun captureDao(): CaptureDao
+    abstract fun markDao(): MarkDao
 
     companion object {
         /** v1 (b5, só Health Connect) → v2 (captura BLE ao vivo). Nada é perdido. */
@@ -77,9 +78,24 @@ abstract class TumTumDatabase : RoomDatabase() {
             }
         }
 
+        /** v4 → v5: the event knows its server twin and its kind; marks get a table (Etapa 3). */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE events ADD COLUMN serverEventId TEXT")
+                db.execSQL("ALTER TABLE events ADD COLUMN eventType TEXT NOT NULL DEFAULT 'concert'")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `marks` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventId` INTEGER NOT NULL, " +
+                        "`at` INTEGER NOT NULL, `label` TEXT NOT NULL, `entryType` TEXT NOT NULL, " +
+                        "`synced` INTEGER NOT NULL DEFAULT 0)",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_marks_eventId` ON `marks` (`eventId`)")
+            }
+        }
+
         fun build(context: Context): TumTumDatabase =
             Room.databaseBuilder(context, TumTumDatabase::class.java, "tumtum.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build()
     }
 }

@@ -57,14 +57,41 @@ class TumtumApi(private val prefs: UserPrefs) {
 
     // --- Nights (Etapa 2) ---
 
+    // --- Events (Etapa 3) ---
+
+    /** The events somebody could be standing in. Public on the server, so this works without a token. */
+    suspend fun listEvents(): List<ServerEvent> =
+        ServerEvents.parse(request("GET", "/api/events", null, token = null))
+
+    /** Creates the event on the server; answers with its id. Date is the event's local date. */
+    suspend fun createEvent(name: String, venue: String?, date: java.time.LocalDate, eventType: String): String {
+        val body = JSONObject()
+            .put("name", name)
+            .put("date", date.toString())
+            .put("event_type", eventType)
+        if (!venue.isNullOrBlank()) body.put("venue", venue)
+        val response = JSONObject(request("POST", "/api/events", body.toString(), token = requireToken()))
+        return response.getString("id")
+    }
+
+    /** One tap on the capture screen becomes one timeline entry — the thing that names a moment. */
+    suspend fun addTimelineEntry(serverEventId: String, at: java.time.Instant, label: String, entryType: String) {
+        val body = JSONObject()
+            .put("timestamp", SessionPayload.iso(at))
+            .put("label", label)
+            .put("entry_type", entryType)
+        request("POST", "/api/events/$serverEventId/timeline", body.toString(), token = requireToken())
+    }
+
     /** Uploads a night's readings; the server answers with the session id it gave them. */
     suspend fun createSession(
         startAt: java.time.Instant,
         endAt: java.time.Instant,
         sourceDevice: String,
         samples: List<cc.tumtum.app.domain.HrSample>,
+        serverEventId: String? = null,
     ): String {
-        val body = SessionPayload.build(startAt, endAt, sourceDevice, samples)
+        val body = SessionPayload.build(startAt, endAt, sourceDevice, samples, serverEventId)
         val response = JSONObject(request("POST", "/api/health/sessions", body.toString(), token = requireToken()))
         return response.getString("id")
     }

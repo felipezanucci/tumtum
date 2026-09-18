@@ -20,7 +20,13 @@ object SessionPayload {
     const val MIN_BPM = 30
     const val MAX_BPM = 250
 
-    fun build(startAt: Instant, endAt: Instant, sourceDevice: String, samples: List<HrSample>): JSONObject {
+    fun build(
+        startAt: Instant,
+        endAt: Instant,
+        sourceDevice: String,
+        samples: List<HrSample>,
+        serverEventId: String? = null,
+    ): JSONObject {
         val points = JSONArray()
         var lastMillis: Long? = null
         for (sample in samples.sortedBy { it.time }) {
@@ -30,11 +36,15 @@ object SessionPayload {
             lastMillis = millis
             points.put(JSONObject().put("time", iso(sample.time)).put("bpm", sample.bpm))
         }
-        return JSONObject()
+        val body = JSONObject()
             .put("start_time", iso(startAt))
             .put("end_time", iso(endAt))
             .put("source_device", sourceDevice)
             .put("data_points", points)
+        // The event is what makes the night mean something: without it no
+        // moment can be named, because the server has no timeline to match.
+        if (serverEventId != null) body.put("event_id", serverEventId)
+        return body
     }
 
     fun iso(instant: Instant): String = DateTimeFormatter.ISO_INSTANT.format(instant)

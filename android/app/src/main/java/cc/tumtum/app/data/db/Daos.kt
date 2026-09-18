@@ -39,6 +39,27 @@ interface EventDao {
 
     @Query("DELETE FROM events")
     suspend fun deleteAll()
+
+    @Query("UPDATE events SET serverEventId = :serverEventId WHERE id = :id")
+    suspend fun setServerEventId(id: Long, serverEventId: String)
+}
+
+@Dao
+interface MarkDao {
+    @Insert
+    suspend fun insert(mark: MarkEntity): Long
+
+    @Query("SELECT * FROM marks WHERE eventId = :eventId AND synced = 0 ORDER BY at")
+    suspend fun unsyncedFor(eventId: Long): List<MarkEntity>
+
+    @Query("UPDATE marks SET synced = 1 WHERE id = :id")
+    suspend fun markSynced(id: Long)
+
+    @Query("SELECT COUNT(*) FROM marks WHERE eventId = :eventId")
+    fun countFor(eventId: Long): Flow<Int>
+
+    @Query("DELETE FROM marks")
+    suspend fun deleteAll()
 }
 
 @Dao

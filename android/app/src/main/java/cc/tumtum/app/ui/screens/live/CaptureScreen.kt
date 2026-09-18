@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.api.MarkKinds
 import cc.tumtum.app.data.ble.BleConnectionState
 import cc.tumtum.app.service.CaptureBus
 import cc.tumtum.app.service.CaptureService
@@ -223,6 +224,31 @@ fun CaptureScreen(nav: NavHostController) {
         }
 
         Spacer(Modifier.weight(1f))
+
+        // Etapa 3 — marcar o momento. Three taps a person can find in the
+        // dark; the clock of the tap is what names the moment later. The
+        // count is the only feedback and it is the truth: what is stored.
+        val marks by container.nights.marksCount(e.id).collectAsStateWithLifecycle(initialValue = 0)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.mark_label), style = TTType.MetaWide, color = TT.Gray55)
+            Text(stringResource(R.string.mark_count, marks), style = TTType.MetaSmall, color = TT.Gray55)
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(
+                stringResource(R.string.mark_goal) to MarkKinds.GOAL,
+                stringResource(R.string.mark_song) to MarkKinds.SONG,
+                stringResource(R.string.mark_moment) to MarkKinds.MOMENT,
+            ).forEach { (label, kind) ->
+                TTButton(
+                    label,
+                    TTButtonStyle.OutlineOnDark,
+                    onClick = { vm.mark(label, kind) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        Spacer(Modifier.height(18.dp))
         Text(
             stringResource(R.string.live_hint),
             style = TTType.Body.copy(fontSize = 14.sp),

@@ -34,6 +34,9 @@ data class EventSession(
     val venue: String,
     val startAt: Instant,
     val endAt: Instant?,   // null = ainda ao vivo
+    /** The server's id, when the event came from its list or was created there (Etapa 3). */
+    val serverEventId: String? = null,
+    val eventType: String = "concert",
 )
 
 /** Uma noite capturada e analisada. */
