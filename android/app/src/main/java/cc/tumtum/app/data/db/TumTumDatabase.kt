@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class,
         BleSampleEntity::class, RrIntervalEntity::class, MotionEntity::class, ConnectionEventEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 abstract class TumTumDatabase : RoomDatabase() {
@@ -66,9 +66,20 @@ abstract class TumTumDatabase : RoomDatabase() {
             }
         }
 
+        /** v3 → v4: the night knows where it stands with the server (Etapa 2). Existing nights start PENDING and upload on the next start. */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE nights ADD COLUMN serverSessionId TEXT")
+                db.execSQL("ALTER TABLE nights ADD COLUMN uploadState TEXT NOT NULL DEFAULT 'PENDING'")
+                db.execSQL("ALTER TABLE nights ADD COLUMN uploadError TEXT")
+                db.execSQL("ALTER TABLE nights ADD COLUMN momentsSource TEXT NOT NULL DEFAULT 'LOCAL'")
+                db.execSQL("ALTER TABLE moments ADD COLUMN label TEXT")
+            }
+        }
+
         fun build(context: Context): TumTumDatabase =
             Room.databaseBuilder(context, TumTumDatabase::class.java, "tumtum.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
     }
 }

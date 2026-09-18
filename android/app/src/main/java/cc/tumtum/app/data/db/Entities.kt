@@ -39,6 +39,14 @@ data class NightEntity(
     val clockOffsetEndMs: Long? = null,
     /** Trava da revela (protocolo do teste): a noite só abre neste instante. Null = sem trava. */
     val revealAt: Long? = null,
+    /** The server's id for this night once uploaded (Etapa 2, 2026-09-18). */
+    val serverSessionId: String? = null,
+    /** PENDING · SENT · ANALYSED · FAILED — where the night stands with the server. */
+    val uploadState: String = "PENDING",
+    /** Why the last attempt failed, as a key the screen translates: offline · expired · no_session · server:<code> <detail>. */
+    val uploadError: String? = null,
+    /** LOCAL (the phone's top-N) or SERVER (the detector). The screen says which. */
+    val momentsSource: String = "LOCAL",
 )
 
 /** Amostras cruas da noite — guardadas como lidas. Buraco é ausência de linha. */
@@ -64,4 +72,6 @@ data class MomentEntity(
     val at: Long,
     val durationSec: Int,
     val isPeak: Boolean,
+    /** What caused it — the song, the goal — when the event has a timeline. Server moments only. */
+    val label: String? = null,
 )

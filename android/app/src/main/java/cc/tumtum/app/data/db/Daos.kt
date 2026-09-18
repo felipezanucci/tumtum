@@ -66,6 +66,37 @@ interface NightDao {
     @Query("UPDATE nights SET skin = :skin, published = 1 WHERE id = :id")
     suspend fun publish(id: Long, skin: String)
 
+    // --- The server's side of a night (Etapa 2) ---
+
+    @Query("SELECT * FROM nights WHERE id = :id")
+    suspend fun nightRow(id: Long): NightEntity?
+
+    @Query("SELECT * FROM samples WHERE nightId = :nightId ORDER BY time")
+    suspend fun samplesOf(nightId: Long): List<SampleEntity>
+
+    @Query("SELECT * FROM nights WHERE uploadState != 'ANALYSED' ORDER BY startAt DESC")
+    suspend fun pendingUpload(): List<NightEntity>
+
+    @Query("UPDATE nights SET serverSessionId = :serverSessionId WHERE id = :id")
+    suspend fun setServerSessionId(id: Long, serverSessionId: String)
+
+    @Query("UPDATE nights SET uploadState = :state, uploadError = :error WHERE id = :id")
+    suspend fun setUploadState(id: Long, state: String, error: String?)
+
+    @Query("DELETE FROM moments WHERE nightId = :nightId")
+    suspend fun deleteMomentsOf(nightId: Long)
+
+    @Query("UPDATE nights SET momentsSource = :source, momentCount = :count WHERE id = :id")
+    suspend fun setMomentsSource(id: Long, source: String, count: Int)
+
+    /** The server's moments replace the phone's, in one transaction, and the night says so. */
+    @Transaction
+    suspend fun replaceMoments(nightId: Long, moments: List<MomentEntity>) {
+        deleteMomentsOf(nightId)
+        insertMoments(moments)
+        setMomentsSource(nightId, "SERVER", moments.size)
+    }
+
     @Query("DELETE FROM nights")
     suspend fun deleteAll()
 

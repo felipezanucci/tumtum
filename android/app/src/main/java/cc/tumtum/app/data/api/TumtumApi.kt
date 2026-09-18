@@ -55,6 +55,24 @@ class TumtumApi(private val prefs: UserPrefs) {
     /** Forget the token. On sign-out, and when the server refuses it. */
     suspend fun signOut() = prefs.clearSession()
 
+    // --- Nights (Etapa 2) ---
+
+    /** Uploads a night's readings; the server answers with the session id it gave them. */
+    suspend fun createSession(
+        startAt: java.time.Instant,
+        endAt: java.time.Instant,
+        sourceDevice: String,
+        samples: List<cc.tumtum.app.domain.HrSample>,
+    ): String {
+        val body = SessionPayload.build(startAt, endAt, sourceDevice, samples)
+        val response = JSONObject(request("POST", "/api/health/sessions", body.toString(), token = requireToken()))
+        return response.getString("id")
+    }
+
+    /** Runs the detector on an uploaded night and returns its moments, named where the event has a timeline. */
+    suspend fun analyze(serverSessionId: String): List<ServerMoment> =
+        ServerMoments.parse(request("POST", "/api/experience/$serverSessionId/analyze", "", token = requireToken()))
+
     private suspend fun storeSession(token: String): Session {
         // The user id is in the token's `sub`; reading it here spares a round
         // trip and keeps the session self-describing when the network is gone.
