@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
 import cc.tumtum.app.ui.Fmt
@@ -71,12 +72,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             .padding(start = 26.dp, end = 26.dp, top = 22.dp, bottom = 24.dp),
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                "←",
-                style = TTType.ItemSub.copy(fontSize = 14.sp),
-                color = TT.Gray45,
-                modifier = Modifier.clickable { nav.popBackStack() },
-            )
+            BackArrow(onClick = { nav.popBackStack() }, onDark = true)
             Spacer(Modifier.weight(1f))
             Text(stringResource(R.string.card_label), style = TTType.MetaSmall, color = TT.Acid)
         }

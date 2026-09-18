@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.ble.BlePermissions
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -75,12 +76,7 @@ fun PermissionScreen(nav: NavHostController) {
             .verticalScroll(rememberScrollState())
             .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 30.dp),
     ) {
-        Text(
-            "←",
-            style = TTType.ItemSub.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-            color = TT.Gray45,
-            modifier = Modifier.clickable { nav.popBackStack() }.padding(4.dp),
-        )
+        BackArrow(onClick = { nav.popBackStack() })
         Spacer(Modifier.height(34.dp))
         Text(stringResource(R.string.perm_title), style = TTType.TitleSmall, color = TT.Ink)
         Spacer(Modifier.height(16.dp))

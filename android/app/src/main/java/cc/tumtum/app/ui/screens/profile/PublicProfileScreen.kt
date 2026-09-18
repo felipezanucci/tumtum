@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.AvatarStore
 import cc.tumtum.app.domain.PublicProfile
 import cc.tumtum.app.domain.Skin
@@ -126,12 +127,7 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
                 .statusBarsPadding()
                 .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 24.dp),
         ) {
-            Text(
-                "←",
-                style = TTType.MetaSmall,
-                color = TT.Gray45,
-                modifier = Modifier.clickable { nav.popBackStack() },
-            )
+            BackArrow(onClick = { nav.popBackStack() }, onDark = true)
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 if (isMe) {
@@ -200,18 +196,34 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
             }
             if (isMe) {
                 Spacer(Modifier.height(18.dp))
-                Text(
-                    stringResource(R.string.profile_edit),
-                    style = TTType.Button.copy(fontSize = 14.sp),
-                    color = TT.Paper,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .border(1.dp, TT.Ink600, RoundedCornerShape(12.dp))
-                        .clickable { showEdit = true }
-                        .padding(vertical = 12.dp),
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        stringResource(R.string.profile_edit),
+                        style = TTType.Button.copy(fontSize = 14.sp),
+                        color = TT.Paper,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(1.dp, TT.Ink600, RoundedCornerShape(12.dp))
+                            .clickable { showEdit = true }
+                            .padding(vertical = 12.dp),
+                    )
+                    // Configurações lives behind the person's own profile too:
+                    // the avatar is the one control every tab shares.
+                    Text(
+                        stringResource(R.string.you_settings),
+                        style = TTType.Button.copy(fontSize = 14.sp),
+                        color = TT.Paper,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(1.dp, TT.Ink600, RoundedCornerShape(12.dp))
+                            .clickable { nav.navigate(Routes.Settings) }
+                            .padding(vertical = 12.dp),
+                    )
+                }
             }
             if (!isMe) {
                 Spacer(Modifier.height(18.dp))

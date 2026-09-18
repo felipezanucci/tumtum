@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.domain.HrSample
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.Badge
@@ -85,12 +86,7 @@ fun CrowdScreen(nav: NavHostController, nightId: Long) {
                 style = TTType.MetaWide,
                 color = TT.Gray55,
             )
-            Text(
-                "←",
-                style = TTType.ItemSub.copy(fontSize = 14.sp),
-                color = TT.Gray45,
-                modifier = Modifier.clickable { nav.popBackStack() },
-            )
+            BackArrow(onClick = { nav.popBackStack() })
         }
         Spacer(Modifier.height(18.dp))
         Text(stringResource(R.string.crowd_headline), style = TTType.ShoutSmall, color = TT.Ink)

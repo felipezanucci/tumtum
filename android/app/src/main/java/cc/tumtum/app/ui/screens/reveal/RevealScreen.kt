@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.repo.NightSync
 import cc.tumtum.app.domain.UploadState
 import cc.tumtum.app.domain.RevealLock
@@ -123,12 +124,7 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
       Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(stringResource(R.string.reveal_label), style = TTType.MetaWide, color = TT.Acid)
-            Text(
-                "←",
-                style = TTType.ItemSub.copy(fontSize = 14.sp),
-                color = TT.Gray45,
-                modifier = Modifier.clickable { nav.popBackStack() },
-            )
+            BackArrow(onClick = { nav.popBackStack() }, onDark = true)
         }
         Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.Bottom) {
@@ -291,12 +287,7 @@ private fun LockedNightView(
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(stringResource(R.string.reveal_label), style = TTType.MetaWide, color = TT.Acid)
-            Text(
-                "←",
-                style = TTType.ItemSub.copy(fontSize = 14.sp),
-                color = TT.Gray45,
-                modifier = Modifier.clickable(onClick = onBack),
-            )
+            BackArrow(onClick = onBack, onDark = true)
         }
         Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.Bottom) {

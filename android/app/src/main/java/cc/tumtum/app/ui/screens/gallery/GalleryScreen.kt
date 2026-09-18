@@ -34,6 +34,7 @@ import cc.tumtum.app.domain.GalleryNight
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.Avatar
+import cc.tumtum.app.ui.components.OutlineBadge
 import cc.tumtum.app.ui.components.Wordmark
 import cc.tumtum.app.ui.components.skinColor
 import cc.tumtum.app.ui.nav.Routes
@@ -82,6 +83,21 @@ fun GalleryScreen(nav: NavHostController) {
                 }
                 Spacer(Modifier.height(24.dp))
                 Text(stringResource(R.string.gallery_title), style = TTType.Title, color = TT.Ink)
+                // The two doors the Você tab has (b7): the nights list and the
+                // settings. The tab restores this screen on top, so without
+                // them Configurações was reachable from nowhere (18/09).
+                Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlineBadge(
+                        stringResource(R.string.nights_title).uppercase(),
+                        contentColor = TT.Gray70,
+                        modifier = Modifier.clickable { nav.navigate(Routes.You) { launchSingleTop = true } },
+                    )
+                    OutlineBadge(
+                        stringResource(R.string.you_settings).uppercase(),
+                        contentColor = TT.Gray70,
+                        modifier = Modifier.clickable { nav.navigate(Routes.Settings) },
+                    )
+                }
                 Spacer(Modifier.height(4.dp))
                 if (since != null) {
                     Text(

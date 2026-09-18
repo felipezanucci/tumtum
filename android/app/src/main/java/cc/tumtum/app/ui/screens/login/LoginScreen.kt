@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.prefs.Account
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -75,12 +76,7 @@ fun LoginScreen(nav: NavHostController) {
             .verticalScroll(rememberScrollState())
             .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 30.dp),
     ) {
-        Text(
-            "←",
-            style = TTType.ItemSub.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-            color = TT.Gray45,
-            modifier = Modifier.clickable { nav.popBackStack() }.padding(4.dp),
-        )
+        BackArrow(onClick = { nav.popBackStack() })
         Spacer(Modifier.height(24.dp))
         Wordmark(width = 92.dp)
         Spacer(Modifier.height(40.dp))
