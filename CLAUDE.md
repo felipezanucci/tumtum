@@ -34,6 +34,7 @@ The other durable documents:
 | `docs/handoff-2026-08-26.md` | Session handoff: state, config, traps, and what was still Felipe's to do two days before the festival |
 | `docs/health-connect-plan.md` | The next phase: reading the fans' own watches, its stages, its estimate, and the sampling risk that decides it |
 | `docs/wear-os-plan.md` | The Wear OS app costed honestly: what it actually buys (guaranteed 1 Hz, not "live"), and why it waits on a measurement |
+| `docs/one-app-plan.md` | **Two Android apps became one on 18/09**: `cc.tumtum.app` (the designed experience, branch `app`) absorbs the proven pipeline of `cc.tumtum.capture`, in five staged gates |
 | `docs/pilot-event-options.md` | **The events that can carry the pilot** after 25/09 was lost: the São Paulo calendar shortlisted against this project's own constraints, and football evaluated honestly against a concert |
 | `docs/design-brief.md` | **Self-contained brand + product handoff for design tools and outside collaborators.** Paste it whole before asking for design work |
 
@@ -42,7 +43,11 @@ open the pull request last, and anything pushed after a PR is merged gets a
 new PR — never an edit to a merged one. The fourth time proved that knowing
 the rule is not what fixes it: **do not open the PR until the work is finished
 and pushed**, and if one is already open with more commits coming, say so in
-its description so it does not get merged early.
+its description so it does not get merged early. The fifth time (18/09) was
+the assistant pushing to a branch whose PR Felipe had already merged and
+sending that PR's link as "the merge": **before sending a merge link, read
+the PR's state from GitHub — `merged: false`, head SHA equal to the
+branch's — and never from memory.**
 
 **Always end a piece of work by giving Felipe the merge link.** Standing
 instruction from 2026-09-01. He merges everything himself — nothing reaches
@@ -157,8 +162,10 @@ tumtum-app/
 │   ├── requirements.txt
 │   └── Dockerfile
 │
-├── android/                  # Native capture app (hybrid: native BLE capture,
-│   └── app/                  #   the site's screens in a WebView for the rest)
+├── android/                  # THE app — cc.tumtum.app, Kotlin + Compose + Room: the designed
+│   └── app/                  #   experience, absorbing the proven pipeline (docs/one-app-plan.md)
+├── android-capture/          # cc.tumtum.capture — the proven capture app, kept as the
+│   └── app/                  #   reference until every piece is ported, then retired
 │
 ├── docs/                     # Decision log and durable research documents
 │
