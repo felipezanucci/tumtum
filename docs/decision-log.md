@@ -247,11 +247,55 @@ the linked documents — this file is the index and the reasoning, not a diary.
     report and a block (the smaller version: report a night, block a
     profile, both landing somewhere a human reads) or keep the feed private
     to the pilot. Not a pilot blocker; a launch blocker.
+35. **Deleting one night, keeping the account, does not exist.** Found
+    2026-09-18 while answering the Play data-safety question "can users
+    request deletion of some data without deleting the account". There is
+    no delete on the reveal screen, no `deleteNight` in the repository and
+    no `DELETE /api/health/sessions/{id}` — only account-wide deletion
+    (item 32). **The privacy page had been promising it since 17/09**
+    ("também dá para apagar uma sessão específica"), which is the same
+    defect class this log keeps counting, this time in a legal document:
+    the copy is corrected to say it is all or nothing, and the Play form
+    answers *no*. Worth building before the pilot: a fan who captures a
+    night by accident, or at the wrong event, currently has to delete
+    their whole account to be rid of it.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-18 — a deletion URL for Play, and a promise the privacy page could not keep
+
+Two findings from the Play Console data-safety form, plus the merge rule
+broken a sixth time.
+
+- **The form wants a public account-deletion URL** and spells out what the
+  page must do: name the app or the developer, spell out the steps, and say
+  which data is deleted, which is kept, and for how long. `/privacidade`
+  covers deletion in two sentences and says nothing about retention. So
+  **`tumtum.cc/apagar-conta`** (and `/en/delete-account`), rendered by the
+  same quiet component, answering the three bullets in order and closing
+  with the sentence the form is really after: nothing kept for an extra
+  period, no backup window, no suspended account. True only because of
+  `DELETE /api/users/me` (item 32, the same day).
+- **The privacy page promised a per-session delete the app never had.** The
+  form's next question asks whether *some* data can be deleted without
+  deleting the account. Checking before answering: no button on the reveal,
+  no repository method, no endpoint. The answer is no — but `/privacidade`
+  had said since 17/09, in both languages, "também dá para apagar uma
+  sessão específica … sem apagar a conta". Never true. The defect class
+  this project keeps finding, this time in the document the Play listing
+  points at. Corrected to what is true, and recorded as open item 35.
+- **The merge rule, broken a sixth time.** PR #63 was opened after the
+  first commit and the deletion page was pushed to it afterwards; Felipe
+  merged at the earlier commit, so the page was never in `main` while its
+  URL was already pasted into the Play Console. The rule has been in
+  CLAUDE.md since the fifth time and the fix is the same each time:
+  **do not open the PR until the work is finished and pushed.** What is new
+  is the cost — not a lost commit, but a live form pointing at a 404.
 
 ---
 
