@@ -1,9 +1,7 @@
 package cc.tumtum.app.ui.screens.live
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,7 +62,6 @@ import kotlinx.coroutines.delay
  * dica, Encerrar a noite) é fixo. No primeiro ensaio (18/09) a fileira de
  * marcas empurrou o Encerrar para fora da tela e a noite não tinha saída.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CaptureScreen(nav: NavHostController) {
     val container = appContainer()
@@ -78,14 +75,6 @@ fun CaptureScreen(nav: NavHostController) {
     val bus by CaptureBus.status.collectAsStateWithLifecycle()
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     val lastMark by vm.lastMark.collectAsStateWithLifecycle()
-
-    var bpmVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(bpmVisible) {
-        if (bpmVisible) {
-            delay(8_000)
-            bpmVisible = false
-        }
-    }
 
     val e = event ?: return
     val bleActive = bus.active && bus.eventId == e.id
@@ -158,38 +147,22 @@ fun CaptureScreen(nav: NavHostController) {
             )
             Spacer(Modifier.height(36.dp))
             if (bleActive) {
-                // O número mora atrás de um toque longo (§10). Sem número na tela principal.
-                // Um toque mostra o número por oito segundos; a tela principal continua sem ele.
-                Column(
-                    Modifier.combinedClickable(
-                        onClick = { bpmVisible = true },
-                        onLongClick = { bpmVisible = true },
-                    ),
-                ) {
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        Text(
-                            if (bpmVisible) (bus.lastBpm?.toString() ?: "—") else "· · ·",
-                            style = TTType.HeroLive,
-                            color = TT.Rose,
-                        )
-                        if (bpmVisible) {
-                            Spacer(Modifier.size(14.dp))
-                            Text(
-                                stringResource(R.string.live_bpm_now),
-                                style = TTType.Body.copy(fontSize = 17.sp),
-                                color = TT.Gray45,
-                                modifier = Modifier.padding(bottom = 10.dp),
-                            )
-                        }
-                    }
-                    if (!bpmVisible) {
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            stringResource(R.string.capture_hold_to_see),
-                            style = TTType.Footnote,
-                            color = TT.Gray55,
-                        )
-                    }
+                // O número fica na tela (decisão de Felipe, 18/09, depois de dois
+                // ensaios pedindo por ele). A regra §10 — ver o número muda o número —
+                // fica registrada no log; a captura não muda por ele estar visível.
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        bus.lastBpm?.toString() ?: "—",
+                        style = TTType.HeroLive,
+                        color = TT.Rose,
+                    )
+                    Spacer(Modifier.size(14.dp))
+                    Text(
+                        stringResource(R.string.live_bpm_now),
+                        style = TTType.Body.copy(fontSize = 17.sp),
+                        color = TT.Gray45,
+                        modifier = Modifier.padding(bottom = 10.dp),
+                    )
                 }
             } else {
                 Row(verticalAlignment = Alignment.Bottom) {
