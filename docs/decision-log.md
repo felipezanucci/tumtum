@@ -267,6 +267,30 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — the Play Console refused the bundle: API 36 or nothing
+
+The first `.aab` upload was accepted, read correctly (version 129, minSdk 28)
+and then rejected at review with one error: *"o nível desejado da API do app
+é 35. No entanto, esse nível precisa ser de pelo menos 36"*. Google's target
+requirement moved to Android 16.
+
+`compileSdk` was already 36, so only `targetSdk` had to move, and the
+behaviour changes Android 16 brings cost nothing here:
+
+- the large-screen resizability rule is a no-op, because the manifest locks
+  no orientation;
+- edge-to-edge is already on (`enableEdgeToEdge`) and every screen pads for
+  the system bars;
+- the capture service already declares `foregroundServiceType="connectedDevice"`
+  with the matching permission, which is the API 34+ shape.
+
+Three warnings came with it and none blocks: no testers assigned yet (the
+next step), no deobfuscation file (R8 is off until it is tested on a phone,
+item on Etapa 4), and no native debug symbols (there is no native code of
+ours). Install size 8.96 MB.
+
+---
+
 ## 2026-09-18 — a deletion URL for Play, and a promise the privacy page could not keep
 
 Two findings from the Play Console data-safety form, plus the merge rule
