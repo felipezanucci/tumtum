@@ -58,6 +58,10 @@ interface MarkDao {
     @Query("SELECT COUNT(*) FROM marks WHERE eventId = :eventId")
     fun countFor(eventId: Long): Flow<Int>
 
+    /** Undo: only a mark the server has not seen yet can go. Returns rows removed (0 or 1). */
+    @Query("DELETE FROM marks WHERE id = :id AND synced = 0")
+    suspend fun deleteUnsynced(id: Long): Int
+
     @Query("DELETE FROM marks")
     suspend fun deleteAll()
 }

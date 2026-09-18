@@ -239,6 +239,45 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — second rehearsal: a night with no way out, and 31 goals from one thumb
+
+Felipe ran a ten-minute capture with the Polar on `app-b111` (641
+samples, sensor 100%, the pipeline itself fine) and could not end it. Two
+defects, one product decision.
+
+- **"Encerrar a noite" was off the screen.** The button exists; Etapa 3's
+  row of marks, added above it in a column that does not scroll, pushed it
+  below the navigation bar on his phone. The system back button looked dead
+  too, by design: the AO VIVO tab sends an active night straight back to the
+  capture. So the app showed a running night with no exit, for ten minutes,
+  through a kill and a relaunch. Defect fourteen of the class — the app
+  hiding its own state — and the first that trapped someone. Fixed by
+  layout, not by copy: the screen is now two blocks, the top one scrolls and
+  the bottom one (marks, hint, Encerrar) is fixed and always visible,
+  whatever the phone's height.
+- **The taps gave nothing back.** GOL · MÚSICA · MOMENTO changed only a grey
+  counter at the corner, so he pressed until something visibly happened: 31
+  marks in a ten-minute rehearsal. Now the tapped button lights Rose for a
+  second, a line under the row says *GOL marcado às 13h37* with **Desfazer**
+  beside it (undo removes the mark while it is still local; once the server
+  has it, it stays and the line keeps saying so), and a second tap of the
+  same kind within ten seconds stores nothing and says *já marcado às 13h37,
+  um toque basta*.
+- **Why would a fan do this at all? They will not.** The question was the
+  right one. The marks exist because the timeline integrations are dead
+  code (item 28) and a match needs its goals timestamped by somebody; that
+  somebody is **the person running the test, once, for everyone** — the
+  marks go to the event's shared timeline and name the moments of every
+  night attached to it. So the row is now behind **Configurações →
+  Experimento → "Marcar momentos na captura"**, off by default. A fan's
+  capture screen has the stopwatch, the dots and Encerrar, nothing to
+  operate. Felipe turns the toggle on his own phone.
+
+**Cost:** a ten-minute rehearsal, and 31 `goal` entries on the server's
+timeline of the rehearsal event, which is a rehearsal event and can stay.
+
+---
+
 ## 2026-09-18 — first rehearsal on `app-b111`: the permission sheet told nobody what to press
 
 Felipe ran the Block 1 rehearsal and sent four screenshots. Two are

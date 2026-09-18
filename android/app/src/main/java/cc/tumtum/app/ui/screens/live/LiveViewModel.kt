@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import cc.tumtum.app.AppContainer
 import cc.tumtum.app.data.repo.LiveSnapshot
 import cc.tumtum.app.domain.EventSession
+import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,14 +69,47 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
         return eventId
     }
 
+    /** What the last tap did, so the screen can say it: stored at [at], or repeated (nothing stored). */
+    data class MarkFeedback(val id: Long?, val label: String, val at: Instant, val repeated: Boolean)
+
+    private val _lastMark = MutableStateFlow<MarkFeedback?>(null)
+    val lastMark: StateFlow<MarkFeedback?> = _lastMark
+
     /**
      * One tap during the capture (Etapa 3): the goal, the song, the moment.
      * The clock of the tap is the whole point — it becomes a timeline entry
      * on the server and names the moment the detector finds around it.
+     *
+     * A second tap of the same kind within [REPEAT_WINDOW] is the same
+     * moment, not a new one: the rehearsal of 18/09 produced 31 marks from
+     * one person pressing until something visibly changed. Nothing is stored
+     * for it, and the screen says so.
      */
     fun mark(label: String, entryType: String) {
         val event = activeEvent.value ?: return
-        viewModelScope.launch { container.nights.addMark(event.id, label, entryType) }
+        val now = Instant.now()
+        val last = _lastMark.value
+        if (last != null && last.label == label && Duration.between(last.at, now) < REPEAT_WINDOW) {
+            _lastMark.value = last.copy(repeated = true)
+            return
+        }
+        viewModelScope.launch {
+            val id = container.nights.addMark(event.id, label, entryType, now)
+            _lastMark.value = MarkFeedback(id, label, now, repeated = false)
+        }
+    }
+
+    /** Undo the last tap. If the server already has it, it stays and the line keeps saying so. */
+    fun undoLastMark() {
+        val last = _lastMark.value ?: return
+        val id = last.id ?: return
+        viewModelScope.launch {
+            if (container.nights.removeMark(id)) _lastMark.value = null
+        }
+    }
+
+    private companion object {
+        val REPEAT_WINDOW: Duration = Duration.ofSeconds(10)
     }
 
     /**

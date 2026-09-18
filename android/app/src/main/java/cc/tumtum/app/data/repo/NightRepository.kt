@@ -81,6 +81,9 @@ class NightRepository(
 
     fun marksCount(eventId: Long): Flow<Int> = db.markDao().countFor(eventId)
 
+    /** Undo the last tap. False when the mark was already on the server — then it stays, honestly. */
+    suspend fun removeMark(id: Long): Boolean = db.markDao().deleteUnsynced(id) == 1
+
     suspend fun closeEvent(eventId: Long, at: Instant = Instant.now()) {
         db.eventDao().close(eventId, at.toEpochMilli())
     }

@@ -234,6 +234,26 @@ fun SettingsScreen(nav: NavHostController) {
                 color = if (lockOn) TT.Ink else TT.Gray45,
             )
         }
+        // Modo operador: os toques GOL · MÚSICA · MOMENTO só aparecem no celular
+        // de quem opera o teste. O fã nunca é convidado a fazer isso.
+        val marksOn = user?.operatorMarks == true
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable { scope.launch { container.prefs.setOperatorMarks(!marksOn) } }
+                .padding(vertical = 10.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_operator_marks), style = TTType.Body, color = TT.Ink)
+                Text(stringResource(R.string.settings_operator_marks_hint), style = TTType.Footnote, color = TT.Gray45)
+            }
+            Text(
+                stringResource(if (marksOn) R.string.settings_toggle_on else R.string.settings_toggle_off),
+                style = TTType.Meta,
+                color = if (marksOn) TT.Ink else TT.Gray45,
+            )
+        }
         Spacer(Modifier.height(14.dp))
         // O participante não cria evento (a5): o operador marca aqui e a captura
         // aparece sozinha na aba AO VIVO de quem está com o aparelho.
