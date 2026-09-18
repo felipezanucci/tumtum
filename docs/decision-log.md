@@ -221,11 +221,69 @@ the linked documents — this file is the index and the reasoning, not a diary.
     so Felipe deletes rows. Build `DELETE /api/users/me` (cascade: sessions,
     hr_data, peaks, cards, shares) and a button on the profile before the
     Play data-safety form is filled in — it asks exactly this.
+33. **Two Android apps exist and the pilot's app is not decided.**
+    `cc.tumtum.capture` (`android/`, the proven capture + backend pipeline)
+    and `cc.tumtum.app` (branch `app`, the designed experience from the app
+    handoff, fully local, no backend, its own moment finder). Entry of
+    2026-09-18. Every piece of this week's Play Console work names
+    `cc.tumtum.capture`. Felipe decides; until then nothing more is built
+    for either on the assumption it is the one.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-18 — there are two Android apps, and this log knew about one of them
+
+Felipe sent a screenshot after the merge: *"no app não aparece mais nenhum
+card e nenhuma noite… não tem nada"* — a screen titled **Sua galeria**, 0
+noites, 0 momentos, tabs FEED · AO VIVO · VOCÊ. None of that copy exists in
+`android/` or in the site. It lives on branch **`app`**: package
+**`cc.tumtum.app`**, 19 commits between 01/09 and 02/09, "primeira
+implementação do handoff" of the Claude Design app handoff — Kotlin +
+Compose, Room, its own BLE capture, its own Health Connect reader, its own
+moment finder (`NightAnalyzer`, a local-peak rule, not the backend's
+algorithm), a reveal lock that opens a night only at 10:00 the next morning
+("protocolo do dia 25"), and — the fact that decides tonight's question —
+**no backend at all**: "sem backend (social em repositório fake trocável)".
+Not one HTTP call in it. Its CI publishes a GitHub Release `app-b<N>` per
+build, signed with a committed debug keystore.
+
+**This log never recorded it.** Every entry since 01/09 says "the Android
+app" and means `android/` — `cc.tumtum.capture`, the native capture app
+proven at Realness, the one that uploads to Railway and whose moments come
+from `detect_peaks()`. The two were built in different sessions from
+different briefs and have never been named side by side. That is a hole in
+the memory this file exists to be, and it is now closed.
+
+### What the screenshot means
+
+The merge of #49 changed the backend, the site and `cc.tumtum.capture`.
+**It cannot have emptied `cc.tumtum.app`**: that app keeps its nights in a
+local Room database (`tumtum.db`) on the phone and has never sent a byte to
+any server. Whatever emptied it happened on the phone — a reinstall or a
+cleared storage takes the database with it, and nothing on the server can
+bring it back because nothing was ever there. The gallery counts
+*published* nights and sums moments over *all* nights; both at zero means
+the local database holds no analysed night at all.
+
+### The question this opens — item 33
+
+Everything done this week targets `cc.tumtum.capture`: the detector rebuild
+(backend), the release key and the `.aab` job (its `build.gradle`), the
+Play Console plan (its package name), the privacy page's description of
+what the app does. If the pilot's app is `cc.tumtum.app`, most of that
+points at the wrong package — and that app's own moment finder has not been
+examined at all. **Which app carries the pilot is Felipe's decision and is
+not written anywhere.** The honest summary of the fork: `capture` is the
+proven pipeline (six-hour capture, upload, the detector, cards with the
+share sheet, a backend that can hold five people's nights); `app` is the
+designed experience (feed, galeria, peles, the reveal protocol, live BLE
+with a foreground service) with no server behind it. Merging them is a
+project, not a task.
 
 ---
 
