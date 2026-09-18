@@ -226,13 +226,63 @@ the linked documents — this file is the index and the reasoning, not a diary.
     repository, 1 a real account, 2 the night uploads and the server's
     moments come back, 3 the event has a name, 4 Play. `cc.tumtum.capture`
     is the reference until each piece is ported, then retired. **Etapa 0
-    done 18/09; Etapa 1 built 18/09** (CI green; the phone check is
-    Felipe's); **next: Etapa 2.**
+    done 18/09; Etapas 1 and 2 built 18/09** (CI green; the phone checks
+    are Felipe's); **next: Etapa 3.**
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-18 — Etapa 2 built: the night goes up, and the server's moments come back
+
+The stage that turns the designed app from a local diary into the product:
+the readings reach the server, the detector rebuilt on 17/09 runs on them,
+and its moments come back to the reveal, named where the event has a
+timeline.
+
+**The shape, and the two rules inside it.** The phone stays the source of
+truth for the readings: a night is saved in Room first and only then
+offered to the server (`POST /api/health/sessions`, then
+`POST /api/experience/{id}/analyze`); the server's moments replace the
+phone's top-N in one transaction, and the night records **where it stands**
+— PENDING, SENT, ANALYSED, FAILED with the reason as a key — and **which
+moments it holds** (LOCAL or SERVER). Those two columns are what let the
+reveal say one true sentence instead of showing one thing while claiming
+another. Failure costs a retry, never the night: on every app start, on
+opening the night, and by a button on the reveal. Nights saved before today
+start PENDING and upload on the next start — the backup that did not exist
+when the gallery came up empty this morning.
+
+**What the reveal says**, exactly one of: *Enviando a noite pro servidor…* ·
+*Momentos encontrados pelo servidor* · *Momentos calculados neste aparelho*
+plus why the night has not gone up (no account yet; session expired — go to
+Settings; no internet — it stays here; the server's own answer with its
+code). A moment with a cause — the song, the goal — shows it above its time.
+The line is honest by construction: it is computed from the two columns
+and the in-flight set, not from what a screen remembers.
+
+**Decisions taken in the port, stated:** readings outside 30–250 bpm are
+dropped before upload rather than sent, because one rejected value would
+fail the whole upload with a validation error; readings sharing an instant
+keep the first (the server does the same); `isPeak` among server moments is
+the highest bpm, consistent with the 31/08 rule that the card leads with the
+highest peak; the token's 24-hour life is checked *before* the upload, so an
+expired session is a named state on the reveal and never a mystery at the
+end of a night. Room 3 → 4 with a migration; the payload builder and the
+answer parser are pure and tested.
+
+**Gate:** CI green — unit tests (now 12 on the API side), `assembleDebug`,
+the `.aab`. Felipe's half: a two-minute rehearsal capture, close the event,
+open the night — the line should go *Enviando…* → *Momentos encontrados pelo
+servidor*, and the peak on the reveal should match the session on
+tumtum.cc.
+
+**Next: Etapa 3** — the event has a name: chosen from the server's list,
+and a "marcar momento" button that posts the clock time so the correlator
+can name a goal.
 
 ---
 
