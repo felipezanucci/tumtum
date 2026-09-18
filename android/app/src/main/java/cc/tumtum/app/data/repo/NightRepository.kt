@@ -126,13 +126,20 @@ class NightRepository(
     /**
      * Mede densidade por fonte na janela fechada do evento (b4, §7), agregando
      * as fontes ativas: Health Connect + o sensor BLE ao vivo, no mesmo pipeline (§2).
+     *
+     * A margem de 30 min existe para o relógio, cuja gravação pode ter começado
+     * antes de o evento ser marcado. Com a cinta, a noite é a captura: começa e
+     * termina no relógio de parede do próprio evento. No ensaio de 18/09 a
+     * margem virou "30 MIN SEM DADO" e "10% da noite coberta" em cima de uma
+     * captura sem um segundo de buraco.
      */
     suspend fun measureSources(event: EventSession, end: Instant = Instant.now()): SourceMeasurement {
-        val windowStart = event.startAt.minus(margin)
-        val windowEnd = (event.endAt ?: end).plus(margin).coerceAtMost(Instant.now())
+        val closedAt = (event.endAt ?: end).coerceAtMost(Instant.now())
+        val ble = bleSamplesIn(event.id, event.startAt.minus(margin), closedAt.plus(margin))
+        val windowStart = if (ble.isNotEmpty()) event.startAt else event.startAt.minus(margin)
+        val windowEnd = if (ble.isNotEmpty()) closedAt else closedAt.plus(margin).coerceAtMost(Instant.now())
         val bySource = health.readWindowBySource(windowStart, windowEnd).toMutableMap()
-        val ble = bleSamplesIn(event.id, windowStart, windowEnd)
-        if (ble.isNotEmpty()) bySource[HrSource.ID_BLE] = ble
+        if (ble.isNotEmpty()) bySource[HrSource.ID_BLE] = ble.filter { it.time >= windowStart && it.time <= windowEnd }
         return SourceMeasurement(
             windowStart = windowStart,
             windowEnd = windowEnd,

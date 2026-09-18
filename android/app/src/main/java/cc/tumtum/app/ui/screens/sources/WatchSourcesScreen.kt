@@ -35,7 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.repo.SourceMeasurement
-import cc.tumtum.app.domain.RevealLock
+import cc.tumtum.app.data.repo.saveEndedNight
 import cc.tumtum.app.domain.WatchSource
 import cc.tumtum.app.ui.components.Badge
 import cc.tumtum.app.ui.components.TTButton
@@ -46,7 +46,6 @@ import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import java.time.Duration
 import java.time.Instant
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -93,6 +92,24 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
             modifier = Modifier.clickable { nav.popBackStack() }.padding(4.dp),
         )
         Spacer(Modifier.height(34.dp))
+        val nothingRecorded = !setupMode && m != null && sources.none { it.hasData }
+        if (nothingRecorded) {
+            // Fim de noite sem uma batida em fonte nenhuma: dizer isso, não
+            // oferecer uma escolha entre fontes vazias.
+            Text(stringResource(R.string.sources_none_title), style = TTType.TitleSmall, color = TT.Ink)
+            Spacer(Modifier.height(12.dp))
+            Text(stringResource(R.string.sources_none_body), style = TTType.Body, color = TT.Gray70)
+            Spacer(Modifier.height(30.dp))
+            TTButton(
+                stringResource(R.string.sources_none_back),
+                TTButtonStyle.Ink,
+                onClick = {
+                    container.endNight.clear()
+                    nav.navigate(Routes.Feed) { popUpTo(Routes.Feed) { inclusive = true } }
+                },
+            )
+            return@Column
+        }
         Text(stringResource(R.string.sources_title), style = TTType.TitleSmall, color = TT.Ink)
         Spacer(Modifier.height(6.dp))
         Text(stringResource(R.string.sources_subtitle), style = TTType.Body, color = TT.Gray45)
@@ -146,20 +163,10 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                     } else {
                         val event = container.endNight.event ?: return@launch
                         val meas = container.endNight.measurement ?: return@launch
-                        // Trava da revela (protocolo): com o modo ligado, a noite
-                        // só abre às 10h da manhã seguinte — o cartão cego vem antes.
-                        val revealAt = if (container.prefs.state.first().revealLockEnabled) {
-                            RevealLock.revealAt(meas.windowEnd)
-                        } else {
-                            null
-                        }
-                        val nightId = container.nights.saveNight(event, meas, src.packageName, revealAt)
-                        // Etapa 2: saved on the phone first, then offered to the server. A failure costs a retry, never the night.
-                        nightId?.let { container.sync.uploadLater(it) }
+                        val nightId = container.saveEndedNight(event, meas, src.packageName)
                         if (nightId == null) {
                             noData = true
                         } else {
-                            container.endNight.clear()
                             nav.navigate(Routes.reveal(nightId)) {
                                 popUpTo(Routes.Feed)
                             }

@@ -159,9 +159,10 @@ fun CaptureScreen(nav: NavHostController) {
             Spacer(Modifier.height(36.dp))
             if (bleActive) {
                 // O número mora atrás de um toque longo (§10). Sem número na tela principal.
+                // Um toque mostra o número por oito segundos; a tela principal continua sem ele.
                 Column(
                     Modifier.combinedClickable(
-                        onClick = {},
+                        onClick = { bpmVisible = true },
                         onLongClick = { bpmVisible = true },
                     ),
                 ) {
@@ -315,11 +316,18 @@ fun CaptureScreen(nav: NavHostController) {
             onClick = {
                 // Encerra o serviço (grava offsets finais e limpa a sessão ativa) e mede as fontes.
                 CaptureService.stop(context)
-                vm.endNight {
-                    nav.navigate(Routes.EndNight) {
-                        popUpTo(Routes.Live) { inclusive = false }
-                    }
-                }
+                vm.endNight(
+                    onSaved = { nightId ->
+                        nav.navigate(Routes.reveal(nightId)) {
+                            popUpTo(Routes.Feed)
+                        }
+                    },
+                    onChoose = {
+                        nav.navigate(Routes.EndNight) {
+                            popUpTo(Routes.Live) { inclusive = false }
+                        }
+                    },
+                )
             },
         )
     }

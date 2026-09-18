@@ -281,12 +281,22 @@ fun CreateEventSheet(onDismiss: () -> Unit, onCreate: (NewEvent) -> Unit) {
                 }
             }
             Spacer(Modifier.height(26.dp))
+            // Sempre rosa: um botão apagado a 40% lê como "nada para fazer". Sem
+            // nome, o toque diz o que falta em vez de não responder.
+            var needsName by remember { mutableStateOf(false) }
+            if (needsName && name.isBlank()) {
+                Text(stringResource(R.string.event_needs_name), style = TTType.BodySmall, color = TT.Ink)
+                Spacer(Modifier.height(10.dp))
+            }
             TTButton(
                 stringResource(R.string.event_starts_now),
                 TTButtonStyle.Rose,
-                enabled = name.isNotBlank(),
                 onClick = {
-                    onCreate(NewEvent(name = name, venue = venue, eventType = eventType, serverEventId = picked?.id))
+                    if (name.isBlank()) {
+                        needsName = true
+                    } else {
+                        onCreate(NewEvent(name = name, venue = venue, eventType = eventType, serverEventId = picked?.id))
+                    }
                 },
             )
         }
