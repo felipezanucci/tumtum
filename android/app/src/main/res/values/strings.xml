@@ -57,6 +57,9 @@
     <string name="sources_footnote">A gente mede a densidade de cada fonte na janela do evento e usa a melhor. Buracos ficam visíveis — nunca inventamos batida.</string>
     <string name="sources_use">Usar %1$s</string>
     <string name="sources_empty">Não achamos batida nessa janela.</string>
+    <string name="sources_none_title">Não gravamos\nnenhuma batida.</string>
+    <string name="sources_none_body">Nenhuma fonte tinha leitura entre o começo e o fim da noite. Confere se o sensor estava conectado ou se o relógio estava gravando, e tenta de novo na próxima.</string>
+    <string name="sources_none_back">Voltar</string>
     <string name="sources_interval_s">%1$ds</string>
     <string name="sources_interval_min">%1$dmin</string>
 
@@ -75,6 +78,7 @@
     <string name="event_venue_label">LUGAR</string>
     <string name="event_venue_hint">Autódromo de Interlagos</string>
     <string name="event_starts_now">Começa agora</string>
+    <string name="event_needs_name">Dá um nome pro evento primeiro.</string>
     <!-- Etapa 3: the server's events, and the kind of the one being typed -->
     <string name="event_pick_title">EVENTOS JÁ MARCADOS</string>
     <string name="event_pick_loading">Perguntando ao servidor…</string>
@@ -233,7 +237,7 @@
     <string name="capture_disconnected">sem sensor</string>
     <string name="capture_samples">%1$d AMOSTRAS</string>
     <string name="capture_sensor_battery">SENSOR %1$d%%</string>
-    <string name="capture_hold_to_see">Segura para ver. A gente só olha depois.</string>
+    <string name="capture_hold_to_see">Toca para ver. A gente só olha depois.</string>
 
     <!-- Isenção de otimização de bateria (§6). Tela de permissão: a marca fica quieta e explica. -->
     <string name="battery_title">Uma permissão\nantes de começar.</string>
@@ -247,10 +251,10 @@
     <string name="battery_not_yet">Ainda não está liberado. Toque no botão rosa e, na janela do Android, em OK.</string>
 
     <!-- Participante do experimento (§9) -->
-    <string name="participant_label">PARTICIPANTE · opcional</string>
-    <string name="participant_hint">Só para quem está no experimento (P01…P18). Vai junto na exportação.</string>
+    <string name="participant_label">CÓDIGO NO EXPERIMENTO · opcional</string>
+    <string name="participant_hint">Só se você recebeu um código (P01, P02…). Não é o nome do evento. Vai junto na exportação.</string>
     <string name="settings_participant_section">EXPERIMENTO</string>
-    <string name="settings_participant_hint">Identificador do participante — entra no session.json exportado.</string>
+    <string name="settings_participant_hint">Só para quem opera o teste. Um fã não precisa mexer aqui.</string>
 
     <!-- Exportação (§9) -->
     <!-- Etapa 2: where the night stands with the server. Each line names the real state. -->
@@ -307,7 +311,7 @@
     <string name="settings_reveal_lock">Trava da revela</string>
     <string name="settings_reveal_lock_hint">Noites novas só abrem às 10h da manhã seguinte. Protege o cartão cego do teste.</string>
     <string name="settings_operator_marks">Marcar momentos na captura</string>
-    <string name="settings_operator_marks_hint">Só no celular de quem opera o teste. GOL, MÚSICA e MOMENTO aparecem na captura e vão pra linha do tempo do evento — valem pra todo mundo que está nele.</string>
+    <string name="settings_operator_marks_hint">Liga no celular de quem opera o teste. Os botões GOL, MÚSICA e MOMENTO aparecem na captura e as marcas vão pra linha do tempo do evento — valem pra todo mundo que está nele. Desligado, a captura não mostra botão nenhum.</string>
     <string name="settings_toggle_on">LIGADA</string>
     <string name="settings_toggle_off">DESLIGADA</string>
     <string name="locked_title">Sua noite está sendo\nrevelada.</string>

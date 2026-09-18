@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cc.tumtum.app.AppContainer
 import cc.tumtum.app.data.repo.LiveSnapshot
+import cc.tumtum.app.data.repo.saveEndedNight
 import cc.tumtum.app.domain.EventSession
 import java.time.Duration
 import java.time.Instant
@@ -113,10 +114,13 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     /**
-     * Encerrar a noite: fecha a janela, mede densidade por fonte e deixa a
-     * decisão visível em b4 (§7) — nada é escolhido escondido.
+     * Encerrar a noite: fecha a janela e mede densidade por fonte. Com uma
+     * fonte só com dado (a cinta, no piloto) não há escolha a fazer, então a
+     * noite é salva aqui e [onSaved] recebe o id. Com duas ou mais, ou com
+     * nenhuma, a decisão fica visível em b4 (§7) — nada é escolhido escondido —
+     * e [onChoose] abre a tela de fontes.
      */
-    fun endNight(onMeasured: () -> Unit) {
+    fun endNight(onSaved: (Long) -> Unit, onChoose: () -> Unit) {
         val event = activeEvent.value ?: return
         if (_ending.value) return
         _ending.value = true
@@ -124,10 +128,13 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
             val endedAt = Instant.now()
             container.nights.closeEvent(event.id, endedAt)
             val closed = event.copy(endAt = endedAt)
+            val measurement = container.nights.measureSources(closed, endedAt)
             container.endNight.event = closed
-            container.endNight.measurement = container.nights.measureSources(closed, endedAt)
+            container.endNight.measurement = measurement
+            val withData = measurement.sources.filter { it.hasData }
+            val saved = withData.singleOrNull()?.let { container.saveEndedNight(closed, measurement, it.packageName) }
             _ending.value = false
-            onMeasured()
+            if (saved != null) onSaved(saved) else onChoose()
         }
     }
 }

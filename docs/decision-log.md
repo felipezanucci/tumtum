@@ -239,6 +239,55 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — third rehearsal: the pipeline is right, the screens around it were not
+
+Felipe ran the rehearsal a third time on `app-b115`: one minute still, two
+minutes of effort, three minutes of rest, with the Polar. The exported
+session is the first clean end-to-end proof of the designed app: 363
+readings at 1 Hz with no gap, 703 R-R intervals, contact 100%, peak 161 bpm
+at 14h11m17, and the detector reported **one** moment, 93 s long — the
+stretch above 150 — where the old mean-based detector would have reported
+spikes or nothing. The card was generated and the share sheet opened with
+the image attached. Six observations came back, all about what surrounds
+the pipeline, and all were fixed in one pass:
+
+1. **"Começa agora" was not pink.** The button faded to 40% while the name
+   was blank, and a faded pink on white reads as nothing. It is always
+   pink now; a tap with no name says *Dá um nome pro evento primeiro*.
+2. **The three dots instead of a live number.** Felipe read it as a bug. It
+   is the §10 rule — seeing your own number changes the number — and it
+   stays, but the number now appears on a **single tap** for eight
+   seconds, not only on a long press, and the line says *Toca para ver*.
+   Flipping to always-on is one line if the pilot argues for it.
+3. **The 30-minute margin leaked into every surface.** The reveal said
+   *30 MIN SEM DADO* starting at 13h38, the sources screen said *10% da
+   noite coberta*, and `session.json` carried both. The margin exists for
+   the watch path, whose recording may start before the event is marked.
+   **With the strap, the night is the capture:** when the live sensor has
+   data the window is the event's own start and end, no margin. The
+   watch-only window keeps it.
+4. **"Trazer do meu relógio" asked for a choice that did not exist.** The
+   source screen is for two or more sources. Now: exactly one source with
+   data saves the night and goes straight to the reveal; two or more show
+   the screen; none shows an honest *Não gravamos nenhuma batida* with a
+   way back, instead of a title promising sources found. This is also
+   where the morning's *"Não achamos batida nessa janela"* came from. The
+   end-of-night save lives in one place (`saveEndedNight`) for both paths.
+5. **The operator toggle was invisible.** Felipe ran the whole rehearsal
+   without the GOL · MÚSICA · MOMENTO buttons because the switch shipped
+   off and was buried. It is now the first row of Configurações →
+   Experimento, and the section says who it is for.
+6. **The participant field took the event's name.** `session.json` carried
+   `participantId: "Ensaio 2"`. Relabelled *Código no experimento*, with
+   *Não é o nome do evento* in the hint.
+
+**What the rehearsal settles:** capture, upload, detection, naming
+infrastructure, card and share all work on the designed app with a real
+strap. What it does not settle is the GOL label on a moment — the buttons
+were hidden, so no mark was made. That is the next rehearsal's one check.
+
+---
+
 ## 2026-09-18 — second rehearsal: a night with no way out, and 31 goals from one thumb
 
 Felipe ran a ten-minute capture with the Polar on `app-b111` (641
