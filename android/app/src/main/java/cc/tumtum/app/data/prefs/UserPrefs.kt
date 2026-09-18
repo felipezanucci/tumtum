@@ -60,6 +60,13 @@ data class UserState(
     val activeCaptureEventId: Long? = null,
     /** Trava da revela (protocolo): noites novas só abrem às 10h da manhã seguinte. */
     val revealLockEnabled: Boolean = false,
+    /**
+     * Operator mode (Etapa 3, 2026-09-18): the GOL · MÚSICA · MOMENTO taps show
+     * on the capture only on the phone of whoever runs the test. Their marks
+     * go to the event's shared timeline and name everyone's moments; a fan
+     * is never asked to do this.
+     */
+    val operatorMarks: Boolean = false,
 ) {
     val watchConnected: Boolean get() = sourcePackage != null
     val sensorPaired: Boolean get() = bleAddress != null
@@ -81,6 +88,7 @@ class UserPrefs(private val context: Context) {
         val avatarPath = stringPreferencesKey("avatar_path")
         val activeCaptureEventId = longPreferencesKey("active_capture_event_id")
         val revealLockEnabled = booleanPreferencesKey("reveal_lock_enabled")
+        val operatorMarks = booleanPreferencesKey("operator_marks")
         val accessToken = stringPreferencesKey("access_token")
         val userId = stringPreferencesKey("user_id")
     }
@@ -105,6 +113,7 @@ class UserPrefs(private val context: Context) {
             avatarPath = p[Keys.avatarPath],
             activeCaptureEventId = p[Keys.activeCaptureEventId],
             revealLockEnabled = p[Keys.revealLockEnabled] ?: false,
+            operatorMarks = p[Keys.operatorMarks] ?: false,
             session = p[Keys.accessToken]?.let { Session(token = it, userId = p[Keys.userId]) },
         )
     }
@@ -184,6 +193,10 @@ class UserPrefs(private val context: Context) {
 
     suspend fun setRevealLock(enabled: Boolean) {
         context.dataStore.edit { it[Keys.revealLockEnabled] = enabled }
+    }
+
+    suspend fun setOperatorMarks(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.operatorMarks] = enabled }
     }
 
     suspend fun setActiveCapture(eventId: Long) {

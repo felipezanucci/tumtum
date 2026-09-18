@@ -2,6 +2,7 @@ package cc.tumtum.app.ui.screens.live
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +59,10 @@ import kotlinx.coroutines.delay
  * Com sensor BLE ativo, o número NÃO fica na tela (§10): ver o próprio número
  * muda o número. Fica atrás de um toque longo. O que fica visível é o estado
  * da conexão, o contador de amostras e a bateria do sensor.
+ *
+ * Layout em dois blocos: o de cima rola, o de baixo (marcas do operador,
+ * dica, Encerrar a noite) é fixo. No primeiro ensaio (18/09) a fileira de
+ * marcas empurrou o Encerrar para fora da tela e a noite não tinha saída.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -69,6 +76,8 @@ fun CaptureScreen(nav: NavHostController) {
     val ending by vm.ending.collectAsStateWithLifecycle()
     val revoked by vm.permissionRevoked.collectAsStateWithLifecycle()
     val bus by CaptureBus.status.collectAsStateWithLifecycle()
+    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
+    val lastMark by vm.lastMark.collectAsStateWithLifecycle()
 
     var bpmVisible by remember { mutableStateOf(false) }
     LaunchedEffect(bpmVisible) {
@@ -89,6 +98,7 @@ fun CaptureScreen(nav: NavHostController) {
             .navigationBarsPadding()
             .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 26.dp),
     ) {
+      Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(9.dp).clip(CircleShape).background(TT.Acid))
             Spacer(Modifier.size(9.dp))
@@ -115,7 +125,7 @@ fun CaptureScreen(nav: NavHostController) {
                 }
             }
         }
-        Spacer(Modifier.height(36.dp))
+        Spacer(Modifier.height(28.dp))
         Text(e.name, style = TTType.ItemTitle.copy(fontSize = 16.sp), color = TT.Paper)
         Spacer(Modifier.height(3.dp))
         Text(
@@ -138,7 +148,7 @@ fun CaptureScreen(nav: NavHostController) {
                 onClick = { nav.navigate(Routes.Permission) },
             )
         } else {
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(36.dp))
             Text(stringResource(R.string.live_playing_for), style = TTType.MetaWide, color = TT.Gray55)
             Spacer(Modifier.height(8.dp))
             Text(
@@ -146,7 +156,7 @@ fun CaptureScreen(nav: NavHostController) {
                 style = TTType.HeroSmall,
                 color = TT.Paper,
             )
-            Spacer(Modifier.height(52.dp))
+            Spacer(Modifier.height(36.dp))
             if (bleActive) {
                 // O número mora atrás de um toque longo (§10). Sem número na tela principal.
                 Column(
@@ -224,32 +234,74 @@ fun CaptureScreen(nav: NavHostController) {
             }
         }
 
-        Spacer(Modifier.weight(1f))
+      }
+        Spacer(Modifier.height(16.dp))
 
-        // Etapa 3 — marcar o momento. Three taps a person can find in the
-        // dark; the clock of the tap is what names the moment later. The
-        // count is the only feedback and it is the truth: what is stored.
-        val marks by container.nights.marksCount(e.id).collectAsStateWithLifecycle(initialValue = 0)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.mark_label), style = TTType.MetaWide, color = TT.Gray55)
-            Text(stringResource(R.string.mark_count, marks), style = TTType.MetaSmall, color = TT.Gray55)
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(
-                stringResource(R.string.mark_goal) to MarkKinds.GOAL,
-                stringResource(R.string.mark_song) to MarkKinds.SONG,
-                stringResource(R.string.mark_moment) to MarkKinds.MOMENT,
-            ).forEach { (label, kind) ->
-                TTButton(
-                    label,
-                    TTButtonStyle.OutlineOnDark,
-                    onClick = { vm.mark(label, kind) },
-                    modifier = Modifier.weight(1f),
-                )
+        // Etapa 3 — marcar o momento. Only on the operator's phone (Configurações →
+        // Experimento): three taps a person can find in the dark, the clock of the
+        // tap is what names the moment later, for everyone on the same event. Each
+        // tap answers: the button lights up, a line says what was stored and when,
+        // and a repeat inside ten seconds says it is the same moment.
+        if (user?.operatorMarks == true) {
+            val marks by container.nights.marksCount(e.id).collectAsStateWithLifecycle(initialValue = 0)
+            var flash by remember { mutableStateOf<String?>(null) }
+            LaunchedEffect(flash) {
+                if (flash != null) {
+                    delay(1_200)
+                    flash = null
+                }
             }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.mark_label), style = TTType.MetaWide, color = TT.Gray55)
+                Text(stringResource(R.string.mark_count, marks), style = TTType.MetaSmall, color = TT.Gray55)
+            }
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    stringResource(R.string.mark_goal) to MarkKinds.GOAL,
+                    stringResource(R.string.mark_song) to MarkKinds.SONG,
+                    stringResource(R.string.mark_moment) to MarkKinds.MOMENT,
+                ).forEach { (label, kind) ->
+                    TTButton(
+                        label,
+                        if (flash == kind) TTButtonStyle.Rose else TTButtonStyle.OutlineOnDark,
+                        onClick = {
+                            flash = kind
+                            vm.mark(label, kind)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+            val fb = lastMark
+            if (fb != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(
+                            if (fb.repeated) R.string.mark_repeated else R.string.mark_stored,
+                            fb.label,
+                            Fmt.hour(fb.at),
+                        ),
+                        style = TTType.BodySmall,
+                        color = if (fb.repeated) TT.Acid else TT.Paper,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (!fb.repeated && fb.id != null) {
+                        Spacer(Modifier.size(12.dp))
+                        Text(
+                            stringResource(R.string.mark_undo),
+                            style = TTType.Meta,
+                            color = TT.Rose,
+                            modifier = Modifier.clickable { vm.undoLastMark() },
+                        )
+                    }
+                }
+            } else {
+                Spacer(Modifier.height(19.dp))
+            }
+            Spacer(Modifier.height(14.dp))
         }
-        Spacer(Modifier.height(18.dp))
         Text(
             stringResource(R.string.live_hint),
             style = TTType.Body.copy(fontSize = 14.sp),

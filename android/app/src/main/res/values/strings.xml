@@ -91,6 +91,9 @@
     <string name="mark_goal">GOL</string>
     <string name="mark_song">MÚSICA</string>
     <string name="mark_moment">MOMENTO</string>
+    <string name="mark_stored">%1$s marcado às %2$s</string>
+    <string name="mark_repeated">%1$s já marcado às %2$s. Um toque basta.</string>
+    <string name="mark_undo">Desfazer</string>
 
     <!-- a2 · Captura ao vivo -->
     <string name="live_label">AO VIVO</string>
@@ -303,6 +306,8 @@
     <!-- Trava da revela (protocolo do teste) -->
     <string name="settings_reveal_lock">Trava da revela</string>
     <string name="settings_reveal_lock_hint">Noites novas só abrem às 10h da manhã seguinte. Protege o cartão cego do teste.</string>
+    <string name="settings_operator_marks">Marcar momentos na captura</string>
+    <string name="settings_operator_marks_hint">Só no celular de quem opera o teste. GOL, MÚSICA e MOMENTO aparecem na captura e vão pra linha do tempo do evento — valem pra todo mundo que está nele.</string>
     <string name="settings_toggle_on">LIGADA</string>
     <string name="settings_toggle_off">DESLIGADA</string>
     <string name="locked_title">Sua noite está sendo\nrevelada.</string>
