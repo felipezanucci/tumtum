@@ -1,102 +1,129 @@
-"""Heart rate peak detection algorithm.
+"""Heart rate peak detection.
 
-Implements the algorithm specified in CLAUDE.md:
-1. Smooth: 5-second moving average on BPM values
-2. Baseline: 5-minute centered rolling mean (wide window to avoid spike contamination)
-3. Std dev: 5-minute centered rolling standard deviation
-4. Z-score: (smoothed_bpm - baseline) / std for each point
-5. Threshold: mark points where z-score > 2.0 as "elevated"
-6. Group: consecutive elevated points → "peak region"
-7. Filter: peak regions < 5 seconds are discarded (noise)
-8. Extract: peak_bpm = max(region), peak_time = timestamp of max
-9. Merge: peaks within 30 seconds of each other → keep highest
-10. Rank: by magnitude (z-score × duration_seconds)
+Finds the moments of a night: the stretches where the heart ran above what it
+had been doing for the last twenty minutes. Implements the algorithm specified
+in CLAUDE.md, which has to change together with this file:
 
-Note: CLAUDE.md specifies 60-second windows for baseline/stddev. In practice, a wider
-window (300s) is needed so that peaks don't contaminate their own baseline. The algorithm
-logic is otherwise identical to the spec.
+1.  Smooth: 5-second moving average on BPM values
+2.  Baseline: 1200-second centred rolling **median**
+3.  Spread: interquartile range of the same window, scaled to a standard
+    deviation (IQR / 1.349)
+4.  Z-score: (smoothed_bpm - baseline) / spread, with the guards described
+    at the point of use
+5.  Regions with hysteresis: a region opens where z > 2.0 and stays open
+    while z > 1.0
+6.  Filter: regions shorter than 5 seconds are discarded
+7.  Extract: peak_bpm = max(region), peak_time = timestamp of that max
+8.  Merge: regions separated by 30 seconds or less become one
+9.  Rank: by magnitude (z-score × duration_seconds), keep the top 20
+
+Why the median, and why twenty minutes — recorded 2026-09-17. The previous
+version used a 300 s rolling *mean*. A mean includes the event it is meant to
+be the reference for, so any elevation approaching half the window raised its
+own baseline and disappeared. That widened the window from 60 s to 300 s once
+already, for a 13-second spike; a goal celebration lasts two to three minutes,
+and a favourite song sung from start to finish lasts four, and both were
+invisible. A median does not move until the elevation fills half the window,
+so the window can be wide enough for a song without a spike being lost to it,
+and a slowly drifting quiet hour still reports nothing. Verified by
+simulation in `scripts/simulate_moment_detection.py`; the guarantees are in
+`tests/test_peak_detection.py`.
+
+The algorithm is time-based, never index-based, so it reads a strap at 1 Hz
+and a watch at one reading per minute with the same code — what changes is
+what each can resolve, and that is the watch's limit, not this file's.
 """
 
+from bisect import bisect_left, insort
 from datetime import datetime
-from math import sqrt
 
 
 def detect_peaks(
     hr_data: list[dict],
     timeline: list[dict] | None = None,
     z_threshold: float = 2.0,
+    z_exit: float = 1.0,
+    min_rise_bpm: float = 10.0,
     min_peak_duration_sec: int = 5,
     merge_window_sec: int = 30,
     max_peaks: int = 20,
-    baseline_window_sec: int = 300,
+    baseline_window_sec: int = 1200,
     smooth_window_sec: int = 5,
 ) -> list[dict]:
     """Detect heart rate peaks from a time series of BPM data.
 
     Args:
         hr_data: List of {"time": datetime, "bpm": int} sorted by time
-        timeline: Optional event timeline for future correlation
-        z_threshold: Z-score threshold for elevation (default 2.0)
-        min_peak_duration_sec: Minimum peak duration to keep (default 5s)
-        merge_window_sec: Window for merging nearby peaks (default 30s)
+        timeline: Unused here; matching happens in event_correlator
+        z_threshold: Z-score that opens a region (default 2.0)
+        z_exit: Z-score below which an open region closes (default 1.0)
+        min_rise_bpm: A region needs at least this many bpm above the
+            baseline to open, and half of it to stay open (default 10)
+        min_peak_duration_sec: Regions shorter than this are noise (default 5 s)
+        merge_window_sec: Regions this close become one (default 30 s)
         max_peaks: Maximum number of peaks to return (default 20)
-        baseline_window_sec: Window for baseline calculation (default 300s / 5 min)
-        smooth_window_sec: Window for smoothing (default 5s)
+        baseline_window_sec: Reference window for the median (default 1200 s)
+        smooth_window_sec: Window for smoothing (default 5 s)
 
     Returns:
         List of peak dicts sorted by magnitude (descending):
-        [{"timestamp", "bpm", "duration_seconds", "magnitude", "z_score"}]
+        [{"timestamp", "bpm", "duration_seconds", "magnitude", "z_score",
+          "start_time", "end_time"}]
+        start_time and end_time bound the whole elevated region; timestamp is
+        the second inside it where the heart was highest.
     """
     if len(hr_data) < 10:
         return []
 
     times = [d["time"] for d in hr_data]
+    secs = [t.timestamp() for t in times]
     bpms = [float(d["bpm"]) for d in hr_data]
     n = len(bpms)
 
-    # Step 1: Smooth — moving average using two-pointer window
-    smoothed = _sliding_window_mean(times, bpms, smooth_window_sec)
+    # Step 1: Smooth
+    smoothed = _sliding_window_mean(secs, bpms, smooth_window_sec)
 
-    # Step 2 & 3: Baseline (mean) and std dev using wider window
-    baselines, std_devs = _sliding_window_stats(times, smoothed, baseline_window_sec)
+    # Steps 2 & 3: Baseline and spread, robust to the event they surround
+    baselines, spreads = _sliding_window_median_and_spread(
+        secs, smoothed, baseline_window_sec
+    )
 
     # Step 4: Elevation score
-    # Use a hybrid approach: z-score when std is meaningful,
-    # but also detect absolute BPM jumps (>30 BPM above baseline)
-    # to catch spikes that inflate their own std within the window.
     z_scores = []
     for i in range(n):
         deviation = smoothed[i] - baselines[i]
-        if std_devs[i] > 1.0:
-            z = deviation / std_devs[i]
+        if spreads[i] > 1.0:
+            z = deviation / spreads[i]
         else:
+            # A very steady stretch would otherwise divide by near-zero and
+            # manufacture huge z-scores.
             z = deviation / 10.0 if deviation > 0 else 0.0
-        # Boost: absolute deviation above 30 BPM is always significant
         if deviation > 30:
+            # An absolute rise that large is always significant.
             z = max(z, deviation / 15.0)
+        # A robust spread on a quiet, slowly drifting hour is only a couple of
+        # bpm, so a z of 2 could be a 4 bpm wobble. A moment is a rise a
+        # person would feel: it must clear min_rise_bpm to open a region and
+        # half of that to keep one open.
+        if deviation < min_rise_bpm / 2.0:
+            z = 0.0
+        elif deviation < min_rise_bpm:
+            z = min(z, z_exit)
         z_scores.append(z)
 
-    # Step 5: Threshold — mark elevated points
-    elevated = [z > z_threshold for z in z_scores]
+    # Step 5: Regions, with hysteresis so one noisy dip does not split a song
+    regions = _group_regions(secs, z_scores, z_threshold, z_exit)
 
-    # Step 6: Group consecutive elevated points into peak regions
-    regions = _group_regions(times, elevated)
-
-    # Step 7: Filter — discard regions shorter than min_peak_duration_sec
+    # Step 6: Filter
     regions = [r for r in regions if r["duration_seconds"] >= min_peak_duration_sec]
 
-    # Step 8: Extract peak BPM and timestamp from each region
+    # Step 7: Extract
     peaks = []
     for region in regions:
         start_idx, end_idx = region["start_idx"], region["end_idx"]
         region_bpms = bpms[start_idx : end_idx + 1]
-        region_zscores = z_scores[start_idx : end_idx + 1]
-
-        max_bpm_idx = region_bpms.index(max(region_bpms))
-        abs_idx = start_idx + max_bpm_idx
-
-        peak_z = max(region_zscores) if region_zscores else 0
-
+        abs_idx = start_idx + region_bpms.index(max(region_bpms))
+        peak_z = max(z_scores[start_idx : end_idx + 1])
         peaks.append(
             {
                 "timestamp": times[abs_idx],
@@ -104,107 +131,116 @@ def detect_peaks(
                 "duration_seconds": region["duration_seconds"],
                 "z_score": peak_z,
                 "magnitude": peak_z * region["duration_seconds"],
+                "start_time": times[start_idx],
+                "end_time": times[end_idx],
             }
         )
 
-    # Step 9: Merge peaks within merge_window_sec — keep highest
+    # Step 8: Merge
     peaks = _merge_peaks(peaks, merge_window_sec)
 
-    # Step 10: Rank by magnitude (descending) and limit
+    # Step 9: Rank
     peaks.sort(key=lambda p: p["magnitude"], reverse=True)
-    peaks = peaks[:max_peaks]
-
-    return peaks
+    return peaks[:max_peaks]
 
 
 def _sliding_window_mean(
-    times: list[datetime],
+    secs: list[float],
     values: list[float],
     window_seconds: int,
 ) -> list[float]:
-    """Compute a time-based moving average using a sliding window (O(n))."""
+    """Time-based moving average over a centred window, O(n)."""
     n = len(values)
     half_window = window_seconds / 2.0
-
-    # An abandoned first attempt used to accumulate a running sum here before
-    # being discarded a few lines below — a full pass over every sample, twice
-    # per analysis, whose result was never read. The two-pointer walk is the
-    # real implementation.
-    left = 0
-    right = 0
+    left = right = 0
+    total = 0.0
     result = []
     for i in range(n):
-        center_time = times[i].timestamp()
-        # Move left pointer
-        while left < n and times[left].timestamp() < center_time - half_window:
-            left += 1
-        # Move right pointer
-        while right < n and times[right].timestamp() <= center_time + half_window:
+        center = secs[i]
+        while right < n and secs[right] <= center + half_window:
+            total += values[right]
             right += 1
-        # Compute mean of [left, right)
-        window_vals = values[left:right]
-        result.append(sum(window_vals) / len(window_vals) if window_vals else values[i])
-        # Don't reset left — it only moves forward
-
+        while left < right and secs[left] < center - half_window:
+            total -= values[left]
+            left += 1
+        result.append(total / (right - left) if right > left else values[i])
     return result
 
 
-def _sliding_window_stats(
-    times: list[datetime],
+def _sliding_window_median_and_spread(
+    secs: list[float],
     values: list[float],
     window_seconds: int,
 ) -> tuple[list[float], list[float]]:
-    """Compute rolling mean and stdev using a sliding window."""
+    """Rolling median and IQR-based spread over a centred window.
+
+    The window is kept as a sorted list: each sample enters and leaves it
+    once, by binary search, so a six-hour night at 1 Hz costs well under a
+    second. Both statistics are read straight off the sorted window.
+    """
     n = len(values)
     half_window = window_seconds / 2.0
-    means = []
-    stdevs = []
-
-    left = 0
+    window_sorted: list[float] = []
+    left = right = 0
+    medians = []
+    spreads = []
     for i in range(n):
-        center_time = times[i].timestamp()
-        # Move left pointer forward
-        while left < n and times[left].timestamp() < center_time - half_window:
-            left += 1
-        # Find right boundary
-        right = left
-        while right < n and times[right].timestamp() <= center_time + half_window:
+        center = secs[i]
+        while right < n and secs[right] <= center + half_window:
+            insort(window_sorted, values[right])
             right += 1
+        while left < right and secs[left] < center - half_window:
+            del window_sorted[bisect_left(window_sorted, values[left])]
+            left += 1
 
-        window_vals = values[left:right]
-        count = len(window_vals)
-
+        count = len(window_sorted)
         if count == 0:
-            means.append(values[i])
-            stdevs.append(0.0)
+            medians.append(values[i])
+            spreads.append(0.0)
             continue
-
-        m = sum(window_vals) / count
-        means.append(m)
-
-        if count >= 2:
-            variance = sum((v - m) ** 2 for v in window_vals) / (count - 1)
-            stdevs.append(sqrt(variance))
+        medians.append(_quantile(window_sorted, 0.5))
+        if count >= 4:
+            iqr = _quantile(window_sorted, 0.75) - _quantile(window_sorted, 0.25)
+            spreads.append(iqr / 1.349)
         else:
-            stdevs.append(0.0)
+            spreads.append(0.0)
+    return medians, spreads
 
-    return means, stdevs
+
+def _quantile(sorted_values: list[float], q: float) -> float:
+    """Linear-interpolated quantile of an already sorted list."""
+    count = len(sorted_values)
+    position = q * (count - 1)
+    lower = int(position)
+    upper = min(lower + 1, count - 1)
+    fraction = position - lower
+    return (
+        sorted_values[lower] + (sorted_values[upper] - sorted_values[lower]) * fraction
+    )
 
 
 def _group_regions(
-    times: list[datetime],
-    elevated: list[bool],
+    secs: list[float],
+    z_scores: list[float],
+    z_enter: float,
+    z_exit: float,
 ) -> list[dict]:
-    """Group consecutive elevated points into regions."""
+    """Group elevated points into regions, with hysteresis.
+
+    A region opens where z exceeds z_enter and runs until z falls to z_exit
+    or below. Without the second threshold a four-minute song fragments into
+    a dozen slivers wherever the noise dips for a second.
+    """
     regions = []
     i = 0
-    while i < len(elevated):
-        if elevated[i]:
+    n = len(z_scores)
+    while i < n:
+        if z_scores[i] > z_enter:
             start_idx = i
-            while i < len(elevated) and elevated[i]:
+            while i < n and z_scores[i] > z_exit:
                 i += 1
             end_idx = i - 1
-            duration = (times[end_idx] - times[start_idx]).total_seconds()
+            duration = secs[end_idx] - secs[start_idx]
             regions.append(
                 {
                     "start_idx": start_idx,
@@ -218,7 +254,11 @@ def _group_regions(
 
 
 def _merge_peaks(peaks: list[dict], merge_window_sec: int) -> list[dict]:
-    """Merge peaks that are within merge_window_sec of each other, keeping the highest."""
+    """Merge regions separated by merge_window_sec or less.
+
+    The merged peak keeps the stronger region's numbers and the union of both
+    regions' bounds, so the moment still says where it started and ended.
+    """
     if not peaks:
         return []
 
@@ -227,11 +267,29 @@ def _merge_peaks(peaks: list[dict], merge_window_sec: int) -> list[dict]:
     merged = [peaks[0]]
     for peak in peaks[1:]:
         last = merged[-1]
-        delta = abs((peak["timestamp"] - last["timestamp"]).total_seconds())
-        if delta <= merge_window_sec:
-            if peak["magnitude"] > last["magnitude"]:
-                merged[-1] = peak
+        gap = (peak["start_time"] - last["end_time"]).total_seconds()
+        if gap <= merge_window_sec:
+            keep = dict(peak if peak["magnitude"] > last["magnitude"] else last)
+            keep["start_time"] = min(peak["start_time"], last["start_time"])
+            keep["end_time"] = max(peak["end_time"], last["end_time"])
+            merged[-1] = keep
         else:
             merged.append(peak)
 
     return merged
+
+
+def region_bounds(peak: dict) -> tuple[datetime, datetime]:
+    """Where a peak's elevated region starts and ends.
+
+    Peaks produced here carry both bounds. Peaks read back from storage carry
+    only the timestamp and the duration, so the region is reconstructed as
+    ending at the peak — a conservative guess that keeps the correlator
+    working on either.
+    """
+    if "start_time" in peak and "end_time" in peak:
+        return peak["start_time"], peak["end_time"]
+    from datetime import timedelta
+
+    end = peak["timestamp"]
+    return end - timedelta(seconds=peak.get("duration_seconds", 0)), end

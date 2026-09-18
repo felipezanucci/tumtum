@@ -440,7 +440,12 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
               oi@tumtum.cc
             </a>
           </div>
-          <p className="mt-8 max-w-[420px] text-xs leading-relaxed text-[#4A4A4A]">{copy.footer.privacy}</p>
+          <p className="mt-8 max-w-[420px] text-xs leading-relaxed text-[#4A4A4A]">
+            {copy.footer.privacy}{' '}
+            <Link href={copy.footer.privacyHref} className="text-[#8A8A8A] underline underline-offset-2 transition-colors hover:text-tumtum-pink motion-reduce:transition-none">
+              {copy.footer.privacyLink}
+            </Link>
+          </p>
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 text-xs text-[#4A4A4A]">
             <span>{copy.footer.line}</span>
             <Link href="/login" className="text-[#8A8A8A] transition-colors hover:text-tumtum-pink motion-reduce:transition-none">

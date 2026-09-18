@@ -47,3 +47,66 @@ jobs:
         with:
           name: tumtum-captura-apk
           path: dist/*.apk
+
+  # The release build: an .aab for the Play Console and a release-signed APK
+  # for direct installs by a verified developer. It needs the upload key,
+  # which lives only in the repository secrets, so on a fork or before the
+  # secrets exist the job skips itself instead of failing the debug build.
+  release:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      TUMTUM_UPLOAD_KEYSTORE_BASE64: ${{ secrets.TUMTUM_UPLOAD_KEYSTORE_BASE64 }}
+    steps:
+      - name: Is the upload key configured?
+        id: key
+        run: |
+          if [ -n "$TUMTUM_UPLOAD_KEYSTORE_BASE64" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::TUMTUM_UPLOAD_KEYSTORE_BASE64 is not set; skipping the release build."
+          fi
+
+      - if: steps.key.outputs.present == 'true'
+        uses: actions/checkout@v4
+
+      - if: steps.key.outputs.present == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - if: steps.key.outputs.present == 'true'
+        name: Decode the upload key
+        run: |
+          echo "$TUMTUM_UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/tumtum-upload.jks"
+          echo "TUMTUM_UPLOAD_KEYSTORE_PATH=$RUNNER_TEMP/tumtum-upload.jks" >> "$GITHUB_ENV"
+
+      - if: steps.key.outputs.present == 'true'
+        name: Build release bundle and APK
+        working-directory: android
+        env:
+          TUMTUM_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.TUMTUM_UPLOAD_KEYSTORE_PASSWORD }}
+          TUMTUM_UPLOAD_KEY_ALIAS: ${{ secrets.TUMTUM_UPLOAD_KEY_ALIAS }}
+          TUMTUM_UPLOAD_KEY_PASSWORD: ${{ secrets.TUMTUM_UPLOAD_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease assembleRelease --no-daemon --stacktrace
+
+      - if: steps.key.outputs.present == 'true'
+        name: Name the outputs after the commit that built them
+        run: |
+          mkdir -p dist-release
+          cp android/app/build/outputs/bundle/release/app-release.aab \
+             "dist-release/tumtum-${GITHUB_SHA::7}.aab"
+          cp android/app/build/outputs/apk/release/app-release.apk \
+             "dist-release/tumtum-${GITHUB_SHA::7}.apk"
+
+      - if: steps.key.outputs.present == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tumtum-captura-aab
+          path: dist-release/*

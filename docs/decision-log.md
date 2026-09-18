@@ -5,20 +5,20 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-09-01
+## Where things stand — 2026-09-17
 
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
 | **Android app (native)** | **Proven at a real six-hour event, 29/08.** The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
-| **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. |
-| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. |
+| **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
+| **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **Confirmation on real data is the next re-analysis of Realness** — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
 | **Frontend** | **Live on tumtum.cc, desktop and mobile**, merged 01/09 (#45 then #46). Ten sections from the Claude Design handoff, bilingual — `/` in PT and `/en` in English, one layout, `hreflang` alternates. The v0.5 handoff's mobile design shipped too: the four cards are a snap-scrolling swipe carousel, the nav is a text MENU panel, the proof strip is full-width rows, the gallery leads with copy. **One responsive page**, verified at 360/390/480/768/1024/1440 with no horizontal overflow at any width. The handoff's ~25 MB of GIFs ship as 1.4 MB of MP4. |
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
-| **Pilot (Tasha & Tracie, 2026-09-25)** | On track and **decoupled from the supplier decision**. |
+| **Pilot** | **The 25/09 date is probably lost.** Felipe said on 17/09 he most likely cannot run the test at the Tasha & Tracie show. The calendar was searched and shortlisted in `docs/pilot-event-options.md`: a **football match** as the technical test (objective timestamps, a peak synchronised across every chest in the stadium, tickets that actually exist, and a kick-off that ends before midnight) and a **concert with an engaged fan base** as the product test (which card someone actually sends). Still **decoupled from the supplier decision**. The binding constraint is not the calendar: with one chest strap only one person has moments, and card 04 cannot be tested at all. |
 
 ### Open items
 
@@ -41,7 +41,14 @@ the linked documents — this file is the index and the reasoning, not a diary.
    protection setting, only the wrong URL. The field test runs on
    **https://tumtum.cc**.
 6. **Pilot logistics** — who the 3–5 people are, which event, who carries the
-   strap. The product side is closed; what remains is organising.
+   strap. The product side is closed; what remains is organising. **Reopened
+   2026-09-17:** the 25/09 date is probably lost, and
+   `docs/pilot-event-options.md` holds the shortlist that replaces it — a match
+   first (São Paulo × Vitória 10/10, or Corinthians × Fluminense 20/09 if the
+   Fiel Torcedor biometrics are already registered), a concert second (BTS
+   28–31/10 through people who already hold tickets, Hayley Williams 12–13/11,
+   or Tasha & Tracie in Santos 06/11). **How many straps is the decision that
+   actually sizes the pilot**, not which date.
 7. **Mutation skins** — parked 2026-08-25. Masking a texture inside the master
    works and is built; the textures need to be fine enough to read inside a
    letterform. Nothing depends on this.
@@ -167,6 +174,503 @@ the linked documents — this file is the index and the reasoning, not a diary.
     compared before the order is fixed. Felipe was offered it 2026-08-27 and
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
+28. **The timeline code cannot produce a usable timeline.** Found 2026-09-17.
+    `parse_fixture_to_timeline()` adds the match minute to the kick-off and
+    ignores the ~15-minute half-time interval, so every second-half event is
+    15–20 minutes early — fifteen times outside the correlator's ±60 s window.
+    `parse_setlist_to_timeline()` estimates 4 minutes per song, which drifts
+    past the window by roughly the third song, because Setlist.fm publishes
+    order and never times. **Neither service is imported by any route or
+    test.** Until one of them is fixed and wired, every pilot timeline is typed
+    by hand through `POST /api/events/{id}/timeline` — 6–10 entries for a
+    match, ~20–25 for a show.
+29. ~~**The peak detector cannot see an emotion longer than ~90 s — which
+    rules out a song.**~~ Found by simulation 2026-09-17 and **fixed the same
+    day**: rolling median + IQR spread, 1200 s window, hysteresis, a 10 bpm
+    minimum rise, and a causal matching rule in the correlator (entry of
+    2026-09-17, "rebuilt around a median"). 19 tests. **What stays open is the
+    confirmation on real data:** the next re-analysis of the Realness night.
+    If moments appear that last minutes, the 8–22 s durations of 30/08 were
+    the instrument's ceiling and the watch verdict of that day is re-read via
+    item 30; if not, the night was spikes and the fix cost nothing.
+31. **From 30/09 the APK will not install on an untouched Brazilian phone**
+    unless TumTum is a verified developer with the package and signing
+    certificate registered (entry of 2026-09-17). Register as a person this
+    week (ID, US$ 25); make a release key out of the repo and a release
+    build; register `cc.tumtum.capture` + that certificate; keep ADB and the
+    24-hour advanced flow written down per phone as the fallback. The Play
+    Store is *not* required. The installed build today is
+    `cc.tumtum.capture.debug`, signed with the committed debug key — which
+    is what would otherwise get registered.
+    **A public Play listing by 10/10 is not realistic** (12 testers × 14
+    days for a new personal account, the Health apps declaration review,
+    the foreground-service declaration); **the internal testing track may
+    be** — a Play link, automatic updates, verification handled — pending
+    one check: whether the Health declaration is enforced on that track.
+    **Account type, decided 17/09 at the sign-up screen:** personal now.
+    A personal Play account can be upgraded to an organisation in place
+    later (a new organisation payments profile, verified with CNPJ + D-U-N-S,
+    then linked — apps, package names and users stay; the reverse is not
+    possible). Organisation now would need a D-U-N-S number, up to 30 days,
+    and miss both 30/09 and 10/10. Costs of personal until the upgrade: the
+    12 testers × 14 days rule before production, and payments/taxes in
+    Felipe's name. Upgrade before monetising.
+32. **Account deletion is a promise kept by hand.** `tumtum.cc/privacidade`
+    (2026-09-17) promises deletion of account, readings, moments and cards
+    on request to oi@tumtum.cc within 7 days; there is no endpoint for it,
+    so Felipe deletes rows. Build `DELETE /api/users/me` (cascade: sessions,
+    hr_data, peaks, cards, shares) and a button on the profile before the
+    Play data-safety form is filled in — it asks exactly this.
+30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
+    open item 23 *and* whether a wrist device can carry a football moment: at
+    one reading per 32 s the simulation recovers 4 goals in 5, at one per
+    minute only 1 in 5, and 1/min is the band's documented best continuous
+    setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-17 — the Play account exists; the release key, the release build and the privacy page follow
+
+Felipe created the Play Console account the same evening — personal, as
+decided — and the identity check is with Google. Two "ação necessária" items
+remain on his side of the console (confirm access to an Android phone via
+the Play Console app; verify the phone number, which waits on identity).
+The pieces on this side, done tonight:
+
+- **An upload key, out of the repository.** Generated here, handed to Felipe
+  as files to keep in a password manager, never committed. With Play App
+  Signing the definitive key is Google's, so this one is recoverable by
+  support request if lost — which is the reason it was acceptable to
+  generate it in a session and hand it over rather than insist on a
+  ceremony. SHA-256
+  `F2:08:8E:B9:EA:8B:39:5E:9B:F0:C3:75:80:92:6A:87:87:1E:C6:54:D2:2F:49:41:A1:46:07:5B:AF:6A:7F:25`.
+  It reaches CI as four repository secrets (`TUMTUM_UPLOAD_KEYSTORE_BASE64`,
+  `_KEYSTORE_PASSWORD`, `_KEY_ALIAS`, `_KEY_PASSWORD`) — **Felipe's to set**;
+  until they exist the release job skips itself with a notice and the debug
+  build is untouched.
+- **A release build type**: `cc.tumtum.capture`, no `.debug` suffix, no
+  shrinking (a WebView plus BLE plus Health Connect is what R8 breaks
+  silently, and nothing here is large). A release build attempted without
+  the key fails at once naming the four variables, rather than producing an
+  unsigned bundle. The workflow builds the `.aab` for the console and a
+  release-signed APK for direct installs by a verified developer, as the
+  `tumtum-captura-aab` artefact.
+- **`tumtum.cc/privacidade` and `/en/privacy`.** The console asks for a
+  privacy-policy URL and the site had none. Written in the one register the
+  manual reserves for this screen — quiet, careful, short — and describing
+  what the product does *today*: e-mail and name, the readings you capture
+  or import, the event, the moments, the cards, which network a share went
+  to; one Health Connect permission, heart rate only, only the event
+  window; no sale, no ads, nothing published without the button; servers
+  we rent; an error monitor that receives errors and not heartbeats.
+  Linked from the site footer in both languages.
+
+**One promise the page makes that the code does not yet keep on its own:**
+deletion. There is no account-deletion endpoint — `users.py` has get, patch
+and public profile — so the page promises deletion *by e-mail to
+oi@tumtum.cc, confirmed within 7 days*, which is a manual process Felipe
+runs. That is honest today and is open item 32; the Play data-safety form
+will ask the same question.
+
+---
+
+## 2026-09-17 — from 30/09 an APK from an unverified developer will not install in Brazil
+
+Felipe remembered being told that from October the APK could no longer be
+installed by hand and asked whether that is so and what the process is.
+Checked against Google's own pages today: **it is so, with a nuance that
+changes the plan.** Android developer verification reaches Brazil (with
+Indonesia, Singapore and Thailand) on **30 September 2026**: on a certified
+device, an app whose developer is not verified and whose package is not
+registered will not install by the normal route. **It does not require the
+Play Store.** What it requires is a *verified developer* and a *registered
+package name and signing certificate* — in the Android Developer Console
+(distribution outside Play only) or in the Play Console (either). The APK can
+keep travelling as a link.
+
+Two escape hatches remain for an unregistered app, both per phone: **ADB**
+(exempt outright — no wait, no limit, but a laptop and a cable at every
+install) and the **advanced flow** (developer options → "apps de
+desenvolvedores não verificados", confirm you are not being coerced, restart,
+**wait 24 hours**, authenticate). And a **limited-distribution tier**: free, no
+government ID, **up to 20 devices** — sized for a pilot of five.
+
+### What the repository holds that the registration will ask for
+
+- The installed app is **`cc.tumtum.capture.debug`** — the debug build type
+  carries the suffix, and "the pilot installs this by hand, so a debug build
+  is the product" (build.gradle). The package registered must be that string,
+  not `cc.tumtum.capture`.
+- It is signed with **the committed debug keystore** (`android/debug.keystore`,
+  password `android`, alias `androiddebugkey`), fingerprint SHA-256
+  `5F:9F:78:F7:AE:B3:6E:2E:03:D1:E4:4F:84:2C:5D:98:62:98:1F:85:87:BD:25:AF:38:03:6B:30:57:60:78:1A`.
+  Registering that certificate works mechanically and binds TumTum's verified
+  identity to a key anyone with the repository can sign with. The build file
+  already says the release "needs a real release key kept out of the
+  repository". Verification is the moment that stops being optional.
+
+### The process, in order
+
+1. **Register this week, as a person.** Government ID, US$ 25 once. An
+   organisation account needs a D-U-N-S number and takes weeks; a person can
+   be verified in days, and the account can change later. If a Play Console
+   account is going to exist anyway, register there: it covers apps
+   distributed outside Play too, and Play verification carries over.
+2. **Make a release key and a release build.** Keystore out of the repo (a
+   GitHub secret, the workflow signs), `release` build type without the
+   suffix, package `cc.tumtum.capture`. One uninstall and reinstall on
+   Felipe's phone, since a new key cannot update the old install. One
+   session of work.
+3. **Register the package and the certificate.** Whichever pair is chosen —
+   release is the honest one — is the pair every tester's phone will check.
+4. **Keep both hatches written down for the day.** If verification has not
+   landed by the first event (10/10 at the earliest), ADB at a meetup with a
+   laptop, or the advanced flow started at least 24 hours before — per
+   phone, and a frightening screen at exactly the moment the brand goes
+   quiet and careful about health data.
+
+None of this touches the **health-permissions Play review** of Etapa 5 in
+`health-connect-plan.md`: verification is identity, not policy review, and a
+hand-installed APK still reads Health Connect without one.
+
+### "Is the Play Store itself feasible by then?" — a listing, no; a test track, yes
+
+Felipe asked. Checked the same evening. **A public listing by 10/10 is not
+realistic**: a personal Play Console account created after November 2023
+must run a **closed test with 12 testers opted in for 14 continuous days**
+before it may even apply for production access (organisation accounts are
+exempt, and need a D-U-N-S number that takes weeks); the **Health apps
+declaration** is mandatory for anything on closed, open or production
+tracks, with a review measured in weeks not days (Etapa 5 of the Health
+Connect plan already says so); and the app also carries a Bluetooth
+foreground service, which is its own declaration. Three reviews in thirteen
+days, on a brand-new account, is a bet, not a plan.
+
+**A test track is a different question.** The **internal testing** track —
+up to 100 testers by e-mail list, a Play link, installs and updates through
+the Play Store — needs the account, one upload and an opt-in, and is not
+gated by the 14-day rule. Apps distributed through Play are registered for
+developer verification automatically, so the 30/09 wall disappears with it.
+The one thing to verify on the console itself before relying on it: whether
+the Health Connect declaration is enforced on the internal track (Google's
+own page lists closed, open and production). If it is, the pilot's testers
+install by hand with a verified developer as in the process above; if it
+is not, internal testing is the cleanest route there is — a link, no cable,
+automatic updates, and a first step onto the Play Store taken early rather
+than late. Either way the account is the first move, and it is the same
+account.
+
+---
+
+## 2026-09-17 — the detector is rebuilt around a median, and a moment is named by its cause
+
+Felipe: *how do we fix the algorithm so it reads these moments — the songs a
+fan loves most and the most emotional moments of a match — and identifies
+them correctly?* Two changes, shipped together with 19 tests, the
+specification in CLAUDE.md rewritten to match, and 84 backend tests green.
+
+### Detection: the median is the fix, the twenty minutes follow from it
+
+The failure was never the width of the window; it was that a **mean contains
+the event it is the reference for.** Widening from 60 s to 300 s bought a
+13-second spike and lost everything longer than ~90 s. Widening again to
+1800 s would buy a song and start to lose an encore, and it was already slow
+— 9 s for a six-hour night, O(n × window). So the baseline is now a rolling
+**median** with an IQR spread, kept as a sorted window that each sample
+enters and leaves once by binary search: a six-hour night analyses in
+~0.05 s, and the reference does not move until an elevation fills half the
+window. With a 1200 s window that is a nine-minute moment before anything is
+lost.
+
+Two smaller pieces made it clean rather than merely correct:
+
+- **Hysteresis.** A region opens at z > 2 and closes at z ≤ 1. Without it a
+  four-minute song fragmented into a dozen slivers wherever the noise dipped
+  for a second — the 1200 s row of this morning's table reported 16 moments
+  for 6 events.
+- **A minimum rise of 10 bpm** to open a region, 5 to keep one open. A robust
+  spread on a quiet, slowly drifting hour is a couple of bpm, so the first
+  median prototype scored a 4 bpm wobble at z > 2 and reported seven moments
+  on a night with nothing in it. A moment is a rise a person would feel.
+
+| Scenario | Before (mean, 300 s) | After (median, 1200 s) |
+|---|---|---|
+| Match, strap 1 Hz — 3 goals, near-miss, saved penalty | 3/5 | **5/5**, five reported |
+| Match, watch at 1 per 32 s | 0/5 | **4/5** |
+| Match, watch at 1 per 60 s | 0/5 | 3/5 |
+| Show — 3 favourite songs sung for 3'50" + 3 spikes of 15 s | 0/3 songs | **3/3 songs, 3/3 spikes, six reported** |
+| Realness-shaped night — twenty 8–22 s moments | 20/20 | **20/20** |
+| Quiet, drifting 3 h (three seeds) | 0 | **0**, at every window up to 3600 s |
+| Longest single elevation seen | ~90 s | **~540 s** |
+| Six-hour night, wall time | 1.7 s | **0.05 s** |
+
+Each peak now carries `start_time` and `end_time` — the whole song, not the
+second it peaked — and merged regions keep the union of their bounds. Not
+stored yet; the card's curve could shade the whole moment with it.
+
+### Naming: the cause precedes the moment
+
+The second half of the question was *identifying them correctly*, and the
+correlator was wrong for the same reason the detector was: it assumed a
+moment is a point. It matched the nearest entry within ±60 s **of the peak**.
+A favourite song peaks wherever the heart was highest — often three minutes
+in — and at that second the song's own entry is out of reach while the next
+song's may be inside it. The rule is now causal: **the latest entry between
+(region start − 60 s) and (peak + 15 s)**, with the old nearest-within-±60 s
+as the fallback for a spike that nothing precedes. A stored peak, which has
+only a timestamp and a duration, is treated as a region ending at the peak,
+so nights already in the database are named on the same rule when
+re-analysed.
+
+### What this does to what is already stored
+
+Nothing until a night is analysed again — the same mechanism as the quality
+score: "Procurar meus momentos" restates a session from its stored readings.
+**Realness is the confirmation.** The next time that night is opened, if
+moments appear that were never reported and last minutes rather than
+seconds, the 30/08 durations were the instrument's ceiling, and the watch
+verdict of that day gets re-read in the light of item 30: long moments are
+the ones a slow watch *can* see. If nothing new appears, the night really was
+made of spikes, and the fix cost nothing.
+
+### What the phone needs, and what it does not
+
+Felipe asked whether the app on his Android has to change for any of this to
+count. **No — the detection runs on the backend.** The app captures, uploads,
+and then calls `POST /api/experience/{id}/analyze`; the moments it draws are
+whatever Railway returns. The merge is the update. "Procurar meus momentos"
+on the Realness night, after the merge, is the confirmation described above,
+from the phone he already has.
+
+What the app *did* hold was a claim about the old detector: a capture under
+five minutes hid the button and said a moment "precisa dos cinco minutos em
+volta para comparar" — `BASELINE_WINDOW_SECONDS = 300` copied from the spec.
+The new detector needs no such minimum: measured against it, a 15 s spike
+shows in a two-minute capture and a three-minute rise needs about eight. So
+that screen would have refused a capture the detector could read, which is
+this project's signature bug class — the app stating something false about
+its own state. Fixed in the same PR: the floor is one minute, the copy names
+no number, and the build is 0.2.1 (versionCode 3) so it installs over 0.2.
+**Optional to install**: it changes only that one empty state. The web
+import screen (`frontend/lib/health/quality.ts`) still describes a 60 s
+baseline in its comments and calls a one-per-minute cadence "insufficient"
+— true for a spike, no longer true for a song or a goal; that verdict waits
+on the Mi Band measurement (item 30) rather than on a guess.
+
+**Departure from this morning's own rule.** Twice today this entry's
+predecessors said "deliberately not changed: a deployed detector, a simulated
+finding, confirm on Realness first." Felipe then asked for the fix directly,
+which is the word the precedent waited on; the confirmation still happens, on
+the first re-analysis, and the change is reversible by one merge. The
+simulation was the argument for changing; the tests are the reason it is
+safe to.
+
+---
+
+## 2026-09-17 — "a song lasts four minutes — is that not the same case?" It is, and worse
+
+Felipe, reading the goal finding: at a show the thing to measure is the peak on
+a specific song, and a song lasts 3, 4, 5 minutes. Is that not the same case as
+the goal? **Yes.** Simulated the same evening
+(`scripts/simulate_moment_detection.py`, scenario 2): a 1h52 show with three
+songs of sustained euphoria (~3'50") and three 15-second spikes inside other
+songs, strap at 1 Hz.
+
+| Baseline | Favourite songs | 15 s spikes | Moments reported |
+|---|---|---|---|
+| **300 s (today)** | **0/3** | 3/3 | 3 |
+| 900 s | 0/3 | 3/3 | 3 |
+| 1200 s | 3/3 | 3/3 | 16 |
+| **1800 s** | **3/3** | **3/3** | **6** |
+
+### The Realness durations may belong to the instrument
+
+At today's setting the detector cannot see a song. What it reports is the
+short spikes, with durations of 8–22 s — **which is exactly what Realness
+reported: twenty moments, all 8–22 s, none longer.** The 30/08 entry took
+those durations as a property of the night and built the watch verdict on
+them ("every moment is shorter than the interval between two Fit3 readings").
+The simulation says they may instead be the ceiling of what a 300 s window can
+report. It does not say which; it says the question exists, and it is
+answerable on data we already hold: **re-run the Realness night at 1800 s and
+see whether moments appear that were never reported.** If they do, the watch
+verdict of 30/08 needs re-reading as well — not reversed, re-read: long
+moments are the ones a slow watch *can* see.
+
+### The rule, and what it encodes
+
+A sweep of single elevations at +32 bpm: **the baseline window must be about
+five times the length of the emotion.** 300 s sees up to ~90 s; a 4-minute song
+needs ~1200 s, a 5-minute one ~1500 s. False positives on a slowly drifting
+quiet capture begin at 2700 s. Working range **1200–1800 s**, one number for
+both a match and a show.
+
+The window is not a tuning constant; it is the definition of a moment. At
+300 s a moment is a spike against the last five minutes. At 1800 s it is a
+song against the last half hour. The card says *"seu coração em [música]"*;
+the window has to be the song's size for the sentence to be true. Whether the
+short spikes are *also* worth reporting — the drop, the guest walking on — is
+a product question, not settled here.
+
+**Still not changed**, for the same reason as this morning, now with a
+sharper test: the Realness re-run is the confirmation, and it costs one
+command against data that exists.
+
+---
+
+## 2026-09-17 — the detector loses a goal, and a watch can see one
+
+Felipe asked three things: the fan bases behind the shortlisted shows, whether
+buying a cheap Xiaomi band and handing it to a tester would do, and how the
+match on the pitch gets married to the reading on the wrist. The contacts and
+the alignment protocol are in `docs/pilot-event-options.md`, sections 9 and 10.
+The watch question produced a defect, and it is the one worth recording.
+
+### A goal is the wrong length for our own baseline
+
+No capture we own is a match, so this is a **simulation** —
+`scripts/simulate_moment_detection.py`, a 2h15 match at 1 Hz with three goals, a
+near-miss and a saved penalty, decimated to the Health Connect cadences and run
+through the real `detect_peaks()`. It found this before it answered anything:
+
+| Elevation lasting | Detected, 300 s baseline |
+|---|---|
+| 23 · 38 · 68 · 98 · 143 s | yes |
+| **188 · 278 · 368 s** | **no** |
+
+**Any elevation longer than about half the baseline window disappears**, for
+exactly the reason CLAUDE.md gives for widening the window from 60 s to 300 s
+in the first place: a peak that sits inside its own reference window raises the
+mean it is measured against. The 300 s window solved that for a 13-second
+concert moment and **reintroduces it one timescale up**, where a goal lives. At
+1 Hz with today's setting the simulation found the near-miss and the saved
+penalty and **lost two of the three goals** — the biggest moments of the match
+are the ones it drops.
+
+At 600–900 s the same match reads 5/5, and widening costs nothing where we have
+evidence: a concert-shaped night of twenty 8–22 s moments reads 20/20 at both
+300 s and 900 s, and a quiet three hours reports zero peaks at every setting.
+
+**Not changed.** This is a deployed detector and a simulated finding, and the
+precedent is the quality score, which waited on Felipe's word. The honest
+confirmation is cheap and exists: re-run the Realness night at 900 s and check
+the twenty moments survive on real data.
+
+### The first time a wrist device could resolve the moments
+
+| Baseline | Strap, 1 Hz | Watch, 1 per 32 s | Watch, 1 per 60 s |
+|---|---|---|---|
+| 300 s (today) | 3/5 | 0/5 | 0/5 |
+| **900 s** | **5/5** | **4/5** | 1/5 |
+
+Etapa 0 closed with the watch delivering the curve and never the moments. That
+verdict holds for a concert and is arithmetic. **It does not transfer to
+football**, because a goal lasts minutes: at one reading per 32 s the
+simulation recovers four goals in five. At one per minute — which is the Xiaomi
+Smart Band 9's best continuous setting — it recovers one in five.
+
+So the answer to *should I buy a Xiaomi and hand it over* is: **not as a source
+for the pilot, and there is nothing to buy.** Felipe already owns an unopened
+Mi Band 9 (open item 23). Opening it, wearing it a night and measuring what it
+writes into Health Connect inside a workout closes the last open question of
+Etapa 0 and answers this one at no cost. The cadence, not the price, is the
+whole question.
+
+### The alignment protocol, in one line
+
+Absolute clocks, marked live, cross-checked against the published minute of the
+goal — **never `kickoff + elapsed`**, which is the bug in
+`parse_fixture_to_timeline()` recorded this morning, and never a broadcast
+clock, whose delay is as large as the matching window. The piece worth building
+is a **"marcar momento" button** that posts the current UTC time to
+`/api/events/{id}/timeline`: 6–12 taps turn a match into a testable event, and
+the endpoint already exists.
+
+---
+
+## 2026-09-17 — the pilot loses its date, and the timeline code turns out to be the real constraint
+
+Felipe: he probably cannot run the test at the Tasha & Tracie show on 25/09.
+He asked for upcoming São Paulo shows with engaged fan bases, and whether the
+test could run at a football match instead. The calendar research and the
+full shortlist are in **`docs/pilot-event-options.md`**; what belongs here is
+what the search found underneath the calendar.
+
+### The question was about events and the answer is about code
+
+Both integrations that were supposed to produce an event timeline are unusable
+as they stand, and **neither is imported by any route or any test** — they are
+dead code:
+
+- **Setlist.fm publishes song order, never times.** `parse_setlist_to_timeline()`
+  therefore estimates, at a flat 4 minutes per song from the start time. The
+  error accumulates: one long intro or one speech and the tenth song is ten
+  minutes out. The correlator matches within **±60 s**, so matching fails from
+  about the third song.
+- **`parse_fixture_to_timeline()` computes `kickoff + elapsed minutes`**, which
+  ignores the ~15-minute half-time interval and first-half stoppage. **Every
+  second-half goal lands 15–20 minutes before it happened** — fifteen times
+  outside the matching window. The first half is roughly right, which is the
+  dangerous kind of wrong.
+
+What works today is `POST /api/events/{id}/timeline`, authenticated, one entry
+at a time. So whichever event is chosen, **a human writes the timeline.** That
+reframes the choice: a concert needs ~20–25 hand-marked song starts, a match
+needs 6–10 entries typed from the match report.
+
+### Football, evaluated honestly
+
+It buys four things a concert cannot: **objective timestamps** (the minute of a
+goal is a published fact), **a synchronised collective peak** — every heart in
+the stadium spikes within the same two seconds, which is the only way to test
+card 04, *A galera* — **a story every Brazilian already understands**, and
+**kick-off times that end before midnight**, so open item 18 never comes up.
+Tickets also exist: a league round is buyable at R$ 45–90 three days out, where
+the concerts with the fan bases worth testing sold out months ago.
+
+It costs: **it can be 0–0**, and then the moments have no names, which is the
+Realness failure repeated by choice; **the biggest spikes are not in any feed**
+(the missed penalty, the near-miss), so someone still notes clock times by
+hand; it is **only ~2 h**, meeting the Phase 5 gate with no margin; and
+**stadium cellular is the worst network in the city**, so the 1.33 MB upload
+(item 15) should be expected to fail at the whistle and be retried on the way
+home.
+
+**They are not the same test.** The match answers *does the correlation hold in
+public, on more than one body*. The concert answers *does anyone send the
+card*, which is the pilot's actual research question (item 25) and is a
+question about a fan base, not a sport. The recommendation is to run both, the
+match first because it is sooner, buyable, and everything it teaches makes the
+concert test better.
+
+### What the search shortlisted
+
+- **Technical test: São Paulo × Vitória, 10/10, 21h, MorumBIS** — buyable
+  tickets, ends before midnight, full stadium. **Corinthians × Fluminense this
+  Sunday, 20/09, 16h** is faster and *earlier than the date being missed*, but
+  the ticket is online-only through Fiel Torcedor **and requires facial
+  biometrics already registered** — nobody joins that one on the day. Maximum
+  emotion, if tickets can be found: **Palmeiras × Fluminense, Libertadores
+  semifinal second leg, 20–22/10, Nubank Parque**.
+- **Product test: BTS at MorumBIS, 28, 30 and 31/10** — three nights, and the
+  most organised fan base in the world, whose sharing culture is precisely the
+  engine the card needs. Sold out since April, so it only works through people
+  who already hold tickets. Otherwise **Hayley Williams, 12–13/11, Espaço
+  Unimed** (both nights sold out fast, indoor, ends before midnight), or
+  **Tasha & Tracie in Santos, 06/11** — the same show being missed, six weeks
+  later, 80 km away.
+- Ruled out on the midnight rule as they stand: ZIG Festival (10/10), Audio
+  late shows, Primavera Sound (05–06/12, two 12-hour days).
+
+### The constraint that is not the calendar
+
+Choosing a date does not fix the thing that limits the pilot. **The moments
+need a chest strap** — Etapa 0 settled that on 30/08 — so the number of people
+with real moments equals the number of straps, not the number of participants.
+The log knows of one. With one strap the collective peak at a goal cannot be
+measured at all, and card 04 cannot be tested. Three straps that broadcast the
+standard BLE Heart Rate Service (0x180D) would change that, and the app already
+speaks that protocol. It is a purchase decision, not an engineering one.
 
 ---
 

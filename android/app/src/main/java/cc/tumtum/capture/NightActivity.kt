@@ -215,13 +215,10 @@ class NightActivity : ComponentActivity() {
         val seconds = data.session.durationSeconds
         momentsEmpty.visibility = View.VISIBLE
         when {
-            seconds != null && seconds < BASELINE_WINDOW_SECONDS -> {
-                // Correct behaviour, not a failure: a rise needs the five
-                // minutes around it to stand out against.
-                momentsEmpty.text = getString(
-                    R.string.moments_too_short,
-                    maxOf(1L, Math.round(seconds / 60.0)).toInt(),
-                )
+            seconds != null && seconds < SHORTEST_COMPARABLE_CAPTURE_SECONDS -> {
+                // Correct behaviour, not a failure: a rise needs time around
+                // it to stand out against, and under a minute there is none.
+                momentsEmpty.text = getString(R.string.moments_too_short)
                 findMoments.visibility = View.GONE
             }
             lookedForMoments -> {
@@ -273,8 +270,18 @@ class NightActivity : ComponentActivity() {
     companion object {
         private const val EXTRA_SESSION = "session_id"
 
-        /** The detector's baseline window, from CLAUDE.md and peak_detection.py. */
-        private const val BASELINE_WINDOW_SECONDS = 300L
+        /**
+         * Below this there is nothing for a rise to stand out against.
+         *
+         * Until 2026-09-17 this was the detector's 300 s baseline window and
+         * the copy promised "five minutes around it". The detector now keeps
+         * a rolling median over 1200 s, but it needs no minimum capture of
+         * that size: measured against it, a 15 s spike shows in a two-minute
+         * capture, and a three-minute rise needs about eight. So the floor is
+         * only the point where a comparison is meaningless at all, and the
+         * copy no longer names a number the detector does not hold to.
+         */
+        private const val SHORTEST_COMPARABLE_CAPTURE_SECONDS = 60L
 
         private val DAY_AND_TIME = SimpleDateFormat("dd 'de' MMMM · HH:mm", Locale("pt", "BR"))
         private val CLOCK = SimpleDateFormat("HH:mm", Locale("pt", "BR"))

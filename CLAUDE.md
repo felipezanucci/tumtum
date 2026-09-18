@@ -34,6 +34,7 @@ The other durable documents:
 | `docs/handoff-2026-08-26.md` | Session handoff: state, config, traps, and what was still Felipe's to do two days before the festival |
 | `docs/health-connect-plan.md` | The next phase: reading the fans' own watches, its stages, its estimate, and the sampling risk that decides it |
 | `docs/wear-os-plan.md` | The Wear OS app costed honestly: what it actually buys (guaranteed 1 Hz, not "live"), and why it waits on a measurement |
+| `docs/pilot-event-options.md` | **The events that can carry the pilot** after 25/09 was lost: the São Paulo calendar shortlisted against this project's own constraints, and football evaluated honestly against a concert |
 | `docs/design-brief.md` | **Self-contained brand + product handoff for design tools and outside collaborators.** Paste it whole before asking for design work |
 
 One working rule the log records, learned four times: push everything first,
@@ -377,35 +378,54 @@ screens, where the brand goes quiet and careful.
 Input: HR data array [{ time, bpm }], event timeline [{ time, label }]
 
 1. Smooth: 5-second moving average on BPM values
-2. Baseline: 300-second centered rolling mean
-3. Std dev: 300-second centered rolling standard deviation
-4. Z-score: (smoothed_bpm - baseline) / std for each point, with two guards:
-   - std <= 1.0 → z = deviation / 10 when the deviation is positive, else 0
-     (a very steady rest period would otherwise divide by near-zero and
+2. Baseline: 1200-second centered rolling MEDIAN
+3. Spread: interquartile range of the same window, scaled to a standard
+   deviation (IQR / 1.349)
+4. Z-score: (smoothed_bpm - baseline) / spread for each point, with three guards:
+   - spread <= 1.0 → z = deviation / 10 when the deviation is positive, else 0
+     (a very steady stretch would otherwise divide by near-zero and
      manufacture huge z-scores)
    - deviation > 30 bpm → z is at least deviation / 15 (an absolute rise that
-     large is always significant, even when the spike inflates its own window)
-5. Threshold: mark points where z-score > 2.0 as "elevated"
-6. Group: consecutive elevated points → "peak region"
-7. Filter: peak regions < 5 seconds are discarded (noise)
-8. Extract: peak_bpm = max(region), peak_time = timestamp of max
-9. Merge: peaks within 30 seconds of each other → keep highest
-10. Rank: by magnitude (z-score × duration_seconds), keep the top 20
-11. Match: ranked peaks → nearest event_timeline entry (±60s window)
+     large is always significant)
+   - deviation < 10 bpm → z cannot open a region; deviation < 5 bpm → z = 0
+     (a robust spread on a quiet hour is a couple of bpm, so a 4 bpm wobble
+     would otherwise score z > 2; a moment is a rise a person would feel)
+5. Regions with hysteresis: a region opens where z > 2.0 and stays open
+   while z > 1.0 (one noisy dip must not split a song into slivers)
+6. Filter: regions < 5 seconds are discarded (noise)
+7. Extract: peak_bpm = max(region), peak_time = timestamp of max;
+   start_time and end_time bound the whole region
+8. Merge: regions separated by ≤ 30 seconds become one (union of bounds)
+9. Rank: by magnitude (z-score × duration_seconds), keep the top 20
+10. Match: each peak → the LATEST timeline entry between (start_time − 60 s)
+    and (peak_time + 15 s) — the thing that caused it; if none, the nearest
+    entry within ±60 s of the peak
 
-Output: [{ timestamp, bpm, duration, magnitude, matched_label }]
+Output: [{ timestamp, bpm, duration, magnitude, start_time, end_time, matched_label }]
 ```
 
-**The 300-second window is deliberate.** A 60-second baseline is narrow enough
-that a peak sits inside its own reference window and raises the very mean it is
-measured against, which suppresses exactly the rises we exist to detect. The
-guards in step 4 exist for the same reason from the other direction.
+**The median is the point, and the twenty minutes follow from it.** Recorded
+2026-09-17. The previous version used a 300-second rolling *mean*, widened
+from 60 s because a peak that sits inside its own reference window raises the
+mean it is measured against. That fixed a 13-second spike and left the same
+failure one timescale up: a mean is contaminated by anything approaching half
+its window, so a goal celebration (2–3 min) and a favourite song sung from
+start to finish (4 min) were **invisible**, and the detector reported only the
+short spikes inside them — with durations of 8–22 s, which is exactly what the
+Realness night reported. A median does not move until the elevation fills half
+the window, so the window can be wide enough for a song and a spike is not
+lost to it. Simulated in `scripts/simulate_moment_detection.py`; guaranteed in
+`backend/tests/test_peak_detection.py` and `test_event_correlator.py`.
+
+Step 10 changed with it: a song's peak is wherever the heart was highest,
+often three minutes in, so "nearest entry to the peak" named the *next* song.
+The cause of a moment precedes it; the rule now looks back from the region's
+start.
 
 These numbers are the interface, not trivia: a validation protocol has to be
-designed against them. A 7-minute two-effort test is not obviously safe against
-a 5-minute window — it was checked by simulation before being run on a person.
-The values live in `detect_peaks()` in `backend/app/services/peak_detection.py`;
-change them there and here together.
+designed against them. The values live in `detect_peaks()` in
+`backend/app/services/peak_detection.py` and `correlate_peaks_to_timeline()` in
+`event_correlator.py`; change them there and here together.
 
 ## Key external APIs
 
