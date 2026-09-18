@@ -34,6 +34,7 @@
     <string name="account_tribes_label">SUAS TRIBOS</string>
     <string name="account_tribes_optional">· opcional</string>
     <string name="account_cta">Criar minha conta</string>
+    <string name="account_replaces">Este aparelho já tem a conta @%1$s. Criar outra troca o perfil e as noites gravadas aqui somem do celular — elas ficam com a conta antiga no servidor.</string>
 
     <!-- b3 · Permissão — a tela quieta -->
     <string name="perm_title">Seus batimentos,\nsuas regras.</string>
@@ -282,6 +283,7 @@
     <string name="login_email_label">EMAIL</string>
     <string name="login_cta">Entrar</string>
     <string name="login_forgot">Esqueci a senha — dá para criar outra em tumtum.cc/login</string>
+    <string name="login_create">Não tem conta? Criar uma</string>
     <!-- Errors the account screens can say honestly. Each names the real condition. -->
     <string name="auth_error_credentials">Email ou senha não batem.</string>
     <string name="auth_error_taken">Já existe uma conta com esse email. Entra com ela.</string>
@@ -291,7 +293,8 @@
     <!-- Settings: the server's side of the account -->
     <string name="settings_session_live">Conectada como %1$s</string>
     <string name="settings_session_expired">Sessão expirada — entra de novo antes da próxima noite.</string>
-    <string name="settings_session_none">Esta conta ainda não entrou no servidor.</string>
+    <string name="settings_session_none">Sem sessão no servidor neste aparelho. Entre de novo, ou crie outra conta.</string>
+    <string name="settings_create_other">Criar outra conta neste aparelho</string>
     <string name="settings_sign_in">Entrar</string>
     <string name="settings_sign_out">Sair da conta neste aparelho</string>
 

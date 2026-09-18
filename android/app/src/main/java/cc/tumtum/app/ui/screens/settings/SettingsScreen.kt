@@ -295,6 +295,12 @@ fun SettingsScreen(nav: NavHostController) {
                 TTButtonStyle.Outline,
                 onClick = { nav.navigate(Routes.Login) },
             )
+            Spacer(Modifier.height(10.dp))
+            TTButton(
+                stringResource(R.string.settings_create_other),
+                TTButtonStyle.Outline,
+                onClick = { nav.navigate(Routes.Account) },
+            )
         }
         Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.settings_delete_warning), style = TTType.Footnote, color = TT.Gray45)

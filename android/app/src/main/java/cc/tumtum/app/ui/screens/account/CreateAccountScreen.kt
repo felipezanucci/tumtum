@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,6 +70,10 @@ fun CreateAccountScreen(nav: NavHostController) {
     var participant by rememberSaveable { mutableStateOf("") }
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
+    // A second account on the same phone (18/09): the profile is replaced and
+    // the nights recorded here go with the old one. Said before the tap.
+    val replacing = user?.account
 
     val usernameClean = username.trim().lowercase()
     val usernameTaken = usernameClean in TAKEN
@@ -90,6 +95,14 @@ fun CreateAccountScreen(nav: NavHostController) {
         Text(stringResource(R.string.account_title), style = TTType.Title, color = TT.Ink)
         Spacer(Modifier.height(6.dp))
         Text(stringResource(R.string.account_subtitle), style = TTType.Body, color = TT.Gray45)
+        replacing?.let {
+            Spacer(Modifier.height(14.dp))
+            Text(
+                stringResource(R.string.account_replaces, it.username),
+                style = TTType.BodySmall,
+                color = TT.Ink,
+            )
+        }
         Spacer(Modifier.height(30.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -161,6 +174,7 @@ fun CreateAccountScreen(nav: NavHostController) {
                 scope.launch {
                     try {
                         container.api.register(email = email.trim(), name = name.trim(), password = password)
+                        if (replacing != null) container.nights.wipeAll()
                         container.prefs.createAccount(
                             Account(name = name.trim(), username = usernameClean, email = email.trim(), tribes = tribes),
                         )

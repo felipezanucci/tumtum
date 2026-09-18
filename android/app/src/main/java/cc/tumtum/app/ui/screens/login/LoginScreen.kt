@@ -133,5 +133,14 @@ fun LoginScreen(nav: NavHostController) {
         }
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.login_forgot), style = TTType.Footnote, color = TT.Gray45)
+        Spacer(Modifier.height(18.dp))
+        // The other door. Until 18/09 this screen had only the one, so after
+        // a sign-out there was no way to create a second account on the phone.
+        Text(
+            stringResource(R.string.login_create),
+            style = TTType.Button.copy(fontSize = 14.sp),
+            color = TT.Ink,
+            modifier = Modifier.clickable { nav.navigate(Routes.Account) }.padding(vertical = 6.dp),
+        )
     }
 }

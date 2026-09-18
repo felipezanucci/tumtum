@@ -244,6 +244,33 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — a phone could not have a second account
+
+The Play Console asks for a reviewer login, so Felipe signed out to create
+one, and could not: the login screen had only the login form, and
+Configurações after a sign-out offered only *Entrar*. The local profile
+(name, @, photo) stayed on screen, which read as "still logged in". Two
+findings, one product decision.
+
+- **Sign-out keeps the local profile and the nights.** That was the
+  design (a token dies, a night does not), but the copy said *"Esta
+  conta ainda não entrou no servidor"*, which is false after a sign-out.
+  It now says there is no server session on this phone and offers both
+  doors: *Entrar* and *Criar outra conta neste aparelho*. The login
+  screen has *Não tem conta? Criar uma*.
+- **A second account replaces the first on the phone, and the nights go
+  with the first.** Nights have no owner column, so a new account on a
+  phone that already holds nights would show it someone else's. Creating
+  a second account therefore wipes the phone's nights, and the create
+  screen says so before the tap, naming the @ it replaces. The old
+  account's uploaded nights stay on the server; they do not come back to
+  the phone, because nothing downloads a night yet.
+- **For the Play form today:** the reviewer account can be created at
+  tumtum.cc/signup, which registers against the same server, without
+  touching the phone at all.
+
+---
+
 ## 2026-09-18 — Configurações was reachable from nowhere, and the way back was invisible
 
 From Felipe's check of `app-b123`. The three fixes of the previous entry
