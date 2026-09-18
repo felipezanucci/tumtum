@@ -32,6 +32,7 @@ The other durable documents:
 | `docs/jstyle-v8-evaluation.md` | Everything learned about the J-Style bands |
 | `shared/brand/README.md` | Brand implementation details beyond this file |
 | `docs/handoff-2026-08-26.md` | Session handoff: state, config, traps, and what was still Felipe's to do two days before the festival |
+| `docs/handoff-2026-09-18.md` | **Session handoff, 18/09**: the day Etapas 0–4 closed and the app reached the Play internal testing track — the twelve PRs, the two bugs that mattered, every Play Console answer and why, and what is next |
 | `docs/health-connect-plan.md` | The next phase: reading the fans' own watches, its stages, its estimate, and the sampling risk that decides it |
 | `docs/wear-os-plan.md` | The Wear OS app costed honestly: what it actually buys (guaranteed 1 Hz, not "live"), and why it waits on a measurement |
 | `docs/one-app-plan.md` | **Two Android apps became one on 18/09**: `cc.tumtum.app` (the designed experience, branch `app`) absorbs the proven pipeline of `cc.tumtum.capture`, in five staged gates |
