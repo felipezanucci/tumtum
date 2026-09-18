@@ -42,6 +42,7 @@ import cc.tumtum.app.service.BatteryExemption
 import cc.tumtum.app.service.CaptureService
 import cc.tumtum.app.ui.screens.live.BatteryExemptionSheet
 import cc.tumtum.app.ui.screens.live.CreateEventSheet
+import cc.tumtum.app.ui.screens.live.NewEvent
 import cc.tumtum.app.ui.components.UserAvatar
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -73,19 +74,19 @@ fun SettingsScreen(nav: NavHostController) {
     var draftsLoaded by remember { mutableStateOf(false) }
     var showCreateEvent by remember { mutableStateOf(false) }
     var showBatteryGate by remember { mutableStateOf(false) }
-    var pendingEvent by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var pendingEvent by remember { mutableStateOf<NewEvent?>(null) }
 
     // §6 — com sensor pareado, a sessão só começa com a isenção de bateria concedida.
-    fun createEvent(name: String, venue: String) {
+    fun createEvent(spec: NewEvent) {
         val paired = user?.sensorPaired == true
         val address = user?.bleAddress
         if (paired && !BatteryExemption.isExempt(context)) {
-            pendingEvent = name to venue
+            pendingEvent = spec
             showBatteryGate = true
             return
         }
         scope.launch {
-            val eventId = container.nights.startEvent(name, venue)
+            val eventId = container.nights.startEvent(spec.name, spec.venue, spec.eventType, spec.serverEventId)
             if (paired && address != null) {
                 container.prefs.setActiveCapture(eventId)
                 CaptureService.start(context, eventId, address)
@@ -286,9 +287,9 @@ fun SettingsScreen(nav: NavHostController) {
     if (showCreateEvent) {
         CreateEventSheet(
             onDismiss = { showCreateEvent = false },
-            onCreate = { name, venue ->
+            onCreate = { spec ->
                 showCreateEvent = false
-                createEvent(name, venue)
+                createEvent(spec)
             },
         )
     }
@@ -301,7 +302,7 @@ fun SettingsScreen(nav: NavHostController) {
             },
             onExempt = {
                 showBatteryGate = false
-                pendingEvent?.let { (name, venue) -> createEvent(name, venue) }
+                pendingEvent?.let { createEvent(it) }
                 pendingEvent = null
             },
         )

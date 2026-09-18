@@ -17,6 +17,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.time.Instant
+import java.time.ZoneId
 
 /**
  * The night goes up, and the server's moments come back — Etapa 2 of
@@ -75,6 +76,14 @@ class NightSync(
             }
             val night = db.nightDao().nightRow(nightId) ?: return
 
+            // Etapa 3: the event exists on the server before the night does,
+            // and every mark tapped during the capture becomes a timeline
+            // entry there — the correlator names moments from it. Marks are
+            // pushed on every attempt, so a late one still lands before the
+            // next analysis.
+            val serverEventId = ensureServerEvent(night.eventId)
+            if (serverEventId != null) pushMarks(night.eventId, serverEventId)
+
             var serverId = night.serverSessionId
             if (serverId == null) {
                 val samples = db.nightDao().samplesOf(nightId)
@@ -84,6 +93,7 @@ class NightSync(
                     endAt = Instant.ofEpochMilli(night.endAt),
                     sourceDevice = night.sourceLabel,
                     samples = samples,
+                    serverEventId = serverEventId,
                 )
                 db.nightDao().setServerSessionId(nightId, serverId)
                 db.nightDao().setUploadState(nightId, "SENT", null)
@@ -114,6 +124,23 @@ class NightSync(
             db.nightDao().setUploadState(nightId, "FAILED", "error:${e.javaClass.simpleName}")
         } finally {
             inFlight.update { it - nightId }
+        }
+    }
+
+    /** The local event's server twin: the one it was picked from, or one created now from its name, venue, date and kind. */
+    private suspend fun ensureServerEvent(localEventId: Long): String? {
+        val event = db.eventDao().byId(localEventId) ?: return null
+        event.serverEventId?.let { return it }
+        val date = Instant.ofEpochMilli(event.startAt).atZone(ZoneId.systemDefault()).toLocalDate()
+        val id = api.createEvent(event.name, event.venue.ifBlank { null }, date, event.eventType)
+        db.eventDao().setServerEventId(localEventId, id)
+        return id
+    }
+
+    private suspend fun pushMarks(localEventId: Long, serverEventId: String) {
+        for (mark in db.markDao().unsyncedFor(localEventId)) {
+            api.addTimelineEntry(serverEventId, Instant.ofEpochMilli(mark.at), mark.label, mark.entryType)
+            db.markDao().markSynced(mark.id)
         }
     }
 

@@ -59,13 +59,23 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     /** Cria o evento e, com sensor pareado, deixa a sessão de captura registrada (§4.3). */
-    suspend fun startEvent(name: String, venue: String): Long {
-        val eventId = container.nights.startEvent(name, venue)
+    suspend fun startEvent(name: String, venue: String, eventType: String = "concert", serverEventId: String? = null): Long {
+        val eventId = container.nights.startEvent(name, venue, eventType, serverEventId)
         _snapshot.value = null
         if (container.prefs.state.first().sensorPaired) {
             container.prefs.setActiveCapture(eventId)
         }
         return eventId
+    }
+
+    /**
+     * One tap during the capture (Etapa 3): the goal, the song, the moment.
+     * The clock of the tap is the whole point — it becomes a timeline entry
+     * on the server and names the moment the detector finds around it.
+     */
+    fun mark(label: String, entryType: String) {
+        val event = activeEvent.value ?: return
+        viewModelScope.launch { container.nights.addMark(event.id, label, entryType) }
     }
 
     /**

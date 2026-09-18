@@ -175,6 +175,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
 28. **The timeline code cannot produce a usable timeline.** Found 2026-09-17.
+    *(Sidestepped for the pilot on 18/09, Etapa 3: marks tapped during the
+    capture become timeline entries with wall-clock instants. The dead code
+    stays dead.)*
     `parse_fixture_to_timeline()` adds the match minute to the kick-off and
     ignores the ~15-minute half-time interval, so every second-half event is
     15–20 minutes early — fifteen times outside the correlator's ±60 s window.
@@ -226,13 +229,60 @@ the linked documents — this file is the index and the reasoning, not a diary.
     repository, 1 a real account, 2 the night uploads and the server's
     moments come back, 3 the event has a name, 4 Play. `cc.tumtum.capture`
     is the reference until each piece is ported, then retired. **Etapa 0
-    done 18/09; Etapas 1 and 2 built 18/09** (CI green; the phone checks
-    are Felipe's); **next: Etapa 3.**
+    done 18/09; Etapas 1, 2 and 3 built 18/09** (CI green; the phone checks
+    are Felipe's); **next: Etapa 4, Play** — waits on Google's verification.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-18 — Etapa 3 built: the event has a name
+
+The last piece the pilot needs from the app before Play: a night attached
+to an event the server knows, and a way to say *when the goal was* without
+paper.
+
+- **The event comes from the server's list, or goes to it.** The sheet that
+  marks an event (Configurações → Experimento, the operator's act) now asks
+  `GET /api/events` once when it opens and offers the events nearest to
+  today — tonight first, whatever the server's order — so picking one
+  attaches the night to **the timeline the pilot shares**: the thing that
+  names a goal for everyone in the stadium, instead of five private events
+  with the same name. Typing still works; the **kind** (show · jogo ·
+  festival) is chosen with it, because the server's schema demands one. A
+  typed event is created on the server at the first sync
+  (`POST /api/events`), not at the tap — the sheet works offline. "Could not
+  ask" is told apart from "nothing there".
+- **Marking a moment is three taps in the dark.** GOL · MÚSICA · MOMENTO on
+  the capture screen, each storing a mark with the clock of the tap in a
+  new `marks` table; the only feedback is the count, and the count is the
+  truth (what is stored). On every sync — before the analysis, every time —
+  the unsynced marks become timeline entries
+  (`POST /api/events/{id}/timeline`, `goal` · `song_start` · `highlight`),
+  the session goes up with `event_id`, and the detector's moments come back
+  **named by the causal rule of 17/09**. A mark tapped late still lands
+  before the next analysis.
+- Room 4 → 5: events carry their server twin and kind; marks get a table.
+  `ServerEvents` is pure and tested (fields, tonight-first ordering, the
+  cap). One build failed on two missing imports, fixed in the next commit —
+  the cost of writing Compose without a compiler in reach.
+
+**What this closes:** open item 28's practical half. The timeline
+integrations are still dead code, but a match no longer needs them: the
+kick-off, the goals and the whistle are taps, with wall-clock instants, on
+the same timeline for everyone who picked the event.
+
+**Gate:** CI green (run 10). Felipe's half, the one the plan names: a
+rehearsal with one GOL marked comes back on the reveal as a moment whose
+line reads *GOL*.
+
+**Next: Etapa 4** — Play: the `.aab` already builds on every push; what is
+left is the account's verification, "Create app" as `cc.tumtum.app`, the
+internal testing track, and a minified build tested on a phone before R8
+goes back on.
 
 ---
 

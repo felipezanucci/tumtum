@@ -1,6 +1,7 @@
 package cc.tumtum.app.data.repo
 
 import cc.tumtum.app.data.db.EventEntity
+import cc.tumtum.app.data.db.MarkEntity
 import cc.tumtum.app.data.db.MomentEntity
 import cc.tumtum.app.data.db.NightEntity
 import cc.tumtum.app.data.db.NightWithData
@@ -53,11 +54,32 @@ class NightRepository(
     private val margin: Duration = Duration.ofMinutes(30)
 
     val activeEvent: Flow<EventSession?> = db.eventDao().active().map { e ->
-        e?.let { EventSession(it.id, it.name, it.venue, Instant.ofEpochMilli(it.startAt), it.endAt?.let(Instant::ofEpochMilli)) }
+        e?.let {
+            EventSession(
+                it.id, it.name, it.venue, Instant.ofEpochMilli(it.startAt), it.endAt?.let(Instant::ofEpochMilli),
+                serverEventId = it.serverEventId, eventType = it.eventType,
+            )
+        }
     }
 
-    suspend fun startEvent(name: String, venue: String): Long =
-        db.eventDao().insert(EventEntity(name = name.trim(), venue = venue.trim(), startAt = Instant.now().toEpochMilli()))
+    suspend fun startEvent(
+        name: String,
+        venue: String,
+        eventType: String = "concert",
+        serverEventId: String? = null,
+    ): Long =
+        db.eventDao().insert(
+            EventEntity(
+                name = name.trim(), venue = venue.trim(), startAt = Instant.now().toEpochMilli(),
+                eventType = eventType, serverEventId = serverEventId,
+            ),
+        )
+
+    /** One tap during the capture: the goal, the song, the moment — with the clock of the tap (Etapa 3). */
+    suspend fun addMark(eventId: Long, label: String, entryType: String, at: Instant = Instant.now()): Long =
+        db.markDao().insert(MarkEntity(eventId = eventId, at = at.toEpochMilli(), label = label, entryType = entryType))
+
+    fun marksCount(eventId: Long): Flow<Int> = db.markDao().countFor(eventId)
 
     suspend fun closeEvent(eventId: Long, at: Instant = Instant.now()) {
         db.eventDao().close(eventId, at.toEpochMilli())
@@ -182,6 +204,7 @@ class NightRepository(
         db.nightDao().deleteAllSamples()
         db.nightDao().deleteAll()
         db.eventDao().deleteAll()
+        db.markDao().deleteAll()
         capture.deleteAllSamples()
         capture.deleteAllRr()
         capture.deleteAllMotion()
