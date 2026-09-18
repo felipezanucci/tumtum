@@ -244,6 +244,27 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — Configurações was reachable from nowhere, and the way back was invisible
+
+From Felipe's check of `app-b123`. The three fixes of the previous entry
+held (the night shows, the avatar opens the profile, the wordmark goes to
+the feed); two more surfaced.
+
+- **Configurações had no door.** The *Você* tab restores whatever screen
+  was on top of it, and after one visit to the gallery that screen is the
+  gallery — which had no back arrow and no link to settings. The only
+  entrances were on the nights list underneath, so *Apagar minha conta*,
+  the operator toggle and the sensor pairing were unreachable in normal
+  use. Now the gallery header carries the same two badges as the nights
+  list (SUAS NOITES, CONFIGURAÇÕES), and the person's own profile has a
+  *Configurações* button beside *Editar perfil*.
+- **The back arrow was a 14 sp grey glyph with no touch padding**, drawn
+  ten different ways in ten screens. One `BackArrow` component now: 24 sp,
+  semibold, in the surface's text colour, inside a 44 dp target. Same
+  arrow on every screen that has one.
+
+---
+
 ## 2026-09-18 — the gallery hid a night, and two things on the header did nothing
 
 Three more from Felipe's hands, on the *Você* tab after the fourth rehearsal.

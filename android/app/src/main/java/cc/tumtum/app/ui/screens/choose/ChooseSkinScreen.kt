@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.ShareCardView
@@ -58,12 +59,7 @@ fun ChooseSkinScreen(nav: NavHostController, nightId: Long) {
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(stringResource(R.string.choose_label), style = TTType.MetaSmall, color = TT.Gray45)
-            Text(
-                "←",
-                style = TTType.ItemSub.copy(fontSize = 14.sp),
-                color = TT.Gray45,
-                modifier = Modifier.clickable { nav.popBackStack() },
-            )
+            BackArrow(onClick = { nav.popBackStack() })
         }
         Spacer(Modifier.height(10.dp))
         Text(

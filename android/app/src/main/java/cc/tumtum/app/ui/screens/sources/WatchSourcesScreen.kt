@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.repo.SourceMeasurement
 import cc.tumtum.app.data.repo.saveEndedNight
 import cc.tumtum.app.domain.WatchSource
@@ -85,12 +86,7 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
             .verticalScroll(rememberScrollState())
             .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 30.dp),
     ) {
-        Text(
-            "←",
-            style = TTType.ItemSub.copy(fontSize = 14.sp),
-            color = TT.Gray45,
-            modifier = Modifier.clickable { nav.popBackStack() }.padding(4.dp),
-        )
+        BackArrow(onClick = { nav.popBackStack() })
         Spacer(Modifier.height(34.dp))
         val nothingRecorded = !setupMode && m != null && sources.none { it.hasData }
         if (nothingRecorded) {
