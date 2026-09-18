@@ -2,6 +2,7 @@ package cc.tumtum.app.data.api
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.json.JSONObject
 import org.junit.Test
 import java.time.LocalDate
 
@@ -24,6 +25,17 @@ class ServerEventsTest {
         assertEquals("10/10 · São Paulo × Vitória", events[1].label)
         assertEquals("sports", events[1].eventType)
         assertNull(events[2].venue)
+        assertNull(events[2].city)
+    }
+
+    @Test
+    fun `blank and missing venues are none, never the word null`() {
+        val blank = ServerEvents.from(JSONObject("""{"id":"a","name":"A","date":"2026-10-10","venue":"  ","event_type":"concert"}"""))
+        assertNull(blank.venue)
+        assertNull(blank.city)
+        val explicitNull = ServerEvents.from(JSONObject("""{"id":"b","name":"B","date":"2026-10-10","venue":null,"city":null}"""))
+        assertNull(explicitNull.venue)
+        assertEquals("concert", explicitNull.eventType)
     }
 
     @Test
