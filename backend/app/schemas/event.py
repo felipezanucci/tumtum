@@ -121,9 +121,13 @@ class TimelineEntryResponse(BaseModel):
     timestamp: datetime
     label: str
     entry_type: str
-    metadata: dict | None = None
+    # The ORM column is ``metadata_`` because ``metadata`` on a SQLAlchemy model
+    # is the table registry. Read from attributes without the alias, this field
+    # got a MetaData object, failed validation, and every POST to the timeline
+    # answered 500 — found on 2026-09-18, the first time a mark was sent.
+    metadata: dict | None = Field(default=None, validation_alias="metadata_")
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class EventDetailResponse(EventResponse):

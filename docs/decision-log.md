@@ -239,6 +239,46 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — fourth rehearsal: the first GOL ever marked found a 500 that had been waiting since Etapa 3
+
+Felipe ran the rehearsal on `app-b117` with the operator toggle on, marked
+a GOL, and the night came back *Não subiu: o servidor respondeu server:500*.
+Four findings, all fixed.
+
+- **The 500 was the timeline endpoint, and it had never worked.** The
+  response schema for a timeline entry has a field called `metadata`,
+  read from the ORM row. On a SQLAlchemy model `metadata` is the table
+  registry, not the JSON column (which is why the column is named
+  `metadata_`), so validation got a `MetaData` object, failed, and the
+  server answered 500. Nobody had posted a timeline entry before today:
+  Ensaio 2 had no marks, the Realness night had no marks, and the
+  endpoint had no API test. The sync pushes marks **before** the session,
+  so one GOL was enough to stop the whole upload. Fixed with a
+  `validation_alias` on the schema and a test that validates a real
+  `EventTimeline` row. `GET /api/events/{id}` with a timeline would have
+  failed the same way. **What it settles:** the cause of every 500 on a
+  marked night; the GOL label on a moment is still unverified, one
+  rehearsal away.
+- **The live number is on the screen.** Third time Felipe asked; the §10
+  argument (seeing the number changes the number) is recorded and
+  overruled by the founder for the pilot. The capture shows the strap's
+  current bpm in Rose, always. Reverting is the block that this entry's
+  commit removed.
+- **"Escolher como compartilhar" was below the fold.** The reveal is now a
+  scrolling block over a fixed pink button, the same shape as the capture
+  screen after its own fix this morning.
+- **"Sua noite × a galera" is hidden.** The screen behind it renders the
+  mockup's 3,412 people and a 71% sync from a fake repository; Felipe
+  asked whether it was invented, and it is. Card 04 needs a real
+  collective sample; until then a fan must not be able to reach a number
+  the app made up.
+
+**Cost:** one rehearsal, and the lesson that an endpoint with no test and
+no caller is an endpoint that does not work. Item 28's "timeline dead
+code" was deader than the log said.
+
+---
+
 ## 2026-09-18 — third rehearsal: the pipeline is right, the screens around it were not
 
 Felipe ran the rehearsal a third time on `app-b115`: one minute still, two

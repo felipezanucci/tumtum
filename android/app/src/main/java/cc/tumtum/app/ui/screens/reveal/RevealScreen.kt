@@ -110,15 +110,17 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
         return
     }
 
+    // Dois blocos: o de cima rola, o botão de compartilhar é fixo embaixo. No
+    // ensaio de 18/09 ele ficou no segundo scroll e ninguém sabia que existia.
     Column(
         Modifier
             .fillMaxSize()
             .background(TT.Night)
             .statusBarsPadding()
             .navigationBarsPadding()
-            .verticalScroll(rememberScrollState())
             .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 26.dp),
     ) {
+      Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(stringResource(R.string.reveal_label), style = TTType.MetaWide, color = TT.Acid)
             Text(
@@ -230,24 +232,12 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                     modifier = Modifier.clickable { container.sync.uploadLater(n.id) }.padding(vertical = 6.dp),
                 )
             }
-            Spacer(Modifier.height(12.dp))
-            Text(
-                stringResource(R.string.crowd_you) + " × " + stringResource(R.string.crowd_them),
-                style = TTType.MetaSmall,
-                color = TT.Gray55,
-                modifier = Modifier
-                    .clickable { nav.navigate(Routes.crowd(n.id)) }
-                    .padding(vertical = 6.dp),
-            )
+            // "Sua noite × a galera" (card 04) fica fora até existir uma amostra
+            // coletiva real: a tela por trás dela mostra 3.412 pessoas inventadas
+            // pelo mockup, e um número inventado na mão de um fã é uma mentira.
         }
 
-        Spacer(Modifier.height(24.dp))
-        TTButton(
-            stringResource(R.string.reveal_share),
-            TTButtonStyle.Rose,
-            onClick = { nav.navigate(Routes.choose(n.id)) },
-        )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(18.dp))
         // §9 — extração manual, à prova de 2h da manhã: ZIP → share sheet, sem rede.
         TTButton(
             if (exporting) stringResource(R.string.export_running) else stringResource(R.string.export_session),
@@ -263,6 +253,13 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                     exporting = false
                 }
             },
+        )
+      }
+        Spacer(Modifier.height(14.dp))
+        TTButton(
+            stringResource(R.string.reveal_share),
+            TTButtonStyle.Rose,
+            onClick = { nav.navigate(Routes.choose(n.id)) },
         )
     }
 }
