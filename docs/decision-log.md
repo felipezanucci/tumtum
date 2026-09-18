@@ -293,6 +293,13 @@ real app now.
 "installs over the build Felipe has", is his to confirm with the next
 Release after the merge.
 
+**Addendum, 01:49:** Felipe set the four `TUMTUM_UPLOAD_*` secrets and the
+workflow was dispatched by hand on the branch: the `release` job decoded
+the key, built `:app:bundleRelease :app:assembleRelease`, and uploaded
+`tumtum-app-aab` (18.3 MB: the `.aab` for the Play Console and a
+release-signed APK). The release signing config and the secrets are proven
+before any merge; the first `.aab` of `cc.tumtum.app` exists.
+
 **Next: Etapa 1**, a real account — `TumtumApi.kt` ported, "Criar conta"
 and sign-in against `/api/auth`.
 
