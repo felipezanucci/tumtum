@@ -267,6 +267,40 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-18 — Etapa 4: the first release is on the Play internal testing track
+
+At 18:39 the Play Console showed `cc.tumtum.app` with one release on the
+internal testing track, *"Disponível para testadores internos"*, built from
+`app-b131` (target API 36). The whole afternoon's path, in order: developer
+account verified → app created → login details for the reviewer (an account
+created at tumtum.cc/signup, because the phone could not create a second
+one) → content rating (*Todos os outros tipos*, user content shared, no
+block/report yet) → target audience 18+ → data safety (name, e-mail, user
+id, health info; deletion in-app, URL `/apagar-conta`) → health declaration
+(*Atividade e condicionamento físicos*, the only category that covers a
+heart-rate read) → store category *Entretenimento* → listing text in the
+brand's voice → icon and feature graphic rendered from the official vector →
+four 1080×1920 screenshots drawn from the app's own code and the real
+exported session → `.aab` upload, refused at API 35, accepted at 36.
+
+Two things the day settled for the future:
+
+- **The listing shows only what the app really does.** Feed and crowd
+  screens were asked for and refused: they run on the fake repository, and a
+  screenshot of invented people is the same lie as the number the app used
+  to show. They return after the pilot produces real data.
+- **Tablet, Chromebook and XR stay empty.** The app is a phone in a pocket
+  at a show; declaring large-screen support would invite reviews on a layout
+  the app does not have.
+
+**What is left:** the testers list and its opt-in link (Felipe's next
+click); the temporary store name *"cc.tumtum.app (unreviewed)"* stays until
+every dashboard task is done and the app goes through review; R8 on and
+tested on a phone; `cc.tumtum.app` in the developer-verification portal for
+30/09.
+
+---
+
 ## 2026-09-18 — the Play Console refused the bundle: API 36 or nothing
 
 The first `.aab` upload was accepted, read correctly (version 129, minSdk 28)
