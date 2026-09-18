@@ -236,6 +236,17 @@ the linked documents — this file is the index and the reasoning, not a diary.
     **Next: Etapa 4, Play** — the account is verified; what is left is
     "Create app" as `cc.tumtum.app`, the `.aab`, the internal track, and a
     minified build tested on a phone.
+34. **A public feed with no block and no report will not pass an open Play
+    release.** Raised 2026-09-18 while answering the content-rating
+    questionnaire. The app declares user-generated content shared publicly
+    (feed, public profile, published nights) and answers *no* to "can users
+    block others" and *no* to "can users report users or content", which is
+    true today. **The internal testing track, with a closed list of
+    e-mails, does not enforce it**; a production release to the open store
+    normally does. Before the store listing goes public, either build a
+    report and a block (the smaller version: report a night, block a
+    profile, both landing somewhere a human reads) or keep the feed private
+    to the pilot. Not a pilot blocker; a launch blocker.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
