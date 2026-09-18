@@ -164,7 +164,8 @@
     <string name="gallery_moments">MOMENTOS</string>
     <string name="gallery_record">SEU RECORDE</string>
     <string name="gallery_footnote">Cada noite guarda a pele que você escolheu no card. A forma fica, a pele muda.</string>
-    <string name="gallery_empty">Nenhuma noite publicada ainda. A primeira pele é sua escolha.</string>
+    <string name="gallery_empty">Nenhuma noite ainda. A primeira é a próxima captura.</string>
+    <string name="gallery_no_card">SEM CARD AINDA</string>
 
     <!-- b8 · Perfil público -->
     <string name="profile_nights">NOITES</string>
@@ -203,6 +204,10 @@
     <string name="settings_delete_warning">Apagar sua conta apaga noites, momentos publicados e reações. Não dá para desfazer.</string>
     <string name="settings_delete_confirm">Apagar tudo</string>
     <string name="settings_delete_cancel">Voltar</string>
+    <string name="settings_delete_running">Apagando…</string>
+    <string name="settings_delete_failed_offline">Não deu para apagar no servidor: sem rede. Nada foi apagado. Tenta de novo com internet.</string>
+    <string name="settings_delete_failed_expired">Sua sessão expirou. Entra de novo e tenta apagar. Nada foi apagado.</string>
+    <string name="settings_delete_failed_server">O servidor não apagou sua conta: %1$s. Nada foi apagado.</string>
 
     <string name="back">Voltar</string>
 

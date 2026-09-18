@@ -88,6 +88,9 @@ interface NightDao {
     @Query("SELECT * FROM nights WHERE published = 1 ORDER BY startAt DESC")
     fun published(): Flow<List<NightEntity>>
 
+    @Query("SELECT * FROM nights ORDER BY startAt DESC")
+    fun allNights(): Flow<List<NightEntity>>
+
     @Query("UPDATE nights SET skin = :skin, published = 1 WHERE id = :id")
     suspend fun publish(id: Long, skin: String)
 

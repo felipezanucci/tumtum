@@ -192,17 +192,25 @@ class NightRepository(
 
     fun night(id: Long): Flow<Night?> = db.nightDao().nightWithData(id).map { it?.toDomain() }
 
-    fun galleryNights(): Flow<List<GalleryNight>> = db.nightDao().published().map { list ->
-        list.map { n ->
-            GalleryNight(
-                nightId = n.id,
-                label = n.eventName.uppercase(),
-                dateLabel = DATE_FMT.format(Instant.ofEpochMilli(n.startAt).atZone(ZoneId.systemDefault())),
-                peakBpm = n.peakBpm,
-                skin = n.skin?.let { Skin.valueOf(it) } ?: Skin.PINK,
-            )
-        }
-    }
+    /** The nights with a card: what a public profile shows. */
+    fun galleryNights(): Flow<List<GalleryNight>> = db.nightDao().published().map { list -> list.map { it.toGallery() } }
+
+    /**
+     * Every night, card or not: what the person's own gallery shows. Until
+     * 18/09 the gallery listed only published nights, so a night just
+     * captured was nowhere until a card was chosen — the list was making a
+     * claim ("2 noites") that the phone's own data contradicted.
+     */
+    fun allGalleryNights(): Flow<List<GalleryNight>> = db.nightDao().allNights().map { list -> list.map { it.toGallery() } }
+
+    private fun NightEntity.toGallery() = GalleryNight(
+        nightId = id,
+        label = eventName.uppercase(),
+        dateLabel = DATE_FMT.format(Instant.ofEpochMilli(startAt).atZone(ZoneId.systemDefault())),
+        peakBpm = peakBpm,
+        skin = skin?.let { Skin.valueOf(it) } ?: Skin.PINK,
+        published = published,
+    )
 
     suspend fun publish(nightId: Long, skin: Skin) {
         db.nightDao().publish(nightId, skin.name)

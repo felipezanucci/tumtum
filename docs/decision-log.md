@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **Two apps existed; on 18/09 the designed one, `cc.tumtum.app` (branch `app`), became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -176,8 +176,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     runner, TestFlight instead of a link) are calendar, not code.
 28. **The timeline code cannot produce a usable timeline.** Found 2026-09-17.
     *(Sidestepped for the pilot on 18/09, Etapa 3: marks tapped during the
-    capture become timeline entries with wall-clock instants. The dead code
-    stays dead.)*
+    capture become timeline entries with wall-clock instants, and the
+    fourth rehearsal proved it end to end — a GOL tapped at 14h51 named the
+    moment the server found. The dead code stays dead.)*
     `parse_fixture_to_timeline()` adds the match minute to the kick-off and
     ignores the ~15-minute half-time interval, so every second-half event is
     15–20 minutes early — fifteen times outside the correlator's ±60 s window.
@@ -218,24 +219,98 @@ the linked documents — this file is the index and the reasoning, not a diary.
     and miss both 30/09 and 10/10. Costs of personal until the upgrade: the
     12 testers × 14 days rule before production, and payments/taxes in
     Felipe's name. Upgrade before monetising.
-32. **Account deletion is a promise kept by hand.** `tumtum.cc/privacidade`
-    (2026-09-17) promises deletion of account, readings, moments and cards
-    on request to oi@tumtum.cc within 7 days; there is no endpoint for it,
-    so Felipe deletes rows. Build `DELETE /api/users/me` (cascade: sessions,
-    hr_data, peaks, cards, shares) and a button on the profile before the
-    Play data-safety form is filled in — it asks exactly this.
+32. ~~**Account deletion is a promise kept by hand.**~~ Built 2026-09-18:
+    `DELETE /api/users/me` removes shares, cards, readings, peaks, sessions,
+    wearable connections and reset tokens before the user, in that order
+    (tested); "Apagar minha conta" in the app calls it first and wipes the
+    phone only when the server confirmed, saying so when it did not. The
+    privacy page now names the in-app path first, the e-mail second. The
+    Play data-safety form can answer "yes, in the app".
 33. **Two Android apps existed; the pilot's app is `cc.tumtum.app`.**
     Decided 2026-09-18. `docs/one-app-plan.md` is the merge: Etapa 0 one
     repository, 1 a real account, 2 the night uploads and the server's
     moments come back, 3 the event has a name, 4 Play. `cc.tumtum.capture`
-    is the reference until each piece is ported, then retired. **Etapa 0
-    done 18/09; Etapas 1, 2 and 3 built 18/09** (CI green; the phone checks
-    are Felipe's); **next: Etapa 4, Play** — waits on Google's verification.
+    is the reference until each piece is ported, then retired. **Etapas
+    0–3 done and proved on Felipe's phone, 18/09:** the fourth rehearsal
+    came back with a moment named *GOL* by the server, 169 bpm, 129 s.
+    **Next: Etapa 4, Play** — the account is verified; what is left is
+    "Create app" as `cc.tumtum.app`, the `.aab`, the internal track, and a
+    minified build tested on a phone.
 30. **The Mi Band 9 is now the cheapest experiment in the project.** It answers
     open item 23 *and* whether a wrist device can carry a football moment: at
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+
+---
+
+## 2026-09-18 — the gallery hid a night, and two things on the header did nothing
+
+Three more from Felipe's hands, on the *Você* tab after the fourth rehearsal.
+
+- **Ensaio 3 was not in the gallery.** The gallery listed only nights with
+  a card chosen (published), so a night just captured, analysed and named
+  was nowhere until the person shared it — while the header counted
+  "2 noites" against a phone holding three. The gallery now shows every
+  night; one without a card is a white cover with *SEM CARD AINDA*, and
+  the skin arrives when the card is chosen. The public profile still shows
+  published nights only. Empty-state copy no longer talks about
+  publishing.
+- **The avatar did nothing on two of the four tabs.** Feed and Você opened
+  the profile; Galeria and Ao vivo did not. All four do now.
+- **The wordmark did nothing anywhere.** It now goes to the feed from every
+  tab, which is what a logo in a header is for.
+
+Same class as the other fifteen: controls with no answer, a list making
+a claim the data contradicts.
+
+---
+
+## 2026-09-18 — item 32: the privacy page's promise is now code
+
+`tumtum.cc/privacidade` has promised since 17/09 that deleting the account
+deletes the account, the readings, the moments and the cards. There was no
+endpoint; the "Apagar minha conta" button in the app wiped the phone and
+left the server untouched, which is the exact shape of defect this log
+keeps counting — the app announcing a state that is not true.
+
+- **`DELETE /api/users/me`.** One service, `account_deletion.py`, deletes
+  in foreign-key order: shares, cards, readings, peaks, sessions, wearable
+  connections, password-reset tokens, then the user. Three of those keys
+  carry no `ON DELETE`, so a bulk delete in the wrong order is refused by
+  Postgres rather than cascaded; the order is pinned by a test. Events and
+  their timelines are shared and stay.
+- **The app asks the server first and the phone second.** If the server
+  did not delete — offline, expired token, an error — the dialog says so
+  and nothing local is touched. Only a confirmed deletion (or a 404, the
+  account already gone) wipes the phone and returns to onboarding.
+- **The privacy page now names the in-app path first**, PT and EN, and
+  keeps the e-mail path as the alternative with its 7-day promise.
+
+**What it settles:** the Play data-safety form's deletion question, and a
+promise that until today depended on Felipe deleting rows by hand.
+
+---
+
+## 2026-09-18 — Etapa 3's gate passed: a moment named GOL, on the phone
+
+After #58 went live Felipe reopened the Ensaio 3 night and tapped *Enviar
+de novo*. The mark went up, the session went up, the server's detector ran
+against the event's timeline, and the reveal came back with one moment:
+**169 bpm · GOL · às 14h51 · 129 s**, labelled *Momentos encontrados pelo
+servidor*, with the share button fixed at the bottom of the screen.
+
+That is the gate `docs/one-app-plan.md` set for Etapa 3, and it closes the
+loop the pilot needs: a tap in the dark on the operator's phone names the
+moment on everyone's night attached to that event. Etapas 0 to 3 are done
+and proved on a phone, all on one day, across five pull requests (#54 to
+#58) and four rehearsals.
+
+**What remains before a pilot**, in order: Etapa 4 (Play internal track,
+Felipe's Block 3 with the verified account), the R8-minified build tested
+on a phone, `cc.tumtum.app` registered in the developer verification for
+30/09, and item 32 (account deletion from the app). Nothing in the capture,
+upload, detection or card path is waiting on code.
 
 ---
 

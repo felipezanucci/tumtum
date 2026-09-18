@@ -83,7 +83,7 @@ export const PRIVACY_PT: PrivacyCopy = {
     {
       heading: 'Como apagar',
       paragraphs: [
-        'Escreva para oi@tumtum.cc do e-mail da sua conta pedindo para apagar. A gente apaga a conta, os batimentos, os momentos e os cards, e confirma por e-mail em até 7 dias. Cards que você já postou em outras redes ficam onde você postou — esses são seus para apagar lá.',
+        'No app: Configurações → Apagar minha conta. Some na hora a conta, os batimentos, os momentos e os cards, no seu celular e nos nossos servidores. Se preferir, escreva para oi@tumtum.cc do e-mail da sua conta e a gente apaga e confirma por e-mail em até 7 dias. Cards que você já postou em outras redes ficam onde você postou — esses são seus para apagar lá.',
         'Também dá para apagar uma sessão específica, ou retirar a permissão do Health Connect, sem apagar a conta.',
       ],
     },
@@ -160,7 +160,7 @@ export const PRIVACY_EN: PrivacyCopy = {
     {
       heading: 'How to delete',
       paragraphs: [
-        'Write to oi@tumtum.cc from your account email asking us to delete. We delete the account, the heartbeats, the moments and the cards, and confirm by email within 7 days. Cards you already posted elsewhere stay where you posted them — those are yours to delete there.',
+        'In the app: Settings → Delete my account. The account, the heartbeats, the moments and the cards go at once, on your phone and on our servers. If you prefer, write to oi@tumtum.cc from your account email and we delete and confirm by email within 7 days. Cards you already posted elsewhere stay where you posted them — those are yours to delete there.',
         'You can also delete a single session, or withdraw the Health Connect permission, without deleting the account.',
       ],
     },

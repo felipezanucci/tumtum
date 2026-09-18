@@ -146,4 +146,6 @@ data class GalleryNight(
     val dateLabel: String,
     val peakBpm: Int,
     val skin: Skin,
+    /** False until a card was chosen: the night exists, its skin does not yet. */
+    val published: Boolean = true,
 )
