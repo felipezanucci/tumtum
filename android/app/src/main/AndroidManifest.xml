@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Health Connect: fonte de FC em lote, retroativa (§2, §7). -->
+    <!-- Etapa 1 (2026-09-18): the first byte this app sends to a server — the account. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
 
     <!-- Captura BLE ao vivo (§5). Android 12+: -->

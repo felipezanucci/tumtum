@@ -238,10 +238,21 @@
     <!-- Entrar (quem já tem conta) -->
     <string name="login_title">Entrar</string>
     <string name="login_subtitle">Bom te ver de novo.</string>
-    <string name="login_handle_label">@USERNAME</string>
-    <string name="login_name_hint">Como você quer aparecer</string>
+    <string name="login_email_label">EMAIL</string>
     <string name="login_cta">Entrar</string>
-    <string name="login_note">Sem servidor ainda: a conta vive neste aparelho. Quando o backend chegar, seu @ e suas noites entram nele.</string>
+    <string name="login_forgot">Esqueci a senha — dá para criar outra em tumtum.cc/login</string>
+    <!-- Errors the account screens can say honestly. Each names the real condition. -->
+    <string name="auth_error_credentials">Email ou senha não batem.</string>
+    <string name="auth_error_taken">Já existe uma conta com esse email. Entra com ela.</string>
+    <string name="auth_error_offline">Sem internet agora. A conta precisa dela pra existir — tenta de novo quando voltar.</string>
+    <string name="auth_error_server">O servidor não respondeu direito (%1$s). Tenta de novo em um minuto.</string>
+    <string name="auth_working">Um segundo…</string>
+    <!-- Settings: the server's side of the account -->
+    <string name="settings_session_live">Conectada como %1$s</string>
+    <string name="settings_session_expired">Sessão expirada — entra de novo antes da próxima noite.</string>
+    <string name="settings_session_none">Esta conta ainda não entrou no servidor.</string>
+    <string name="settings_sign_in">Entrar</string>
+    <string name="settings_sign_out">Sair da conta neste aparelho</string>
 
     <!-- b3 — aviso sobre a tela do sistema -->
     <string name="perm_system_note">O pedido em si aparece numa tela do próprio Android (Health Connect) — é lá que você confirma a leitura de frequência cardíaca.</string>
