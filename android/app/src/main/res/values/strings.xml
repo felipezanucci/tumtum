@@ -57,7 +57,7 @@
     <string name="sources_no_data">sem dados nessa janela</string>
     <string name="sources_footnote">A gente mede a densidade de cada fonte na janela do evento e usa a melhor. Buracos ficam visíveis — nunca inventamos batida.</string>
     <string name="sources_use">Usar %1$s</string>
-    <string name="sources_empty">Não achamos batida nessa janela.</string>
+    <string name="sources_empty">Não achamos batida nessa janela. Na próxima, confere se o relógio estava gravando antes de começar.</string>
     <string name="sources_none_title">Não gravamos\nnenhuma batida.</string>
     <string name="sources_none_body">Nenhuma fonte tinha leitura entre o começo e o fim da noite. Confere se o sensor estava conectado ou se o relógio estava gravando, e tenta de novo na próxima.</string>
     <string name="sources_none_back">Voltar</string>
@@ -162,8 +162,9 @@
     <string name="gallery_title">Sua galeria</string>
     <string name="gallery_subtitle">Tudo que você sentiu desde %1$s.</string>
     <string name="gallery_nights">NOITES</string>
+    <string name="gallery_nights_year">NOITES EM %1$d</string>
     <string name="gallery_moments">MOMENTOS</string>
-    <string name="gallery_record">SEU RECORDE</string>
+    <string name="gallery_record">SEU MAIS ALTO</string>
     <string name="gallery_footnote">Cada noite guarda a pele que você escolheu no card. A forma fica, a pele muda.</string>
     <string name="gallery_empty">Nenhuma noite ainda. A primeira é a próxima captura.</string>
     <string name="gallery_no_card">SEM CARD AINDA</string>
@@ -171,7 +172,7 @@
     <!-- b8 · Perfil público -->
     <string name="profile_nights">NOITES</string>
     <string name="profile_friends">AMIGOS</string>
-    <string name="profile_record">RECORDE</string>
+    <string name="profile_record">MAIS ALTO</string>
     <string name="profile_follow">Seguir</string>
     <string name="profile_following">Seguindo</string>
     <string name="profile_share">Compartilhar</string>
@@ -186,8 +187,6 @@
     <string name="skin_yellow">O GRITO</string>
     <string name="skin_white">O LIMPO</string>
     <string name="card_label">SEU CARD</string>
-    <string name="card_post">Postar no feed</string>
-    <string name="card_posted">No feed. A galera já pode sentir também.</string>
     <string name="card_share">Compartilhar</string>
     <string name="card_share_running">Gerando o card…</string>
 
@@ -258,7 +257,9 @@
     <!-- Participante do experimento (§9) -->
     <string name="participant_label">CÓDIGO NO EXPERIMENTO · opcional</string>
     <string name="participant_hint">Só se você recebeu um código (P01, P02…). Não é o nome do evento. Vai junto na exportação.</string>
-    <string name="settings_participant_section">EXPERIMENTO</string>
+    <string name="settings_operator_section">OPERADOR</string>
+    <string name="settings_operator_show">MOSTRAR</string>
+    <string name="settings_operator_hide">OCULTAR</string>
     <string name="settings_participant_hint">Só para quem opera o teste. Um fã não precisa mexer aqui.</string>
 
     <!-- Exportação (§9) -->
@@ -322,7 +323,7 @@
     <string name="settings_toggle_on">LIGADA</string>
     <string name="settings_toggle_off">DESLIGADA</string>
     <string name="locked_title">Sua noite está sendo\nrevelada.</string>
-    <string name="locked_body">A curva abre aqui às %1$s. A gente te avisa — vale a espera.</string>
+    <string name="locked_body">A curva abre aqui às %1$s. Vale a espera.</string>
     <string name="locked_badge">LACRADA</string>
     <string name="locked_row_hint">Abre às 10h. Sem espiar — é parte da mágica.</string>
     <string name="locked_export">Exportar sessão — operador</string>

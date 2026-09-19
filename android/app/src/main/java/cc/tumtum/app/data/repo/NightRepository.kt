@@ -192,7 +192,7 @@ class NightRepository(
 
     fun night(id: Long): Flow<Night?> = db.nightDao().nightWithData(id).map { it?.toDomain() }
 
-    /** The nights with a card: what a public profile shows. */
+    /** The nights whose card was shared (the skin is saved on Compartilhar): what a public profile shows. */
     fun galleryNights(): Flow<List<GalleryNight>> = db.nightDao().published().map { list -> list.map { it.toGallery() } }
 
     /**
