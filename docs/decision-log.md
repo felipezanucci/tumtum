@@ -264,6 +264,90 @@ the linked documents — this file is the index and the reasoning, not a diary.
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
+36. **"A gente te avisa" — and nothing does.** Found 2026-09-19 by the
+    psychology audit (`docs/app-psychology-principles.md`, §4.3). With the
+    reveal lock on, the locked night says *"A curva abre aqui às 10h. A gente
+    te avisa — vale a espera."*, and no code schedules a notification for
+    `revealAt`; only the capture service ever posts one. The log's bug class,
+    in the one sentence whose job is to make the wait bearable. Either build
+    the notification (the one push the product is allowed) or cut the
+    sentence — and decide first whether the lock is a fan feature or only the
+    blind-card protocol (`one-app-plan.md`, *Later*).
+37. **"Postar no feed" posts to nobody.** Same audit, §4.5. The button on the
+    card screen writes into `FakeSocialRepository`, which lives on this phone
+    and is populated with invented people, and the confirmation reads *"No
+    feed. A galera já pode sentir também."* On the Play internal track that
+    is a false claim in a tester's hands. Hide the button until the feed is
+    the server's.
+38. **The ranked backlog of behavioural mechanics is written, not decided.**
+    `docs/app-psychology-principles.md` §5 lists thirteen, costed in
+    sessions, with the principle behind each; §6 lists eleven the brand
+    refuses so the argument is not had twice. The largest one is not a
+    design task: **the first value is days or weeks from install**, and every
+    benchmark app delivers it in minutes (§5.1 — a retroactive night from
+    the watch's own history, or a demo night labelled as one). Felipe's
+    to pick from; nothing there is on the pilot's critical path.
+
+---
+
+## 2026-09-19 — what makes an app feel great: the catalogue, the benchmark, and where TumTum stands
+
+Felipe sent Wyatt Feaster's *"The psychology trick that makes any app feel
+10x better"* (goal gradient, labor illusion, choice overload) and asked for
+the complete search: every principle that makes apps feel great, and the top
+apps as the benchmark. The result is **`docs/app-psychology-principles.md`**
+— forty-odd principles with their origin papers and numbers, thirty apps
+with what they do on screen and what they published, TumTum's own loop
+audited screen by screen against both, and a ranked list of what to borrow,
+what to refuse, and what a five-person pilot can actually measure.
+
+What it settles, in one paragraph each:
+
+- **The three from the video already have places in the product.** Choice
+  overload is handled right where the fan is (four skins with previews,
+  three moments of twenty, one CTA) and wrong only in Configurações. The
+  labor illusion exists in its honest form — the curve drawing in 1.2 s is
+  the data arriving — and is missing where it would count most: the
+  server's three real steps after Encerrar a noite are a grey caption. The
+  goal gradient has no bar to act on, because the fan's only progress bar —
+  install to first reveal — is invisible and weeks long.
+- **The biggest gap is time-to-value, and it is structural.** TikTok plays a
+  video before asking anything; Duolingo runs a lesson before the account;
+  Shazam is one button. TumTum's first value needs a ticket, a watch and an
+  evening. The honest fix is a retroactive night from the watch's history
+  (the setup screen already reads 24 h from Health Connect) or a demo night
+  labelled as one — §5.1.
+- **The card's mechanism is the Wordle grid and the Wrapped card:** a
+  silhouette recognisable at thumbnail size before the number is read.
+  Mutante Pop's "fixed silhouette, mutating skin" is exactly that; the
+  surface is still the base one (item 24, second half). Wrapped 2025 was
+  shared 500M+ times; Strava's activities with photos get 3.1× the kudos;
+  the 2025 Wrapped pivot to comparing with friends is where card 05 sits.
+- **What the brand refuses is now a table** (§6): streaks, bpm leaderboards,
+  scores, guilt notifications, manufactured scarcity, confetti for a number,
+  invented social proof, pre-ticked consent, loot-box mechanics — each with
+  the principle it would exploit and the reason. Snapchat's streaks are
+  being sued in six US states; Robinhood's confetti is banned by settlement;
+  Brazil's ECA Digital (in force 17/03/2026) bans loot boxes and LGPD Art. 11
+  makes heart rate sensitive data.
+- **The reference magnitudes exist now.** Bielefeld's 229-fan study
+  (*Scientific Reports* 2026): 94 bpm mean in the stadium vs 79 on TV, a
+  stadium mean peak of 108 after the first goal, +36% over TV. And the
+  organic precedent for the card: the 2018 Minneapolis Miracle, when Apple
+  Watches told fans their heart was above 120 while "inactive" and the
+  screenshots went viral. Fans already post this when a device hands it to
+  them.
+- **Two more of the bug class,** found by reading the strings against the
+  code: the locked night promises a notification nothing sends, and
+  "Postar no feed" confirms a post nobody can see. Items 36 and 37.
+
+What it cost to learn: the video itself could not be watched from this
+environment (youtube.com and every transcript mirror are blocked, and no
+write-up of it is indexed), and most primary sites were blocked too, so the
+two research passes ran on search excerpts and secondary coverage, cross-
+checked and flagged where thin. Every number in the document should be read
+from its primary before it goes into public copy. Nothing was decided; the
+document is Felipe's to pick from, and item 38 says so.
 
 ---
 
