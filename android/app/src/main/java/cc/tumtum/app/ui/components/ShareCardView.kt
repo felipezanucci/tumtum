@@ -28,7 +28,6 @@ import cc.tumtum.app.ui.theme.InstrumentSans
 import cc.tumtum.app.ui.theme.TT
 import java.time.Instant
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
