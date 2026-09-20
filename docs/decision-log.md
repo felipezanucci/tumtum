@@ -295,6 +295,34 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-20 — lote 2: the work is shown, and the loop ends on a TumTum screen
+
+The second batch from the psychology audit (`docs/app-psychology-principles.md`
+§5.2 and §5.3), one session as estimated, verified by CI's build only.
+
+- **The analysis shows its two real steps.** `NightSync` now exposes a phase
+  per in-flight night — SENDING while the readings, the event and the marks
+  go up, ANALYSING while the server looks for the moments and names them —
+  and the reveal draws them as two rows with the active one lit: *"Enviando
+  21.960 batidas"* then *"Procurando seus momentos e o que tocava em cada
+  um"*, the finished one marked OK. Buell & Norton's finding is that shown
+  work raises the value of the result; the rule here is stricter than
+  theirs: **never a step that did not run, never a padded second.** The
+  server does detection and matching in one call, so they are one step on
+  screen, not two. The seven failure states are untouched.
+- **After the share sheet, a TumTum screen.** The chooser is launched for a
+  result; when it comes back the card screen says *"Ficou na sua galeria."*
+  with *"3 noites em 2026 · 41 momentos"*, a pink *Ver a galeria* and an
+  outline *Compartilhar de novo*. The peak–end rule: the last thing seen is
+  ours, not Android's. The copy claims only what is true — the card exists
+  and the night carries its skin. **Whether it was sent, nobody here knows**,
+  and the screen does not pretend to; a cancelled sheet lands on the same
+  screen, which is still true.
+
+Not touched: capture, upload, detection. Cost: one session.
+
+---
+
 ## 2026-09-19 — lote 1: the five cheapest changes from the psychology audit
 
 Felipe asked how long the audit's backlog would take; the answer was ~6–7

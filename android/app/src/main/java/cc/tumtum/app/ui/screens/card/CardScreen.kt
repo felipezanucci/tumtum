@@ -42,6 +42,9 @@ import cc.tumtum.app.ui.theme.TTType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import cc.tumtum.app.ui.nav.Routes
 
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
@@ -56,6 +59,11 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val scope = rememberCoroutineScope()
     val night by container.nights.night(nightId).collectAsStateWithLifecycle(initialValue = null)
     var sharing by remember { mutableStateOf(false) }
+    // The share sheet came back. That is all it means: whether the card was
+    // sent, nobody here knows, and the screen says only what is true.
+    var cameBack by remember { mutableStateOf(false) }
+    val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { cameBack = true }
+    val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
     val n = night ?: return
 
     val cardTitle = stringResource(R.string.reveal_default_title)
@@ -87,6 +95,41 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 curveWindow = if (skin == Skin.BLACK) n.startAt to n.endAt else null,
             )
         }
+        if (cameBack) {
+            // The loop ends on a TumTum screen, not on Android's share sheet
+            // (§5.3 of the 19/09 research — peak–end). The card exists and the
+            // night carries its skin: that is the claim, and it is true.
+            Text(
+                stringResource(R.string.card_done_title),
+                style = TTType.ShoutSmall.copy(fontSize = 23.sp, lineHeight = 24.5.sp),
+                color = TT.Paper,
+            )
+            Spacer(Modifier.height(6.dp))
+            val year = java.time.Year.now().value
+            val nightsThisYear = nights.count { it.date.atZone(java.time.ZoneId.systemDefault()).year == year }
+            Text(
+                stringResource(R.string.card_done_stats, nightsThisYear, year, nights.sumOf { it.momentCount }),
+                style = TTType.BodySmall,
+                color = TT.Gray45,
+            )
+            Spacer(Modifier.height(14.dp))
+            TTButton(
+                stringResource(R.string.card_done_gallery),
+                TTButtonStyle.Rose,
+                onClick = {
+                    nav.navigate(Routes.Gallery) {
+                        popUpTo(Routes.Feed) { saveState = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+            Spacer(Modifier.height(10.dp))
+            TTButton(
+                stringResource(R.string.card_share_again),
+                TTButtonStyle.OutlineOnDark,
+                onClick = { cameBack = false },
+            )
+        } else {
         // Compartilhar é sempre ativo (§1): o card vira PNG 1080×1920 e sai
         // pelo share sheet do sistema, com a imagem anexa. Nada sai sem este toque.
         TTButton(
@@ -108,12 +151,13 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                                 "tumtum-${n.id}-${skin.name.lowercase()}.png",
                             )
                         }
-                        context.startActivity(intent)
+                        shareLauncher.launch(intent)
                     }
                     sharing = false
                 }
             },
         )
+        }
         Spacer(Modifier.height(2.dp))
     }
 }
