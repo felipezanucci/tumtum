@@ -18,6 +18,7 @@ class BootReceiver : BroadcastReceiver() {
         val pending = goAsync()
         CoroutineScope(Dispatchers.Default).launch {
             try {
+                runCatching { Reminders.rescheduleAll(context, app.container) }
                 val state = app.container.prefs.state.first()
                 val eventId = state.activeCaptureEventId
                 val address = state.bleAddress

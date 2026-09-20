@@ -75,11 +75,46 @@ class NightRepository(
             ),
         )
 
+    /**
+     * A night that already happened (§5.1 of the 19/09 research): the event is
+     * created already closed, so the active-event flow never sees it, and the
+     * watch is asked over exactly this window.
+     */
+    suspend fun createPastEvent(
+        name: String,
+        venue: String,
+        eventType: String,
+        serverEventId: String?,
+        startAt: Instant,
+        endAt: Instant,
+    ): EventSession {
+        val id = db.eventDao().insert(
+            EventEntity(
+                name = name.trim(), venue = venue.trim(), startAt = startAt.toEpochMilli(), endAt = endAt.toEpochMilli(),
+                eventType = eventType, serverEventId = serverEventId,
+            ),
+        )
+        return EventSession(id, name.trim(), venue.trim(), startAt, endAt, serverEventId = serverEventId, eventType = eventType)
+    }
+
     /** One tap during the capture: the goal, the song, the moment — with the clock of the tap (Etapa 3). */
     suspend fun addMark(eventId: Long, label: String, entryType: String, at: Instant = Instant.now()): Long =
         db.markDao().insert(MarkEntity(eventId = eventId, at = at.toEpochMilli(), label = label, entryType = entryType))
 
     fun marksCount(eventId: Long): Flow<Int> = db.markDao().countFor(eventId)
+
+    /**
+     * The person names the moment (§5.6 of the 19/09 research): saved on the
+     * phone at once, and offered to the event's timeline as a mark, so the
+     * server names it the same way on the next analysis. Nobody knows the
+     * cause better than the person who was there.
+     */
+    suspend fun nameMoment(nightId: Long, momentId: Long, at: Instant, label: String) {
+        val clean = label.trim()
+        db.nightDao().setMomentLabel(momentId, clean.ifBlank { null })
+        val night = db.nightDao().nightRow(nightId) ?: return
+        if (clean.isNotBlank()) addMark(night.eventId, clean, "highlight", at)
+    }
 
     /** Undo the last tap. False when the mark was already on the server — then it stays, honestly. */
     suspend fun removeMark(id: Long): Boolean = db.markDao().deleteUnsynced(id) == 1
@@ -252,7 +287,7 @@ class NightRepository(
             samples = domainSamples,
             gaps = if (domainSamples.isEmpty()) listOf(Gap(start, end)) else NightAnalyzer.gaps(domainSamples, start, end),
             moments = moments.sortedByDescending { it.bpm }
-                .map { Moment(it.bpm, Instant.ofEpochMilli(it.at), it.durationSec, it.isPeak, it.label) },
+                .map { Moment(it.bpm, Instant.ofEpochMilli(it.at), it.durationSec, it.isPeak, it.label, id = it.id) },
             serverSessionId = night.serverSessionId,
             uploadState = runCatching { UploadState.valueOf(night.uploadState) }.getOrDefault(UploadState.PENDING),
             uploadError = night.uploadError,

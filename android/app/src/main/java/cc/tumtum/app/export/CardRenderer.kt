@@ -18,6 +18,9 @@ import cc.tumtum.app.domain.Skin
 import java.io.File
 import java.time.Duration
 import java.time.Instant
+import android.graphics.BitmapFactory
+import android.graphics.RectF
+import android.net.Uri
 
 /**
  * O card 9:16 como imagem (1080×1920, Story) — o mesmo layout do ShareCardView,
@@ -38,6 +41,7 @@ object CardRenderer {
     private const val GRAY25 = 0xFFB4B4B4.toInt()
     private const val GRAY70 = 0xFF4A4A4A.toInt()
     private const val GRAY10 = 0xFFE6E6E6.toInt()
+    private const val SCRIM = 0x99000000.toInt()
 
     fun render(
         context: Context,
@@ -46,6 +50,7 @@ object CardRenderer {
         title: String,
         meta: String,
         chip: String?,
+        photo: Bitmap? = null,
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -59,6 +64,17 @@ object CardRenderer {
         val fg = if (skin == Skin.BLACK) PAPER else INK
         val num = if (skin == Skin.BLACK) ROSE else INK
         canvas.drawColor(bg)
+        // A fan's own photo (§5.11): cover-scaled behind the black skin, under a
+        // scrim dark enough for white text and the pink number to stay legible.
+        if (photo != null && skin == Skin.BLACK) {
+            val scale = maxOf(W.toFloat() / photo.width, H.toFloat() / photo.height)
+            val dw = photo.width * scale
+            val dh = photo.height * scale
+            val left = (W - dw) / 2f
+            val top = (H - dh) / 2f
+            canvas.drawBitmap(photo, null, RectF(left, top, left + dw, top + dh), Paint(Paint.FILTER_BITMAP_FLAG))
+            canvas.drawColor(SCRIM)
+        }
         if (skin == Skin.WHITE) {
             val border = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.STROKE
@@ -244,6 +260,16 @@ object CardRenderer {
         val peak = sorted.maxBy { it.bpm }
         canvas.drawCircle(x(peak.time), y(peak.bpm), markerR, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = markerColor })
     }
+
+    /** A photo from the picker, decoded no larger than the card needs. */
+    fun loadPhoto(context: Context, uri: Uri): Bitmap? = runCatching {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+        var sample = 1
+        while (bounds.outWidth / (sample * 2) >= W && bounds.outHeight / (sample * 2) >= H) sample *= 2
+        val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+        context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
+    }.getOrNull()
 
     /** Grava o PNG no cache e devolve o chooser com a imagem anexa. Nada sai sem o toque (§1). */
     fun shareIntent(context: Context, bitmap: Bitmap, fileName: String): Intent {

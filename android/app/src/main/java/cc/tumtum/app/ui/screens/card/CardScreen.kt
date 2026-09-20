@@ -45,6 +45,10 @@ import kotlinx.coroutines.withContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import cc.tumtum.app.ui.nav.Routes
+import android.graphics.Bitmap
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.style.TextAlign
 
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
@@ -64,6 +68,11 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     var cameBack by remember { mutableStateOf(false) }
     val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { cameBack = true }
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
+    // A fan's own photo behind the black skin (§5.11): for this card, this share.
+    var photo by remember { mutableStateOf<Bitmap?>(null) }
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) scope.launch { photo = withContext(Dispatchers.IO) { CardRenderer.loadPhoto(context, uri) } }
+    }
     val n = night ?: return
 
     val cardTitle = stringResource(R.string.reveal_default_title)
@@ -93,6 +102,25 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 width = 214.dp,
                 curveSamples = if (skin == Skin.BLACK) n.samples else null,
                 curveWindow = if (skin == Skin.BLACK) n.startAt to n.endAt else null,
+                photo = photo?.asImageBitmap(),
+            )
+        }
+        if (skin == Skin.BLACK && !cameBack) {
+            Text(
+                stringResource(if (photo == null) R.string.card_photo_add else R.string.card_photo_remove),
+                style = TTType.Meta,
+                color = TT.Paper,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (photo == null) {
+                            photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        } else {
+                            photo = null
+                        }
+                    }
+                    .padding(vertical = 10.dp),
             )
         }
         if (cameBack) {
@@ -144,7 +172,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                     container.nights.publish(n.id, skin)
                     runCatching {
                         val intent = withContext(Dispatchers.IO) {
-                            val bitmap = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip)
+                            val bitmap = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = photo)
                             CardRenderer.shareIntent(
                                 context,
                                 bitmap,

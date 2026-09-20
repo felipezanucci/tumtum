@@ -36,6 +36,8 @@ class EndNightCache {
 
 /** DI manual e enxuto — sem framework até precisar de um. */
 class AppContainer(app: Application) {
+    /** For the pieces that need a Context outside a screen (reminders). */
+    val appContext: android.content.Context = app
     val prefs = UserPrefs(app)
     val api = TumtumApi(prefs)
     val health = HealthConnectSource(app)
@@ -58,6 +60,10 @@ class TumTumApp : Application() {
         resumeCaptureIfNeeded()
         // Etapa 2: a night that never reached the server tries again on every start.
         container.sync.retryPendingLater()
+        // Reminders do not survive an update; set again from what the phone knows.
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            runCatching { cc.tumtum.app.service.Reminders.rescheduleAll(this@TumTumApp, container) }
+        }
     }
 
     /**

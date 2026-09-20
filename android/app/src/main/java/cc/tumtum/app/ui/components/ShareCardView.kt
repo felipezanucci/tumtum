@@ -27,6 +27,10 @@ import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.theme.InstrumentSans
 import cc.tumtum.app.ui.theme.TT
 import java.time.Instant
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 
 /**
  * O card 9:16 — a unidade social do TumTum (componente ShareCard do design system).
@@ -43,6 +47,7 @@ fun ShareCardView(
     chip: String? = null,
     curveSamples: List<HrSample>? = null,
     curveWindow: Pair<Instant, Instant>? = null,
+    photo: ImageBitmap? = null,
 ) {
     val bg = skinColor(skin)
     val fg = if (skin == Skin.BLACK) TT.Paper else TT.Ink
@@ -50,14 +55,18 @@ fun ShareCardView(
     val pad = width * 0.09f
     val w = width.value
 
-    Column(
+    Box(
         modifier
             .width(width)
             .aspectRatio(9f / 16f)
             .background(bg)
-            .let { if (skin == Skin.WHITE) it.border(1.dp, TT.Gray10) else it }
-            .padding(pad),
+            .let { if (skin == Skin.WHITE) it.border(1.dp, TT.Gray10) else it },
     ) {
+    if (photo != null && skin == Skin.BLACK) {
+        Image(photo, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.matchParentSize())
+        Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.6f)))
+    }
+    Column(Modifier.matchParentSize().padding(pad)) {
         if (chip != null) {
             Text(
                 chip,
@@ -126,5 +135,6 @@ fun ShareCardView(
             )
             Wordmark(width = (w * 0.24f).dp, onDark = skin == Skin.BLACK)
         }
+    }
     }
 }

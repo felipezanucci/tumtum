@@ -4,6 +4,8 @@ import cc.tumtum.app.AppContainer
 import cc.tumtum.app.domain.EventSession
 import cc.tumtum.app.domain.RevealLock
 import kotlinx.coroutines.flow.first
+import cc.tumtum.app.R
+import cc.tumtum.app.service.Reminders
 
 /**
  * The end of a night, once a source is chosen: save on the phone, offer to the
@@ -17,6 +19,14 @@ suspend fun AppContainer.saveEndedNight(event: EventSession, measurement: Source
     // da manhã seguinte — o cartão cego vem antes.
     val revealAt = if (prefs.state.first().revealLockEnabled) RevealLock.revealAt(measurement.windowEnd) else null
     val nightId = nights.saveNight(event, measurement, sourcePackage, revealAt) ?: return null
+    // "A gente te avisa" is only said when this exists (§5.4).
+    if (revealAt != null) {
+        Reminders.scheduleReveal(
+            appContext, nightId, revealAt,
+            appContext.getString(R.string.remind_reveal_title),
+            appContext.getString(R.string.remind_reveal_text, event.name),
+        )
+    }
     // Etapa 2: saved on the phone first, then offered to the server. A failure costs a retry, never the night.
     sync.uploadLater(nightId)
     endNight.clear()
