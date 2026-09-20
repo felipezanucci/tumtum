@@ -318,7 +318,38 @@
     <string name="settings_handle_fixed">@%1$s — o @ é fixo: escolhido uma vez, não muda.</string>
 
     <!-- a5 sem criação de evento pelo participante -->
-    <string name="empty_event_note">O evento da sua noite aparece aqui sozinho quando for marcado.</string>
+    <!-- Próximo evento e lembretes (pesquisa de 19/09, §5.4 e §5.7) -->
+    <string name="upcoming_mark">Marcar o próximo</string>
+    <string name="upcoming_label">PRÓXIMO</string>
+    <string name="upcoming_in_days">EM %1$d DIAS</string>
+    <string name="upcoming_tomorrow">AMANHÃ</string>
+    <string name="upcoming_in_hours">EM %1$dH</string>
+    <string name="upcoming_in_minutes">EM %1$d MIN</string>
+    <string name="upcoming_started">JÁ COMEÇOU</string>
+    <string name="upcoming_start">Começar agora</string>
+    <string name="upcoming_unmark">Desmarcar</string>
+    <string name="upcoming_reminder_ok">A gente te lembra uma hora antes: bota o relógio.</string>
+    <string name="upcoming_reminder_blocked">Sem permissão de notificação, a gente não consegue lembrar.</string>
+    <string name="upcoming_reminder_allow">Permitir avisos</string>
+    <string name="event_date_label">DATA</string>
+    <string name="event_date_hint">20/09/2026</string>
+    <string name="event_time_label">HORA</string>
+    <string name="event_start_label">COMEÇO</string>
+    <string name="event_end_label">FIM</string>
+    <string name="event_time_hint">21:30</string>
+    <string name="event_mark">Marcar</string>
+    <string name="event_fetch">Buscar no relógio</string>
+    <string name="event_bad_time">Não entendi a data ou a hora. Formato: 20/09/2026 e 21:30.</string>
+    <string name="event_in_past">Essa hora já passou. Pra uma noite que já foi, usa "Trazer uma noite que já passou".</string>
+    <string name="event_not_past">Essa noite ainda não terminou. Marca ela como próxima.</string>
+    <string name="event_too_long">Uma noite de mais de 16 horas não cabe aqui. Confere o começo e o fim.</string>
+    <string name="past_bring">Trazer uma noite que já passou</string>
+    <string name="remind_channel">Lembretes</string>
+    <string name="remind_event_title">Hoje: %1$s</string>
+    <string name="remind_event_text">Bota o relógio. A gente só olha depois.</string>
+    <string name="remind_reveal_title">Sua noite abriu.</string>
+    <string name="remind_reveal_text">%1$s — a curva está pronta.</string>
+    <string name="locked_body_notify">A curva abre aqui às %1$s. A gente te avisa — vale a espera.</string>
     <string name="settings_create_event">Marcar evento — operador</string>
 
     <!-- Trava da revela (protocolo do teste) -->

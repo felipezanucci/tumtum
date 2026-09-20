@@ -35,14 +35,19 @@ class MainActivity : ComponentActivity() {
             1f,
         ) == 0f
 
+        // A reminder tapped (Reminders): open that night, or the AO VIVO tab.
+        val openNightId = intent?.getLongExtra(EXTRA_OPEN_NIGHT_ID, -1L)?.takeIf { it >= 0 }
+        val openLive = intent?.getBooleanExtra(EXTRA_OPEN_LIVE, false) == true
         setContent {
             TumTumTheme {
-                AppRoot(showSplash = showSplash, reduceMotion = reduceMotion)
+                AppRoot(showSplash = showSplash, reduceMotion = reduceMotion, openNightId = openNightId, openLive = openLive)
             }
         }
     }
 
     companion object {
+        const val EXTRA_OPEN_NIGHT_ID = "open_night_id"
+        const val EXTRA_OPEN_LIVE = "open_live"
         private var splashShownThisProcess = false
 
         internal fun markSplashShown() {
@@ -52,7 +57,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AppRoot(showSplash: Boolean, reduceMotion: Boolean) {
+private fun AppRoot(showSplash: Boolean, reduceMotion: Boolean, openNightId: Long?, openLive: Boolean) {
     val container = (androidx.compose.ui.platform.LocalContext.current.applicationContext as TumTumApp).container
     val userState by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     var splashVisible by remember { mutableStateOf(showSplash) }
@@ -60,7 +65,11 @@ private fun AppRoot(showSplash: Boolean, reduceMotion: Boolean) {
     Box(Modifier.fillMaxSize()) {
         // O FEED já está montado atrás (3b): quando a camada rosa sai, é corte seco.
         userState?.let { state ->
-            TumTumRoot(startDestination = if (state.onboarded) Routes.Feed else Routes.Onboarding)
+            TumTumRoot(
+                startDestination = if (state.onboarded) Routes.Feed else Routes.Onboarding,
+                openNightId = openNightId,
+                openLive = openLive,
+            )
         }
         if (splashVisible) {
             SplashOverlay(

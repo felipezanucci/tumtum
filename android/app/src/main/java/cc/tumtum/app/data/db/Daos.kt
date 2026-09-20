@@ -105,6 +105,13 @@ interface NightDao {
     @Query("SELECT * FROM nights WHERE uploadState != 'ANALYSED' ORDER BY startAt DESC")
     suspend fun pendingUpload(): List<NightEntity>
 
+    /** Nights still sealed by the reveal lock — their reminders are set again after a reboot. */
+    @Query("SELECT * FROM nights WHERE revealAt IS NOT NULL AND revealAt > :now")
+    suspend fun lockedAfter(now: Long): List<NightEntity>
+
+    @Query("UPDATE moments SET label = :label WHERE id = :id")
+    suspend fun setMomentLabel(id: Long, label: String?)
+
     @Query("UPDATE nights SET serverSessionId = :serverSessionId WHERE id = :id")
     suspend fun setServerSessionId(id: Long, serverSessionId: String)
 

@@ -35,6 +35,7 @@ import cc.tumtum.app.ui.screens.reveal.RevealScreen
 import cc.tumtum.app.ui.screens.settings.SettingsScreen
 import cc.tumtum.app.ui.screens.sources.WatchSourcesScreen
 import cc.tumtum.app.ui.screens.you.YouScreen
+import androidx.compose.runtime.LaunchedEffect
 
 object Routes {
     const val Onboarding = "onboarding"
@@ -77,8 +78,21 @@ private fun tabFor(route: String?): TTTab = when (route) {
 }
 
 @Composable
-fun TumTumRoot(startDestination: String, nav: NavHostController = rememberNavController()) {
+fun TumTumRoot(
+    startDestination: String,
+    nav: NavHostController = rememberNavController(),
+    openNightId: Long? = null,
+    openLive: Boolean = false,
+) {
     val backStack by nav.currentBackStackEntryAsState()
+    // A tapped reminder lands on the night it named, or on AO VIVO — only once the person is in.
+    LaunchedEffect(openNightId, openLive) {
+        if (startDestination != Routes.Feed) return@LaunchedEffect
+        when {
+            openNightId != null -> nav.navigate(Routes.reveal(openNightId))
+            openLive -> nav.navigate(Routes.Live) { launchSingleTop = true }
+        }
+    }
     val route = backStack?.destination?.route
 
     Scaffold(

@@ -75,6 +75,28 @@ class NightRepository(
             ),
         )
 
+    /**
+     * A night that already happened (§5.1 of the 19/09 research): the event is
+     * created already closed, so the active-event flow never sees it, and the
+     * watch is asked over exactly this window.
+     */
+    suspend fun createPastEvent(
+        name: String,
+        venue: String,
+        eventType: String,
+        serverEventId: String?,
+        startAt: Instant,
+        endAt: Instant,
+    ): EventSession {
+        val id = db.eventDao().insert(
+            EventEntity(
+                name = name.trim(), venue = venue.trim(), startAt = startAt.toEpochMilli(), endAt = endAt.toEpochMilli(),
+                eventType = eventType, serverEventId = serverEventId,
+            ),
+        )
+        return EventSession(id, name.trim(), venue.trim(), startAt, endAt, serverEventId = serverEventId, eventType = eventType)
+    }
+
     /** One tap during the capture: the goal, the song, the moment — with the clock of the tap (Etapa 3). */
     suspend fun addMark(eventId: Long, label: String, entryType: String, at: Instant = Instant.now()): Long =
         db.markDao().insert(MarkEntity(eventId = eventId, at = at.toEpochMilli(), label = label, entryType = entryType))

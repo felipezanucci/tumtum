@@ -74,6 +74,10 @@
 
         <!-- §4.3 — reboot no meio da sessão retoma a captura. -->
         <receiver
+            android:name=".service.ReminderReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".service.BootReceiver"
             android:exported="false">
             <intent-filter>

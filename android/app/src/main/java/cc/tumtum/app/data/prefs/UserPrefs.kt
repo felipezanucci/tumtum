@@ -42,6 +42,15 @@ data class Session(val token: String, val userId: String?) {
         !cc.tumtum.app.data.api.AccessToken.isExpired(token, nowMillis)
 }
 
+/** The next event the person marked (§5.7): the calendar is the trigger, not a push. */
+data class UpcomingEvent(
+    val name: String,
+    val venue: String,
+    val eventType: String,
+    val startAt: java.time.Instant,
+    val serverEventId: String? = null,
+)
+
 data class UserState(
     val onboarded: Boolean,
     val account: Account?,
@@ -67,6 +76,8 @@ data class UserState(
      * is never asked to do this.
      */
     val operatorMarks: Boolean = false,
+    /** The next marked event, if any — one at a time, by design. */
+    val upcoming: UpcomingEvent? = null,
 ) {
     val watchConnected: Boolean get() = sourcePackage != null
     val sensorPaired: Boolean get() = bleAddress != null
@@ -89,6 +100,11 @@ class UserPrefs(private val context: Context) {
         val activeCaptureEventId = longPreferencesKey("active_capture_event_id")
         val revealLockEnabled = booleanPreferencesKey("reveal_lock_enabled")
         val operatorMarks = booleanPreferencesKey("operator_marks")
+        val upcomingName = stringPreferencesKey("upcoming_name")
+        val upcomingVenue = stringPreferencesKey("upcoming_venue")
+        val upcomingType = stringPreferencesKey("upcoming_type")
+        val upcomingStartAt = longPreferencesKey("upcoming_start_at")
+        val upcomingServerEventId = stringPreferencesKey("upcoming_server_event_id")
         val accessToken = stringPreferencesKey("access_token")
         val userId = stringPreferencesKey("user_id")
     }
@@ -114,6 +130,17 @@ class UserPrefs(private val context: Context) {
             activeCaptureEventId = p[Keys.activeCaptureEventId],
             revealLockEnabled = p[Keys.revealLockEnabled] ?: false,
             operatorMarks = p[Keys.operatorMarks] ?: false,
+            upcoming = p[Keys.upcomingName]?.let { n ->
+                p[Keys.upcomingStartAt]?.let { at ->
+                    UpcomingEvent(
+                        name = n,
+                        venue = p[Keys.upcomingVenue] ?: "",
+                        eventType = p[Keys.upcomingType] ?: "concert",
+                        startAt = java.time.Instant.ofEpochMilli(at),
+                        serverEventId = p[Keys.upcomingServerEventId],
+                    )
+                }
+            },
             session = p[Keys.accessToken]?.let { Session(token = it, userId = p[Keys.userId]) },
         )
     }
@@ -188,6 +215,23 @@ class UserPrefs(private val context: Context) {
     suspend fun setParticipantId(id: String) {
         context.dataStore.edit { p ->
             if (id.isBlank()) p.remove(Keys.participantId) else p[Keys.participantId] = id.trim()
+        }
+    }
+
+    suspend fun setUpcoming(event: UpcomingEvent) {
+        context.dataStore.edit { p ->
+            p[Keys.upcomingName] = event.name
+            p[Keys.upcomingVenue] = event.venue
+            p[Keys.upcomingType] = event.eventType
+            p[Keys.upcomingStartAt] = event.startAt.toEpochMilli()
+            event.serverEventId?.let { p[Keys.upcomingServerEventId] = it } ?: p.remove(Keys.upcomingServerEventId)
+        }
+    }
+
+    suspend fun clearUpcoming() {
+        context.dataStore.edit { p ->
+            p.remove(Keys.upcomingName); p.remove(Keys.upcomingVenue); p.remove(Keys.upcomingType)
+            p.remove(Keys.upcomingStartAt); p.remove(Keys.upcomingServerEventId)
         }
     }
 

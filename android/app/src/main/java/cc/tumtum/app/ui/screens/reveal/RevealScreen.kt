@@ -56,6 +56,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import cc.tumtum.app.data.repo.SyncPhase
+import androidx.core.app.NotificationManagerCompat
 
 /**
  * a3 — A noite, a revela. O momento de maior impacto do produto:
@@ -340,7 +341,11 @@ private fun LockedNightView(
         )
         Spacer(Modifier.height(14.dp))
         Text(
-            stringResource(R.string.locked_body, night.revealAt?.let { Fmt.hour(it) } ?: "10:00"),
+            stringResource(
+                // The promise is made only when Android will let it be kept.
+                if (NotificationManagerCompat.from(LocalContext.current).areNotificationsEnabled()) R.string.locked_body_notify else R.string.locked_body,
+                night.revealAt?.let { Fmt.hour(it) } ?: "10:00",
+            ),
             style = TTType.Body,
             color = TT.Gray45,
         )
