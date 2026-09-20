@@ -134,9 +134,15 @@ the linked documents — this file is the index and the reasoning, not a diary.
     **the feed's two phone screenshots** (showing a phone inside a phone
     needs another composition), and **the nav**, whose section links simply
     disappear below `md`, leaving wordmark + CTA + PT/EN.
-23. **Xiaomi Mi Band 9 untested.** Bought, unopened as far as the log knows.
-    One night answers whether the 1/min ceiling is Samsung's or Health
-    Connect's — the last open question of Etapa 0.
+23. **Xiaomi Mi Band 9 untested — but in hand since 2026-09-16.** One night
+    answers whether the 1/min ceiling is Samsung's or Health Connect's — the
+    last open question of Etapa 0. Two device-specific conditions decide
+    whether that night produces data at all, both recorded in the 16/09 entry
+    and in `docs/health-connect-plan.md`: Mi Fitness must be set to **1 min**
+    (it ships at 30) and the informative half is the **hand-started workout**,
+    not the background night. The app's `Trazer do meu relógio` screen is the
+    instrument, so the phone needs the **v0.2 APK** — the log last recorded
+    0.1 on it.
 24. **The card does not make anyone want to post it.** Raised 2026-08-30,
     **half closed 2026-08-31**: the card now leads with the highest peak
     instead of the highest-ranked one, says something built from the night's
@@ -1546,6 +1552,48 @@ The log knows of one. With one strap the collective peak at a goal cannot be
 measured at all, and card 04 cannot be tested. Three straps that broadcast the
 standard BLE Heart Rate Service (0x180D) would change that, and the app already
 speaks that protocol. It is a purchase decision, not an engineering one.
+
+---
+
+## 2026-09-16 — the Xiaomi arrived, and its test is not the one the Samsung ran
+
+Felipe has the Xiaomi Smart Band 9 in hand. It closes the last measurement of
+Etapa 0 (open item 23), and the protocol is written in
+`docs/health-connect-plan.md` — but two things about *this* device change what
+the night should be.
+
+**The band ships measuring every 30 minutes.** Mi Fitness offers Off, Smart,
+1 min, 10 min and 30 min for continuous heart rate, and the factory setting is
+the sparsest of the useful ones. A six-hour night at the default is twelve
+readings, and the report would say *"seu relógio não escreveu nenhuma batida"*
+in every practical sense — a false negative that would retire a whole vendor.
+Fix it to **1 min** before wearing it. "Smart" is worse than it sounds for a
+measurement: it varies with movement (~10 min at rest, ~1 min active), so the
+cadence would become a function of how much Felipe danced, and two nights would
+stop being comparable.
+
+**And 1 min is the device's background ceiling — the same ceiling the Fit3
+already showed.** So the background half of this test is close to answered
+before it runs, and the half that carries information is **the hand-started
+workout**, where Samsung gave one reading per ~32 s against a gate of 5 s. If
+Mi Fitness writes a dense workout, 1/min was Samsung's limit and vendors are
+worth ranking one by one. If it writes the same ~30 s, the limit belongs to the
+path itself, and Health Connect delivers the curve of the night and not the
+moments — which is a change to the card's promise, not to the schedule.
+
+**The measurement no longer needs a file export.** The plan's step 3 predates
+the app: `Trazer do meu relógio` (v0.2) reads the window on the phone and shows
+count, median gap and slot coverage **per writing app** before anything is
+uploaded, which is exactly the Etapa 0 instrument. It needs the v0.2 APK on the
+phone — the log last recorded 0.1 there, held back for the festival, and the
+festival is three weeks past.
+
+**Both bands, one phone, one night is still the better experiment**, and it is
+the reason provenance was built into the reader on 28/08. Same body, same heart,
+same window; any difference is the vendor's. The Polar on the chest is ground
+truth for both.
+
+Nothing here is a result. It is the shape of a night that can produce one.
 
 ---
 
