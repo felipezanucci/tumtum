@@ -35,6 +35,9 @@ import java.time.ZoneId
  * FAILED (the last attempt did not go through, and `uploadError` says why in
  * a key the screen translates).
  */
+/** The two real steps of a sync, for a screen to show the work as it happens (§5.2). */
+enum class SyncPhase { SENDING, ANALYSING }
+
 class NightSync(
     private val db: TumTumDatabase,
     private val api: TumtumApi,
@@ -46,6 +49,9 @@ class NightSync(
 
     /** Nights being uploaded right now, for a screen to say "enviando…" truthfully. */
     val uploading: StateFlow<Set<Long>> = inFlight
+    private val phases = MutableStateFlow<Map<Long, SyncPhase>>(emptyMap())
+    /** Which step each in-flight night is on — never a step that did not run. */
+    val phase: StateFlow<Map<Long, SyncPhase>> = phases
 
     fun uploadLater(nightId: Long) {
         scope.launch { upload(nightId) }
@@ -64,6 +70,7 @@ class NightSync(
             if (nightId in inFlight.value) false else { inFlight.update { it + nightId }; true }
         }
         if (!claimed) return
+        phases.update { it + (nightId to SyncPhase.SENDING) }
         try {
             val session = prefs.state.first().session
             if (session == null) {
@@ -99,6 +106,7 @@ class NightSync(
                 db.nightDao().setUploadState(nightId, "SENT", null)
             }
 
+            phases.update { it + (nightId to SyncPhase.ANALYSING) }
             val moments = api.analyze(serverId)
             val top = moments.maxOfOrNull { it.bpm }
             db.nightDao().replaceMoments(
@@ -124,6 +132,7 @@ class NightSync(
             db.nightDao().setUploadState(nightId, "FAILED", "error:${e.javaClass.simpleName}")
         } finally {
             inFlight.update { it - nightId }
+            phases.update { it - nightId }
         }
     }
 

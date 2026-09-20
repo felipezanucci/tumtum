@@ -52,6 +52,10 @@ import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import java.time.Duration
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import cc.tumtum.app.data.repo.SyncPhase
 
 /**
  * a3 — A noite, a revela. O momento de maior impacto do produto:
@@ -210,8 +214,12 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             // Where the night stands with the server, said as it is — and
             // which moments these are. Three honest states, never a blend.
             val uploading by container.sync.uploading.collectAsStateWithLifecycle()
+            val phases by container.sync.phase.collectAsStateWithLifecycle()
+            // The work, shown while it happens (§5.2 of the 19/09 research):
+            // the two real steps, the active one lit. Nothing padded.
+            phases[n.id]?.let { SyncSteps(it, n.samples.size) }
             val syncText = when {
-                n.id in uploading -> stringResource(R.string.sync_sending)
+                n.id in uploading -> null
                 n.uploadState == UploadState.ANALYSED -> stringResource(R.string.sync_server_moments)
                 n.uploadError == NightSync.ERR_NO_SESSION -> stringResource(R.string.sync_no_account)
                 n.uploadError == NightSync.ERR_EXPIRED -> stringResource(R.string.sync_failed_expired)
@@ -219,7 +227,7 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                 n.uploadError != null -> stringResource(R.string.sync_failed_server, n.uploadError.orEmpty())
                 else -> stringResource(R.string.sync_local_pending)
             }
-            Text(syncText, style = TTType.MetaSmall, color = TT.Gray55)
+            syncText?.let { Text(it, style = TTType.MetaSmall, color = TT.Gray55) }
             if (n.id !in uploading && n.uploadState != UploadState.ANALYSED && n.uploadError != NightSync.ERR_NO_SESSION) {
                 Text(
                     stringResource(R.string.sync_retry),
@@ -256,6 +264,36 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             stringResource(R.string.reveal_share),
             TTButtonStyle.Rose,
             onClick = { nav.navigate(Routes.choose(n.id)) },
+        )
+    }
+}
+
+@Composable
+private fun SyncSteps(phase: SyncPhase, sampleCount: Int) {
+    Column(Modifier.padding(bottom = 6.dp)) {
+        SyncStep(
+            stringResource(R.string.sync_step_send, Fmt.thousands(sampleCount)),
+            done = phase != SyncPhase.SENDING,
+            active = phase == SyncPhase.SENDING,
+        )
+        SyncStep(stringResource(R.string.sync_step_analyse), done = false, active = phase == SyncPhase.ANALYSING)
+    }
+}
+
+@Composable
+private fun SyncStep(label: String, done: Boolean, active: Boolean) {
+    Row(Modifier.padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            Modifier
+                .size(7.dp)
+                .clip(CircleShape)
+                .background(if (active) TT.Acid else if (done) TT.Gray55 else TT.Ink700),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            if (done) "$label · ${stringResource(R.string.sync_step_done)}" else label,
+            style = TTType.MetaSmall,
+            color = if (active) TT.Acid else if (done) TT.Gray55 else TT.Gray45,
         )
     }
 }

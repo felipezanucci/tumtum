@@ -189,6 +189,10 @@
     <string name="card_label">SEU CARD</string>
     <string name="card_share">Compartilhar</string>
     <string name="card_share_running">Gerando o card…</string>
+    <string name="card_done_title">Ficou na sua galeria.</string>
+    <string name="card_done_stats">%1$d noites em %2$d · %3$d momentos</string>
+    <string name="card_done_gallery">Ver a galeria</string>
+    <string name="card_share_again">Compartilhar de novo</string>
 
     <!-- VOCÊ + Configurações §7 -->
     <string name="you_gallery">Sua galeria</string>
@@ -264,7 +268,9 @@
 
     <!-- Exportação (§9) -->
     <!-- Etapa 2: where the night stands with the server. Each line names the real state. -->
-    <string name="sync_sending">Enviando a noite pro servidor…</string>
+    <string name="sync_step_send">Enviando %1$s batidas</string>
+    <string name="sync_step_analyse">Procurando seus momentos e o que tocava em cada um</string>
+    <string name="sync_step_done">OK</string>
     <string name="sync_server_moments">Momentos encontrados pelo servidor</string>
     <string name="sync_local_pending">Momentos calculados neste aparelho · a noite ainda não subiu</string>
     <string name="sync_no_account">Momentos calculados neste aparelho · sem conta no servidor ainda</string>
