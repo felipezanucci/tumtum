@@ -264,7 +264,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
-36. **"A gente te avisa" — and nothing does.** *(Copy corrected 19/09, lote 1:
+36. ~~**"A gente te avisa" — and nothing does.**~~ Closed 20/09 (lote 3): the
+    reminder exists (AlarmManager, set again on boot and on every start), the
+    locked screen promises it only when notifications are enabled, and the
+    lock itself stays an operator setting. *(Copy corrected 19/09, lote 1:
     the locked night now says only "A curva abre aqui às 10h. Vale a espera."
     The decision — fan feature with a real notification, or protocol only —
     is still open.)* Found 2026-09-19 by the
@@ -292,6 +295,60 @@ the linked documents — this file is the index and the reasoning, not a diary.
     benchmark app delivers it in minutes (§5.1 — a retroactive night from
     the watch's own history, or a demo night labelled as one). Felipe's
     to pick from; nothing there is on the pilot's critical path.
+
+---
+
+## 2026-09-20 — lotes 3, 4 and 5: reminders, the next event, the person names the moment, a photo, and a night from the watch's history
+
+Felipe could only test the next day and asked for everything at once:
+*"Você consegue fazer todas as alterações até lá?"* Three commits on one
+branch, one PR, verified by CI's build only — no SDK here, and none of it has
+been on a phone. Two assumptions made without waiting: the reveal lock stays
+an operator setting (off by default), and the notification it promises is
+built for when it is on.
+
+**Lote 3 — the two reminders the product allows itself (§5.4, §5.7).**
+AlarmManager and a `ReminderReceiver`, no new dependency and no exact-alarm
+permission: "Sua noite abriu" when a locked night unlocks, "Hoje: <evento>.
+Bota o relógio." an hour before the event the person marked. Alarms die on
+reboot and on update, so they are set again from what the phone knows in
+`BootReceiver` and `TumTumApp.onCreate`. Tapping one opens the night or the
+AO VIVO tab (`MainActivity` extras → `TumTumRoot`). **The next event now
+lives in prefs**, one at a time: a card on AO VIVO with a countdown (EM 3
+DIAS · AMANHÃ · EM 2H), *Começar agora* (the operator's own path: battery
+gate, capture service), *Desmarcar*, and a line that says whether Android
+will let the reminder arrive — with the permission asked for when it will
+not. This is the first time a fan, not the operator, starts a capture from
+the Live tab; the operator's *Marcar evento — operador* is unchanged.
+
+**Lote 4 — the person names the moment (§5.6), and a photo (§5.11).** On the
+reveal, a moment without a cause reads *"Toca pra dizer o que tava rolando"*;
+the tap opens one field. The label is saved on the phone at once and offered
+to the event's timeline as a `highlight` mark, so the server names the
+moment by it on the next analysis — and a typed label outlives the server's
+answer when the server has none within a minute of it. The sync's SENDING
+step now shows only when readings actually go up. On the card, the black
+skin (*A NOITE*) accepts a photo from the picker behind a 60% scrim: white
+text and the pink number stay legible, the photo lives for that share only.
+Other skins do not take a photo; black on a photo is not a pair the manual
+allows.
+
+**Lote 5 — "Trazer uma noite que já passou" (§5.1).** On AO VIVO, when a
+watch is connected: name, date, start and end; the event is created already
+closed (so the active-event flow never sees it); Health Connect is asked
+over exactly that window; the usual source chooser and reveal follow, with
+the phone's top-N moments until the server answers. `EventTimes` holds the
+typed-date rules as a pure object with eight tests: *dd/MM/yyyy*, *HH:mm* or
+*HHhMM*, an end before the start crossed midnight, a night still running is
+not the past, more than 16 hours is a typo. The demo night for a phone with
+no watch history was not built.
+
+**What a phone has to answer tomorrow, in order of risk:** the sheet's
+three modes render and validate; a marked event survives a restart and its
+reminder fires (the reminder is inexact — minutes, not seconds); *Começar
+agora* with a paired sensor goes through the battery gate; a past night
+comes back from Health Connect with the right window; naming a moment shows
+at once and survives the re-analysis; the photo card renders and shares.
 
 ---
 

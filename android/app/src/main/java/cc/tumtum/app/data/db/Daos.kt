@@ -109,6 +109,9 @@ interface NightDao {
     @Query("SELECT * FROM nights WHERE revealAt IS NOT NULL AND revealAt > :now")
     suspend fun lockedAfter(now: Long): List<NightEntity>
 
+    @Query("SELECT * FROM moments WHERE nightId = :nightId")
+    suspend fun momentsOf(nightId: Long): List<MomentEntity>
+
     @Query("UPDATE moments SET label = :label WHERE id = :id")
     suspend fun setMomentLabel(id: Long, label: String?)
 

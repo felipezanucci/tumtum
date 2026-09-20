@@ -17,8 +17,10 @@ data class Moment(
     val at: Instant,
     val durationSec: Int,
     val isPeak: Boolean = false,
-    /** What caused it, when the event has a timeline — server moments only. */
+    /** What caused it: the event's timeline, or the person themselves (§5.6). */
     val label: String? = null,
+    /** The row on the phone, so the person can name it. 0 for a moment not yet stored. */
+    val id: Long = 0,
 )
 
 /** Where a night stands with the server (Etapa 2). */

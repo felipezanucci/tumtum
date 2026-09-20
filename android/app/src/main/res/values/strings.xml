@@ -123,6 +123,14 @@
     <string name="reveal_moment_meta">às %1$s · %2$ds</string>
     <string name="reveal_share">Escolher como compartilhar</string>
     <string name="reveal_no_data">Não achamos batida nessa janela.</string>
+    <string name="moment_name_empty">Toca pra dizer o que tava rolando</string>
+    <string name="moment_name_title">O que tava rolando?</string>
+    <string name="moment_name_label">NESSE MOMENTO</string>
+    <string name="moment_name_hint">a música, o gol, o que foi</string>
+    <string name="moment_name_save">Salvar</string>
+    <string name="moment_name_cancel">Voltar</string>
+    <string name="card_photo_add">Colocar uma foto sua atrás</string>
+    <string name="card_photo_remove">Tirar a foto</string>
 
     <!-- a1 · Suas noites -->
     <string name="nights_title">Suas noites</string>

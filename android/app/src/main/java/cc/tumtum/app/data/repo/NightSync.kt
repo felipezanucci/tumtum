@@ -70,7 +70,6 @@ class NightSync(
             if (nightId in inFlight.value) false else { inFlight.update { it + nightId }; true }
         }
         if (!claimed) return
-        phases.update { it + (nightId to SyncPhase.SENDING) }
         try {
             val session = prefs.state.first().session
             if (session == null) {
@@ -93,6 +92,7 @@ class NightSync(
 
             var serverId = night.serverSessionId
             if (serverId == null) {
+                phases.update { it + (nightId to SyncPhase.SENDING) }
                 val samples = db.nightDao().samplesOf(nightId)
                     .map { HrSample(Instant.ofEpochMilli(it.time), it.bpm) }
                 serverId = api.createSession(
@@ -109,6 +109,9 @@ class NightSync(
             phases.update { it + (nightId to SyncPhase.ANALYSING) }
             val moments = api.analyze(serverId)
             val top = moments.maxOfOrNull { it.bpm }
+            // A label the person typed (§5.6) outlives the server's answer when the
+            // server has none for the same moment (within a minute).
+            val previous = db.nightDao().momentsOf(nightId).filter { it.label != null }
             db.nightDao().replaceMoments(
                 nightId,
                 moments.map {
@@ -118,7 +121,7 @@ class NightSync(
                         at = it.at.toEpochMilli(),
                         durationSec = it.durationSec,
                         isPeak = it.bpm == top,
-                        label = it.label,
+                        label = it.label ?: previous.firstOrNull { p -> kotlin.math.abs(p.at - it.at.toEpochMilli()) <= 60_000 }?.label,
                     )
                 },
             )
