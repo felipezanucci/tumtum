@@ -264,7 +264,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
     one reading per 32 s the simulation recovers 4 goals in 5, at one per
     minute only 1 in 5, and 1/min is the band's documented best continuous
     setting. One night of wearing it measures which it actually writes.
-36. **"A gente te avisa" — and nothing does.** Found 2026-09-19 by the
+36. **"A gente te avisa" — and nothing does.** *(Copy corrected 19/09, lote 1:
+    the locked night now says only "A curva abre aqui às 10h. Vale a espera."
+    The decision — fan feature with a real notification, or protocol only —
+    is still open.)* Found 2026-09-19 by the
     psychology audit (`docs/app-psychology-principles.md`, §4.3). With the
     reveal lock on, the locked night says *"A curva abre aqui às 10h. A gente
     te avisa — vale a espera."*, and no code schedules a notification for
@@ -273,7 +276,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     the notification (the one push the product is allowed) or cut the
     sentence — and decide first whether the lock is a fan feature or only the
     blind-card protocol (`one-app-plan.md`, *Later*).
-37. **"Postar no feed" posts to nobody.** Same audit, §4.5. The button on the
+37. ~~**"Postar no feed" posts to nobody.**~~ Closed 19/09 (lote 1): the button
+    is gone and the chosen skin is saved when the card is shared instead.
+    *(Original:)* Same audit, §4.5. The button on the
     card screen writes into `FakeSocialRepository`, which lives on this phone
     and is populated with invented people, and the confirmation reads *"No
     feed. A galera já pode sentir também."* On the Play internal track that
@@ -287,6 +292,44 @@ the linked documents — this file is the index and the reasoning, not a diary.
     benchmark app delivers it in minutes (§5.1 — a retroactive night from
     the watch's own history, or a demo night labelled as one). Felipe's
     to pick from; nothing there is on the pilot's critical path.
+
+---
+
+## 2026-09-19 — lote 1: the five cheapest changes from the psychology audit
+
+Felipe asked how long the audit's backlog would take; the answer was ~6–7
+sessions of code gated by phone loops, and he said start with lote 1 — the
+copy-and-layout changes that touch nothing near the capture pipeline. Built
+in one pass, verified by CI's APK build only (no SDK in this environment):
+**Felipe's ten minutes on the phone are the real check.**
+
+- **"Postar no feed" is gone** (item 37). It wrote into the on-phone fake
+  repository and confirmed "A galera já pode sentir também", which nobody
+  could. Side effect handled: that button was also what saved the chosen
+  skin onto the night (the gallery cover), so `publish(nightId, skin)` now
+  runs when the card is shared. Compartilhar became the pink primary button.
+- **The locked night no longer promises a notification** (item 36, copy
+  half): "A curva abre aqui às 10h. Vale a espera." The decision about the
+  lock — fan feature with a real notification, or protocol only — stays
+  open; the sentence just stops claiming code that does not exist.
+- **Configurações has an OPERADOR door.** The operator marks, the reveal
+  lock, the participant code and "Marcar evento — operador" sit behind one
+  collapsed row (MOSTRAR / OCULTAR), closed on every visit. The fan's own
+  settings — reading permission, profile, sensor, account, delete — stay
+  where they were. Nothing essential moved behind the door.
+- **A season, not a streak:** the gallery counts "NOITES EM 2026" (nights of
+  the current year; older ones stay in the grid, just not in the number),
+  and "SEU RECORDE" / "RECORDE" became "SEU MAIS ALTO" / "MAIS ALTO" — a
+  higher bpm is not a score, and the brief's line about bodies applies.
+- **One failure now says the next step:** "Não achamos batida nessa
+  janela. Na próxima, confere se o relógio estava gravando antes de
+  começar." The bigger half of §5.8 — keeping a night with no data as a
+  night in the list — was not done; today that path clears the event and
+  returns to the feed, and changing it is a repository change, not copy.
+
+Cost: one session, as estimated. Not done from lote 1 as pitched: nothing
+else. What this does **not** touch: BLE, the capture service, upload,
+detection, the reveal's data path.
 
 ---
 

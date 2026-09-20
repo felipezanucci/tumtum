@@ -55,6 +55,10 @@ fun GalleryScreen(nav: NavHostController) {
 
     val momentTotal = nights.sumOf { it.momentCount }
     val record = nights.maxOfOrNull { it.peakBpm }
+    // A temporada, não o streak (§5.9): o contador diz "NOITES EM 2026" e conta
+    // as deste ano; noites de anos anteriores seguem na grade, só não no número.
+    val year = java.time.Year.now().value
+    val nightsThisYear = nights.count { it.date.atZone(java.time.ZoneId.systemDefault()).year == year }
     val since = nights.minByOrNull { it.date }?.date
 
     LazyVerticalGrid(
@@ -107,7 +111,7 @@ fun GalleryScreen(nav: NavHostController) {
                     )
                 }
                 Row(Modifier.padding(top = 18.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
-                    Stat(nights.size, stringResource(R.string.gallery_nights))
+                    Stat(nightsThisYear, stringResource(R.string.gallery_nights_year, year))
                     Stat(momentTotal, stringResource(R.string.gallery_moments))
                     record?.let { Stat(it, stringResource(R.string.gallery_record)) }
                 }

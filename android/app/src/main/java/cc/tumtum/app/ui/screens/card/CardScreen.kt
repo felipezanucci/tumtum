@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,8 +44,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Seu card (UI kit do core loop). Compartilhar é sempre ativo:
- * nada sai daqui sem o "Postar no feed".
+ * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
+ * daqui sem o toque em Compartilhar. "Postar no feed" saiu em 19/09 (item 37):
+ * postava num repositório falso deste celular e confirmava que a galera
+ * podia sentir — ninguém podia. Volta quando o feed for o do servidor.
  */
 @Composable
 fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
@@ -54,8 +55,6 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val night by container.nights.night(nightId).collectAsStateWithLifecycle(initialValue = null)
-    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
-    var posted by remember { mutableStateOf(false) }
     var sharing by remember { mutableStateOf(false) }
     val n = night ?: return
 
@@ -88,38 +87,18 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 curveWindow = if (skin == Skin.BLACK) n.startAt to n.endAt else null,
             )
         }
-        if (posted) {
-            Text(
-                stringResource(R.string.card_posted),
-                style = TTType.ItemSub.copy(fontSize = 14.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
-                color = TT.Acid,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(18.dp),
-            )
-        } else {
-            TTButton(
-                stringResource(R.string.card_post),
-                TTButtonStyle.Rose,
-                onClick = {
-                    val account = user?.account ?: return@TTButton
-                    scope.launch {
-                        container.nights.publish(n.id, skin)
-                        container.social.postOwnMoment(n, skin, account)
-                        posted = true
-                    }
-                },
-            )
-        }
-        Spacer(Modifier.height(10.dp))
         // Compartilhar é sempre ativo (§1): o card vira PNG 1080×1920 e sai
         // pelo share sheet do sistema, com a imagem anexa. Nada sai sem este toque.
         TTButton(
             if (sharing) stringResource(R.string.card_share_running) else stringResource(R.string.card_share),
-            TTButtonStyle.Acid,
+            TTButtonStyle.Rose,
             enabled = !sharing,
             onClick = {
                 sharing = true
                 scope.launch {
+                    // A pele escolhida fica com a noite (capa da galeria) no
+                    // momento em que o card sai — antes era o "Postar" que gravava.
+                    container.nights.publish(n.id, skin)
                     runCatching {
                         val intent = withContext(Dispatchers.IO) {
                             val bitmap = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip)

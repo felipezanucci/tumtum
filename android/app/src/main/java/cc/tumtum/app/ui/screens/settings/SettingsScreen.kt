@@ -78,6 +78,7 @@ fun SettingsScreen(nav: NavHostController) {
     var nameDraft by remember { mutableStateOf("") }
     var draftsLoaded by remember { mutableStateOf(false) }
     var showCreateEvent by remember { mutableStateOf(false) }
+    var operatorOpen by remember { mutableStateOf(false) }
     var showBatteryGate by remember { mutableStateOf(false) }
     var pendingEvent by remember { mutableStateOf<NewEvent?>(null) }
 
@@ -200,70 +201,88 @@ fun SettingsScreen(nav: NavHostController) {
         SensorSection(prefs = container.prefs, bleName = user?.bleName)
 
         Spacer(Modifier.height(40.dp))
-        Text(stringResource(R.string.settings_participant_section), style = TTType.Meta, color = TT.Gray70)
-        Spacer(Modifier.height(10.dp))
-        Text(stringResource(R.string.settings_participant_hint), style = TTType.Footnote, color = TT.Gray45)
-        Spacer(Modifier.height(4.dp))
-        // Modo operador: os toques GOL · MÚSICA · MOMENTO só aparecem no celular
-        // de quem opera o teste. O fã nunca é convidado a fazer isso.
-        val marksOn = user?.operatorMarks == true
+        // Operador atrás de uma porta (§5.13 da pesquisa de 19/09): o fã não
+        // precisa ler nada disto. Fecha a cada visita; quem opera toca uma vez.
         Row(
             Modifier
                 .fillMaxWidth()
-                .clickable { scope.launch { container.prefs.setOperatorMarks(!marksOn) } }
+                .clickable { operatorOpen = !operatorOpen }
                 .padding(vertical = 10.dp),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_operator_marks), style = TTType.Body, color = TT.Ink)
-                Text(stringResource(R.string.settings_operator_marks_hint), style = TTType.Footnote, color = TT.Gray45)
+                Text(stringResource(R.string.settings_operator_section), style = TTType.Meta, color = TT.Gray70)
+                Text(stringResource(R.string.settings_participant_hint), style = TTType.Footnote, color = TT.Gray45)
             }
             Text(
-                stringResource(if (marksOn) R.string.settings_toggle_on else R.string.settings_toggle_off),
+                stringResource(if (operatorOpen) R.string.settings_operator_hide else R.string.settings_operator_show),
                 style = TTType.Meta,
-                color = if (marksOn) TT.Ink else TT.Gray45,
+                color = TT.Ink,
             )
         }
-        // Trava da revela: com ela ligada, noites novas só abrem às 10h da manhã
-        // seguinte — o cartão cego colhe a memória antes de qualquer dado.
-        val lockOn = user?.revealLockEnabled == true
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clickable { scope.launch { container.prefs.setRevealLock(!lockOn) } }
-                .padding(vertical = 10.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_reveal_lock), style = TTType.Body, color = TT.Ink)
-                Text(stringResource(R.string.settings_reveal_lock_hint), style = TTType.Footnote, color = TT.Gray45)
+        if (operatorOpen) {
+            Spacer(Modifier.height(4.dp))
+            // Modo operador: os toques GOL · MÚSICA · MOMENTO só aparecem no celular
+            // de quem opera o teste. O fã nunca é convidado a fazer isso.
+            val marksOn = user?.operatorMarks == true
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { scope.launch { container.prefs.setOperatorMarks(!marksOn) } }
+                    .padding(vertical = 10.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.settings_operator_marks), style = TTType.Body, color = TT.Ink)
+                    Text(stringResource(R.string.settings_operator_marks_hint), style = TTType.Footnote, color = TT.Gray45)
+                }
+                Text(
+                    stringResource(if (marksOn) R.string.settings_toggle_on else R.string.settings_toggle_off),
+                    style = TTType.Meta,
+                    color = if (marksOn) TT.Ink else TT.Gray45,
+                )
             }
-            Text(
-                stringResource(if (lockOn) R.string.settings_toggle_on else R.string.settings_toggle_off),
-                style = TTType.Meta,
-                color = if (lockOn) TT.Ink else TT.Gray45,
+            // Trava da revela: com ela ligada, noites novas só abrem às 10h da manhã
+            // seguinte — o cartão cego colhe a memória antes de qualquer dado.
+            val lockOn = user?.revealLockEnabled == true
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { scope.launch { container.prefs.setRevealLock(!lockOn) } }
+                    .padding(vertical = 10.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.settings_reveal_lock), style = TTType.Body, color = TT.Ink)
+                    Text(stringResource(R.string.settings_reveal_lock_hint), style = TTType.Footnote, color = TT.Gray45)
+                }
+                Text(
+                    stringResource(if (lockOn) R.string.settings_toggle_on else R.string.settings_toggle_off),
+                    style = TTType.Meta,
+                    color = if (lockOn) TT.Ink else TT.Gray45,
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            TTField(
+                label = stringResource(R.string.participant_label),
+                value = participantDraft,
+                onValueChange = {
+                    participantDraft = it
+                    scope.launch { container.prefs.setParticipantId(it) }
+                },
+                placeholder = "P01",
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(stringResource(R.string.participant_hint), style = TTType.Footnote, color = TT.Gray45)
+            Spacer(Modifier.height(14.dp))
+            // O participante não cria evento (a5): o operador marca aqui e a captura
+            // aparece sozinha na aba AO VIVO de quem está com o aparelho.
+            TTButton(
+                stringResource(R.string.settings_create_event),
+                TTButtonStyle.Outline,
+                onClick = { showCreateEvent = true },
             )
         }
-        Spacer(Modifier.height(14.dp))
-        TTField(
-            label = stringResource(R.string.participant_label),
-            value = participantDraft,
-            onValueChange = {
-                participantDraft = it
-                scope.launch { container.prefs.setParticipantId(it) }
-            },
-            placeholder = "P01",
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(stringResource(R.string.participant_hint), style = TTType.Footnote, color = TT.Gray45)
-        Spacer(Modifier.height(14.dp))
-        // O participante não cria evento (a5): o operador marca aqui e a captura
-        // aparece sozinha na aba AO VIVO de quem está com o aparelho.
-        TTButton(
-            stringResource(R.string.settings_create_event),
-            TTButtonStyle.Outline,
-            onClick = { showCreateEvent = true },
-        )
 
         Spacer(Modifier.height(40.dp))
         Text(stringResource(R.string.settings_account_section), style = TTType.Meta, color = TT.Gray70)
