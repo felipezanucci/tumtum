@@ -1,9 +1,12 @@
 package cc.tumtum.app.ui.screens.live
 
+import android.os.Build
+import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,20 +17,19 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -54,18 +56,21 @@ import kotlinx.coroutines.delay
 
 /**
  * a2 — Captura ao vivo. Fundo #0A0A0A, estado calmo, quase sem UI.
- * Com sensor BLE ativo, o número NÃO fica na tela (§10): ver o próprio número
- * muda o número. Fica atrás de um toque longo. O que fica visível é o estado
- * da conexão, o contador de amostras e a bateria do sensor.
  *
- * Layout em dois blocos: o de cima rola, o de baixo (marcas do operador,
- * dica, Encerrar a noite) é fixo. No primeiro ensaio (18/09) a fileira de
- * marcas empurrou o Encerrar para fora da tela e a noite não tinha saída.
+ * One screen, no scroll (21/09). This is used inside a show, in the dark,
+ * by a thumb that has to find GOL and Encerrar without looking for them. On
+ * the first phone the number fell under MARCAR O MOMENTO and the badges hid
+ * behind a scroll nobody expected; the earlier fix (18/09) had split the
+ * screen into a scrolling top and a fixed bottom, which only moved the
+ * overflow. Now nothing scrolls: the three gaps between blocks share the
+ * spare height, and on a short screen the two big numbers shrink instead of
+ * pushing anything out.
  */
 @Composable
 fun CaptureScreen(nav: NavHostController) {
     val container = appContainer()
     val context = LocalContext.current
+    val view = LocalView.current
     val vm: LiveViewModel = viewModel { LiveViewModel(container) }
     val event by vm.activeEvent.collectAsStateWithLifecycle()
     val snapshot by vm.snapshot.collectAsStateWithLifecycle()
@@ -79,83 +84,87 @@ fun CaptureScreen(nav: NavHostController) {
     val e = event ?: return
     val bleActive = bus.active && bus.eventId == e.id
 
-    Column(
+    BoxWithConstraints(
         Modifier
             .fillMaxSize()
             .background(TT.Night)
             .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 26.dp),
+            .navigationBarsPadding(),
     ) {
-      Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(9.dp).clip(CircleShape).background(TT.Acid))
-            Spacer(Modifier.size(9.dp))
-            Text(stringResource(R.string.live_label), style = TTType.MetaWide, color = TT.Acid)
-            Spacer(Modifier.weight(1f))
-            if (bleActive) {
-                val connLabel = when (bus.connection) {
-                    is BleConnectionState.Connected -> "${(bus.deviceName ?: "SENSOR").uppercase()} · OK"
-                    is BleConnectionState.Reconnecting -> stringResource(R.string.capture_reconnecting).uppercase()
-                    else -> stringResource(R.string.capture_disconnected).uppercase()
-                }
-                Text(
-                    connLabel,
-                    style = TTType.MetaSmall.copy(letterSpacing = 0.06.em),
-                    color = if (bus.connection is BleConnectionState.Connected) TT.Gray55 else TT.Rose,
-                )
-            } else {
-                snapshot?.bestSourceLabel?.let { label ->
+        // Two size tiers: a phone shorter than ~720dp of usable height gets
+        // smaller numbers, never a scroll.
+        val short = maxHeight < 720.dp
+        val heroStyle = if (short) TTType.HeroLive.copy(fontSize = 104.sp, lineHeight = 84.sp) else TTType.HeroLive
+        val clockStyle = if (short) {
+            TTType.HeroSmall.copy(fontSize = 40.sp, lineHeight = 34.sp)
+        } else {
+            TTType.HeroSmall.copy(fontSize = 48.sp, lineHeight = 40.sp)
+        }
+        val gap = if (short) 10.dp else 16.dp
+
+        Column(Modifier.fillMaxSize().padding(start = 28.dp, end = 28.dp, top = 18.dp, bottom = 22.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(9.dp).clip(CircleShape).background(TT.Acid))
+                Spacer(Modifier.size(9.dp))
+                Text(stringResource(R.string.live_label), style = TTType.MetaWide, color = TT.Acid)
+                Spacer(Modifier.weight(1f))
+                if (bleActive) {
+                    val connLabel = when (bus.connection) {
+                        is BleConnectionState.Connected -> "${(bus.deviceName ?: "SENSOR").uppercase()} · OK"
+                        is BleConnectionState.Reconnecting -> stringResource(R.string.capture_reconnecting).uppercase()
+                        else -> stringResource(R.string.capture_disconnected).uppercase()
+                    }
                     Text(
-                        "${label.uppercase()} · ${snapshot?.coveragePct ?: 0}%",
+                        connLabel,
                         style = TTType.MetaSmall.copy(letterSpacing = 0.06.em),
-                        color = TT.Gray55,
+                        color = if (bus.connection is BleConnectionState.Connected) TT.Gray55 else TT.Rose,
                     )
+                } else {
+                    snapshot?.bestSourceLabel?.let { label ->
+                        Text(
+                            "${label.uppercase()} · ${snapshot?.coveragePct ?: 0}%",
+                            style = TTType.MetaSmall.copy(letterSpacing = 0.06.em),
+                            color = TT.Gray55,
+                        )
+                    }
                 }
             }
-        }
-        Spacer(Modifier.height(28.dp))
-        Text(e.name, style = TTType.ItemTitle.copy(fontSize = 16.sp), color = TT.Paper)
-        Spacer(Modifier.height(3.dp))
-        Text(
-            listOfNotNull(e.venue.ifBlank { null }, stringResource(R.string.live_started_at, Fmt.hour(e.startAt)))
-                .joinToString(" · "),
-            style = TTType.BodySmall,
-            color = TT.Gray45,
-        )
-
-        if (revoked && !bleActive) {
-            // §7 — permissão revogada: nova captura bloqueada, com explicação honesta.
-            Spacer(Modifier.height(48.dp))
-            Text(stringResource(R.string.live_blocked_title), style = TTType.TitleSmall, color = TT.Paper)
-            Spacer(Modifier.height(12.dp))
-            Text(stringResource(R.string.live_blocked_body), style = TTType.Body, color = TT.Gray45)
-            Spacer(Modifier.height(24.dp))
-            TTButton(
-                stringResource(R.string.live_blocked_cta),
-                TTButtonStyle.OutlineOnDark,
-                onClick = { nav.navigate(Routes.Permission) },
-            )
-        } else {
-            Spacer(Modifier.height(36.dp))
-            Text(stringResource(R.string.live_playing_for), style = TTType.MetaWide, color = TT.Gray55)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(gap))
+            Text(e.name, style = TTType.ItemTitle.copy(fontSize = 16.sp), color = TT.Paper, maxLines = 1)
+            Spacer(Modifier.height(3.dp))
             Text(
-                Fmt.stopwatch(Duration.between(e.startAt, now)),
-                style = TTType.HeroSmall,
-                color = TT.Paper,
+                listOfNotNull(e.venue.ifBlank { null }, stringResource(R.string.live_started_at, Fmt.hour(e.startAt)))
+                    .joinToString(" · "),
+                style = TTType.BodySmall,
+                color = TT.Gray45,
+                maxLines = 1,
             )
-            Spacer(Modifier.height(36.dp))
-            if (bleActive) {
+
+            if (revoked && !bleActive) {
+                // §7 — permissão revogada: nova captura bloqueada, com explicação honesta.
+                Spacer(Modifier.height(40.dp))
+                Text(stringResource(R.string.live_blocked_title), style = TTType.TitleSmall, color = TT.Paper)
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.live_blocked_body), style = TTType.Body, color = TT.Gray45)
+                Spacer(Modifier.height(24.dp))
+                TTButton(
+                    stringResource(R.string.live_blocked_cta),
+                    TTButtonStyle.OutlineOnDark,
+                    onClick = { nav.navigate(Routes.Permission) },
+                )
+                Spacer(Modifier.weight(1f))
+            } else {
+                Spacer(Modifier.weight(1f))
+                Text(stringResource(R.string.live_playing_for), style = TTType.MetaWide, color = TT.Gray55)
+                Spacer(Modifier.height(6.dp))
+                Text(Fmt.stopwatch(Duration.between(e.startAt, now)), style = clockStyle, color = TT.Paper)
+                Spacer(Modifier.weight(1f))
                 // O número fica na tela (decisão de Felipe, 18/09, depois de dois
                 // ensaios pedindo por ele). A regra §10 — ver o número muda o número —
                 // fica registrada no log; a captura não muda por ele estar visível.
+                val bpmNow = if (bleActive) bus.lastBpm else snapshot?.currentBpm
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        bus.lastBpm?.toString() ?: "—",
-                        style = TTType.HeroLive,
-                        color = TT.Rose,
-                    )
+                    Text(bpmNow?.toString() ?: "—", style = heroStyle, color = TT.Rose)
                     Spacer(Modifier.size(14.dp))
                     Text(
                         stringResource(R.string.live_bpm_now),
@@ -164,144 +173,140 @@ fun CaptureScreen(nav: NavHostController) {
                         modifier = Modifier.padding(bottom = 10.dp),
                     )
                 }
-            } else {
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        snapshot?.currentBpm?.toString() ?: "—",
-                        style = TTType.HeroLive,
-                        color = TT.Rose,
-                    )
-                    Spacer(Modifier.size(14.dp))
-                    Text(
-                        stringResource(R.string.live_bpm_now),
-                        style = TTType.Body.copy(fontSize = 17.sp),
-                        color = TT.Gray45,
-                        modifier = Modifier.padding(bottom = 10.dp),
-                    )
-                }
-            }
-            Spacer(Modifier.height(26.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (bleActive) {
-                    Badge(stringResource(R.string.capture_samples, bus.samplesWritten), hPad = 11.dp, vPad = 6.dp)
-                    bus.sensorBatteryPct?.let { pct ->
-                        OutlineBadge(
-                            stringResource(R.string.capture_sensor_battery, pct),
-                            borderColor = TT.Ink600,
-                            contentColor = TT.Gray25,
-                            hPad = 11.dp,
-                            vPad = 6.dp,
-                        )
-                    }
-                } else {
-                    Badge(stringResource(R.string.live_moments, snapshot?.momentCount ?: 0), hPad = 11.dp, vPad = 6.dp)
-                    snapshot?.peakBpm?.let { peak ->
-                        OutlineBadge(
-                            stringResource(R.string.live_peak_so_far, peak),
-                            borderColor = TT.Ink600,
-                            contentColor = TT.Gray25,
-                            hPad = 11.dp,
-                            vPad = 6.dp,
-                        )
+                Spacer(Modifier.height(gap))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (bleActive) {
+                        Badge(stringResource(R.string.capture_samples, bus.samplesWritten), hPad = 11.dp, vPad = 6.dp)
+                        bus.sensorBatteryPct?.let { pct ->
+                            OutlineBadge(
+                                stringResource(R.string.capture_sensor_battery, pct),
+                                borderColor = TT.Ink600,
+                                contentColor = TT.Gray25,
+                                hPad = 11.dp,
+                                vPad = 6.dp,
+                            )
+                        }
+                    } else {
+                        Badge(stringResource(R.string.live_moments, snapshot?.momentCount ?: 0), hPad = 11.dp, vPad = 6.dp)
+                        snapshot?.peakBpm?.let { peak ->
+                            OutlineBadge(
+                                stringResource(R.string.live_peak_so_far, peak),
+                                borderColor = TT.Ink600,
+                                contentColor = TT.Gray25,
+                                hPad = 11.dp,
+                                vPad = 6.dp,
+                            )
+                        }
                     }
                 }
+                Spacer(Modifier.weight(1f))
             }
-        }
 
-      }
-        Spacer(Modifier.height(16.dp))
-
-        // Etapa 3 — marcar o momento. Only on the operator's phone (Configurações →
-        // Experimento): three taps a person can find in the dark, the clock of the
-        // tap is what names the moment later, for everyone on the same event. Each
-        // tap answers: the button lights up, a line says what was stored and when,
-        // and a repeat inside ten seconds says it is the same moment.
-        if (user?.operatorMarks == true) {
-            val marks by container.nights.marksCount(e.id).collectAsStateWithLifecycle(initialValue = 0)
-            var flash by remember { mutableStateOf<String?>(null) }
-            LaunchedEffect(flash) {
-                if (flash != null) {
-                    delay(1_200)
-                    flash = null
-                }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.mark_label), style = TTType.MetaWide, color = TT.Gray55)
-                Text(stringResource(R.string.mark_count, marks), style = TTType.MetaSmall, color = TT.Gray55)
-            }
-            Spacer(Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(
-                    stringResource(R.string.mark_goal) to MarkKinds.GOAL,
-                    stringResource(R.string.mark_song) to MarkKinds.SONG,
-                    stringResource(R.string.mark_moment) to MarkKinds.MOMENT,
-                ).forEach { (label, kind) ->
-                    TTButton(
-                        label,
-                        if (flash == kind) TTButtonStyle.Rose else TTButtonStyle.OutlineOnDark,
-                        onClick = {
-                            flash = kind
-                            vm.mark(label, kind)
+            // Etapa 3 — marcar o momento. Only on the operator's phone (Configurações →
+            // OPERADOR): three taps a person can find in the dark, the clock of the
+            // tap is what names the moment later, for everyone on the same event.
+            // Every tap is answered three ways — the button lights (rose for a
+            // mark stored, acid for one already there), the phone buzzes (one
+            // pattern each), and a line says what happened. On 21/09 a repeat
+            // inside ten seconds changed only the line, and read as nothing.
+            if (user?.operatorMarks == true) {
+                val marks by container.nights.marksCount(e.id).collectAsStateWithLifecycle(initialValue = 0)
+                val fb = lastMark
+                var litTick by remember { mutableLongStateOf(-1L) }
+                LaunchedEffect(fb?.tick) {
+                    val f = fb ?: return@LaunchedEffect
+                    litTick = f.tick
+                    view.performHapticFeedback(
+                        if (Build.VERSION.SDK_INT >= 30) {
+                            if (f.repeated) HapticFeedbackConstants.REJECT else HapticFeedbackConstants.CONFIRM
+                        } else {
+                            HapticFeedbackConstants.LONG_PRESS
                         },
-                        modifier = Modifier.weight(1f),
                     )
+                    delay(1_200)
+                    litTick = -1L
                 }
-            }
-            Spacer(Modifier.height(10.dp))
-            val fb = lastMark
-            if (fb != null) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(
-                            if (fb.repeated) R.string.mark_repeated else R.string.mark_stored,
-                            fb.label,
-                            Fmt.hour(fb.at),
-                        ),
-                        style = TTType.BodySmall,
-                        color = if (fb.repeated) TT.Acid else TT.Paper,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (!fb.repeated && fb.id != null) {
-                        Spacer(Modifier.size(12.dp))
-                        Text(
-                            stringResource(R.string.mark_undo),
-                            style = TTType.Meta,
-                            color = TT.Rose,
-                            modifier = Modifier.clickable { vm.undoLastMark() },
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.mark_label), style = TTType.MetaWide, color = TT.Gray55)
+                    Text(stringResource(R.string.mark_count, marks), style = TTType.MetaSmall, color = TT.Gray55)
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        stringResource(R.string.mark_goal) to MarkKinds.GOAL,
+                        stringResource(R.string.mark_song) to MarkKinds.SONG,
+                        stringResource(R.string.mark_moment) to MarkKinds.MOMENT,
+                    ).forEach { (label, kind) ->
+                        val lit = fb != null && fb.label == label && litTick == fb.tick
+                        TTButton(
+                            label,
+                            when {
+                                lit && fb!!.repeated -> TTButtonStyle.Acid
+                                lit -> TTButtonStyle.Rose
+                                else -> TTButtonStyle.OutlineOnDark
+                            },
+                            onClick = { vm.mark(label, kind) },
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
-            } else {
-                Spacer(Modifier.height(19.dp))
+                Spacer(Modifier.height(10.dp))
+                // The line keeps its height with or without a mark, so the
+                // buttons never jump under the thumb.
+                Row(Modifier.fillMaxWidth().height(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (fb != null) {
+                        Text(
+                            stringResource(
+                                if (fb.repeated) R.string.mark_repeated else R.string.mark_stored,
+                                fb.label,
+                                Fmt.hour(fb.at),
+                            ),
+                            style = TTType.BodySmall,
+                            color = if (fb.repeated) TT.Acid else TT.Paper,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (!fb.repeated && fb.id != null) {
+                            Spacer(Modifier.size(12.dp))
+                            Text(
+                                stringResource(R.string.mark_undo),
+                                style = TTType.Meta,
+                                color = TT.Rose,
+                                modifier = Modifier.clickable { vm.undoLastMark() },
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(gap))
             }
-            Spacer(Modifier.height(14.dp))
+            Text(
+                stringResource(R.string.live_hint),
+                style = TTType.Body.copy(fontSize = 14.sp),
+                color = TT.Gray55,
+                maxLines = 1,
+            )
+            Spacer(Modifier.height(12.dp))
+            TTButton(
+                stringResource(R.string.live_end),
+                TTButtonStyle.Acid,
+                enabled = !ending,
+                onClick = {
+                    // Encerra o serviço (grava offsets finais e limpa a sessão ativa) e mede as fontes.
+                    CaptureService.stop(context)
+                    vm.endNight(
+                        onSaved = { nightId ->
+                            nav.navigate(Routes.reveal(nightId)) {
+                                popUpTo(Routes.Feed)
+                            }
+                        },
+                        onChoose = {
+                            nav.navigate(Routes.EndNight) {
+                                popUpTo(Routes.Live) { inclusive = false }
+                            }
+                        },
+                    )
+                },
+            )
         }
-        Text(
-            stringResource(R.string.live_hint),
-            style = TTType.Body.copy(fontSize = 14.sp),
-            color = TT.Gray55,
-        )
-        Spacer(Modifier.height(18.dp))
-        TTButton(
-            stringResource(R.string.live_end),
-            TTButtonStyle.Acid,
-            enabled = !ending,
-            onClick = {
-                // Encerra o serviço (grava offsets finais e limpa a sessão ativa) e mede as fontes.
-                CaptureService.stop(context)
-                vm.endNight(
-                    onSaved = { nightId ->
-                        nav.navigate(Routes.reveal(nightId)) {
-                            popUpTo(Routes.Feed)
-                        }
-                    },
-                    onChoose = {
-                        nav.navigate(Routes.EndNight) {
-                            popUpTo(Routes.Live) { inclusive = false }
-                        }
-                    },
-                )
-            },
-        )
     }
 }

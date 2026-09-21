@@ -76,6 +76,13 @@ data class UserState(
      * is never asked to do this.
      */
     val operatorMarks: Boolean = false,
+    /**
+     * Operator registration (21/09): the three shortcuts that create an event
+     * from the phone — now, the next one, a past night — show on AO VIVO only
+     * with this on. Events are TumTum's; a fan only ever picks one from the
+     * list, and never sees a name, a venue or a time to type.
+     */
+    val operatorEvents: Boolean = false,
     /** The next marked event, if any — one at a time, by design. */
     val upcoming: UpcomingEvent? = null,
 ) {
@@ -100,6 +107,7 @@ class UserPrefs(private val context: Context) {
         val activeCaptureEventId = longPreferencesKey("active_capture_event_id")
         val revealLockEnabled = booleanPreferencesKey("reveal_lock_enabled")
         val operatorMarks = booleanPreferencesKey("operator_marks")
+        val operatorEvents = booleanPreferencesKey("operator_events")
         val upcomingName = stringPreferencesKey("upcoming_name")
         val upcomingVenue = stringPreferencesKey("upcoming_venue")
         val upcomingType = stringPreferencesKey("upcoming_type")
@@ -130,6 +138,7 @@ class UserPrefs(private val context: Context) {
             activeCaptureEventId = p[Keys.activeCaptureEventId],
             revealLockEnabled = p[Keys.revealLockEnabled] ?: false,
             operatorMarks = p[Keys.operatorMarks] ?: false,
+            operatorEvents = p[Keys.operatorEvents] ?: false,
             upcoming = p[Keys.upcomingName]?.let { n ->
                 p[Keys.upcomingStartAt]?.let { at ->
                     UpcomingEvent(
@@ -241,6 +250,10 @@ class UserPrefs(private val context: Context) {
 
     suspend fun setOperatorMarks(enabled: Boolean) {
         context.dataStore.edit { it[Keys.operatorMarks] = enabled }
+    }
+
+    suspend fun setOperatorEvents(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.operatorEvents] = enabled }
     }
 
     suspend fun setActiveCapture(eventId: Long) {

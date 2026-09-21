@@ -365,6 +365,8 @@
     <string name="settings_reveal_lock_hint">Noites novas só abrem às 10h da manhã seguinte. Protege o cartão cego do teste.</string>
     <string name="settings_operator_marks">Marcar momentos na captura</string>
     <string name="settings_operator_marks_hint">Liga no celular de quem opera o teste. Os botões GOL, MÚSICA e MOMENTO aparecem na captura e as marcas vão pra linha do tempo do evento — valem pra todo mundo que está nele. Desligado, a captura não mostra botão nenhum.</string>
+    <string name="settings_operator_events">Cadastrar eventos pelo celular</string>
+    <string name="settings_operator_events_hint">Liga no celular de quem opera. Os três atalhos de cadastro — agora, o próximo, uma noite que já passou — aparecem na aba AO VIVO. O fã nunca vê isso: ele só escolhe da lista.</string>
     <string name="settings_toggle_on">LIGADA</string>
     <string name="settings_toggle_off">DESLIGADA</string>
     <string name="locked_title">Sua noite está sendo\nrevelada.</string>
