@@ -466,3 +466,14 @@ designed against them. The values live in `detect_peaks()` in
 - Share cards are the viral engine. They must be visually stunning and instantly shareable.
 - Privacy is critical: health data is sensitive. Minimal collection, clear consent, user control.
 - The smart band hardware is NOT part of Phase 0. Don't build BLE or real-time streaming yet.
+
+## Product rules (standing, from the founder)
+
+- **Events are TumTum's. The fan never creates one.** (21/09) The events
+  where TumTum works are registered by us and appear on the fan's screen to
+  be *activated* or not. No name, venue, kind, date or hour is ever asked of
+  a fan. Creating or typing an event is an operator act, behind the
+  OPERADOR door in Configurações.
+- **A time is never typed.** (21/09) Every date or time field in the product
+  is the platform's picker — the rolling selector — never a free-text
+  `HH:mm` or `dd/MM/yyyy`. This holds for operator screens too.
