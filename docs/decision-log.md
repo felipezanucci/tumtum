@@ -295,6 +295,72 @@ the linked documents — this file is the index and the reasoning, not a diary.
     benchmark app delivers it in minutes (§5.1 — a retroactive night from
     the watch's own history, or a demo night labelled as one). Felipe's
     to pick from; nothing there is on the pilot's critical path.
+39. **A fan can type an event, and must not be able to.** Two product
+    rules from Felipe's test of b140 on 21/09 (entry of that day). (a)
+    **Events are TumTum's**: the fan never creates one — the events where
+    TumTum works are registered by us, appear on the fan's screen, and the
+    fan *activates* one or not. (b) **A time is never typed**: every time
+    field is the platform's picker. What that changes in the app: "Marcar
+    o próximo" and "Trazer uma noite que já passou" become a pick from the
+    server's list (the server already sends `date`, `start_time`,
+    `end_time`; the app reads only `date`); the typed sheet — name, venue,
+    kind, date, times — moves behind the OPERADOR door with pickers in
+    place of its text fields; `EventTimes` becomes operator-only. **Until
+    this is built, Bloco 7's typed-date checks are not worth running.**
+    Costed at one session.
+
+---
+
+## 2026-09-21 — two product rules from the first test of b140: events are TumTum's, and a time is never typed
+
+Felipe installed b140 (lotes 1–5, the first time any of them met a phone)
+and ran Blocos 1 and 2 of the test list — the event sheet in its three
+modes, and the reminder an hour before. What came back was not a defect
+but two rules, both stated as standing:
+
+- **The fan never creates an event.** *"Na experiência final do usuário, o
+  usuário nunca vai ter a possibilidade de adicionar ele mesmo um evento."*
+  The events where TumTum can be used are **pre-registered by TumTum** and
+  appear on the fan's screen for the fan to **activate or not**. Nothing
+  else. A name field, a venue field, a kind chooser, a date and an hour are
+  all things a fan should never see.
+- **A time is never typed.** *"Sempre que tiver campo de hora, a gente tem
+  que aparecer aquele campo onde a pessoa rola as horas para colocar. Nunca
+  digitar."* Every time field in the product is the platform's picker; a
+  free-text `HH:mm` is forbidden, including behind the operator door.
+
+**Why the first rule is bigger than it looks.** Lote 3 built "Marcar o
+próximo" as a form (§5.7 of the psychology research said *the calendar is
+the trigger*) and lote 5 built "Trazer uma noite que já passou" as another
+form (§5.1, the first value in minutes). Both were designed around a
+person typing what the server should already know. The server *does*
+know: `GET /api/events` returns `date`, `start_time` and `end_time` for
+every event (`EventResponse` in `backend/app/schemas/event.py`), and the
+app's `ServerEvent` reads only `date` and throws the times away — which is
+exactly why the sheet then asks the person for them. Under the rule, both
+flows collapse into one gesture: **a list of TumTum's events, one tap to
+activate.** The countdown, the reminder an hour before, and the Health
+Connect window for a past night all come from the event the server sent.
+The fan types nothing. The empty state is a claim like any other: "no
+TumTum event near you yet" must be told apart from "could not ask".
+
+**What moves, and where.** The typed sheet does not disappear — it is how
+TumTum registers an event from the phone in the first place — but it
+becomes an **operator surface** behind Configurações → OPERADOR, next to
+the marks and the reveal lock, and its date and time fields become
+pickers (Material 3's `DatePicker` and `TimePicker` are in the BOM this
+build already uses, `2024.12.01`; no new dependency). `EventTimes` and its
+eight tests stay, now guarding the operator's input only —
+`event_bad_time` ("Formato: 20/09/2026 e 21:30") is the one string that
+stops making sense under a picker and has to change or go. The three modes
+of the sheet (`Now`, `Upcoming`, `Past`) stay as the operator's three
+questions.
+
+**What it settles:** open item 39, and the shape of the AO VIVO tab for a
+fan — a list to choose from, never a form to fill. **What it costs:** one
+session, and the typed-date validations of Bloco 7 (dd/MM, midnight,
+16 h) are no longer worth Felipe's time on b140; the rest of the list
+(Blocos 3–6, 8, 9) stands.
 
 ---
 
