@@ -199,7 +199,16 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             }
             Text(Fmt.hour(n.peakAt).uppercase(), style = TTType.MetaSmall.copy(fontSize = 10.sp), color = TT.Acid)
         }
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(14.dp))
+        // Where the night stands with the server — the first thing under the
+        // curve, not the last thing under the moments. On 21/09 the two steps
+        // ran behind the curve's own 1.2 s animation (the block was inside the
+        // faded peaks column), finished in under a second, and the result sat
+        // below the fold: the person saw nothing and read "nothing happened",
+        // then a GOL that named no moment. The steps now stay on screen long
+        // enough to be read, and the state line sits where the eye already is.
+        SyncStatus(n, container.sync)
+        Spacer(Modifier.height(14.dp))
 
         // Picos — revelados depois da curva.
         Column(Modifier.alpha(peaksAlpha.value)) {
@@ -221,11 +230,12 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                     )
                     Column(Modifier.weight(1f)) {
                         // The cause: the event's timeline, or the person (§5.6). Without
-                        // one, the row itself is the invitation.
+                        // one, the row itself is the invitation — in acid, the colour
+                        // of a thing to touch; grey read as a caption on 21/09.
                         Text(
                             moment.label ?: stringResource(R.string.moment_name_empty),
                             style = TTType.BodySmall,
-                            color = if (moment.label != null) TT.Paper else TT.Gray45,
+                            color = if (moment.label != null) TT.Paper else TT.Acid,
                         )
                         Text(
                             stringResource(R.string.reveal_moment_meta, Fmt.hour(moment.at), moment.durationSec),
@@ -238,32 +248,6 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                     }
                 }
                 DividerDark()
-            }
-            Spacer(Modifier.height(10.dp))
-            // Where the night stands with the server, said as it is — and
-            // which moments these are. Three honest states, never a blend.
-            val uploading by container.sync.uploading.collectAsStateWithLifecycle()
-            val phases by container.sync.phase.collectAsStateWithLifecycle()
-            // The work, shown while it happens (§5.2 of the 19/09 research):
-            // the two real steps, the active one lit. Nothing padded.
-            phases[n.id]?.let { SyncSteps(it, n.samples.size) }
-            val syncText = when {
-                n.id in uploading -> null
-                n.uploadState == UploadState.ANALYSED -> stringResource(R.string.sync_server_moments)
-                n.uploadError == NightSync.ERR_NO_SESSION -> stringResource(R.string.sync_no_account)
-                n.uploadError == NightSync.ERR_EXPIRED -> stringResource(R.string.sync_failed_expired)
-                n.uploadError == NightSync.ERR_OFFLINE -> stringResource(R.string.sync_failed_offline)
-                n.uploadError != null -> stringResource(R.string.sync_failed_server, n.uploadError.orEmpty())
-                else -> stringResource(R.string.sync_local_pending)
-            }
-            syncText?.let { Text(it, style = TTType.MetaSmall, color = TT.Gray55) }
-            if (n.id !in uploading && n.uploadState != UploadState.ANALYSED && n.uploadError != NightSync.ERR_NO_SESSION) {
-                Text(
-                    stringResource(R.string.sync_retry),
-                    style = TTType.MetaSmall,
-                    color = TT.Acid,
-                    modifier = Modifier.clickable { container.sync.uploadLater(n.id) }.padding(vertical = 6.dp),
-                )
             }
             // "Sua noite × a galera" (card 04) fica fora até existir uma amostra
             // coletiva real: a tela por trás dela mostra 3.412 pessoas inventadas
@@ -332,15 +316,79 @@ private fun NameMomentDialog(initial: String, onDismiss: () -> Unit, onSave: (St
     )
 }
 
+/**
+ * Three honest states, never a blend: the two real steps while they run (and
+ * for a moment after, both marked OK, so a sync faster than a glance is
+ * still seen to have happened), then the line that says which moments these
+ * are and why — the server's, the phone's, or the phone's because the server
+ * could not be reached — with the one thing to do about it.
+ */
 @Composable
-private fun SyncSteps(phase: SyncPhase, sampleCount: Int) {
-    Column(Modifier.padding(bottom = 6.dp)) {
+private fun SyncStatus(n: cc.tumtum.app.domain.Night, sync: NightSync) {
+    val uploading by sync.uploading.collectAsStateWithLifecycle()
+    val phases by sync.phase.collectAsStateWithLifecycle()
+    val phase = phases[n.id]
+    var shown by remember { mutableStateOf<SyncPhase?>(null) }
+    var holding by remember { mutableStateOf(false) }
+    LaunchedEffect(phase) {
+        if (phase != null) {
+            shown = phase
+            holding = false
+        } else if (shown != null) {
+            holding = true
+            kotlinx.coroutines.delay(1_800)
+            holding = false
+            shown = null
+        }
+    }
+    when {
+        phase != null -> SyncSteps(phase, n.samples.size, finished = false)
+        holding -> SyncSteps(shown ?: SyncPhase.ANALYSING, n.samples.size, finished = true)
+        n.id in uploading -> SyncSteps(SyncPhase.SENDING, n.samples.size, finished = false)
+        else -> {
+            val analysed = n.uploadState == UploadState.ANALYSED
+            val failed = n.uploadError != null && n.uploadError != NightSync.ERR_NO_SESSION
+            Text(
+                when {
+                    analysed -> stringResource(R.string.sync_server_moments)
+                    n.uploadError == NightSync.ERR_NO_SESSION -> stringResource(R.string.sync_no_account)
+                    n.uploadError == NightSync.ERR_EXPIRED -> stringResource(R.string.sync_failed_expired)
+                    n.uploadError == NightSync.ERR_OFFLINE -> stringResource(R.string.sync_failed_offline)
+                    n.uploadError != null -> stringResource(R.string.sync_failed_server, n.uploadError.orEmpty())
+                    else -> stringResource(R.string.sync_local_pending)
+                },
+                style = TTType.MetaSmall,
+                color = when {
+                    analysed -> TT.Paper
+                    failed -> TT.Rose
+                    else -> TT.Gray55
+                },
+            )
+            if (!analysed && n.uploadError != NightSync.ERR_NO_SESSION) {
+                Text(
+                    stringResource(R.string.sync_retry),
+                    style = TTType.MetaSmall,
+                    color = TT.Acid,
+                    modifier = Modifier.clickable { sync.uploadLater(n.id) }.padding(vertical = 6.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SyncSteps(phase: SyncPhase, sampleCount: Int, finished: Boolean) {
+    Column(Modifier.padding(bottom = 2.dp)) {
         SyncStep(
             stringResource(R.string.sync_step_send, Fmt.thousands(sampleCount)),
-            done = phase != SyncPhase.SENDING,
-            active = phase == SyncPhase.SENDING,
+            done = finished || phase != SyncPhase.SENDING,
+            active = !finished && phase == SyncPhase.SENDING,
         )
-        SyncStep(stringResource(R.string.sync_step_analyse), done = false, active = phase == SyncPhase.ANALYSING)
+        SyncStep(
+            stringResource(R.string.sync_step_analyse),
+            done = finished,
+            active = !finished && phase == SyncPhase.ANALYSING,
+        )
     }
 }
 

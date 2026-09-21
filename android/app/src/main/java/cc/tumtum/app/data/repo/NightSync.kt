@@ -70,6 +70,10 @@ class NightSync(
             if (nightId in inFlight.value) false else { inFlight.update { it + nightId }; true }
         }
         if (!claimed) return
+        // The first step is lit from the first byte: the event, the marks and
+        // the readings are all "sending", and a screen watching this must never
+        // see a night in flight with no step on.
+        phases.update { it + (nightId to SyncPhase.SENDING) }
         try {
             val session = prefs.state.first().session
             if (session == null) {
@@ -92,7 +96,6 @@ class NightSync(
 
             var serverId = night.serverSessionId
             if (serverId == null) {
-                phases.update { it + (nightId to SyncPhase.SENDING) }
                 val samples = db.nightDao().samplesOf(nightId)
                     .map { HrSample(Instant.ofEpochMilli(it.time), it.bpm) }
                 serverId = api.createSession(
