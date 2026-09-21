@@ -1,9 +1,11 @@
 package cc.tumtum.app.ui.screens.gallery
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,8 +22,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.domain.GalleryNight
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.Fmt
@@ -145,7 +151,9 @@ private fun Stat(value: Int, label: String) {
 
 /**
  * Capa 9:14 — número grande + pele da noite. Número preto; no preto, rosa.
- * `compact` é a variação de 3 colunas do perfil (b8).
+ * `compact` é a variação de 3 colunas do perfil (b8). Com a pele preta e uma
+ * foto atrás do card, a capa mostra a foto sob o mesmo véu do card (21/09):
+ * a galeria mostra o card como ele saiu, não uma versão sem a foto.
  */
 @Composable
 fun GalleryCover(night: GalleryNight, compact: Boolean = false, onClick: () -> Unit) {
@@ -154,44 +162,59 @@ fun GalleryCover(night: GalleryNight, compact: Boolean = false, onClick: () -> U
     val bg = if (night.published) skinColor(night.skin) else TT.Paper
     val num = if (night.published && night.skin == Skin.BLACK) TT.Rose else TT.Ink
     val fg = if (night.published && night.skin == Skin.BLACK) TT.Paper else TT.Ink
-    Column(
+    val photo = remember(night.photoPath, night.skin, night.published) {
+        if (night.published && night.skin == Skin.BLACK) CardPhotoStore.loadThumb(night.photoPath)?.asImageBitmap() else null
+    }
+    Box(
         Modifier
             .aspectRatio(9f / 14f)
             .background(bg)
             .let { if (!night.published || night.skin == Skin.WHITE) it.border(1.dp, TT.Gray10) else it }
-            .clickable(onClick = onClick)
-            .padding(if (compact) 10.dp else 14.dp),
-        verticalArrangement = Arrangement.Bottom,
+            .clickable(onClick = onClick),
     ) {
-        if (!night.published && !compact) {
-            Text(
-                stringResource(R.string.gallery_no_card),
-                style = TTType.MetaSmall.copy(fontSize = 9.5.sp),
-                color = TT.Gray45,
+        if (photo != null) {
+            Image(
+                bitmap = photo,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize(),
             )
-            Spacer(Modifier.height(6.dp))
+            Box(Modifier.matchParentSize().background(TT.Scrim))
         }
-        Text(
-            "${night.peakBpm}",
-            style = if (compact) {
-                TTType.NumberMedium.copy(fontSize = 26.sp, letterSpacing = (-0.04).em, lineHeight = 22.sp)
-            } else {
-                TTType.NumberLarge.copy(fontSize = 44.sp, letterSpacing = (-0.05).em, lineHeight = 36.sp)
-            },
-            color = num,
-        )
-        Spacer(Modifier.height(if (compact) 5.dp else 8.dp))
-        Text(
-            night.label,
-            style = TTType.MetaSmall.copy(fontSize = if (compact) 8.5.sp else 10.5.sp, letterSpacing = 0.em, lineHeight = 13.5.sp),
-            color = fg,
-        )
-        if (!compact) {
+        Column(
+            Modifier.matchParentSize().padding(if (compact) 10.dp else 14.dp),
+            verticalArrangement = Arrangement.Bottom,
+        ) {
+            if (!night.published && !compact) {
+                Text(
+                    stringResource(R.string.gallery_no_card),
+                    style = TTType.MetaSmall.copy(fontSize = 9.5.sp),
+                    color = TT.Gray45,
+                )
+                Spacer(Modifier.height(6.dp))
+            }
             Text(
-                night.dateLabel,
-                style = TTType.MetaSmall.copy(fontSize = 10.5.sp, letterSpacing = 0.em, fontWeight = FontWeight.Medium),
-                color = fg.copy(alpha = 0.6f),
+                "${night.peakBpm}",
+                style = if (compact) {
+                    TTType.NumberMedium.copy(fontSize = 26.sp, letterSpacing = (-0.04).em, lineHeight = 22.sp)
+                } else {
+                    TTType.NumberLarge.copy(fontSize = 44.sp, letterSpacing = (-0.05).em, lineHeight = 36.sp)
+                },
+                color = num,
             )
+            Spacer(Modifier.height(if (compact) 5.dp else 8.dp))
+            Text(
+                night.label,
+                style = TTType.MetaSmall.copy(fontSize = if (compact) 8.5.sp else 10.5.sp, letterSpacing = 0.em, lineHeight = 13.5.sp),
+                color = fg,
+            )
+            if (!compact) {
+                Text(
+                    night.dateLabel,
+                    style = TTType.MetaSmall.copy(fontSize = 10.5.sp, letterSpacing = 0.em, fontWeight = FontWeight.Medium),
+                    color = fg.copy(alpha = 0.6f),
+                )
+            }
         }
     }
 }

@@ -25,6 +25,8 @@ object TT {
     val Ink800 = Color(0xFF141414)
     val Ink700 = Color(0xFF1E1E1E)   // divisor no preto
     val Ink600 = Color(0xFF2E2E2E)   // borda no preto
+    /** Véu sobre a foto atrás do card preto — o mesmo 60% do CardRenderer. */
+    val Scrim = Color(0x99000000)
 
     // Dataviz (tokens): vocabulário completo, sem zonas nem cores de risco.
     // No preto: linha rosa, marcador amarelo. No branco: linha preta, marcador rosa

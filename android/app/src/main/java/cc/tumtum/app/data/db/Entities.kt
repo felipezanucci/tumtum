@@ -69,6 +69,8 @@ data class NightEntity(
     val uploadError: String? = null,
     /** LOCAL (the phone's top-N) or SERVER (the detector). The screen says which. */
     val momentsSource: String = "LOCAL",
+    /** The photo behind the last shared black card (21/09), a file in filesDir. Null = none. */
+    val photoPath: String? = null,
 )
 
 /** Amostras cruas da noite — guardadas como lidas. Buraco é ausência de linha. */

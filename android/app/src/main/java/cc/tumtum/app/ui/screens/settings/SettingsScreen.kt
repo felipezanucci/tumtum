@@ -40,6 +40,7 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.AvatarStore
+import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.components.OutlineBadge
 import cc.tumtum.app.ui.components.UserAvatar
@@ -335,6 +336,7 @@ fun SettingsScreen(nav: NavHostController) {
                                 if (serverDone) {
                                     confirmDelete = false
                                     container.nights.wipeAll()
+                                    CardPhotoStore.deleteAll(context)
                                     container.prefs.wipe()
                                     nav.navigate(Routes.Onboarding) { popUpTo(0) { inclusive = true } }
                                 }

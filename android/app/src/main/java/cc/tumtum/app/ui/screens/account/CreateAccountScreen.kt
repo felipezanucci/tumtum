@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.data.prefs.Account
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -174,7 +175,10 @@ fun CreateAccountScreen(nav: NavHostController) {
                 scope.launch {
                     try {
                         container.api.register(email = email.trim(), name = name.trim(), password = password)
-                        if (replacing != null) container.nights.wipeAll()
+                        if (replacing != null) {
+                            container.nights.wipeAll()
+                            CardPhotoStore.deleteAll(context)
+                        }
                         container.prefs.createAccount(
                             Account(name = name.trim(), username = usernameClean, email = email.trim(), tribes = tribes),
                         )

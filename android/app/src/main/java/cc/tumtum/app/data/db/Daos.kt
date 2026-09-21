@@ -91,8 +91,9 @@ interface NightDao {
     @Query("SELECT * FROM nights ORDER BY startAt DESC")
     fun allNights(): Flow<List<NightEntity>>
 
-    @Query("UPDATE nights SET skin = :skin, published = 1 WHERE id = :id")
-    suspend fun publish(id: Long, skin: String)
+    /** The card went out: the night keeps its skin and, on the black one, the photo behind it. */
+    @Query("UPDATE nights SET skin = :skin, published = 1, photoPath = :photoPath WHERE id = :id")
+    suspend fun publish(id: Long, skin: String, photoPath: String?)
 
     // --- The server's side of a night (Etapa 2) ---
 
