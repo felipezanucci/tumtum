@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -70,8 +71,13 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
         return eventId
     }
 
-    /** What the last tap did, so the screen can say it: stored at [at], or repeated (nothing stored). */
-    data class MarkFeedback(val id: Long?, val label: String, val at: Instant, val repeated: Boolean)
+    /**
+     * What the last tap did, so the screen can say it: stored at [at], or
+     * repeated (nothing stored). [tick] changes on every tap, so two repeats in
+     * a row are two values and the screen answers each — a StateFlow swallows
+     * an equal value, and on 21/09 the second GOL got no answer at all.
+     */
+    data class MarkFeedback(val id: Long?, val label: String, val at: Instant, val repeated: Boolean, val tick: Long = 0)
 
     private val _lastMark = MutableStateFlow<MarkFeedback?>(null)
     val lastMark: StateFlow<MarkFeedback?> = _lastMark
@@ -85,18 +91,24 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
      * moment, not a new one: the rehearsal of 18/09 produced 31 marks from
      * one person pressing until something visibly changed. Nothing is stored
      * for it, and the screen says so.
+     *
+     * The feedback is set before the row is written, not after: a second tap
+     * a few hundred milliseconds behind the first must find the first, or it
+     * becomes a second mark of its own.
      */
     fun mark(label: String, entryType: String) {
         val event = activeEvent.value ?: return
         val now = Instant.now()
         val last = _lastMark.value
         if (last != null && last.label == label && Duration.between(last.at, now) < REPEAT_WINDOW) {
-            _lastMark.value = last.copy(repeated = true)
+            _lastMark.value = last.copy(repeated = true, tick = last.tick + 1)
             return
         }
+        _lastMark.value = MarkFeedback(id = null, label = label, at = now, repeated = false, tick = (last?.tick ?: 0) + 1)
         viewModelScope.launch {
             val id = container.nights.addMark(event.id, label, entryType, now)
-            _lastMark.value = MarkFeedback(id, label, now, repeated = false)
+            // The id arrives after the write; the line was already on screen.
+            _lastMark.update { cur -> if (cur != null && cur.at == now && cur.label == label) cur.copy(id = id) else cur }
         }
     }
 

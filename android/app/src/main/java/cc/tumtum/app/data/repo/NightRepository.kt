@@ -245,10 +245,12 @@ class NightRepository(
         peakBpm = peakBpm,
         skin = skin?.let { Skin.valueOf(it) } ?: Skin.PINK,
         published = published,
+        photoPath = photoPath,
     )
 
-    suspend fun publish(nightId: Long, skin: Skin) {
-        db.nightDao().publish(nightId, skin.name)
+    /** The card went out with this skin — and, on the black one, with this photo behind it (or none). */
+    suspend fun publish(nightId: Long, skin: Skin, photoPath: String? = null) {
+        db.nightDao().publish(nightId, skin.name, photoPath)
     }
 
     /** Apagar conta apaga noites, momentos e reações — irreversível (§7). */
@@ -292,6 +294,7 @@ class NightRepository(
             uploadState = runCatching { UploadState.valueOf(night.uploadState) }.getOrDefault(UploadState.PENDING),
             uploadError = night.uploadError,
             momentsSource = runCatching { MomentsSource.valueOf(night.momentsSource) }.getOrDefault(MomentsSource.LOCAL),
+            photoPath = night.photoPath,
         )
     }
 

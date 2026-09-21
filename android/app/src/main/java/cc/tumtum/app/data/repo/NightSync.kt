@@ -70,6 +70,10 @@ class NightSync(
             if (nightId in inFlight.value) false else { inFlight.update { it + nightId }; true }
         }
         if (!claimed) return
+        // The first step is lit from the first byte: the event, the marks and
+        // the readings are all "sending", and a screen watching this must never
+        // see a night in flight with no step on.
+        phases.update { it + (nightId to SyncPhase.SENDING) }
         try {
             val session = prefs.state.first().session
             if (session == null) {
@@ -92,7 +96,6 @@ class NightSync(
 
             var serverId = night.serverSessionId
             if (serverId == null) {
-                phases.update { it + (nightId to SyncPhase.SENDING) }
                 val samples = db.nightDao().samplesOf(nightId)
                     .map { HrSample(Instant.ofEpochMilli(it.time), it.bpm) }
                 serverId = api.createSession(
@@ -139,12 +142,21 @@ class NightSync(
         }
     }
 
-    /** The local event's server twin: the one it was picked from, or one created now from its name, venue, date and kind. */
+    /**
+     * The local event's server twin: the one it was picked from, or one created
+     * now from its name, venue, date, kind — and, since 21/09, its start and
+     * end, so the fans' list can count down to it and ask a watch over it.
+     */
     private suspend fun ensureServerEvent(localEventId: Long): String? {
         val event = db.eventDao().byId(localEventId) ?: return null
         event.serverEventId?.let { return it }
-        val date = Instant.ofEpochMilli(event.startAt).atZone(ZoneId.systemDefault()).toLocalDate()
-        val id = api.createEvent(event.name, event.venue.ifBlank { null }, date, event.eventType)
+        val zone = ZoneId.systemDefault()
+        val start = Instant.ofEpochMilli(event.startAt).atZone(zone)
+        val end = event.endAt?.let { Instant.ofEpochMilli(it).atZone(zone) }
+        val id = api.createEvent(
+            event.name, event.venue.ifBlank { null }, start.toLocalDate(), event.eventType,
+            startTime = start.toLocalTime(), endTime = end?.toLocalTime(),
+        )
         db.eventDao().setServerEventId(localEventId, id)
         return id
     }

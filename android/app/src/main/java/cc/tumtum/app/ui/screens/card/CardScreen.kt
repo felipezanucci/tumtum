@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
@@ -74,6 +76,15 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         if (uri != null) scope.launch { photo = withContext(Dispatchers.IO) { CardRenderer.loadPhoto(context, uri) } }
     }
     val n = night ?: return
+    // The photo behind the last shared black card comes back with the night
+    // (21/09): "Compartilhar de novo" and the gallery show the card that went out.
+    var photoRestored by remember { mutableStateOf(false) }
+    LaunchedEffect(n.photoPath) {
+        if (!photoRestored && skin == Skin.BLACK && n.photoPath != null) {
+            photo = withContext(Dispatchers.IO) { CardPhotoStore.load(n.photoPath) }
+        }
+        photoRestored = true
+    }
 
     val cardTitle = stringResource(R.string.reveal_default_title)
     val cardMeta = stringResource(R.string.reveal_bpm) + " " + stringResource(R.string.reveal_at, Fmt.hour(n.peakAt))
@@ -166,13 +177,22 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             enabled = !sharing,
             onClick = {
                 sharing = true
+                val chosen = photo
                 scope.launch {
                     // A pele escolhida fica com a noite (capa da galeria) no
                     // momento em que o card sai — antes era o "Postar" que gravava.
-                    container.nights.publish(n.id, skin)
+                    // Com a pele preta, a foto vai junto; com outra, ou sem foto,
+                    // a noite deixa de ter uma.
+                    val photoPath = if (skin == Skin.BLACK && chosen != null) {
+                        CardPhotoStore.save(context, n.id, chosen, n.photoPath)
+                    } else {
+                        CardPhotoStore.delete(n.photoPath)
+                        null
+                    }
+                    container.nights.publish(n.id, skin, photoPath)
                     runCatching {
                         val intent = withContext(Dispatchers.IO) {
-                            val bitmap = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = photo)
+                            val bitmap = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = chosen)
                             CardRenderer.shareIntent(
                                 context,
                                 bitmap,

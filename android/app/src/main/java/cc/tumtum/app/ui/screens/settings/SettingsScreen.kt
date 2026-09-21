@@ -40,13 +40,11 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.AvatarStore
+import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.domain.Skin
-import cc.tumtum.app.service.BatteryExemption
-import cc.tumtum.app.service.CaptureService
-import cc.tumtum.app.ui.screens.live.BatteryExemptionSheet
-import cc.tumtum.app.ui.screens.live.CreateEventSheet
-import cc.tumtum.app.ui.screens.live.NewEvent
+import cc.tumtum.app.ui.components.OutlineBadge
 import cc.tumtum.app.ui.components.UserAvatar
+import androidx.compose.ui.Alignment
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.components.TTField
@@ -77,29 +75,7 @@ fun SettingsScreen(nav: NavHostController) {
     var participantDraft by remember { mutableStateOf("") }
     var nameDraft by remember { mutableStateOf("") }
     var draftsLoaded by remember { mutableStateOf(false) }
-    var showCreateEvent by remember { mutableStateOf(false) }
     var operatorOpen by remember { mutableStateOf(false) }
-    var showBatteryGate by remember { mutableStateOf(false) }
-    var pendingEvent by remember { mutableStateOf<NewEvent?>(null) }
-
-    // §6 — com sensor pareado, a sessão só começa com a isenção de bateria concedida.
-    fun createEvent(spec: NewEvent) {
-        val paired = user?.sensorPaired == true
-        val address = user?.bleAddress
-        if (paired && !BatteryExemption.isExempt(context)) {
-            pendingEvent = spec
-            showBatteryGate = true
-            return
-        }
-        scope.launch {
-            val eventId = container.nights.startEvent(spec.name, spec.venue, spec.eventType, spec.serverEventId)
-            if (paired && address != null) {
-                container.prefs.setActiveCapture(eventId)
-                CaptureService.start(context, eventId, address)
-            }
-            nav.navigate(Routes.Live) { launchSingleTop = true }
-        }
-    }
     LaunchedEffect(user) {
         if (!draftsLoaded && user != null) {
             participantDraft = user?.participantId ?: ""
@@ -203,65 +179,45 @@ fun SettingsScreen(nav: NavHostController) {
         Spacer(Modifier.height(40.dp))
         // Operador atrás de uma porta (§5.13 da pesquisa de 19/09): o fã não
         // precisa ler nada disto. Fecha a cada visita; quem opera toca uma vez.
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clickable { operatorOpen = !operatorOpen }
-                .padding(vertical = 10.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_operator_section), style = TTType.Meta, color = TT.Gray70)
-                Text(stringResource(R.string.settings_participant_hint), style = TTType.Footnote, color = TT.Gray45)
-            }
-            Text(
-                stringResource(if (operatorOpen) R.string.settings_operator_hide else R.string.settings_operator_show),
-                style = TTType.Meta,
-                color = TT.Ink,
-            )
-        }
+        // O controle fica na linha do rótulo e o texto de apoio embaixo, nunca
+        // ao lado: em 21/09 o MOSTRAR caiu no meio da frase ("Um fã não
+        // precisa MOSTRAR mexer aqui") porque dividia a linha com o texto.
+        DoorRow(
+            title = stringResource(R.string.settings_operator_section),
+            hint = stringResource(R.string.settings_participant_hint),
+            control = stringResource(if (operatorOpen) R.string.settings_operator_hide else R.string.settings_operator_show),
+            onClick = { operatorOpen = !operatorOpen },
+        )
         if (operatorOpen) {
             Spacer(Modifier.height(4.dp))
             // Modo operador: os toques GOL · MÚSICA · MOMENTO só aparecem no celular
             // de quem opera o teste. O fã nunca é convidado a fazer isso.
             val marksOn = user?.operatorMarks == true
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { scope.launch { container.prefs.setOperatorMarks(!marksOn) } }
-                    .padding(vertical = 10.dp),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.settings_operator_marks), style = TTType.Body, color = TT.Ink)
-                    Text(stringResource(R.string.settings_operator_marks_hint), style = TTType.Footnote, color = TT.Gray45)
-                }
-                Text(
-                    stringResource(if (marksOn) R.string.settings_toggle_on else R.string.settings_toggle_off),
-                    style = TTType.Meta,
-                    color = if (marksOn) TT.Ink else TT.Gray45,
-                )
-            }
+            ToggleRow(
+                title = stringResource(R.string.settings_operator_marks),
+                hint = stringResource(R.string.settings_operator_marks_hint),
+                on = marksOn,
+                onToggle = { scope.launch { container.prefs.setOperatorMarks(!marksOn) } },
+            )
+            // Cadastro de evento pelo celular (21/09): o evento é da TumTum e o fã
+            // só escolhe da lista. Quem cadastra é o operador, pelos atalhos que
+            // esta chave acende na aba AO VIVO.
+            val eventsOn = user?.operatorEvents == true
+            ToggleRow(
+                title = stringResource(R.string.settings_operator_events),
+                hint = stringResource(R.string.settings_operator_events_hint),
+                on = eventsOn,
+                onToggle = { scope.launch { container.prefs.setOperatorEvents(!eventsOn) } },
+            )
             // Trava da revela: com ela ligada, noites novas só abrem às 10h da manhã
             // seguinte — o cartão cego colhe a memória antes de qualquer dado.
             val lockOn = user?.revealLockEnabled == true
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { scope.launch { container.prefs.setRevealLock(!lockOn) } }
-                    .padding(vertical = 10.dp),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.settings_reveal_lock), style = TTType.Body, color = TT.Ink)
-                    Text(stringResource(R.string.settings_reveal_lock_hint), style = TTType.Footnote, color = TT.Gray45)
-                }
-                Text(
-                    stringResource(if (lockOn) R.string.settings_toggle_on else R.string.settings_toggle_off),
-                    style = TTType.Meta,
-                    color = if (lockOn) TT.Ink else TT.Gray45,
-                )
-            }
+            ToggleRow(
+                title = stringResource(R.string.settings_reveal_lock),
+                hint = stringResource(R.string.settings_reveal_lock_hint),
+                on = lockOn,
+                onToggle = { scope.launch { container.prefs.setRevealLock(!lockOn) } },
+            )
             Spacer(Modifier.height(14.dp))
             TTField(
                 label = stringResource(R.string.participant_label),
@@ -274,14 +230,6 @@ fun SettingsScreen(nav: NavHostController) {
             )
             Spacer(Modifier.height(4.dp))
             Text(stringResource(R.string.participant_hint), style = TTType.Footnote, color = TT.Gray45)
-            Spacer(Modifier.height(14.dp))
-            // O participante não cria evento (a5): o operador marca aqui e a captura
-            // aparece sozinha na aba AO VIVO de quem está com o aparelho.
-            TTButton(
-                stringResource(R.string.settings_create_event),
-                TTButtonStyle.Outline,
-                onClick = { showCreateEvent = true },
-            )
         }
 
         Spacer(Modifier.height(40.dp))
@@ -328,30 +276,6 @@ fun SettingsScreen(nav: NavHostController) {
             stringResource(R.string.settings_delete),
             TTButtonStyle.Outline,
             onClick = { confirmDelete = true },
-        )
-    }
-
-    if (showCreateEvent) {
-        CreateEventSheet(
-            onDismiss = { showCreateEvent = false },
-            onCreate = { spec ->
-                showCreateEvent = false
-                createEvent(spec)
-            },
-        )
-    }
-
-    if (showBatteryGate) {
-        BatteryExemptionSheet(
-            onDismiss = {
-                showBatteryGate = false
-                pendingEvent = null
-            },
-            onExempt = {
-                showBatteryGate = false
-                pendingEvent?.let { createEvent(it) }
-                pendingEvent = null
-            },
         )
     }
 
@@ -412,6 +336,7 @@ fun SettingsScreen(nav: NavHostController) {
                                 if (serverDone) {
                                     confirmDelete = false
                                     container.nights.wipeAll()
+                                    CardPhotoStore.deleteAll(context)
                                     container.prefs.wipe()
                                     nav.navigate(Routes.Onboarding) { popUpTo(0) { inclusive = true } }
                                 }
@@ -429,5 +354,50 @@ fun SettingsScreen(nav: NavHostController) {
                 )
             },
         )
+    }
+}
+
+/**
+ * A section behind a door: the label and its control share a line, the hint
+ * runs under both. The whole block is the touch target.
+ */
+@Composable
+private fun DoorRow(title: String, hint: String, control: String, onClick: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, style = TTType.Meta, color = TT.Gray70, modifier = Modifier.weight(1f))
+            OutlineBadge(control, borderColor = TT.Gray25, contentColor = TT.Ink, hPad = 10.dp, vPad = 6.dp)
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(hint, style = TTType.Footnote, color = TT.Gray45)
+    }
+}
+
+/** An operator switch: title and LIGADA/DESLIGADA on one line, the explanation under them. */
+@Composable
+private fun ToggleRow(title: String, hint: String, on: Boolean, onToggle: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(vertical = 10.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, style = TTType.Body, color = TT.Ink, modifier = Modifier.weight(1f))
+            OutlineBadge(
+                stringResource(if (on) R.string.settings_toggle_on else R.string.settings_toggle_off),
+                borderColor = if (on) TT.Ink else TT.Gray25,
+                contentColor = if (on) TT.Ink else TT.Gray45,
+                hPad = 10.dp,
+                vPad = 6.dp,
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(hint, style = TTType.Footnote, color = TT.Gray45)
     }
 }

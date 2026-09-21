@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class, MarkEntity::class,
         BleSampleEntity::class, RrIntervalEntity::class, MotionEntity::class, ConnectionEventEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 abstract class TumTumDatabase : RoomDatabase() {
@@ -93,9 +93,16 @@ abstract class TumTumDatabase : RoomDatabase() {
             }
         }
 
+        /** v5 → v6: the night keeps the photo behind its last shared card (21/09). */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE nights ADD COLUMN photoPath TEXT")
+            }
+        }
+
         fun build(context: Context): TumTumDatabase =
             Room.databaseBuilder(context, TumTumDatabase::class.java, "tumtum.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .build()
     }
 }

@@ -70,7 +70,6 @@
     <string name="empty_no_watch">Nenhum relógio conectado</string>
     <string name="empty_watch_ok">Relógio conectado</string>
     <string name="empty_connect">Conectar meu relógio</string>
-    <string name="empty_create_event">Criar um evento</string>
 
     <!-- Criar evento (sheet mínima — a janela §7 precisa de início/fim) -->
     <string name="event_new_title">Marcar evento</string>
@@ -340,31 +339,52 @@
     <string name="upcoming_reminder_blocked">Sem permissão de notificação, a gente não consegue lembrar.</string>
     <string name="upcoming_reminder_allow">Permitir avisos</string>
     <string name="event_date_label">DATA</string>
-    <string name="event_date_hint">20/09/2026</string>
     <string name="event_time_label">HORA</string>
     <string name="event_start_label">COMEÇO</string>
     <string name="event_end_label">FIM</string>
-    <string name="event_time_hint">21:30</string>
     <string name="event_mark">Marcar</string>
     <string name="event_fetch">Buscar no relógio</string>
-    <string name="event_bad_time">Não entendi a data ou a hora. Formato: 20/09/2026 e 21:30.</string>
     <string name="event_in_past">Essa hora já passou. Pra uma noite que já foi, usa "Trazer uma noite que já passou".</string>
     <string name="event_not_past">Essa noite ainda não terminou. Marca ela como próxima.</string>
     <string name="event_too_long">Uma noite de mais de 16 horas não cabe aqui. Confere o começo e o fim.</string>
     <string name="past_bring">Trazer uma noite que já passou</string>
+    <!-- 21/09 — os eventos são da TumTum: o fã escolhe da lista, nunca digita um -->
+    <string name="events_section">EVENTOS DA TUMTUM</string>
+    <string name="events_loading">Buscando os eventos da TumTum…</string>
+    <string name="events_failed">Não consegui buscar os eventos da TumTum agora.</string>
+    <string name="events_retry">Tentar de novo</string>
+    <string name="events_none">Nenhum evento da TumTum por enquanto. Quando tiver, ele aparece aqui pra você ativar.</string>
+    <string name="events_upcoming">PRÓXIMOS</string>
+    <string name="events_past">JÁ ROLARAM</string>
+    <string name="events_badge_now">AGORA</string>
+    <string name="events_badge_mark">MARCAR</string>
+    <string name="events_badge_marked">MARCADO</string>
+    <string name="events_badge_bring">TRAZER</string>
+    <string name="events_past_needs_watch">Pra trazer uma noite que já passou, conecta o relógio primeiro.</string>
+    <string name="operator_events_hint">Cadastra aqui o que a TumTum vai cobrir. Vai pro servidor na hora e aparece na lista de todo mundo.</string>
+    <string name="event_server_failed">Não deu pra cadastrar no servidor: %1$s. O evento fica só neste celular por enquanto.</string>
+    <string name="event_server_offline">sem internet</string>
+    <!-- Hora nunca é digitada: os seletores de rolar do Android -->
+    <string name="picker_change">MUDAR</string>
+    <string name="picker_ok">OK</string>
+    <string name="picker_cancel">Voltar</string>
+    <!-- A isenção de bateria, dita antes de precisar dela -->
+    <string name="battery_row_ok">Bateria liberada pra gravar a noite inteira</string>
+    <string name="battery_row_pending">Otimização de bateria ligada — a gente pede pra tirar na hora de começar</string>
     <string name="remind_channel">Lembretes</string>
     <string name="remind_event_title">Hoje: %1$s</string>
     <string name="remind_event_text">Bota o relógio. A gente só olha depois.</string>
     <string name="remind_reveal_title">Sua noite abriu.</string>
     <string name="remind_reveal_text">%1$s — a curva está pronta.</string>
     <string name="locked_body_notify">A curva abre aqui às %1$s. A gente te avisa — vale a espera.</string>
-    <string name="settings_create_event">Marcar evento — operador</string>
 
     <!-- Trava da revela (protocolo do teste) -->
     <string name="settings_reveal_lock">Trava da revela</string>
     <string name="settings_reveal_lock_hint">Noites novas só abrem às 10h da manhã seguinte. Protege o cartão cego do teste.</string>
     <string name="settings_operator_marks">Marcar momentos na captura</string>
     <string name="settings_operator_marks_hint">Liga no celular de quem opera o teste. Os botões GOL, MÚSICA e MOMENTO aparecem na captura e as marcas vão pra linha do tempo do evento — valem pra todo mundo que está nele. Desligado, a captura não mostra botão nenhum.</string>
+    <string name="settings_operator_events">Cadastrar eventos pelo celular</string>
+    <string name="settings_operator_events_hint">Liga no celular de quem opera. Os três atalhos de cadastro — agora, o próximo, uma noite que já passou — aparecem na aba AO VIVO. O fã nunca vê isso: ele só escolhe da lista.</string>
     <string name="settings_toggle_on">LIGADA</string>
     <string name="settings_toggle_off">DESLIGADA</string>
     <string name="locked_title">Sua noite está sendo\nrevelada.</string>

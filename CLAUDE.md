@@ -61,6 +61,14 @@ state** — a control with no feedback, a stale display, a message describing
 the wrong condition. None break anything, none show up in tests, all surface
 only in a real person's hands.
 
+Three more on 21/09, the first day b140 was in Felipe's hands, all the
+same shape: a permission step skipped correctly but silently (read as
+forgotten), an upload whose steps ran behind an animation and whose result
+sat below the fold (read as "never went up"), and a repeated tap whose only
+answer was a changed word (read as ignored). **A step the app skips, a
+state it reaches, a tap it declines — each is said, where the eye already
+is.**
+
 The twelfth was the worst and generalises the rest: **an empty state is a
 claim.** `/events` had no error handling on load, so a refused request left the
 list empty and the page announced "Nenhum evento encontrado" — then offered to
@@ -472,8 +480,10 @@ designed against them. The values live in `detect_peaks()` in
 - **Events are TumTum's. The fan never creates one.** (21/09) The events
   where TumTum works are registered by us and appear on the fan's screen to
   be *activated* or not. No name, venue, kind, date or hour is ever asked of
-  a fan. Creating or typing an event is an operator act, behind the
-  OPERADOR door in Configurações.
+  a fan. Creating or typing an event is an operator act: the shortcuts live
+  at the foot of AO VIVO and are turned on by the *Cadastrar eventos pelo
+  celular* switch behind the OPERADOR door in Configurações — until the web
+  admin (decision log, open item 40) replaces them.
 - **A time is never typed.** (21/09) Every date or time field in the product
   is the platform's picker — the rolling selector — never a free-text
   `HH:mm` or `dd/MM/yyyy`. This holds for operator screens too.

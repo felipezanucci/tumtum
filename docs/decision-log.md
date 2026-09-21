@@ -5,12 +5,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-09-18
+## Where things stand — 2026-09-21
 
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | **21/09: b140 met Felipe's hands.** Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -295,7 +295,11 @@ the linked documents — this file is the index and the reasoning, not a diary.
     benchmark app delivers it in minutes (§5.1 — a retroactive night from
     the watch's own history, or a demo night labelled as one). Felipe's
     to pick from; nothing there is on the pilot's critical path.
-39. **A fan can type an event, and must not be able to.** Two product
+39. ~~**A fan can type an event, and must not be able to.**~~ **Built the
+    same day** (second entry of 21/09): AO VIVO lists TumTum's events for
+    the fan to activate, the typed sheet is the operator's and its times are
+    the Android wheels, `ServerEvent` reads the hours. On a phone: not yet.
+    *(Original:)* Two product
     rules from Felipe's test of b140 on 21/09 (entry of that day). (a)
     **Events are TumTum's**: the fan never creates one — the events where
     TumTum works are registered by us, appear on the fan's screen, and the
@@ -308,6 +312,141 @@ the linked documents — this file is the index and the reasoning, not a diary.
     place of its text fields; `EventTimes` becomes operator-only. **Until
     this is built, Bloco 7's typed-date checks are not worth running.**
     Costed at one session.
+40. **A web admin for events, on tumtum.cc.** Felipe's ask, 21/09: *"um
+    site web dentro do domínio da TumTum com login de administrador"* where
+    TumTum registers the events that then appear in every fan's app.
+    Evaluated the same day and agreed: web wins over the phone because the
+    operator registers from a desk, with a keyboard, looking at a setlist —
+    and almost all of it exists. The server already has create/update event
+    and the timeline endpoints (`backend/app/api/events.py`), the site
+    already has an admin area (`frontend/app/(app)/admin/waitlist`), and the
+    app now reads the times. What is missing is **one page**: a form (name,
+    venue, city, kind, date, start, end — pickers, never typed) and a list to
+    edit, gated like `/admin/waitlist` is. Until it exists the operator's
+    sheet on the phone is the admin, and it sends the same fields. Costed at
+    half a session. Not on the pilot's critical path while the operator and
+    the founder are the same person.
+41. **Did teste3 reach the server?** Unknown, and it matters: the GOL tapped
+    at 18h20 did not name the moment at 18h20·35 s. The upload's state was
+    invisible on b140 (entry of 21/09, item 6), so the night may have failed
+    to go up, or gone up and been analysed without the mark matching. The
+    next build says which on the first line under the curve; until then
+    **Felipe can scroll down on the teste3 night in b140 and read the line
+    under the moments** — "Momentos encontrados pelo servidor" means the
+    correlator is the question, anything else names the failure. The
+    backend's correlator tests cover a goal just before a region; nothing
+    covers a mark *inside* a region that is the peak's own cause. If the
+    night did go up, that is the test to write next.
+
+---
+
+## 2026-09-21 — b140 in a real hand: eight findings, one session, and the night nobody saw go up
+
+Felipe ran the test list on b140 the same evening the two product rules
+were recorded — Teste 1 (Bloco 9), then Blocos 3, 4, 5 and 6 in one run
+with the Polar, photographing each screen. Nothing crashed. Eight things
+came back, and he asked for all of them to be built at once, after the
+tests, not one by one. This entry is the eight, what each turned out to be,
+and what was built. Everything here is verified by CI's build only: no
+SDK in this environment, and none of it has been on a phone.
+
+**What the test found, and what it actually was.**
+
+1. *OPERADOR → MOSTRAR truncated with its own hint* — "Um fã não precisa
+   MOSTRAR mexer aqui". The control shared a line with a two-line hint.
+   The three rows of that section (the door, the two switches) now put the
+   control beside the label and the hint under both.
+2. *The capture screen did not fit* — the big number fell under MARCAR O
+   MOMENTO, "bpm agora" was clipped, and the badges hid behind a scroll.
+   The 18/09 fix had split the screen into a scrolling top and a fixed
+   bottom, which only moved the overflow. This is the one screen used
+   inside a show, in the dark; it now has no scroll at all — three weighted
+   gaps, and a short phone gets smaller numbers instead of an overflow.
+3. *"The battery gate did not appear. Nothing appeared."* — **not a bug**:
+   the exemption had been granted on an earlier build and Android keeps it
+   per app, so the gate is skipped, correctly and silently. The problem is
+   the silence: a skipped step nobody announced reads as a step the app
+   forgot. AO VIVO now has a third status row, next to the watch and the
+   sensor, that says whether the exemption is in place.
+4. *Felipe had to create "teste2" by hand to run the test at all* — the
+   rule from the morning, met in practice. Built; item 5 below.
+5. *A web admin for events* — Felipe's ask, evaluated, agreed, and left as
+   open item 40: one page on top of endpoints and an admin area that exist.
+6. *"Encerrar a noite" did nothing: no "Enviando", no "Procurando", no
+   "Momentos encontrados pelo servidor"; and the GOL tapped at 18h20 did
+   not name the moment at 18h20·35 s.* The two steps were drawn inside the
+   peaks column, which fades in only after the curve's 1.2 s animation, and
+   a 130-reading upload finishes before that; the result line then sat
+   below the fold, under the moments. Felipe saw the phone's moments, a
+   nameless peak, and read "the night never went up" — which may even be
+   true. **Whether teste3 reached the server is still unknown** (item 41).
+   What is built: the server's state is the first line under the curve —
+   the steps while they run, held 1.8 s after they finish with both marked
+   OK, then one sentence (the server's moments in white, the phone's and
+   why in grey, a failure in rose with "Enviar de novo"). `NightSync` lights
+   SENDING from the first byte, so a night in flight is never shown with no
+   step on.
+7. *A second GOL inside ten seconds got no answer.* The code had the answer
+   — "GOL já marcado às 18h20. Um toque basta." — and two things hid it:
+   the line changed only its words, and a `StateFlow` swallows an equal
+   value, so a third tap changed nothing at all. Now every tap is a new
+   value (`MarkFeedback.tick`), the button lights **acid** for a repeat and
+   **rose** for a mark stored, the phone buzzes with a different pattern
+   for each (CONFIRM/REJECT on API 30+), and the feedback is set *before*
+   the row is written so a fast second tap finds the first instead of
+   becoming a second mark.
+8. *The gallery showed the skin, not the photo.* The photo lived only in
+   the card screen's memory — "for this card, this share" (lote 4). The
+   night now keeps the photo behind its last shared black card
+   (`nights.photoPath`, Room v6, `CardPhotoStore` in filesDir at card
+   size); the tile draws it under the card's own 60% scrim, and the card
+   screen restores it so "Compartilhar de novo" shows what was sent. Gone
+   with the account.
+
+One more, found in the photos and not reported: *"Toca pra dizer o que tava
+rolando" was there* (the 18:21 screenshot shows it) and Felipe read it as a
+caption. It is acid now — the colour of a thing to touch on this screen.
+
+**The events, as built (item 4).** The rule was *the fan never creates an
+event; a time is never typed.* AO VIVO for a fan is now: the PRÓXIMO card
+if one is marked, the three status rows, and **EVENTOS DA TUMTUM** — the
+ones to come (a live one first, badge AGORA) and the ones already over —
+each a row with date · hour, name, venue, and what a tap does: MARCAR
+(becomes the PRÓXIMO, reminder an hour before, the notification permission
+asked for), AGORA (starts the capture through the same battery gate), TRAZER
+(the watch is asked over the event's own window, then the usual chooser).
+The empty state is a claim: "Nenhum evento da TumTum por enquanto" and "Não
+consegui buscar … Tentar de novo" are different sentences. `ServerEvent`
+reads `start_time`/`end_time` at last — the digits on the phone's clock,
+the column's offset ignored as the backend schema says, an end before the
+start is the next day, and an event with no time is not offered (nothing
+to count down to, no window to ask a watch over). An event with a start and
+no end is taken to last five hours: a query window, never a reading, and
+the operator's sheet always sends an end.
+
+The typed sheet did not disappear: it is how TumTum registers from the
+phone until item 40 exists. It is the operator's, reached by three
+shortcuts at the foot of AO VIVO that a new switch — *Cadastrar eventos
+pelo celular*, behind Configurações → OPERADOR — turns on; it left
+Settings. Its DATA, HORA/COMEÇO and FIM are **the Android wheels**
+(`android:datePickerMode="spinner"`, `timePickerMode="spinner"`, inflated
+from two layouts into a dialog — no dependency, and the literal thing
+Felipe described: *"aquele campo onde a pessoa rola as horas"*; Material
+3's clock dial is a tap on a clock face, not a wheel). What it registers
+goes **to the server first**, with start and end, so every fan's list has
+it, then to this phone; a failure is said on the tab and the event still
+works locally. `EventTimes` lost its parsing and kept its meaning — a next
+event in the past, a past night not yet over, midnight, sixteen hours —
+with seven tests; `ServerEventsTest` grew five for the times and the fan's
+split. `NightSync`'s twin created at upload now carries the night's times
+too, so nights from before today show up timed.
+
+**What it settles:** items 39 and (the app side of) 4; the shape of AO
+VIVO for a fan — a list to choose from, never a form to fill. **What it
+costs:** one session; a Room migration (v6); one more operator switch to
+turn on once. **What is open:** item 40 (the web admin), item 41 (did
+teste3 go up), Bloco 8 of the test list, and the next build in Felipe's
+hands — every one of the eight is a claim until then.
 
 ---
 

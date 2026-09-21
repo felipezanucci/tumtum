@@ -66,6 +66,8 @@ data class Night(
     val uploadState: UploadState = UploadState.PENDING,
     val uploadError: String? = null,
     val momentsSource: MomentsSource = MomentsSource.LOCAL,
+    /** The photo behind the last shared black card, when there was one. */
+    val photoPath: String? = null,
 )
 
 /** Fonte disponível no Health Connect, com densidade real medida na janela (b4). */
@@ -150,4 +152,6 @@ data class GalleryNight(
     val skin: Skin,
     /** False until a card was chosen: the night exists, its skin does not yet. */
     val published: Boolean = true,
+    /** The photo behind the card, drawn on the tile when the skin is black. */
+    val photoPath: String? = null,
 )
