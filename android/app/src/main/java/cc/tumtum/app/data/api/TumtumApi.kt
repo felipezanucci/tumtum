@@ -73,13 +73,27 @@ class TumtumApi(private val prefs: UserPrefs) {
     suspend fun listEvents(): List<ServerEvent> =
         ServerEvents.parse(request("GET", "/api/events", null, token = null))
 
-    /** Creates the event on the server; answers with its id. Date is the event's local date. */
-    suspend fun createEvent(name: String, venue: String?, date: java.time.LocalDate, eventType: String): String {
+    /**
+     * Creates the event on the server; answers with its id. Date and times are
+     * the event's own wall clock (21/09): the server stores the digits and the
+     * app reads the digits back — the offset on the wire is the column's, not
+     * the event's, and neither side reads it.
+     */
+    suspend fun createEvent(
+        name: String,
+        venue: String?,
+        date: java.time.LocalDate,
+        eventType: String,
+        startTime: java.time.LocalTime? = null,
+        endTime: java.time.LocalTime? = null,
+    ): String {
         val body = JSONObject()
             .put("name", name)
             .put("date", date.toString())
             .put("event_type", eventType)
         if (!venue.isNullOrBlank()) body.put("venue", venue)
+        startTime?.let { body.put("start_time", TIME_FMT.format(it)) }
+        endTime?.let { body.put("end_time", TIME_FMT.format(it)) }
         val response = JSONObject(request("POST", "/api/events", body.toString(), token = requireToken()))
         return response.getString("id")
     }
@@ -174,5 +188,6 @@ class TumtumApi(private val prefs: UserPrefs) {
 
     companion object {
         const val BASE_URL = "https://tumtum-production.up.railway.app"
+        private val TIME_FMT: java.time.format.DateTimeFormatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
     }
 }

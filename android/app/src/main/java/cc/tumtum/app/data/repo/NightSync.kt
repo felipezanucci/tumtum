@@ -142,12 +142,21 @@ class NightSync(
         }
     }
 
-    /** The local event's server twin: the one it was picked from, or one created now from its name, venue, date and kind. */
+    /**
+     * The local event's server twin: the one it was picked from, or one created
+     * now from its name, venue, date, kind — and, since 21/09, its start and
+     * end, so the fans' list can count down to it and ask a watch over it.
+     */
     private suspend fun ensureServerEvent(localEventId: Long): String? {
         val event = db.eventDao().byId(localEventId) ?: return null
         event.serverEventId?.let { return it }
-        val date = Instant.ofEpochMilli(event.startAt).atZone(ZoneId.systemDefault()).toLocalDate()
-        val id = api.createEvent(event.name, event.venue.ifBlank { null }, date, event.eventType)
+        val zone = ZoneId.systemDefault()
+        val start = Instant.ofEpochMilli(event.startAt).atZone(zone)
+        val end = event.endAt?.let { Instant.ofEpochMilli(it).atZone(zone) }
+        val id = api.createEvent(
+            event.name, event.venue.ifBlank { null }, start.toLocalDate(), event.eventType,
+            startTime = start.toLocalTime(), endTime = end?.toLocalTime(),
+        )
         db.eventDao().setServerEventId(localEventId, id)
         return id
     }

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -50,17 +51,22 @@ import cc.tumtum.app.R
 import cc.tumtum.app.data.api.ServerEvent
 import cc.tumtum.app.data.api.ServerEvents
 import cc.tumtum.app.data.prefs.UpcomingEvent
+import cc.tumtum.app.data.repo.registerEvent
 import cc.tumtum.app.domain.EventTimes
+import cc.tumtum.app.domain.NewEvent
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.service.BatteryExemption
 import cc.tumtum.app.service.CaptureService
 import cc.tumtum.app.service.Reminders
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.Badge
+import cc.tumtum.app.ui.components.OutlineBadge
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.components.TTField
 import cc.tumtum.app.ui.components.TribeChip
+import cc.tumtum.app.ui.components.WheelDateField
+import cc.tumtum.app.ui.components.WheelTimeField
 import cc.tumtum.app.ui.components.Wordmark
 import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
@@ -69,12 +75,22 @@ import cc.tumtum.app.ui.theme.TTType
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import kotlinx.coroutines.launch
 
 /**
  * Aba AO VIVO: com evento ativo vai direto para a captura (a2, tela cheia);
- * sem evento, é o estado de espera/vazio (a5) — e, desde 20/09, o lugar do
- * próximo evento marcado: o calendário é o gatilho (pesquisa de 19/09, §5.7).
+ * sem evento, é o lugar do próximo evento marcado (§5.7) e, desde 21/09, da
+ * lista dos eventos da TumTum. A regra do fundador: **o evento é da TumTum, o
+ * fã nunca cria um.** O fã vê o que a TumTum cadastrou — o que vem, o que já
+ * rolou — e ativa com um toque: o que vem vira o PRÓXIMO (com o lembrete uma
+ * hora antes), o que está rolando começa a captura, o que já passou é buscado
+ * no relógio. Nome, lugar, tipo, data e hora nunca são perguntados a um fã.
+ *
+ * Quem cadastra é o operador, pelos três atalhos que a chave "Cadastrar
+ * eventos pelo celular" (Configurações → OPERADOR) acende no fim desta aba.
+ * A folha do operador é a mesma de antes, com uma diferença: hora nunca é
+ * digitada — data e horas são as rodas do Android.
  */
 @Composable
 fun LiveTabScreen(nav: NavHostController) {
@@ -93,10 +109,11 @@ fun LiveTabScreen(nav: NavHostController) {
     }
 
     val state = user ?: return
-    var showMarkSheet by remember { mutableStateOf(false) }
-    var showPastSheet by remember { mutableStateOf(false) }
+    var sheetMode by remember { mutableStateOf<EventSheetMode?>(null) }
     var showBatteryGate by remember { mutableStateOf(false) }
-    var pendingStart by remember { mutableStateOf<UpcomingEvent?>(null) }
+    var pendingStart by remember { mutableStateOf<StartRequest?>(null) }
+    // One line under the list for what a tap could not do, and why.
+    var notice by remember { mutableStateOf<String?>(null) }
     // Re-read after the permission dialog closes, so the line under the card tells the truth.
     var notifTick by remember { mutableIntStateOf(0) }
     val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { notifTick++ }
@@ -109,25 +126,88 @@ fun LiveTabScreen(nav: NavHostController) {
     }
     val notificationsOk = remember(notifTick) { NotificationManagerCompat.from(context).areNotificationsEnabled() }
 
-    // "Começar agora" on the marked event: the same path the operator's
-    // "Marcar evento" takes (battery gate, capture service), then the mark
-    // and its reminder are cleared — the night has begun.
-    fun startUpcoming(up: UpcomingEvent) {
+    // The battery exemption, read again every time the tab comes back: the
+    // person may have changed it in Android's own settings. Said on the tab
+    // (21/09) because the gate that asks for it is skipped, silently and
+    // correctly, once it is granted — and a skipped step nobody announced
+    // reads as a step the app forgot.
+    var resumeTick by remember { mutableIntStateOf(0) }
+    LifecycleResumeEffect(Unit) {
+        resumeTick++
+        onPauseOrDispose { }
+    }
+    val batteryExempt = remember(resumeTick) { BatteryExemption.isExempt(context) }
+
+    // The server's events: asked for on every visit, and again on "Tentar de
+    // novo". "Could not ask" is told apart from "nothing there".
+    var serverEvents by remember { mutableStateOf<List<ServerEvent>?>(null) }
+    var listFailed by remember { mutableStateOf(false) }
+    var fetchTick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(fetchTick) {
+        listFailed = false
+        runCatching { container.api.listEvents() }
+            .onSuccess { serverEvents = it }
+            .onFailure { listFailed = true }
+    }
+
+    // Starting a capture on an event — the fan's "Começar agora" and the
+    // operator's "Começa agora" take the same path: battery gate, then the
+    // service. Only the marked event's own start clears the mark.
+    fun startCapture(request: StartRequest) {
         val paired = state.sensorPaired
         val address = state.bleAddress
         if (paired && !BatteryExemption.isExempt(context)) {
-            pendingStart = up
+            pendingStart = request
             showBatteryGate = true
             return
         }
+        val up = request.event
         scope.launch {
             val eventId = container.nights.startEvent(up.name, up.venue, up.eventType, up.serverEventId)
             if (paired && address != null) {
                 container.prefs.setActiveCapture(eventId)
                 CaptureService.start(context, eventId, address)
             }
-            Reminders.cancelEvent(context)
-            container.prefs.clearUpcoming()
+            if (request.clearsMark) {
+                Reminders.cancelEvent(context)
+                container.prefs.clearUpcoming()
+            }
+        }
+    }
+
+    fun markUpcoming(next: UpcomingEvent) {
+        scope.launch {
+            container.prefs.setUpcoming(next)
+            Reminders.scheduleEvent(
+                context, next.startAt,
+                context.getString(R.string.remind_event_title, next.name),
+                context.getString(R.string.remind_event_text),
+            )
+        }
+        askNotifications()
+    }
+
+    fun bringPast(name: String, venue: String, eventType: String, serverEventId: String?, startAt: Instant, endAt: Instant) {
+        scope.launch {
+            // The event is created already closed; the watch is asked over
+            // that window; the usual chooser and reveal follow.
+            val event = container.nights.createPastEvent(name, venue, eventType, serverEventId, startAt, endAt)
+            container.endNight.event = event
+            container.endNight.measurement = container.nights.measureSources(event, endAt)
+            nav.navigate(Routes.EndNight)
+        }
+    }
+
+    /** The fan's one gesture: what the event is against now decides what activating it means. */
+    fun activate(ev: ServerEvent) {
+        notice = null
+        val startAt = ev.startAt ?: return
+        val up = UpcomingEvent(ev.name, ev.venue.orEmpty(), ev.eventType, startAt, ev.id)
+        when {
+            ev.isLiveAt(now) -> startCapture(StartRequest(up, clearsMark = state.upcoming?.serverEventId == ev.id))
+            ev.isUpcomingAt(now) -> markUpcoming(up)
+            state.watchConnected -> bringPast(ev.name, ev.venue.orEmpty(), ev.eventType, ev.id, startAt, ev.endsAt ?: startAt)
+            else -> notice = context.getString(R.string.events_past_needs_watch)
         }
     }
 
@@ -153,17 +233,16 @@ fun LiveTabScreen(nav: NavHostController) {
             )
         }
 
-        // a5 — Vazio: convida a marcar o próximo evento, não a comprar nada.
         Column(
             Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 32.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.Center,
         ) {
             val up = state.upcoming
             if (up == null) {
+                // a5 — Vazio: o coração de folga, e a lista logo abaixo.
                 Text(
                     stringResource(R.string.empty_title),
                     style = TTType.Shout.copy(fontSize = 34.sp, lineHeight = 35.sp),
@@ -175,13 +254,13 @@ fun LiveTabScreen(nav: NavHostController) {
                     style = TTType.Body.copy(fontSize = 19.sp),
                     color = TT.Gray45,
                 )
-                Spacer(Modifier.height(36.dp))
+                Spacer(Modifier.height(28.dp))
             } else {
                 UpcomingCard(
                     up = up,
                     now = now,
                     notificationsOk = notificationsOk,
-                    onStart = { startUpcoming(up) },
+                    onStart = { startCapture(StartRequest(up, clearsMark = true)) },
                     onUnmark = {
                         scope.launch {
                             Reminders.cancelEvent(context)
@@ -192,45 +271,19 @@ fun LiveTabScreen(nav: NavHostController) {
                 )
                 Spacer(Modifier.height(24.dp))
             }
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, TT.Gray10, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    Modifier
-                        .size(9.dp)
-                        .clip(CircleShape)
-                        .background(if (state.watchConnected) TT.Acid else TT.Gray25),
-                )
-                Text(
-                    stringResource(if (state.watchConnected) R.string.empty_watch_ok else R.string.empty_no_watch),
-                    style = TTType.BodySmall,
-                    color = TT.Gray70,
-                )
-            }
+
+            StatusRow(
+                ok = state.watchConnected,
+                text = stringResource(if (state.watchConnected) R.string.empty_watch_ok else R.string.empty_no_watch),
+            )
             if (state.sensorPaired) {
                 Spacer(Modifier.height(10.dp))
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .border(1.dp, TT.Gray10, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(Modifier.size(9.dp).clip(CircleShape).background(TT.Acid))
-                    Text(
-                        stringResource(R.string.empty_sensor_ok, state.bleName ?: ""),
-                        style = TTType.BodySmall,
-                        color = TT.Gray70,
-                    )
-                }
+                StatusRow(ok = true, text = stringResource(R.string.empty_sensor_ok, state.bleName ?: ""))
+                Spacer(Modifier.height(10.dp))
+                StatusRow(
+                    ok = batteryExempt,
+                    text = stringResource(if (batteryExempt) R.string.battery_row_ok else R.string.battery_row_pending),
+                )
             }
             Spacer(Modifier.height(14.dp))
             if (!state.watchConnected && !state.sensorPaired) {
@@ -239,63 +292,107 @@ fun LiveTabScreen(nav: NavHostController) {
                     TTButtonStyle.Rose,
                     onClick = { nav.navigate(Routes.Permission) },
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(24.dp))
+            } else {
+                Spacer(Modifier.height(14.dp))
             }
-            if (up == null) {
-                TTButton(
-                    stringResource(R.string.upcoming_mark),
-                    if (state.watchConnected || state.sensorPaired) TTButtonStyle.Rose else TTButtonStyle.Outline,
-                    onClick = { showMarkSheet = true },
-                )
-                Spacer(Modifier.height(10.dp))
+
+            // The events TumTum registered. An empty state is a claim: "none
+            // yet" and "could not ask" are different sentences.
+            Text(stringResource(R.string.events_section), style = TTType.Meta, color = TT.Gray70)
+            Spacer(Modifier.height(10.dp))
+            val events = serverEvents
+            when {
+                events == null && !listFailed -> {
+                    Text(stringResource(R.string.events_loading), style = TTType.Footnote, color = TT.Gray45)
+                }
+                else -> {
+                    if (listFailed) {
+                        Text(stringResource(R.string.events_failed), style = TTType.BodySmall, color = TT.Ink)
+                        Text(
+                            stringResource(R.string.events_retry),
+                            style = TTType.Meta,
+                            color = TT.Ink,
+                            modifier = Modifier.clickable { fetchTick++ }.padding(vertical = 8.dp),
+                        )
+                        Spacer(Modifier.height(6.dp))
+                    }
+                    val fan = ServerEvents.forFan(events.orEmpty(), now)
+                    if (!listFailed && fan.upcoming.isEmpty() && fan.past.isEmpty()) {
+                        Text(stringResource(R.string.events_none), style = TTType.Footnote, color = TT.Gray45)
+                    }
+                    if (fan.upcoming.isNotEmpty()) {
+                        Text(stringResource(R.string.events_upcoming), style = TTType.MetaSmall, color = TT.Gray55)
+                        Spacer(Modifier.height(6.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            fan.upcoming.forEach { ev ->
+                                EventRow(ev, now, marked = up?.serverEventId == ev.id) { activate(ev) }
+                            }
+                        }
+                        Spacer(Modifier.height(14.dp))
+                    }
+                    if (fan.past.isNotEmpty()) {
+                        Text(stringResource(R.string.events_past), style = TTType.MetaSmall, color = TT.Gray55)
+                        Spacer(Modifier.height(6.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            fan.past.forEach { ev ->
+                                EventRow(ev, now, marked = false) { activate(ev) }
+                            }
+                        }
+                    }
+                }
             }
-            // §5.1 — the first night must not be weeks away: a night the watch
-            // already recorded, brought in from its own history.
-            if (state.watchConnected) {
-                TTButton(
-                    stringResource(R.string.past_bring),
-                    TTButtonStyle.Outline,
-                    onClick = { showPastSheet = true },
-                )
+            notice?.let {
+                Spacer(Modifier.height(12.dp))
+                Text(it, style = TTType.BodySmall, color = TT.Ink)
+            }
+
+            // The operator's door, open only on the operator's phone.
+            if (state.operatorEvents) {
+                Spacer(Modifier.height(32.dp))
+                Text(stringResource(R.string.settings_operator_section), style = TTType.Meta, color = TT.Gray70)
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.operator_events_hint), style = TTType.Footnote, color = TT.Gray45)
+                Spacer(Modifier.height(12.dp))
+                TTButton(stringResource(R.string.event_starts_now), TTButtonStyle.Outline, onClick = { sheetMode = EventSheetMode.Now })
+                Spacer(Modifier.height(8.dp))
+                TTButton(stringResource(R.string.upcoming_mark), TTButtonStyle.Outline, onClick = { sheetMode = EventSheetMode.Upcoming })
+                Spacer(Modifier.height(8.dp))
+                TTButton(stringResource(R.string.past_bring), TTButtonStyle.Outline, onClick = { sheetMode = EventSheetMode.Past })
             }
         }
     }
 
-    if (showMarkSheet) {
+    sheetMode?.let { mode ->
         CreateEventSheet(
-            mode = EventSheetMode.Upcoming,
-            onDismiss = { showMarkSheet = false },
+            mode = mode,
+            onDismiss = { sheetMode = null },
             onCreate = { spec ->
-                showMarkSheet = false
-                val startAt = spec.startAt ?: return@CreateEventSheet
-                val next = UpcomingEvent(spec.name, spec.venue, spec.eventType, startAt, spec.serverEventId)
+                sheetMode = null
                 scope.launch {
-                    container.prefs.setUpcoming(next)
-                    Reminders.scheduleEvent(
-                        context, startAt,
-                        context.getString(R.string.remind_event_title, next.name),
-                        context.getString(R.string.remind_event_text),
-                    )
-                }
-                askNotifications()
-            },
-        )
-    }
-    if (showPastSheet) {
-        CreateEventSheet(
-            mode = EventSheetMode.Past,
-            onDismiss = { showPastSheet = false },
-            onCreate = { spec ->
-                showPastSheet = false
-                val startAt = spec.startAt ?: return@CreateEventSheet
-                val endAt = spec.endAt ?: return@CreateEventSheet
-                scope.launch {
-                    // The event is created already closed; the watch is asked
-                    // over that window; the usual chooser and reveal follow.
-                    val event = container.nights.createPastEvent(spec.name, spec.venue, spec.eventType, spec.serverEventId, startAt, endAt)
-                    container.endNight.event = event
-                    container.endNight.measurement = container.nights.measureSources(event, endAt)
-                    nav.navigate(Routes.EndNight)
+                    // To the server first, so every fan's list has it; then this phone.
+                    val registered = container.registerEvent(spec)
+                    registered.error?.let { notice = context.getString(R.string.event_server_failed, it) }
+                    val event = spec.copy(serverEventId = registered.serverEventId)
+                    when (mode) {
+                        EventSheetMode.Now -> startCapture(
+                            StartRequest(
+                                UpcomingEvent(event.name, event.venue, event.eventType, Instant.now(), event.serverEventId),
+                                clearsMark = false,
+                            ),
+                        )
+                        EventSheetMode.Upcoming -> event.startAt?.let { startAt ->
+                            markUpcoming(UpcomingEvent(event.name, event.venue, event.eventType, startAt, event.serverEventId))
+                        }
+                        EventSheetMode.Past -> {
+                            val startAt = event.startAt
+                            val endAt = event.endAt
+                            if (startAt != null && endAt != null) {
+                                bringPast(event.name, event.venue, event.eventType, event.serverEventId, startAt, endAt)
+                            }
+                        }
+                    }
+                    fetchTick++
                 }
             },
         )
@@ -308,10 +405,64 @@ fun LiveTabScreen(nav: NavHostController) {
             },
             onExempt = {
                 showBatteryGate = false
-                pendingStart?.let { startUpcoming(it) }
+                pendingStart?.let { startCapture(it) }
                 pendingStart = null
             },
         )
+    }
+}
+
+/** A capture about to start, and whether it is the marked event's own start. */
+private data class StartRequest(val event: UpcomingEvent, val clearsMark: Boolean)
+
+/** One line of state with a dot: acid when the thing is in place, grey when it is not. */
+@Composable
+private fun StatusRow(ok: Boolean, text: String) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, TT.Gray10, RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(9.dp).clip(CircleShape).background(if (ok) TT.Acid else TT.Gray25))
+        Text(text, style = TTType.BodySmall, color = TT.Gray70)
+    }
+}
+
+/**
+ * One of TumTum's events, as a fan sees it: when, what, where, and what a tap
+ * does — MARCAR for one to come, AGORA for one going on, TRAZER for one
+ * already over, MARCADO for the one already chosen.
+ */
+@Composable
+private fun EventRow(ev: ServerEvent, now: Instant, marked: Boolean, onClick: () -> Unit) {
+    val startAt = ev.startAt ?: return
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .border(1.dp, if (marked) TT.Ink else TT.Gray10, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("${Fmt.date(startAt)} · ${Fmt.hour(startAt)}", style = TTType.MetaSmall, color = TT.Gray55)
+            Spacer(Modifier.height(2.dp))
+            Text(ev.name, style = TTType.ItemTitle.copy(fontSize = 15.sp), color = TT.Ink, maxLines = 1)
+            ev.venue?.let { Text(it, style = TTType.BodySmall, color = TT.Gray45, maxLines = 1) }
+        }
+        when {
+            marked -> Badge(stringResource(R.string.events_badge_marked))
+            ev.isLiveAt(now) -> Badge(stringResource(R.string.events_badge_now))
+            ev.isUpcomingAt(now) -> OutlineBadge(stringResource(R.string.events_badge_mark), borderColor = TT.Gray25, contentColor = TT.Ink)
+            else -> OutlineBadge(stringResource(R.string.events_badge_bring), borderColor = TT.Gray25, contentColor = TT.Ink)
+        }
     }
 }
 
@@ -372,35 +523,24 @@ private fun UpcomingCard(
     }
 }
 
-/** What the sheet hands back: an event to start, typed or picked from the server's list (Etapa 3). */
-data class NewEvent(
-    val name: String,
-    val venue: String,
-    val eventType: String = "concert",
-    val serverEventId: String? = null,
-    /** Set by the Upcoming and Past modes; null means "now". */
-    val startAt: Instant? = null,
-    /** Set by the Past mode only. */
-    val endAt: Instant? = null,
-)
-
-/** Which question the sheet asks: an event starting now, the next one, or a night that already happened. */
+/** Which question the operator's sheet asks: an event starting now, the next one, or a night that already happened. */
 enum class EventSheetMode { Now, Upcoming, Past }
 
 /**
- * Sheet mínima para marcar o evento — a janela de leitura (§7) precisa de um
- * início. (Superfície não desenhada no doc de telas; mantida mínima de propósito.)
+ * A folha do operador (21/09): como a TumTum cadastra um evento pelo celular.
+ * Superfície de operador, nunca de fã — o fã escolhe da lista em AO VIVO.
  *
  * Since 2026-09-18 (Etapa 3) it also offers the server's events nearest to
  * today: picking one attaches the night to the timeline the pilot shares —
  * the thing that names a goal for everyone in the stadium — instead of a
- * private event with the same name. Typing still works; the kind decides
- * which timeline entries the server will accept.
+ * private event with the same name. Typing a name still works; the kind
+ * decides which timeline entries the server will accept.
  *
- * Since 2026-09-20 it has three modes: [EventSheetMode.Now] (the operator's
- * "Começa agora"), [EventSheetMode.Upcoming] (date and time, the calendar as
- * the trigger) and [EventSheetMode.Past] (date, start and end — a night the
- * watch already holds). The rules for the typed times live in [EventTimes].
+ * Three modes since 2026-09-20: [EventSheetMode.Now] ("Começa agora"),
+ * [EventSheetMode.Upcoming] (date and time, the calendar as the trigger) and
+ * [EventSheetMode.Past] (date, start and end — a night the watch already
+ * holds). Since 21/09 the date and the times are the platform's wheels, never
+ * text; what a picked time can still get wrong lives in [EventTimes].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -416,11 +556,11 @@ fun CreateEventSheet(
     var picked by remember { mutableStateOf<ServerEvent?>(null) }
     var serverEvents by remember { mutableStateOf<List<ServerEvent>?>(null) }
     var listFailed by remember { mutableStateOf(false) }
-    var dateText by remember {
+    var day by remember {
         mutableStateOf(if (mode == EventSheetMode.Past) EventTimes.yesterday(Instant.now()) else EventTimes.today(Instant.now()))
     }
-    var startText by remember { mutableStateOf("") }
-    var endText by remember { mutableStateOf("") }
+    var start by remember { mutableStateOf(LocalTime.of(21, 0)) }
+    var end by remember { mutableStateOf(LocalTime.of(23, 30)) }
     var timeError by remember { mutableStateOf<EventTimes.Reason?>(null) }
 
     // The list is asked for once, when the sheet opens. "Could not ask" is
@@ -517,28 +657,21 @@ fun CreateEventSheet(
             }
             if (mode != EventSheetMode.Now) {
                 Spacer(Modifier.height(14.dp))
-                TTField(
-                    stringResource(R.string.event_date_label),
-                    dateText,
-                    { dateText = it; timeError = null },
-                    placeholder = stringResource(R.string.event_date_hint),
-                )
+                WheelDateField(stringResource(R.string.event_date_label), day, { day = it; timeError = null })
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    TTField(
+                    WheelTimeField(
                         stringResource(if (mode == EventSheetMode.Past) R.string.event_start_label else R.string.event_time_label),
-                        startText,
-                        { startText = it; timeError = null },
+                        start,
+                        { start = it; timeError = null },
                         modifier = Modifier.weight(1f),
-                        placeholder = stringResource(R.string.event_time_hint),
                     )
                     if (mode == EventSheetMode.Past) {
-                        TTField(
+                        WheelTimeField(
                             stringResource(R.string.event_end_label),
-                            endText,
-                            { endText = it; timeError = null },
+                            end,
+                            { end = it; timeError = null },
                             modifier = Modifier.weight(1f),
-                            placeholder = "01:30",
                         )
                     }
                 }
@@ -555,7 +688,6 @@ fun CreateEventSheet(
                 Text(
                     stringResource(
                         when (reason) {
-                            EventTimes.Reason.UNPARSEABLE -> R.string.event_bad_time
                             EventTimes.Reason.IN_PAST -> R.string.event_in_past
                             EventTimes.Reason.NOT_PAST -> R.string.event_not_past
                             EventTimes.Reason.TOO_LONG -> R.string.event_too_long
@@ -582,8 +714,8 @@ fun CreateEventSheet(
                     }
                     val times: EventTimes.Result? = when (mode) {
                         EventSheetMode.Now -> null
-                        EventSheetMode.Upcoming -> EventTimes.upcoming(dateText, startText, Instant.now())
-                        EventSheetMode.Past -> EventTimes.past(dateText, startText, endText, Instant.now())
+                        EventSheetMode.Upcoming -> EventTimes.upcoming(day, start, Instant.now())
+                        EventSheetMode.Past -> EventTimes.past(day, start, end, Instant.now())
                     }
                     when (times) {
                         null -> onCreate(NewEvent(name = name, venue = venue, eventType = eventType, serverEventId = picked?.id))

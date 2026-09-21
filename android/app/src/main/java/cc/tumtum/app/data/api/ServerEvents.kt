@@ -2,7 +2,11 @@ package cc.tumtum.app.data.api
 
 import org.json.JSONArray
 import org.json.JSONObject
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import kotlin.math.abs
 
 /** An event as the server lists it — the thing a night attaches to, and the owner of the timeline that names moments. */
@@ -13,27 +17,89 @@ data class ServerEvent(
     val venue: String?,
     val city: String?,
     val eventType: String,
+    /**
+     * When it starts and ends on the phone's clock (21/09): the server's
+     * `date` and the wall-clock digits of `start_time` / `end_time`, read in
+     * the phone's zone. The offset the server sends carries nothing — see
+     * `offset_aware` in the backend's event schema — and is never read. An
+     * end before the start is the next day. Null when the server has no time
+     * for the event; then there is nothing for a fan to activate.
+     */
+    val startAt: Instant? = null,
+    val endAt: Instant? = null,
 ) {
     /** `10/10 · São Paulo × Vitória` — one line, readable in a dark room. */
     val label: String
         get() = (date?.let { "%02d/%02d · ".format(it.dayOfMonth, it.monthValue) } ?: "") + name
+
+    /** When the night is over: the server's end, or [ServerEvents.NIGHT_LENGTH] after the start. */
+    val endsAt: Instant?
+        get() = endAt ?: startAt?.plus(ServerEvents.NIGHT_LENGTH)
+
+    fun isUpcomingAt(now: Instant): Boolean = startAt?.isAfter(now) == true
+
+    fun isLiveAt(now: Instant): Boolean {
+        val start = startAt ?: return false
+        val end = endsAt ?: return false
+        return !now.isBefore(start) && now.isBefore(end)
+    }
+
+    fun isPastAt(now: Instant): Boolean {
+        val end = endsAt ?: return false
+        return !now.isBefore(end)
+    }
 }
+
+/** The events a fan can activate: the ones with a time, split by where they stand against now. */
+data class FanEvents(val upcoming: List<ServerEvent>, val past: List<ServerEvent>)
 
 /** Reads `GET /api/events` and picks what matters tonight. Pure, tested. */
 object ServerEvents {
-    fun parse(json: String): List<ServerEvent> {
+    /**
+     * A night with no end on the server is taken to last this long. It is a
+     * window to ask the watch over, and the badge for "still on" — never a
+     * reading. An operator who registers from the phone always sends an end.
+     */
+    val NIGHT_LENGTH: Duration = Duration.ofHours(5)
+
+    fun parse(json: String, zone: ZoneId = ZoneId.systemDefault()): List<ServerEvent> {
         val array = JSONArray(json)
-        return (0 until array.length()).map { i -> from(array.getJSONObject(i)) }
+        return (0 until array.length()).map { i -> from(array.getJSONObject(i), zone) }
     }
 
-    fun from(item: JSONObject): ServerEvent = ServerEvent(
-        id = item.getString("id"),
-        name = item.optString("name", "Evento"),
-        date = runCatching { LocalDate.parse(item.getString("date")) }.getOrNull(),
-        venue = item.text("venue"),
-        city = item.text("city"),
-        eventType = item.optString("event_type", "concert"),
-    )
+    fun from(item: JSONObject, zone: ZoneId = ZoneId.systemDefault()): ServerEvent {
+        val date = runCatching { LocalDate.parse(item.getString("date")) }.getOrNull()
+        val start = wallClock(item.text("start_time"))
+        val end = wallClock(item.text("end_time"))
+        val startAt = if (date != null && start != null) date.atTime(start).atZone(zone).toInstant() else null
+        var endAt = if (date != null && end != null) date.atTime(end).atZone(zone).toInstant() else null
+        if (startAt != null && endAt != null && !endAt.isAfter(startAt)) endAt = endAt.plus(Duration.ofDays(1))
+        return ServerEvent(
+            id = item.getString("id"),
+            name = item.optString("name", "Evento"),
+            date = date,
+            venue = item.text("venue"),
+            city = item.text("city"),
+            eventType = item.optString("event_type", "concert"),
+            startAt = startAt,
+            endAt = if (startAt != null) endAt else null,
+        )
+    }
+
+    /**
+     * "19:30:00Z", "19:30:00-03:00", "19:30:00.000000+00:00", "19:30" — the
+     * hour and minute, nothing else. The offset is the column's, not the
+     * event's, and is discarded on purpose.
+     */
+    fun wallClock(text: String?): LocalTime? {
+        val m = WALL_CLOCK.find(text?.trim() ?: return null) ?: return null
+        val hour = m.groupValues[1].toInt()
+        val minute = m.groupValues[2].toInt()
+        if (hour !in 0..23 || minute !in 0..59) return null
+        return LocalTime.of(hour, minute)
+    }
+
+    private val WALL_CLOCK = Regex("""^(\d{2}):(\d{2})""")
 
     /**
      * A string field that may be absent, JSON null or blank — all three mean "none".
@@ -55,6 +121,21 @@ object ServerEvents {
             compareBy<ServerEvent> { it.date?.let { d -> abs(d.toEpochDay() - today.toEpochDay()) } ?: Long.MAX_VALUE }
                 .thenBy { it.date },
         ).take(limit)
+
+    /**
+     * What a fan sees on AO VIVO (21/09): the events TumTum registered with a
+     * time, the ones still to come (a live one first) soonest first, and the
+     * ones already over, latest first. An event with no time is an operator's
+     * leftover and is not offered — there is nothing to count down to and no
+     * window to ask the watch over.
+     */
+    fun forFan(events: List<ServerEvent>, now: Instant, limit: Int = 6): FanEvents {
+        val timed = events.filter { it.startAt != null }
+        return FanEvents(
+            upcoming = timed.filter { !it.isPastAt(now) }.sortedBy { it.startAt }.take(limit),
+            past = timed.filter { it.isPastAt(now) }.sortedByDescending { it.startAt }.take(limit),
+        )
+    }
 }
 
 /** The three things a person can mark with one tap in the dark, and what the server calls each. */
