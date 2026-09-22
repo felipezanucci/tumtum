@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,7 +71,6 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
     val allNights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
 
     val isMe = user?.account?.username == handle
-    var followTick by remember { mutableIntStateOf(0) }
     var showEdit by remember { mutableStateOf(false) }
     val profile: PublicProfile? = if (isMe) {
         user?.account?.let { acc ->
@@ -93,8 +91,11 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
             )
         }
     } else {
-        // followTick força releitura após o toggle no repositório fake.
-        remember(handle, followTick) { container.social.profile(handle) }
+        // Nobody else's profile exists (22/09). The feed is per event and
+        // shows a name and initials — there are no public handles to browse,
+        // and the invented profiles that used to answer here went with
+        // FakeSocialRepository.
+        null
     }
     val p = profile ?: return
 
@@ -222,37 +223,6 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
                             .border(1.dp, TT.Ink600, RoundedCornerShape(12.dp))
                             .clickable { nav.navigate(Routes.Settings) }
                             .padding(vertical = 12.dp),
-                    )
-                }
-            }
-            if (!isMe) {
-                Spacer(Modifier.height(18.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        stringResource(if (p.followedByMe) R.string.profile_following else R.string.profile_follow),
-                        style = TTType.Button.copy(fontSize = 14.sp),
-                        color = TT.Ink,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (p.followedByMe) TT.Acid else TT.Rose)
-                            .clickable {
-                                container.social.toggleFollow(p.user.handle)
-                                followTick++
-                            }
-                            .padding(vertical = 12.dp),
-                    )
-                    Text(
-                        stringResource(R.string.profile_share),
-                        style = TTType.Button.copy(fontSize = 14.sp),
-                        color = TT.Paper,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .border(1.dp, TT.Ink600, RoundedCornerShape(12.dp))
-                            .padding(vertical = 11.dp),
                     )
                 }
             }

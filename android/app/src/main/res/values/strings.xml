@@ -169,33 +169,48 @@
     <string name="nights_captured_pct">%1$d%% CAPTURADO</string>
 
     <!-- a4 · A galera -->
-    <string name="crowd_label">A GALERA · %1$s</string>
-    <string name="crowd_headline">NINGUÉM TAVA\nTRANQUILO.</string>
-    <string name="crowd_plate">APARENTEMENTE FOI COLETIVO.</string>
-    <string name="crowd_body">De %1$s pessoas que compartilharam dados nesse show, %2$d%% bateram o próprio pico entre %3$s e %4$s.</string>
-    <string name="crowd_you">SUA NOITE</string>
-    <string name="crowd_them">A GALERA</string>
-    <string name="crowd_peak_1">O pico coletivo da noite</string>
-    <string name="crowd_peak_2">Segundo momento mais coletivo</string>
-    <string name="crowd_peak_3">Abertura do set</string>
-    <string name="crowd_people">%1$s PESSOAS</string>
-    <string name="crowd_footnote">Só entra na conta quem escolheu compartilhar. Nenhum dado individual aparece — só o agregado, e só quando o grupo é grande o bastante.</string>
 
     <!-- b5 · Feed — seus amigos -->
-    <string name="feed_tonight">%1$s · hoje à noite</string>
-    <string name="feed_confirmed">Você e mais %1$d amigos confirmaram</string>
-    <string name="feed_capture">CAPTURAR</string>
     <string name="feed_senti_tb">SENTI TB</string>
     <string name="feed_senti_tb_count">SENTI TB · %1$d</string>
 
     <!-- b6 · Feed do evento -->
     <string name="event_feed_back">← FEED</string>
-    <string name="event_feed_shared">%1$s COMPARTILHARAM</string>
-    <string name="event_feed_peak">PICO COLETIVO %1$s</string>
-    <string name="event_feed_headline">NINGUÉM TAVA TRANQUILO.</string>
-    <string name="event_feed_body">De %1$s pessoas que compartilharam, %2$d%% bateram o próprio pico durante a mesma música.</string>
-    <string name="event_feed_you_were_there">Você tava lá. Postar sua noite?</string>
-    <string name="event_feed_post">POSTAR</string>
+    <!-- b5 · A primeira tela: os rolês. Não existe feed de amigos — o feed é
+         por evento (22/09), para que só quem esteve junto converse. -->
+    <string name="feed_headline">ONDE A TUMTUM\nTÁ ROLANDO.</string>
+    <string name="feed_sub">Toca num rolê pra ver a galera que estava lá.</string>
+    <string name="feed_loading">Carregando os rolês…</string>
+    <!-- "Nada aqui" e "não consegui perguntar" são frases diferentes. -->
+    <string name="feed_empty">Nenhum rolê cadastrado ainda.</string>
+    <string name="feed_failed">Não deu pra carregar os rolês. Confere a conexão e tenta de novo.</string>
+    <string name="feed_row_live">ROLANDO</string>
+    <string name="feed_row_open">ABRIR</string>
+
+    <!-- b6 · O feed do evento -->
+    <string name="event_feed_title_fallback">Rolê</string>
+    <string name="event_feed_loading">Carregando…</string>
+    <string name="event_feed_empty">Ninguém mostrou nada ainda. Pode ser você.</string>
+    <string name="event_feed_not_there">Esse rolê é de quem estava lá. Sua noite não chegou aqui.</string>
+    <string name="event_feed_signed_out">Entra na sua conta pra ver a galera.</string>
+    <string name="event_feed_offline">Sem conexão. Não deu pra carregar o rolê.</string>
+    <string name="event_feed_failed">Não deu pra carregar o rolê.</string>
+    <string name="event_feed_retry">TENTAR DE NOVO</string>
+    <string name="event_feed_take_down">tirar do rolê</string>
+    <!-- Abaixo do piso do servidor não existe número coletivo: ele seria um
+         fato sobre cada pessoa do grupo. Diz quantas são, nunca zero. -->
+    <string name="crowd_too_few">AINDA SOMOS POUCOS · %1$d NOITES</string>
+    <string name="crowd_nights">%1$d NOITES MEDIDAS</string>
+    <string name="crowd_top">%1$d JUNTOS ÀS %2$s</string>
+
+    <!-- Postar no rolê é publicar dado de saúde: a pergunta é no momento,
+         com todas as letras, e dá pra tirar depois (item 47 / 22/09). -->
+    <string name="feed_post_cta">Mostrar pra galera do rolê</string>
+    <string name="feed_post_consent">Quem estava no mesmo rolê vai ver sua batida no momento e seu nome. Só eles. Dá pra tirar quando quiser.</string>
+    <string name="feed_post_confirm">Pode mostrar</string>
+    <string name="feed_post_cancel">Agora não</string>
+    <string name="feed_post_done">Tá no rolê. Pra tirar, é só abrir o rolê e tocar em “tirar do rolê”.</string>
+    <string name="feed_post_failed">Não deu pra mostrar agora. Tenta de novo.</string>
 
     <!-- b7 · Galeria -->
     <string name="gallery_title">Sua galeria</string>

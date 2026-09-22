@@ -107,6 +107,17 @@ class NightRepository(
      * the server has no name of its own for that moment. What the server
      * call added was only the part nobody wanted.
      */
+    /**
+     * The server's id for the event this night belongs to, or null when the
+     * night has no event or the event never reached the server. Posting to a
+     * feed needs it, and a null is the honest answer that there is no feed to
+     * post to rather than a failure.
+     */
+    suspend fun serverEventIdFor(nightId: Long): String? {
+        val night = db.nightDao().nightRow(nightId) ?: return null
+        return db.eventDao().byId(night.eventId)?.serverEventId
+    }
+
     suspend fun nameMoment(momentId: Long, label: String) {
         val clean = label.trim()
         db.nightDao().setMomentLabel(momentId, clean.ifBlank { null })

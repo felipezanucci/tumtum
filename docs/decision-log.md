@@ -579,61 +579,113 @@ the linked documents — this file is the index and the reasoning, not a diary.
     person's BPM, so posting publishes health data — that needs consent per
     post, not a blanket setting, and it needs to be undoable, which ties it to
     item 35 (deleting one night does not exist).
-54. **The app's first screen shows invented people, and it is on a Play
-    track.** Found 22/09 while answering Felipe about the feed. `Routes.Feed`
-    is the **start destination** and the first tab, and it renders
+54. ~~**The app's first screen shows invented people.**~~ **Deleted 22/09.**
+    `Routes.Feed` was the start destination and rendered
     `FakeSocialRepository`: a banner claiming *"Hoje: Taylor Swift · 3 amigos
-    confirmados"*, and moments by **Mariana Alves (194 bpm)** and **Rodrigo
-    Costa (176 bpm)** — people who do not exist, with heart rates nobody
-    measured. One tap on the banner opens the event feed, which claims
-    **8,734 people shared** and *"64% bateram o próprio pico"* at a Taylor
-    Swift show at the Morumbi.
-    This is the class this log has now counted seventeen times — the app
-    stating something false — in its worst form yet: not a stale control or a
-    wrong message, but **fabricated people and fabricated measurements**, on
-    the first screen, shipped to the internal testing track since 18/09.
-    Mitigating: `postOwnMoment` is never called, so a real card never mixes
-    into the invented list, and `CrowdScreen` has no entry point (that one was
-    deliberate — see 22/09's note about 3,412 invented people).
-    It has probably been read as placeholder by the only person who has seen
-    it. It cannot survive a tester who is not the founder.
-48. **The video export has never run on hardware.** `VideoCard.burn` was
-    written in an environment with no Android SDK and no device; CI compiles
-    it and never executes it, and encoder behaviour is the classic thing that
-    differs per chipset. Two specific unknowns: whether the pipeline honours
-    `Presentation` before `OverlayEffect` (so the card lands on the finished
-    9:16 frame rather than the source's shape), and whether a full-frame
-    static overlay lands edge to edge. It is built to fail loudly — `burn`
-    returns null and the photo and Instagram routes stay standing — so the
-    worst case is the old behaviour. **First real test: one video through
-    "Compartilhar" on b150.**
-49. ~~**Setlist.fm**~~ — **removed from the codebase 22/09.** Item 44 said it
-    could not be pointed at a real event; what settled it was not the three
-    walls but that it never solved the problem. It publishes **order, never
-    times**, so a fully-licensed integration would still leave "which song
-    was playing at 22h12" unanswered. `setlist_service.py`, both endpoints,
-    `SetlistBrief` and the admin's search are gone. What replaces it is the
-    operator's own list (item 50).
-50. **A show needs a person, and that does not scale.** Decided 22/09 with
-    the rule above. A match gets its times from an API; a concert has none,
-    audio fingerprinting is retracted, and a derived time is withheld — so
-    the only source of a measured time at a show is somebody standing there
-    tapping. That is fine for the pilot and it is a real ceiling: **football
-    scales to every match in the country on one API call; shows cost one body
-    per event.** It strengthens the reading in `pilot-event-options.md` that
-    the match is the better technical test. The long-term escape, unbuilt and
-    speculative: **the crowd's own readings mark the song boundaries** — if
-    fifty people rise together, something started — which, aligned against a
-    known order, would need nobody tapping. It uses data already collected
-    and needs a crowd the pilot does not have.
-51. **The operator's show screen is on the web, not in the app, and venue
-    signal is the open question.** Built 22/09 on `/admin/eventos/{id}`,
-    matching the operator model of item 40 — staff work from a browser. The
-    risk is that a packed venue has no usable data connection, and the web
-    page needs one for every tap. The app would not: `pushMarksLater` and
-    `retryPending` already queue a mark offline and send it when signal
-    returns. **If the first real show loses taps, the fix is to port this
-    screen into the app**, and the queueing is already there.
+    confirmados"*, moments by **Mariana Alves (194 bpm)** and **Rodrigo Costa
+    (176 bpm)** — people who do not exist with heart rates nobody measured —
+    and an event feed claiming **8,734 people shared**. On the Play internal
+    testing track since 18/09. The worst instance of the class this log keeps
+    counting, because it was not a stale control or a wrong message but
+    fabricated people and fabricated measurements, in a product whose promise
+    is that the number is really yours. The repository, `CrowdScreen` and its
+    3,412 invented people are gone, and what replaced them is item 53's real
+    feed — the honest fix and the feature were the same work.
+55. **Block and report still do not exist, and the feed is live.** Item 34
+    said they ship *with* a public feed. The feed shipped on 22/09 and they
+    did not, so this is the gap, recorded rather than left implicit. What
+    makes it survivable for now: the feed is **per event and closed** — only
+    people with a measured night at that event can read it, post to it or
+    react — the only reaction is positive with no scale, there are no public
+    profiles and no handles, and every post carries a take-down for its
+    author. That is a crowd-sized moderation problem, not a platform-sized
+    one, and the pilot's crowd is people Felipe knows. **Before the store
+    listing goes public it is still a blocker**: report a post, block a
+    person, both landing where a human reads them.
+56. **Nobody has ever seen the feed with more than one person in it.** The
+    privacy floor in `services/crowd` is four measured nights, and a pilot
+    with three to five straps sits exactly on it. So the two states most
+    likely to appear in Felipe's hand are *"ainda somos poucos aqui"* and an
+    empty feed — both honest, both untested against a real crowd. The
+    collective moment (card 04) cannot be judged until an event has four
+    nights uploaded, which makes **one match with four straps** the cheapest
+    experiment that answers whether any of this is worth anything.
+
+---
+
+## 2026-09-22 — the feed is built, and what it cost was deleting the fake one
+
+Felipe: *"Execute!"* — so the per-event feed of item 53 is built, and the
+invented people of item 54 are gone. They were one piece of work, which is
+the part worth remembering.
+
+### The gate is evidence, not a claim
+
+**What proves somebody was at an event is an `hr_sessions` row carrying that
+`event_id`.** It needs no new table, it cannot be asserted by a client, and
+it ties the right to take part to having a night to take part with — which is
+also what makes the feed worth reading. `require_attendance` is the only
+thing that opens the feed, and it answers **403** rather than an empty list,
+because "you were not there" and "nobody posted" are different sentences.
+
+Its edge is real and stated in the code: somebody whose strap died was there
+and cannot join. The alternative — trusting the app's word that a person
+activated an event — is not a gate at all.
+
+### Four kinds of nothing
+
+`SocialRepository` keeps them apart: empty, refused, signed out, failed —
+and `Failed` carries whether it was the network. An empty list would collapse
+all four into "nothing here", which is the claim this project has now been
+caught making twelve times. Every one of them is its own sentence on screen.
+
+### The privacy floor is the interesting part of card 04
+
+A collective figure over a small crowd **is not collective**: with two nights
+uploaded, "64% bateram o próprio pico" says exactly what each of those two
+people did, and "o pico da galera foi às 22h41" points at whoever was there.
+So `services/crowd` publishes nothing below four measured nights — and
+returns the count that refused, so the screen says *"ainda somos poucos
+aqui"* instead of drawing a zero.
+
+One more rule that matters: **one peak per person, their biggest.** Somebody
+with nine peaks would otherwise outvote three people who had one each, and
+the question being asked is how many *people* rose at once.
+
+### Consent is a moment, not a setting
+
+Posting is not sharing. The share sheet sends a picture the person controls
+to people they chose; a post puts their heart rate, at a named minute, in
+front of strangers who happened to be at the same event. So the ask is at the
+moment of posting, the sentence says what will be visible and to whom, and
+the take-down is **deliberately not behind the attendance gate** — somebody
+must be able to withdraw what they published even after their night is gone.
+A consent whose undo can expire is not consent.
+
+### What was deleted
+
+`FakeSocialRepository`, `CrowdScreen` and its 3,412 invented people, the
+public profiles of strangers, and every string that carried an invented
+number. There are no handles and no cross-event browsing: the server sends a
+display name and initials and nothing that identifies a person anywhere else,
+which is the right amount of identity for a room of people who were already
+in the same room.
+
+### What is not done, and is now visible rather than implied
+
+**Item 55:** block and report. Item 34 said they ship with a public feed;
+the feed shipped and they did not. The per-event closure makes it a
+crowd-sized problem rather than a platform-sized one — closed membership, one
+positive reaction with no scale, no profiles, a take-down on every post — but
+it is still a blocker before the store listing goes public.
+
+**Item 56:** nobody has ever seen this with more than one person in it. The
+floor is four measured nights and the pilot has three to five straps, so the
+two states most likely to appear in a real hand are *"ainda somos poucos"*
+and an empty feed. **One match with four straps** is the cheapest experiment
+that says whether any of it is worth anything.
+
+Backend 150 tests and ruff clean; the Android half compiles in CI only.
 
 ---
 

@@ -1,7 +1,6 @@
 package cc.tumtum.app.ui.screens.eventfeed
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,40 +13,60 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.api.ServerCrowd
+import cc.tumtum.app.data.api.ServerPost
+import cc.tumtum.app.data.repo.CrowdState
+import cc.tumtum.app.data.repo.FeedState
+import cc.tumtum.app.domain.FeedMoment
+import cc.tumtum.app.domain.Skin
+import cc.tumtum.app.domain.SocialUser
 import cc.tumtum.app.ui.Fmt
-import cc.tumtum.app.ui.components.Avatar
 import cc.tumtum.app.ui.components.MomentCard
-import cc.tumtum.app.ui.components.OutlineBadge
-import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
+import kotlinx.coroutines.launch
 
 /**
- * b6 — Feed do evento: todo mundo que estava no mesmo evento.
- * "64% bateram o próprio pico" — histórias, nunca ranking de BPM.
+ * b6 — o feed do evento: quem estava lá, e só.
+ *
+ * Rewritten 2026-09-22. Until that day this screen was fed by
+ * `FakeSocialRepository` and showed invented people with invented heart
+ * rates — 8,734 who shared, 64% who beat their own peak, at a Taylor Swift
+ * show nobody went to. It now shows what the server has, and when it has
+ * nothing it **says which kind of nothing**: empty, refused, or unreachable.
+ * Those are three different sentences and collapsing them into one blank
+ * list is the defect this project keeps counting.
  */
 @Composable
-fun EventFeedScreen(nav: NavHostController) {
+fun EventFeedScreen(nav: NavHostController, eventId: String) {
     val container = appContainer()
-    val feed by container.social.eventFeed.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    var state by remember(eventId) { mutableStateOf<FeedState>(FeedState.Loading) }
+    var crowd by remember(eventId) { mutableStateOf<CrowdState>(CrowdState.Loading) }
+    var tick by remember { mutableStateOf(0) }
+
+    LaunchedEffect(eventId, tick) {
+        state = container.social.feed(eventId)
+        crowd = container.social.crowd(eventId)
+    }
 
     Column(
         Modifier
@@ -56,8 +75,14 @@ fun EventFeedScreen(nav: NavHostController) {
             .verticalScroll(rememberScrollState())
             .navigationBarsPadding(),
     ) {
-        // Cabeçalho ácido do evento
-        Column(Modifier.fillMaxWidth().background(TT.Acid).statusBarsPadding().padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 22.dp)) {
+        val ready = state as? FeedState.Ready
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .background(TT.Acid)
+                .statusBarsPadding()
+                .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 22.dp),
+        ) {
             Text(
                 stringResource(R.string.event_feed_back),
                 style = TTType.Meta.copy(letterSpacing = 0.04.em),
@@ -66,112 +91,134 @@ fun EventFeedScreen(nav: NavHostController) {
             )
             Spacer(Modifier.height(14.dp))
             Text(
-                feed.eventName,
+                ready?.eventName ?: stringResource(R.string.event_feed_title_fallback),
                 style = TTType.ShoutSmall.copy(fontSize = 26.sp, lineHeight = 26.5.sp),
                 color = TT.Ink,
             )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                feed.venueDate,
-                style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
-                color = TT.Ink.copy(alpha = 0.65f),
-            )
-            Spacer(Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ready?.venue?.takeIf { it.isNotBlank() }?.let {
+                Spacer(Modifier.height(6.dp))
                 Text(
-                    stringResource(R.string.event_feed_shared, Fmt.thousands(feed.sharedCount)),
-                    style = TTType.MetaSmall.copy(fontWeight = FontWeight.Bold),
-                    color = TT.Acid,
-                    modifier = Modifier.background(TT.Ink).padding(horizontal = 9.dp, vertical = 5.dp),
-                )
-                OutlineBadge(
-                    stringResource(R.string.event_feed_peak, feed.collectivePeakLabel),
-                    borderColor = TT.Ink.copy(alpha = 0.35f),
-                    contentColor = TT.Ink,
-                    hPad = 9.dp,
-                    vPad = 5.dp,
+                    it,
+                    style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
+                    color = TT.Ink.copy(alpha = 0.65f),
                 )
             }
+            Spacer(Modifier.height(16.dp))
+            CrowdLine(crowd)
         }
-
-        Text(
-            stringResource(R.string.event_feed_headline),
-            style = TTType.ItemSub.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
-            color = TT.Ink,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 6.dp),
-        )
-        Text(
-            stringResource(R.string.event_feed_body, Fmt.thousands(feed.sharedCount), feed.samePeakPct),
-            style = TTType.Footnote,
-            color = TT.Gray70,
-            modifier = Modifier.padding(horizontal = 24.dp),
-        )
 
         Column(
-            Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 18.dp),
+            Modifier.padding(start = 24.dp, end = 24.dp, top = 18.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            feed.moments.forEach { moment ->
-                MomentCard(
-                    moment = moment,
-                    onToggleSenti = { container.social.toggleSenti(moment.id) },
-                    onOpenProfile = { nav.navigate(Routes.profile(moment.user.handle)) },
-                )
-            }
-            // Linhas compactas — frase + número, sem plate.
-            feed.compactMoments.forEach { moment ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .border(1.dp, TT.Gray10, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 14.dp, vertical = 13.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Avatar(moment.user.initials, moment.user.avatarSkin, size = 32.dp)
-                    Text(
-                        "“${moment.quote}”",
-                        style = TTType.BodySmall.copy(fontStyle = FontStyle.Italic),
-                        color = TT.Gray70,
-                        modifier = Modifier.weight(1f),
+            when (val s = state) {
+                is FeedState.Loading -> Note(stringResource(R.string.event_feed_loading))
+
+                // Not an empty list: the server said this account has no
+                // measured night here, and that is its own sentence.
+                is FeedState.NotThere -> Note(stringResource(R.string.event_feed_not_there))
+
+                is FeedState.SignedOut -> Note(stringResource(R.string.event_feed_signed_out))
+
+                is FeedState.Failed -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Note(
+                        stringResource(
+                            if (s.offline) R.string.event_feed_offline else R.string.event_feed_failed,
+                        ),
                     )
                     Text(
-                        "${moment.bpm}",
-                        style = TTType.NumberRow.copy(fontSize = 18.sp),
-                        color = TT.Ink,
+                        stringResource(R.string.event_feed_retry),
+                        style = TTType.MetaSmall.copy(fontWeight = FontWeight.Bold),
+                        color = TT.Rose,
+                        modifier = Modifier.clickable { tick++ },
                     )
                 }
-            }
-        }
 
-        if (feed.userWasThere) {
-            // Você tava lá — postar é sempre ativo, nunca automático.
-            Row(
-                Modifier
-                    .padding(start = 24.dp, end = 24.dp, bottom = 18.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(TT.Rose)
-                    .padding(horizontal = 16.dp, vertical = 15.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.event_feed_you_were_there),
-                    style = TTType.ItemSub.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
-                    color = TT.Ink,
-                )
-                Text(
-                    stringResource(R.string.event_feed_post),
-                    style = TTType.MetaSmall.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
-                    color = TT.Rose,
-                    modifier = Modifier
-                        .background(TT.Ink)
-                        .clickable { nav.navigate(Routes.You) }
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                )
+                is FeedState.Ready ->
+                    if (s.isEmpty) {
+                        Note(stringResource(R.string.event_feed_empty))
+                    } else {
+                        s.posts.forEach { post ->
+                            MomentCard(
+                                moment = post.asMoment(s.eventName),
+                                onToggleSenti = {
+                                    scope.launch {
+                                        container.social.toggleSenti(eventId, post.id)
+                                        tick++
+                                    }
+                                },
+                            )
+                            if (post.mine) {
+                                Text(
+                                    stringResource(R.string.event_feed_take_down),
+                                    style = TTType.MetaSmall,
+                                    color = TT.Gray45,
+                                    modifier = Modifier.clickable {
+                                        scope.launch {
+                                            container.social.takeDown(eventId, post.id)
+                                            tick++
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                    }
             }
         }
     }
+}
+
+/** Card 04, as one line — or an honest account of why there is not one yet. */
+@Composable
+private fun CrowdLine(state: CrowdState) {
+    val text = when (state) {
+        is CrowdState.Loading -> return
+        is CrowdState.NotThere -> return
+        is CrowdState.Failed -> return
+        is CrowdState.Ready -> crowdText(state.crowd)
+    } ?: return
+    Text(
+        text,
+        style = TTType.MetaSmall.copy(fontWeight = FontWeight.Bold),
+        color = TT.Ink,
+        modifier = Modifier.background(TT.Ink.copy(alpha = 0.08f)).padding(horizontal = 9.dp, vertical = 5.dp),
+    )
+}
+
+@Composable
+private fun crowdText(crowd: ServerCrowd): String? {
+    // Below the server's floor no collective figure exists, because over a
+    // small crowd it is a fact about each person in it. Say how few, never a
+    // zero — an empty state is a claim.
+    if (!crowd.enough) {
+        return stringResource(R.string.crowd_too_few, crowd.measuredNights)
+    }
+    val top = crowd.top ?: return stringResource(R.string.crowd_nights, crowd.measuredNights)
+    return stringResource(R.string.crowd_top, top.people, Fmt.hour(top.at))
+}
+
+@Composable
+private fun Note(text: String) {
+    Text(text, style = TTType.BodySmall, color = TT.Gray70)
+}
+
+private fun ServerPost.asMoment(eventName: String): FeedMoment {
+    val skinValue = runCatching { Skin.valueOf(skin) }.getOrDefault(Skin.BLACK)
+    return FeedMoment(
+        id = id.hashCode().toLong(),
+        postId = id,
+        mine = mine,
+        user = SocialUser(handle = "", displayName = authorName, initials = authorInitials, avatarSkin = skinValue),
+        eventName = eventName,
+        whenLabel = Fmt.hour(at),
+        // The moment's own name when the timeline gave it one, and nothing
+        // invented when it did not.
+        title = label?.uppercase().orEmpty(),
+        bpm = bpm,
+        metaLabel = "bpm",
+        quote = quote.orEmpty(),
+        skin = skinValue,
+        sentiCount = reactions,
+        sentiByMe = reactedByMe,
+    )
 }

@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.CardPhotoStore
+import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
 import cc.tumtum.app.export.InstagramStory
@@ -254,6 +255,8 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 TTButtonStyle.OutlineOnDark,
                 onClick = { cameBack = false },
             )
+            Spacer(Modifier.height(18.dp))
+            PostToFeed(nightId = n.id, night = n, skin = skin)
         } else {
             // Compartilhar é sempre ativo (§1). Sem vídeo, o card vira PNG
             // 1080×1920 e sai pelo share sheet. Com vídeo, ele é gravado dentro
@@ -341,5 +344,98 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             }
         }
         Spacer(Modifier.height(2.dp))
+    }
+}
+
+/**
+ * "Mostrar pra galera do rolê" — the one place a moment becomes public.
+ *
+ * Posting is **not** sharing. The share sheet sends a picture the person
+ * controls to people they chose; this puts their heart rate, at a named
+ * minute, in front of strangers who happen to have been at the same event.
+ * That is health data, so:
+ *
+ *  - it is asked at the moment of posting, never agreed once in a setting;
+ *  - the sentence says what will be visible and to whom, in plain words;
+ *  - it is undoable, and the feed shows *tirar do rolê* on your own posts.
+ *
+ * It appears only when there is a feed to post to: the night must have
+ * reached the server and belong to an event that exists there. Otherwise
+ * there is nothing honest to offer, so nothing is offered.
+ */
+@Composable
+private fun PostToFeed(nightId: Long, night: Night, skin: Skin) {
+    val container = appContainer()
+    val scope = rememberCoroutineScope()
+    var eventId by remember(nightId) { mutableStateOf<String?>(null) }
+    var asking by remember { mutableStateOf(false) }
+    var posted by remember(nightId) { mutableStateOf(false) }
+    var failed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(nightId) {
+        eventId = container.nights.serverEventIdFor(nightId)
+    }
+
+    val target = eventId
+    val sessionId = night.serverSessionId
+    if (target == null || sessionId == null) return
+
+    when {
+        posted -> Text(
+            stringResource(R.string.feed_post_done),
+            style = TTType.BodySmall,
+            color = TT.Acid,
+        )
+
+        asking -> Column {
+            Text(
+                stringResource(R.string.feed_post_consent),
+                style = TTType.BodySmall,
+                color = TT.Gray45,
+            )
+            Spacer(Modifier.height(10.dp))
+            TTButton(
+                stringResource(R.string.feed_post_confirm),
+                TTButtonStyle.Rose,
+                onClick = {
+                    scope.launch {
+                        val ok = container.social.post(
+                            serverEventId = target,
+                            serverSessionId = sessionId,
+                            bpm = night.peakBpm,
+                            at = night.peakAt,
+                            label = night.moments.firstOrNull { it.isPeak }?.label,
+                            quote = null,
+                            skin = skin.name,
+                        )
+                        posted = ok
+                        failed = !ok
+                        asking = false
+                    }
+                },
+            )
+            Spacer(Modifier.height(8.dp))
+            TTButton(
+                stringResource(R.string.feed_post_cancel),
+                TTButtonStyle.OutlineOnDark,
+                onClick = { asking = false },
+            )
+        }
+
+        else -> Column {
+            TTButton(
+                stringResource(R.string.feed_post_cta),
+                TTButtonStyle.OutlineAcid,
+                onClick = { asking = true; failed = false },
+            )
+            if (failed) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(R.string.feed_post_failed),
+                    style = TTType.BodySmall,
+                    color = TT.Rose,
+                )
+            }
+        }
     }
 }

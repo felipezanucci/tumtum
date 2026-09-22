@@ -120,6 +120,48 @@ class TumtumApi(private val prefs: UserPrefs) {
         return response.getString("id")
     }
 
+    // --- The event's feed (22/09) ---
+    //
+    // Per event, and only for the people who were at it. The server proves
+    // that with an hr_sessions row and answers 403 otherwise; the repository
+    // turns that one code into its own state, because "you were not there" and
+    // "it did not load" are different things and the screen must not blur them.
+
+    suspend fun eventFeed(serverEventId: String): ServerFeed =
+        ServerFeed.parse(request("GET", "/api/events/$serverEventId/feed", null, token = requireToken()))
+
+    suspend fun crowd(serverEventId: String): ServerCrowd =
+        ServerCrowd.parse(request("GET", "/api/events/$serverEventId/crowd", null, token = requireToken()))
+
+    /** Publishes one moment. Never called except from an explicit tap — it is health data. */
+    suspend fun postMoment(
+        serverEventId: String,
+        serverSessionId: String,
+        bpm: Int,
+        at: java.time.Instant,
+        label: String?,
+        quote: String?,
+        skin: String,
+    ) {
+        val body = JSONObject()
+            .put("session_id", serverSessionId)
+            .put("bpm", bpm)
+            .put("moment_at", SessionPayload.iso(at))
+            .put("skin", skin)
+        if (!label.isNullOrBlank()) body.put("label", label)
+        if (!quote.isNullOrBlank()) body.put("quote", quote)
+        request("POST", "/api/events/$serverEventId/feed", body.toString(), token = requireToken())
+    }
+
+    /** Takes it down. The consent to publish is only real while this works. */
+    suspend fun deletePost(serverEventId: String, postId: String) {
+        request("DELETE", "/api/events/$serverEventId/feed/$postId", null, token = requireToken())
+    }
+
+    suspend fun toggleSenti(serverEventId: String, postId: String) {
+        request("POST", "/api/events/$serverEventId/feed/$postId/senti", "", token = requireToken())
+    }
+
     /** Runs the detector on an uploaded night and returns its moments, named where the event has a timeline. */
     suspend fun analyze(serverSessionId: String): List<ServerMoment> =
         ServerMoments.parse(request("POST", "/api/experience/$serverSessionId/analyze", "", token = requireToken()))
