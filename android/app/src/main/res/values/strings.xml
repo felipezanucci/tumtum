@@ -201,6 +201,23 @@
     <string name="event_feed_senti_offline">Sem conexão — seu SENTI TB não chegou. Toca de novo quando voltar.</string>
     <string name="event_feed_senti_failed">Seu SENTI TB não chegou no servidor. Toca de novo.</string>
     <string name="event_feed_takedown_offline">Sem conexão — continua no rolê até dar pra tirar.</string>
+    <!-- Report and block (#36). Quiet and careful: this is a safety screen. -->
+    <string name="mod_open">denunciar ou bloquear</string>
+    <string name="mod_title">O que tem de errado?</string>
+    <string name="mod_report_abuse">Denunciar — é ofensivo</string>
+    <string name="mod_report_fake">Denunciar — parece falso</string>
+    <string name="mod_report_other">Denunciar — outra coisa</string>
+    <string name="mod_block">Bloquear %1$s</string>
+    <string name="mod_block_hint">Vocês deixam de se ver nos rolês. Dá pra desfazer em Configurações.</string>
+    <string name="mod_cancel">Cancelar</string>
+    <string name="mod_reported">Recebido. Alguém da TumTum vai olhar.</string>
+    <string name="mod_blocked">Você não vai mais ver %1$s nos rolês. Dá pra desfazer em Configurações.</string>
+    <string name="mod_failed">Não deu pra enviar agora. Tenta de novo.</string>
+    <string name="mod_offline">Sem conexão — nada foi enviado. Tenta de novo quando voltar.</string>
+    <string name="settings_blocked_section">PESSOAS QUE VOCÊ BLOQUEOU</string>
+    <string name="settings_blocked_none">Ninguém.</string>
+    <string name="settings_blocked_failed">Não deu pra carregar a lista agora.</string>
+    <string name="settings_unblock">desbloquear</string>
     <string name="event_feed_takedown_failed">Não deu pra tirar agora — continua no rolê. Tenta de novo.</string>
     <string name="feed_post_at">às %1$s</string>
     <!-- Abaixo do piso do servidor não existe número coletivo: ele seria um

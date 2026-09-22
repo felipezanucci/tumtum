@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +8,9 @@ from app.core.auth import get_current_user
 from app.core.database import get_db
 from app.models.card import Card
 from app.models.hr_session import HRSession
+from app.models.moderation import UserBlock
 from app.models.user import User
+from app.schemas.feed import BlockedPerson, FeedAuthor
 from app.schemas.user import (
     PublicProfileResponse,
     UserProfileResponse,
@@ -121,3 +125,55 @@ async def get_public_profile(
         created_at=user.created_at,
         **stats,
     )
+
+
+# --- The people this account blocked (#36, 22/09) ---
+#
+# A block is made from a post in the feed; this is where it is undone. Names
+# only — the list shows who, never anything that finds them elsewhere.
+
+
+@router.get("/me/blocks", response_model=list[BlockedPerson])
+async def my_blocks(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    rows = await db.execute(
+        select(UserBlock, User)
+        .join(User, User.id == UserBlock.blocked_id)
+        .where(UserBlock.blocker_id == user.id)
+        .order_by(UserBlock.created_at.desc())
+    )
+    out = []
+    for block, person in rows.all():
+        who = FeedAuthor.of(person)
+        out.append(
+            BlockedPerson(
+                id=block.id,
+                name=who.name,
+                initials=who.initials,
+                created_at=block.created_at,
+            )
+        )
+    return out
+
+
+@router.delete("/me/blocks/{block_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def unblock(
+    block_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    block = (
+        await db.execute(
+            select(UserBlock).where(
+                UserBlock.id == block_id, UserBlock.blocker_id == user.id
+            )
+        )
+    ).scalar_one_or_none()
+    if block is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Bloqueio não encontrado"
+        )
+    await db.delete(block)
+    await db.flush()

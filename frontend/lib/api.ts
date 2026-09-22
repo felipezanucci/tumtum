@@ -672,3 +672,32 @@ export const users = {
   getPublicProfile: (userId: string) =>
     request<PublicProfile>(`/api/users/${userId}`),
 }
+
+// --- Moderation: the operator's queue of reported posts (#36, 22/09) ---
+
+export interface ReportedPost {
+  post_id: string
+  event_id: string
+  event_name: string
+  author: { name: string; initials: string }
+  bpm: number
+  moment_at: string
+  label: string | null
+  quote: string | null
+  reports: number
+  reasons: Record<string, number>
+  first_reported_at: string
+  hidden: boolean
+}
+
+export const moderation = {
+  /** Every post with a report nobody has decided on. Operator only. */
+  open: () => request<ReportedPost[]>('/api/admin/reports'),
+
+  /** Keep it (it comes back if reports had hidden it) or take it down. */
+  resolve: (postId: string, action: 'keep' | 'remove') =>
+    request<void>(`/api/admin/reports/${postId}`, {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+    }),
+}

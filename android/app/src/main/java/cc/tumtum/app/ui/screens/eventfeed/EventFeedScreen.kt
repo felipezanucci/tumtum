@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -84,6 +86,11 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
     // feed offers it instead of inviting an act it gives no way to do (#48).
     var myNight by remember(eventId) { mutableStateOf<NightEntity?>(null) }
 
+    // Report and block (#36): which post's menu is open, and the sentence a
+    // block leaves at the top of the feed once its author's posts are gone.
+    var moderating by remember(eventId) { mutableStateOf<ServerPost?>(null) }
+    var banner by remember(eventId) { mutableStateOf<String?>(null) }
+
     LaunchedEffect(eventId, tick) {
         // A reload that gets cancelled by a newer one now simply stops: the
         // repository no longer turns cancellation into Failed (#46), so the
@@ -104,6 +111,46 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
     fun dropPost(postId: String) {
         val ready = state as? FeedState.Ready ?: return
         state = ready.copy(posts = ready.posts.filterNot { it.id == postId })
+    }
+
+    val context = LocalContext.current
+    moderating?.let { target ->
+        ModerationDialog(
+            authorName = target.authorName,
+            onDismiss = { moderating = null },
+            onReport = { reason ->
+                moderating = null
+                inFlight = inFlight + target.id
+                notice = null
+                scope.launch {
+                    notice = target.id to when (val r = container.social.report(eventId, target.id, reason)) {
+                        is Outcome.Done -> R.string.mod_reported
+                        is Outcome.Failed -> if (r.offline) R.string.mod_offline else R.string.mod_failed
+                        Outcome.NotThere, Outcome.SignedOut -> R.string.mod_failed
+                    }
+                    inFlight = inFlight - target.id
+                }
+            },
+            onBlock = {
+                moderating = null
+                inFlight = inFlight + target.id
+                notice = null
+                scope.launch {
+                    when (val r = container.social.block(eventId, target.id)) {
+                        is Outcome.Done -> {
+                            // The server now hides every post by this person;
+                            // a reload is the honest way to show exactly that.
+                            banner = context.getString(R.string.mod_blocked, target.authorName)
+                            tick++
+                        }
+                        is Outcome.Failed -> notice = target.id to
+                            if (r.offline) R.string.mod_offline else R.string.mod_failed
+                        Outcome.NotThere, Outcome.SignedOut -> notice = target.id to R.string.mod_failed
+                    }
+                    inFlight = inFlight - target.id
+                }
+            },
+        )
     }
 
     Column(
@@ -189,7 +236,8 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
                     )
                 }
 
-                is FeedState.Ready ->
+                is FeedState.Ready -> {
+                    banner?.let { Note(it) }
                     if (s.isEmpty) {
                         EmptyFeed(myNight, nav)
                     } else {
@@ -251,11 +299,24 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
                                     },
                                 )
                             }
+                            if (!post.mine) {
+                                Text(
+                                    stringResource(R.string.mod_open),
+                                    style = TTType.MetaSmall,
+                                    color = TT.Gray45,
+                                    modifier = Modifier.clickable(enabled = !busy) { moderating = post },
+                                )
+                            }
                             notice?.takeIf { it.first == post.id }?.let { (_, res) ->
-                                Text(stringResource(res), style = TTType.BodySmall, color = TT.Rose)
+                                Text(
+                                    stringResource(res),
+                                    style = TTType.BodySmall,
+                                    color = if (res == R.string.mod_reported) TT.Ink else TT.Rose,
+                                )
                             }
                         }
                     }
+                }
             }
         }
     }
@@ -355,5 +416,66 @@ private fun ServerPost.asMoment(): FeedMoment {
         skin = skinValue,
         sentiCount = reactions,
         sentiByMe = reactedByMe,
+    )
+}
+
+/**
+ * Report a post, or block the person who made it (#36, 22/09).
+ *
+ * A safety screen, so the brand goes quiet: plain words, no jokes, and each
+ * choice says what it will do before it does it. Three reasons and no free
+ * text — a report box is the one place strangers could otherwise write to
+ * each other.
+ */
+@Composable
+private fun ModerationDialog(
+    authorName: String,
+    onDismiss: () -> Unit,
+    onReport: (String) -> Unit,
+    onBlock: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = TT.Paper,
+        title = { Text(stringResource(R.string.mod_title), style = TTType.TitleSmall, color = TT.Ink) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                listOf(
+                    "abuse" to R.string.mod_report_abuse,
+                    "fake" to R.string.mod_report_fake,
+                    "other" to R.string.mod_report_other,
+                ).forEach { (reason, label) ->
+                    Text(
+                        stringResource(label),
+                        style = TTType.Body,
+                        color = TT.Ink,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onReport(reason) }
+                            .padding(vertical = 10.dp),
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(R.string.mod_block, authorName),
+                    style = TTType.Body.copy(fontWeight = FontWeight.SemiBold),
+                    color = TT.Ink,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onBlock)
+                        .padding(top = 10.dp),
+                )
+                Text(stringResource(R.string.mod_block_hint), style = TTType.Footnote, color = TT.Gray45)
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            Text(
+                stringResource(R.string.mod_cancel),
+                style = TTType.Button.copy(fontSize = 14.sp),
+                color = TT.Gray70,
+                modifier = Modifier.clickable(onClick = onDismiss).padding(12.dp),
+            )
+        },
     )
 }

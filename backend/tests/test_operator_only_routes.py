@@ -31,6 +31,9 @@ OPERATOR_ONLY = {
     ("PUT", "/api/events/{event_id}/setlist"),
     ("POST", "/api/events/{event_id}/setlist/start"),
     ("GET", "/api/events/sources/football"),
+    # The moderation queue: what was reported, and the decision on it (#36).
+    ("GET", "/api/admin/reports"),
+    ("POST", "/api/admin/reports/{post_id}"),
 }
 
 # What a fan may do without operating the platform.
@@ -100,6 +103,9 @@ ATTENDANCE_ONLY = {
     ("POST", "/api/events/{event_id}/feed"),
     ("POST", "/api/events/{event_id}/feed/{post_id}/senti"),
     ("GET", "/api/events/{event_id}/crowd"),
+    # Report and block (#36): only somebody who can see a post can act on it.
+    ("POST", "/api/events/{event_id}/feed/{post_id}/report"),
+    ("POST", "/api/events/{event_id}/feed/{post_id}/block"),
 }
 
 

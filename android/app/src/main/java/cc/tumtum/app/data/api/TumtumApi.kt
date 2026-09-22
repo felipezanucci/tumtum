@@ -179,6 +179,39 @@ class TumtumApi(private val prefs: UserPrefs) {
             request("POST", "/api/events/$serverEventId/feed/$postId/senti", "", token = requireToken()),
         )
 
+    // --- Report and block (#36, 22/09) ---
+    //
+    // Both are made from a post, because the feed names nobody any other way.
+
+    /** abuse · fake · other. */
+    suspend fun reportPost(serverEventId: String, postId: String, reason: String) {
+        request(
+            "POST",
+            "/api/events/$serverEventId/feed/$postId/report",
+            JSONObject().put("reason", reason).toString(),
+            token = requireToken(),
+        )
+    }
+
+    /** Stop seeing the person who posted this, and stop being seen by them. */
+    suspend fun blockAuthor(serverEventId: String, postId: String) {
+        request("POST", "/api/events/$serverEventId/feed/$postId/block", "", token = requireToken())
+    }
+
+    data class BlockedPerson(val id: String, val name: String, val initials: String)
+
+    suspend fun myBlocks(): List<BlockedPerson> {
+        val array = org.json.JSONArray(request("GET", "/api/users/me/blocks", null, token = requireToken()))
+        return (0 until array.length()).map { i ->
+            val o = array.getJSONObject(i)
+            BlockedPerson(id = o.getString("id"), name = o.optString("name", "Alguém"), initials = o.optString("initials", "TT"))
+        }
+    }
+
+    suspend fun unblock(blockId: String) {
+        request("DELETE", "/api/users/me/blocks/$blockId", null, token = requireToken())
+    }
+
     /** Runs the detector on an uploaded night and returns its moments, named where the event has a timeline. */
     suspend fun analyze(serverSessionId: String): List<ServerMoment> =
         ServerMoments.parse(request("POST", "/api/experience/$serverSessionId/analyze", "", token = requireToken()))

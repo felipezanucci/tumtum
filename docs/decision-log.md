@@ -591,7 +591,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     is that the number is really yours. The repository, `CrowdScreen` and its
     3,412 invented people are gone, and what replaced them is item 53's real
     feed — the honest fix and the feature were the same work.
-55. **Block and report still do not exist, and the feed is live.** Item 34
+55. ~~**Block and report still do not exist, and the feed is live.**~~
+    **Built 22/09** — see the entry "report and block exist". The Play
+    content questionnaire's two answers change to *yes*. Item 34
     said they ship *with* a public feed. The feed shipped on 22/09 and they
     did not, so this is the gap, recorded rather than left implicit. What
     makes it survivable for now: the feed is **per event and closed** — only
@@ -634,6 +636,53 @@ the linked documents — this file is the index and the reasoning, not a diary.
     collective moment (card 04) cannot be judged until an event has four
     nights uploaded, which makes **one match with four straps** the cheapest
     experiment that answers whether any of this is worth anything.
+
+---
+
+## 2026-09-22 — report and block exist, and deleting an account that had posted did not work
+
+**#36 / item 55, decided by Felipe:** *"a gente não vai ter como fugir dessa."*
+The feed shipped this morning without report or block, and the log said so:
+a crowd-sized moderation problem, but a blocker before the store listing goes
+public. Built in the smaller shape item 34 described — report a post, block a
+person, both landing where a human reads them:
+
+- **Both are made from a post.** The feed names nobody any other way — no
+  handles, no profiles, no ids on the wire — so the server resolves the post
+  to its author. Only somebody who can see a post (`require_attendance`) can
+  act on it.
+- **A report is one of three reasons**, *ofensivo*, *parece falso*, *outra
+  coisa*, and **no free text**: a report box is the one place strangers could
+  otherwise write to each other. One per person per post.
+- **It lands in `/admin/denuncias`**, where an operator keeps the post or
+  takes it down, and in an e-mail to every operator when e-mail is configured.
+  **Three distinct reports hide the post** until somebody decides — a crowd
+  acts faster than an inbox — and "Manter" brings it back. The author still
+  sees their own post; a post does not vanish on the person who made it.
+- **A block works both ways.** Neither sees the other's posts, so a block
+  cannot be used to watch somebody who can no longer see you. It is undone in
+  Configurações, where the list shows names and nothing else.
+- The screens are the careful kind the manual asks for on safety: plain
+  words, no jokes, each choice saying what it will do before it does it.
+
+**The Play questionnaire now changes.** On 18/09 it was answered *no* to
+"can users block others" and *no* to "can users report users or content",
+which was true. Both are now *yes*.
+
+### The bug this found
+
+Writing the deletion rows for the two new tables showed that the feed's own
+two tables — `event_posts`, `event_post_reactions` — had never been added to
+`account_deletion.py`. `event_posts` points at the user **and** at the night,
+with no ON DELETE clause, so **deleting an account that had ever posted was
+refused by the database**: the privacy page's promise, broken for exactly the
+people who used the feature, since this morning. Found before anybody tried.
+
+The deletion list was a tuple somebody had to remember to update, and the
+test checked the tuple against itself. The new test reads **every foreign
+key in the schema** and fails if any table that points at a person, a night,
+a card or a post is missing from the list. Refresh tokens, reports and blocks
+are in it; so is whatever gets written next.
 
 ---
 

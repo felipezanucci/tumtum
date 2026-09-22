@@ -133,6 +133,16 @@ class SocialRepository(private val api: TumtumApi) {
     suspend fun toggleSenti(serverEventId: String, postId: String): Outcome<ServerPost> =
         outcome { api.toggleSenti(serverEventId, postId) }
 
+    suspend fun report(serverEventId: String, postId: String, reason: String): Outcome<Unit> =
+        outcome { api.reportPost(serverEventId, postId, reason) }
+
+    suspend fun block(serverEventId: String, postId: String): Outcome<Unit> =
+        outcome { api.blockAuthor(serverEventId, postId) }
+
+    suspend fun blocked(): Outcome<List<TumtumApi.BlockedPerson>> = outcome { api.myBlocks() }
+
+    suspend fun unblock(blockId: String): Outcome<Unit> = outcome { api.unblock(blockId) }
+
     private suspend fun <T> outcome(block: suspend () -> T): Outcome<T> = guard(
         onRefused = Outcome.NotThere,
         onSignedOut = Outcome.SignedOut,

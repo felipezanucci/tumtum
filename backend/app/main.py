@@ -13,6 +13,7 @@ from app.api.events import router as events_router
 from app.api.experience import router as experience_router
 from app.api.feed import router as feed_router
 from app.api.health import router as health_router
+from app.api.moderation import router as moderation_router
 from app.api.users import router as users_router
 from app.api.waitlist import router as waitlist_router
 from app.config import settings
@@ -42,6 +43,7 @@ async def lifespan(app: FastAPI):
     from app.models.event_timeline import EventTimeline  # noqa: F401
     from app.models.hr_data import HRData  # noqa: F401
     from app.models.hr_session import HRSession  # noqa: F401
+    from app.models.moderation import PostReport, UserBlock  # noqa: F401
     from app.models.password_reset_token import (  # noqa: F401
         PasswordResetToken,
     )
@@ -118,6 +120,7 @@ app.include_router(auth_router)
 app.include_router(health_router)
 app.include_router(events_router)
 app.include_router(feed_router)
+app.include_router(moderation_router)
 app.include_router(experience_router)
 app.include_router(cards_router)
 app.include_router(users_router)

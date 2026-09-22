@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import cc.tumtum.app.data.repo.Outcome
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -289,6 +290,10 @@ fun SettingsScreen(nav: NavHostController) {
                 onClick = { nav.navigate(Routes.Account) },
             )
         }
+        if (sessionLive) {
+            Spacer(Modifier.height(32.dp))
+            BlockedPeople()
+        }
         Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.settings_delete_warning), style = TTType.Footnote, color = TT.Gray45)
         Spacer(Modifier.height(14.dp))
@@ -419,5 +424,54 @@ private fun ToggleRow(title: String, hint: String, on: Boolean, onToggle: () -> 
         }
         Spacer(Modifier.height(4.dp))
         Text(hint, style = TTType.Footnote, color = TT.Gray45)
+    }
+}
+
+/**
+ * Where a block from the feed is undone (#36, 22/09). Names only. A list that
+ * failed to load says so rather than showing "Ninguém" — an empty state is a
+ * claim, and "you blocked nobody" is not one this screen can make blind.
+ */
+@Composable
+private fun BlockedPeople() {
+    val container = appContainer()
+    val scope = rememberCoroutineScope()
+    var state by remember { mutableStateOf<Outcome<List<TumtumApi.BlockedPerson>>?>(null) }
+    var tick by remember { mutableStateOf(0) }
+    var removing by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(tick) { state = container.social.blocked() }
+
+    Text(stringResource(R.string.settings_blocked_section), style = TTType.Meta, color = TT.Gray70)
+    Spacer(Modifier.height(10.dp))
+    when (val s = state) {
+        null -> Unit
+        is Outcome.Done ->
+            if (s.value.isEmpty()) {
+                Text(stringResource(R.string.settings_blocked_none), style = TTType.Footnote, color = TT.Gray45)
+            } else {
+                s.value.forEach { person ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(person.name, style = TTType.Body, color = TT.Ink, modifier = Modifier.weight(1f))
+                        Text(
+                            if (removing == person.id) "…" else stringResource(R.string.settings_unblock),
+                            style = TTType.MetaSmall,
+                            color = TT.Rose,
+                            modifier = Modifier.clickable(enabled = removing == null) {
+                                removing = person.id
+                                scope.launch {
+                                    container.social.unblock(person.id)
+                                    removing = null
+                                    tick++
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        else -> Text(stringResource(R.string.settings_blocked_failed), style = TTType.Footnote, color = TT.Gray45)
     }
 }

@@ -124,3 +124,39 @@ class CrowdResponse(BaseModel):
                 else None
             ),
         )
+
+
+class ReportRequest(BaseModel):
+    """abuse · fake · other. Anything else is read as other."""
+
+    reason: str | None = Field(None, max_length=16)
+
+
+class BlockedPerson(BaseModel):
+    """Somebody this account blocked — the name, so the list is readable, and nothing else."""
+
+    id: uuid.UUID
+    name: str
+    initials: str
+    created_at: datetime
+
+
+class ReportedPost(BaseModel):
+    """One post in the operator's queue, with how many people reported it and why."""
+
+    post_id: uuid.UUID
+    event_id: uuid.UUID
+    event_name: str
+    author: FeedAuthor
+    bpm: int
+    moment_at: datetime
+    label: str | None
+    quote: str | None
+    reports: int
+    reasons: dict[str, int]
+    first_reported_at: datetime
+    hidden: bool
+
+
+class ResolveReportRequest(BaseModel):
+    action: str = Field(..., pattern="^(keep|remove)$")
