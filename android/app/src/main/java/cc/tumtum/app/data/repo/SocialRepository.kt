@@ -5,6 +5,7 @@ import cc.tumtum.app.data.api.ServerPost
 import cc.tumtum.app.data.api.TumtumApi
 import java.io.IOException
 import java.time.Instant
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * The event's feed, over the real server.
@@ -66,6 +67,26 @@ sealed interface CrowdState {
     data class Failed(val offline: Boolean) : CrowdState
 }
 
+/**
+ * What a tap on the feed actually did.
+ *
+ * Until 22/09 every action here was `runCatching { … }.isSuccess`, and the
+ * screen ignored even that Boolean. A reaction the server refused, one that
+ * never left the phone and one that went through were the same nothing on
+ * screen — Felipe tapped SENTI TB, the counter did not move, and nobody could
+ * say why, because the answer had been thrown away twice. Same shape as the
+ * football search that same evening (#43).
+ */
+sealed interface Outcome<out T> {
+    data class Done<T>(val value: T) : Outcome<T>
+
+    data object NotThere : Outcome<Nothing>
+
+    data object SignedOut : Outcome<Nothing>
+
+    data class Failed(val offline: Boolean) : Outcome<Nothing>
+}
+
 class SocialRepository(private val api: TumtumApi) {
 
     suspend fun feed(serverEventId: String): FeedState = guard(
@@ -101,15 +122,22 @@ class SocialRepository(private val api: TumtumApi) {
         label: String?,
         quote: String?,
         skin: String,
-    ): Boolean = runCatching {
+    ): Boolean = outcome {
         api.postMoment(serverEventId, serverSessionId, bpm, at, label, quote, skin)
-    }.isSuccess
+    } is Outcome.Done
 
-    suspend fun takeDown(serverEventId: String, postId: String): Boolean =
-        runCatching { api.deletePost(serverEventId, postId) }.isSuccess
+    suspend fun takeDown(serverEventId: String, postId: String): Outcome<Unit> =
+        outcome { api.deletePost(serverEventId, postId) }
 
-    suspend fun toggleSenti(serverEventId: String, postId: String): Boolean =
-        runCatching { api.toggleSenti(serverEventId, postId) }.isSuccess
+    /** The post as the server now has it — the count comes from here, not from a refetch. */
+    suspend fun toggleSenti(serverEventId: String, postId: String): Outcome<ServerPost> =
+        outcome { api.toggleSenti(serverEventId, postId) }
+
+    private suspend fun <T> outcome(block: suspend () -> T): Outcome<T> = guard(
+        onRefused = Outcome.NotThere,
+        onSignedOut = Outcome.SignedOut,
+        onFailed = { Outcome.Failed(it) },
+    ) { Outcome.Done(block()) }
 
     /**
      * Runs [block], turning the two codes that mean something specific into
@@ -126,6 +154,14 @@ class SocialRepository(private val api: TumtumApi) {
         block: suspend () -> T,
     ): T = try {
         block()
+    } catch (e: CancellationException) {
+        // **Never a failure.** A cancelled request is one somebody stopped
+        // waiting for — here, the screen starting a newer load. Until 22/09 the
+        // generic catch below took it (CancellationException *is* an
+        // Exception), returned Failed, and the screen painted "Não deu pra
+        // carregar o rolê" for a request that was never in trouble: the error
+        // Felipe saw for a second after taking his post down.
+        throw e
     } catch (e: TumtumApi.ApiException) {
         when (e.code) {
             403 -> onRefused

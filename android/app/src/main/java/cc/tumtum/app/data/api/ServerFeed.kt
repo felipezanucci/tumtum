@@ -19,7 +19,34 @@ data class ServerPost(
     val reactedByMe: Boolean,
     /** Whether the viewer may take this one down — the undo is shown only where it exists. */
     val mine: Boolean,
-)
+) {
+    companion object {
+        /**
+         * One post, whether it arrived inside the feed or alone as the answer
+         * to a SENTI TB. Until 22/09 the second never got parsed at all: the
+         * reaction's response was dropped on the wire and the screen had to
+         * refetch the whole feed to find out what its own tap had done.
+         */
+        fun parse(p: JSONObject): ServerPost {
+            val author = p.optJSONObject("author") ?: JSONObject()
+            return ServerPost(
+                id = p.optString("id", ""),
+                authorName = author.optString("name", "Alguém"),
+                authorInitials = author.optString("initials", "TT"),
+                bpm = p.optInt("bpm", 0),
+                at = Json.instant(p.getString("moment_at")),
+                label = Json.text(p, "label"),
+                quote = Json.text(p, "quote"),
+                skin = p.optString("skin", "BLACK"),
+                reactions = p.optInt("reactions", 0),
+                reactedByMe = p.optBoolean("reacted_by_me", false),
+                mine = p.optBoolean("mine", false),
+            )
+        }
+
+        fun parse(json: String): ServerPost = parse(JSONObject(json))
+    }
+}
 
 /** The event's feed: the people who were there, and what they chose to show. */
 data class ServerFeed(
@@ -37,23 +64,7 @@ data class ServerFeed(
                 eventId = o.optString("event_id", ""),
                 eventName = o.optString("event_name", ""),
                 venue = Json.text(o, "venue"),
-                posts = (0 until array.length()).map { i ->
-                    val p = array.getJSONObject(i)
-                    val author = p.optJSONObject("author") ?: JSONObject()
-                    ServerPost(
-                        id = p.optString("id", ""),
-                        authorName = author.optString("name", "Alguém"),
-                        authorInitials = author.optString("initials", "TT"),
-                        bpm = p.optInt("bpm", 0),
-                        at = Json.instant(p.getString("moment_at")),
-                        label = Json.text(p, "label"),
-                        quote = Json.text(p, "quote"),
-                        skin = p.optString("skin", "BLACK"),
-                        reactions = p.optInt("reactions", 0),
-                        reactedByMe = p.optBoolean("reacted_by_me", false),
-                        mine = p.optBoolean("mine", false),
-                    )
-                },
+                posts = (0 until array.length()).map { i -> ServerPost.parse(array.getJSONObject(i)) },
             )
         }
     }

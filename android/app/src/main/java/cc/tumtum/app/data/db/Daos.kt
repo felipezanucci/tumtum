@@ -111,6 +111,18 @@ interface NightDao {
     @Query("SELECT * FROM nights WHERE id = :id")
     suspend fun nightRow(id: Long): NightEntity?
 
+    /**
+     * This phone's night at a server event, if it reached the server — the
+     * one a post can be made from. The empty feed uses it to offer that night
+     * rather than invite an act it gives no way to perform (22/09).
+     */
+    @Query(
+        "SELECT nights.* FROM nights JOIN events ON events.id = nights.eventId " +
+            "WHERE events.serverEventId = :serverEventId AND nights.serverSessionId IS NOT NULL " +
+            "ORDER BY nights.startAt DESC LIMIT 1",
+    )
+    suspend fun uploadedNightAt(serverEventId: String): NightEntity?
+
     @Query("SELECT * FROM samples WHERE nightId = :nightId ORDER BY time")
     suspend fun samplesOf(nightId: Long): List<SampleEntity>
 
@@ -123,9 +135,6 @@ interface NightDao {
 
     @Query("SELECT * FROM moments WHERE nightId = :nightId")
     suspend fun momentsOf(nightId: Long): List<MomentEntity>
-
-    @Query("UPDATE moments SET label = :label WHERE id = :id")
-    suspend fun setMomentLabel(id: Long, label: String?)
 
     @Query("UPDATE nights SET serverSessionId = :serverSessionId WHERE id = :id")
     suspend fun setServerSessionId(id: Long, serverSessionId: String)

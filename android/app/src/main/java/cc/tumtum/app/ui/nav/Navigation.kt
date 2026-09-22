@@ -1,5 +1,6 @@
 package cc.tumtum.app.ui.nav
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -48,7 +49,8 @@ object Routes {
     const val Gallery = "gallery"
     const val Capture = "capture"
     const val EndNight = "end_night"
-    const val EventFeed = "event_feed/{eventId}"
+    /** The name rides along (#32): the header should never lose what the list already showed. */
+    const val EventFeed = "event_feed/{eventId}?name={name}"
     const val Settings = "settings"
     const val Reveal = "reveal/{nightId}"
     const val Choose = "choose/{nightId}"
@@ -58,7 +60,8 @@ object Routes {
     fun reveal(nightId: Long) = "reveal/$nightId"
     fun choose(nightId: Long) = "choose/$nightId"
     fun card(nightId: Long, skin: Skin) = "card/$nightId/${skin.name}"
-    fun eventFeed(eventId: String) = "event_feed/$eventId"
+    fun eventFeed(eventId: String, name: String? = null) =
+        "event_feed/$eventId" + (name?.takeIf { it.isNotBlank() }?.let { "?name=${Uri.encode(it)}" } ?: "")
     fun profile(handle: String) = "profile/$handle"
 }
 
@@ -163,9 +166,20 @@ fun TumTumRoot(
             }
             composable(
                 Routes.EventFeed,
-                arguments = listOf(navArgument("eventId") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("eventId") { type = NavType.StringType },
+                    navArgument("name") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
             ) { entry ->
-                EventFeedScreen(nav, eventId = entry.arguments!!.getString("eventId").orEmpty())
+                EventFeedScreen(
+                    nav,
+                    eventId = entry.arguments!!.getString("eventId").orEmpty(),
+                    eventName = entry.arguments?.getString("name"),
+                )
             }
             composable(
                 Routes.Profile,

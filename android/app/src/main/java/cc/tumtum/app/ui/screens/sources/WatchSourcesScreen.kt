@@ -72,6 +72,7 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
 
     var selected by remember { mutableStateOf<String?>(null) }
     var noData by remember { mutableStateOf(false) }
+    var pickHint by remember { mutableStateOf(false) }
     val m = measurement
     val sources = m?.sources.orEmpty()
     val selectedPkg = selected ?: sources.firstOrNull { it.isBest }?.packageName
@@ -149,6 +150,7 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                 ?: stringResource(R.string.sources_title),
             style = TTButtonStyle.Rose,
             enabled = selectedSource?.hasData == true,
+            onDeclined = { pickHint = true },
             onClick = {
                 val src = selectedSource ?: return@TTButton
                 scope.launch {
@@ -171,6 +173,10 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                 }
             },
         )
+        if (pickHint && selectedSource?.hasData != true) {
+            Spacer(Modifier.height(10.dp))
+            Text(stringResource(R.string.sources_pick_one), style = TTType.BodySmall, color = TT.Rose)
+        }
         }
         if (setupMode) {
             Spacer(Modifier.height(10.dp))

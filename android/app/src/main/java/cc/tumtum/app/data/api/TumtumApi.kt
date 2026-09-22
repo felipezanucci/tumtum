@@ -158,9 +158,11 @@ class TumtumApi(private val prefs: UserPrefs) {
         request("DELETE", "/api/events/$serverEventId/feed/$postId", null, token = requireToken())
     }
 
-    suspend fun toggleSenti(serverEventId: String, postId: String) {
-        request("POST", "/api/events/$serverEventId/feed/$postId/senti", "", token = requireToken())
-    }
+    /** SENTI TB, toggled. The server answers with the post as it now stands — count and all. */
+    suspend fun toggleSenti(serverEventId: String, postId: String): ServerPost =
+        ServerPost.parse(
+            request("POST", "/api/events/$serverEventId/feed/$postId/senti", "", token = requireToken()),
+        )
 
     /** Runs the detector on an uploaded night and returns its moments, named where the event has a timeline. */
     suspend fun analyze(serverSessionId: String): List<ServerMoment> =

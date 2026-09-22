@@ -14,12 +14,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import cc.tumtum.app.R
 import cc.tumtum.app.domain.FeedMoment
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.theme.InstrumentSans
@@ -67,8 +69,14 @@ fun MomentCard(
                     style = TTType.ItemSub.copy(fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold),
                     color = TT.Ink,
                 )
+                // Inside an event's own feed the event is the header above, so
+                // the line carries only the time (#31, 22/09).
                 Text(
-                    "${moment.eventName} · ${moment.whenLabel}",
+                    if (moment.eventName.isBlank()) {
+                        stringResource(R.string.feed_post_at, moment.whenLabel)
+                    } else {
+                        "${moment.eventName} · ${moment.whenLabel}"
+                    },
                     style = TTType.ItemSub.copy(fontSize = 11.5.sp),
                     color = TT.Gray45,
                 )

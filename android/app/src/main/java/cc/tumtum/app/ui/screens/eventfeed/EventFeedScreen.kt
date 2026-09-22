@@ -28,17 +28,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.api.ServerCrowd
 import cc.tumtum.app.data.api.ServerPost
+import cc.tumtum.app.data.db.NightEntity
 import cc.tumtum.app.data.repo.CrowdState
 import cc.tumtum.app.data.repo.FeedState
+import cc.tumtum.app.data.repo.Outcome
 import cc.tumtum.app.domain.FeedMoment
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.domain.SocialUser
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.MomentCard
+import cc.tumtum.app.ui.components.TTButton
+import cc.tumtum.app.ui.components.TTButtonStyle
+import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
@@ -56,16 +62,48 @@ import kotlinx.coroutines.launch
  * list is the defect this project keeps counting.
  */
 @Composable
-fun EventFeedScreen(nav: NavHostController, eventId: String) {
+fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? = null) {
     val container = appContainer()
     val scope = rememberCoroutineScope()
     var state by remember(eventId) { mutableStateOf<FeedState>(FeedState.Loading) }
     var crowd by remember(eventId) { mutableStateOf<CrowdState>(CrowdState.Loading) }
     var tick by remember { mutableStateOf(0) }
+    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
+
+    // The name the previous screen already had (#32, 22/09). The header used to
+    // fall back to "Rolê" whenever the feed was not Ready — a name the app had
+    // one tap earlier and dropped. It is kept, and refreshed by the server's.
+    var knownName by remember(eventId) { mutableStateOf(eventName?.takeIf { it.isNotBlank() }) }
+
+    // Posts with a tap still in flight, and a sentence about the last tap that
+    // did not go through — said under the card it was made on (#47).
+    var inFlight by remember(eventId) { mutableStateOf(setOf<String>()) }
+    var notice by remember(eventId) { mutableStateOf<Pair<String, Int>?>(null) }
+
+    // This phone's night at the event, if it reached the server: the empty
+    // feed offers it instead of inviting an act it gives no way to do (#48).
+    var myNight by remember(eventId) { mutableStateOf<NightEntity?>(null) }
 
     LaunchedEffect(eventId, tick) {
+        // A reload that gets cancelled by a newer one now simply stops: the
+        // repository no longer turns cancellation into Failed (#46), so the
+        // screen keeps what it had instead of flashing an error.
         state = container.social.feed(eventId)
+        (state as? FeedState.Ready)?.eventName?.takeIf { it.isNotBlank() }?.let { knownName = it }
         crowd = container.social.crowd(eventId)
+    }
+    LaunchedEffect(eventId) {
+        myNight = container.nights.uploadedNightAt(eventId)
+    }
+
+    fun replacePost(updated: ServerPost) {
+        val ready = state as? FeedState.Ready ?: return
+        state = ready.copy(posts = ready.posts.map { if (it.id == updated.id) updated else it })
+    }
+
+    fun dropPost(postId: String) {
+        val ready = state as? FeedState.Ready ?: return
+        state = ready.copy(posts = ready.posts.filterNot { it.id == postId })
     }
 
     Column(
@@ -91,7 +129,8 @@ fun EventFeedScreen(nav: NavHostController, eventId: String) {
             )
             Spacer(Modifier.height(14.dp))
             Text(
-                ready?.eventName ?: stringResource(R.string.event_feed_title_fallback),
+                ready?.eventName?.takeIf { it.isNotBlank() } ?: knownName
+                    ?: stringResource(R.string.event_feed_title_fallback),
                 style = TTType.ShoutSmall.copy(fontSize = 26.sp, lineHeight = 26.5.sp),
                 color = TT.Ink,
             )
@@ -118,7 +157,23 @@ fun EventFeedScreen(nav: NavHostController, eventId: String) {
                 // measured night here, and that is its own sentence.
                 is FeedState.NotThere -> Note(stringResource(R.string.event_feed_not_there))
 
-                is FeedState.SignedOut -> Note(stringResource(R.string.event_feed_signed_out))
+                // #35, 22/09. Felipe read "Entra na sua conta" while the app still
+                // showed his name and avatar — two claims that contradicted each
+                // other. The truth was a token that had expired, so that is what
+                // is said, with the way back one tap away instead of in Configurações.
+                is FeedState.SignedOut -> Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    val expired = user?.session != null
+                    Note(
+                        stringResource(
+                            if (expired) R.string.event_feed_session_expired else R.string.event_feed_signed_out,
+                        ),
+                    )
+                    TTButton(
+                        stringResource(if (expired) R.string.event_feed_sign_in_again else R.string.event_feed_sign_in),
+                        TTButtonStyle.Rose,
+                        onClick = { nav.navigate(Routes.Login) },
+                    )
+                }
 
                 is FeedState.Failed -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Note(
@@ -136,30 +191,68 @@ fun EventFeedScreen(nav: NavHostController, eventId: String) {
 
                 is FeedState.Ready ->
                     if (s.isEmpty) {
-                        Note(stringResource(R.string.event_feed_empty))
+                        EmptyFeed(myNight, nav)
                     } else {
                         s.posts.forEach { post ->
+                            val busy = post.id in inFlight
                             MomentCard(
-                                moment = post.asMoment(s.eventName),
+                                moment = post.asMoment(),
                                 onToggleSenti = {
-                                    scope.launch {
-                                        container.social.toggleSenti(eventId, post.id)
-                                        tick++
+                                    if (!busy) {
+                                        inFlight = inFlight + post.id
+                                        notice = null
+                                        scope.launch {
+                                            // The server's answer *is* the new count.
+                                            // No refetch: nothing to race, nothing
+                                            // to cancel, nothing to guess (#47).
+                                            when (val r = container.social.toggleSenti(eventId, post.id)) {
+                                                is Outcome.Done -> replacePost(r.value)
+                                                Outcome.NotThere ->
+                                                    notice = post.id to R.string.event_feed_senti_refused
+                                                Outcome.SignedOut -> state = FeedState.SignedOut
+                                                is Outcome.Failed -> notice = post.id to
+                                                    if (r.offline) {
+                                                        R.string.event_feed_senti_offline
+                                                    } else {
+                                                        R.string.event_feed_senti_failed
+                                                    }
+                                            }
+                                            inFlight = inFlight - post.id
+                                        }
                                     }
                                 },
                             )
                             if (post.mine) {
                                 Text(
-                                    stringResource(R.string.event_feed_take_down),
+                                    stringResource(
+                                        if (busy) R.string.event_feed_taking_down else R.string.event_feed_take_down,
+                                    ),
                                     style = TTType.MetaSmall,
                                     color = TT.Gray45,
-                                    modifier = Modifier.clickable {
+                                    modifier = Modifier.clickable(enabled = !busy) {
+                                        inFlight = inFlight + post.id
+                                        notice = null
                                         scope.launch {
-                                            container.social.takeDown(eventId, post.id)
-                                            tick++
+                                            when (val r = container.social.takeDown(eventId, post.id)) {
+                                                is Outcome.Done -> dropPost(post.id)
+                                                Outcome.SignedOut -> state = FeedState.SignedOut
+                                                is Outcome.Failed -> notice = post.id to
+                                                    if (r.offline) {
+                                                        R.string.event_feed_takedown_offline
+                                                    } else {
+                                                        R.string.event_feed_takedown_failed
+                                                    }
+                                                // Taking your own post down is not gated on
+                                                // attendance, so a 403 here is a failure.
+                                                Outcome.NotThere -> notice = post.id to R.string.event_feed_takedown_failed
+                                            }
+                                            inFlight = inFlight - post.id
                                         }
                                     },
                                 )
+                            }
+                            notice?.takeIf { it.first == post.id }?.let { (_, res) ->
+                                Text(stringResource(res), style = TTType.BodySmall, color = TT.Rose)
                             }
                         }
                     }
@@ -202,14 +295,56 @@ private fun Note(text: String) {
     Text(text, style = TTType.BodySmall, color = TT.Gray70)
 }
 
-private fun ServerPost.asMoment(eventName: String): FeedMoment {
+/**
+ * The empty feed, **with a door** (#48, 22/09).
+ *
+ * It used to say "Pode ser você" and offer nothing to tap: to accept, a fan had
+ * to back out, find their night and start again by another road. Now the
+ * sentence and the button are born together, and when this phone cannot offer
+ * the act, the sentence stops inviting it — "pode ser você" with no way to be
+ * is one more thing the app would be saying that is not true.
+ */
+@Composable
+private fun EmptyFeed(night: NightEntity?, nav: NavHostController) {
+    val now = System.currentTimeMillis()
+    when {
+        night != null && (night.revealAt == null || night.revealAt <= now) ->
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Note(stringResource(R.string.event_feed_empty))
+                TTButton(
+                    stringResource(R.string.event_feed_show_mine),
+                    TTButtonStyle.Rose,
+                    onClick = { nav.navigate(Routes.choose(night.id)) },
+                )
+            }
+
+        // Sealed by the reveal lock: the night exists, and says when it opens.
+        night != null -> Note(
+            stringResource(
+                R.string.event_feed_empty_locked,
+                Fmt.hour(java.time.Instant.ofEpochMilli(night.revealAt ?: now)),
+            ),
+        )
+
+        // The server says this account was there, but the night is not on this
+        // phone — another phone, or a reinstall. Nothing to offer, so no invite.
+        else -> Note(stringResource(R.string.event_feed_empty_elsewhere))
+    }
+}
+
+/**
+ * A post as the card draws it. **No event name** (#31): every post on this
+ * screen is from the same event, whose name is the header right above, so the
+ * line under the author said it again on every card. It says when instead.
+ */
+private fun ServerPost.asMoment(): FeedMoment {
     val skinValue = runCatching { Skin.valueOf(skin) }.getOrDefault(Skin.BLACK)
     return FeedMoment(
         id = id.hashCode().toLong(),
         postId = id,
         mine = mine,
         user = SocialUser(handle = "", displayName = authorName, initials = authorInitials, avatarSkin = skinValue),
-        eventName = eventName,
+        eventName = "",
         whenLabel = Fmt.hour(at),
         // The moment's own name when the timeline gave it one, and nothing
         // invented when it did not.

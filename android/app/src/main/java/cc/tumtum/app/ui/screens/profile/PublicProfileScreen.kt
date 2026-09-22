@@ -289,12 +289,18 @@ private fun EditProfileSheet(
                 color = TT.Gray45,
             )
             Spacer(Modifier.height(26.dp))
+            var declined by remember { mutableStateOf(false) }
             TTButton(
                 stringResource(R.string.profile_save),
                 TTButtonStyle.Rose,
                 enabled = name.isNotBlank(),
+                onDeclined = { declined = true },
                 onClick = { onSave(name.trim()) },
             )
+            if (declined && name.isBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Text(stringResource(R.string.form_missing_name), style = TTType.Body, color = TT.Rose)
+            }
         }
     }
 }

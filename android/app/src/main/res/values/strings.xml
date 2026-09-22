@@ -138,12 +138,6 @@
     <string name="reveal_moment_meta">às %1$s · %2$ds</string>
     <string name="reveal_share">Escolher como compartilhar</string>
     <string name="reveal_no_data">Não achamos batida nessa janela.</string>
-    <string name="moment_name_empty">Toca pra dizer o que tava rolando</string>
-    <string name="moment_name_title">O que tava rolando?</string>
-    <string name="moment_name_label">NESSE MOMENTO</string>
-    <string name="moment_name_hint">a música, o gol, o que foi</string>
-    <string name="moment_name_save">Salvar</string>
-    <string name="moment_name_cancel">Voltar</string>
     <string name="card_photo_add">Colocar uma foto sua atrás</string>
     <string name="card_photo_remove">Tirar a foto</string>
     <!-- "Colocar uma foto ou um vídeo seu atrás" ocupava a largura inteira e
@@ -193,10 +187,23 @@
     <string name="event_feed_empty">Ninguém mostrou nada ainda. Pode ser você.</string>
     <string name="event_feed_not_there">Esse rolê é de quem estava lá. Sua noite não chegou aqui.</string>
     <string name="event_feed_signed_out">Entra na sua conta pra ver a galera.</string>
+    <string name="event_feed_session_expired">Sua sessão venceu — de tempos em tempos a gente pede a senha de novo. Suas noites continuam aqui.</string>
+    <string name="event_feed_sign_in_again">Entrar de novo</string>
+    <string name="event_feed_sign_in">Entrar</string>
     <string name="event_feed_offline">Sem conexão. Não deu pra carregar o rolê.</string>
     <string name="event_feed_failed">Não deu pra carregar o rolê.</string>
     <string name="event_feed_retry">TENTAR DE NOVO</string>
     <string name="event_feed_take_down">tirar do rolê</string>
+    <string name="event_feed_taking_down">tirando…</string>
+    <string name="event_feed_show_mine">Mostrar a minha</string>
+    <string name="event_feed_empty_locked">Ninguém mostrou nada ainda. Sua noite abre às %1$s — aí dá pra mostrar.</string>
+    <string name="event_feed_empty_elsewhere">Ninguém mostrou nada ainda.</string>
+    <string name="event_feed_senti_refused">Esse SENTI TB não entrou: o servidor diz que sua noite não é desse rolê.</string>
+    <string name="event_feed_senti_offline">Sem conexão — seu SENTI TB não chegou. Toca de novo quando voltar.</string>
+    <string name="event_feed_senti_failed">Seu SENTI TB não chegou no servidor. Toca de novo.</string>
+    <string name="event_feed_takedown_offline">Sem conexão — continua no rolê até dar pra tirar.</string>
+    <string name="event_feed_takedown_failed">Não deu pra tirar agora — continua no rolê. Tenta de novo.</string>
+    <string name="feed_post_at">às %1$s</string>
     <!-- Abaixo do piso do servidor não existe número coletivo: ele seria um
          fato sobre cada pessoa do grupo. Diz quantas são, nunca zero. -->
     <string name="crowd_too_few">AINDA SOMOS POUCOS · %1$d NOITES</string>
@@ -351,6 +358,17 @@
     <string name="auth_error_offline">Sem internet agora. A conta precisa dela pra existir — tenta de novo quando voltar.</string>
     <string name="auth_error_server">O servidor não respondeu direito (%1$s). Tenta de novo em um minuto.</string>
     <string name="auth_working">Um segundo…</string>
+    <!-- What a declined tap says (22/09): the button never fades, so the missing
+         piece is named under it instead. -->
+    <string name="form_missing_name">Falta o seu nome.</string>
+    <string name="form_short_username">O @ precisa de pelo menos 3 letras.</string>
+    <string name="form_username_taken">Esse @ já tem dono. Tenta outro.</string>
+    <string name="form_missing_email">Falta um email — com @.</string>
+    <string name="form_missing_password">Falta a senha.</string>
+    <string name="form_short_password">A senha precisa de 8 caracteres ou mais.</string>
+    <string name="form_same_name">Esse já é o seu nome.</string>
+    <string name="form_name_saved">Salvo.</string>
+    <string name="sources_pick_one">Escolhe uma fonte com batida dessa noite.</string>
     <!-- Settings: the server's side of the account -->
     <string name="settings_session_live">Conectada como %1$s</string>
     <string name="settings_session_expired">Sessão expirada — entra de novo antes da próxima noite.</string>

@@ -130,4 +130,23 @@ class ServerEventsTest {
         }
         assertEquals(listOf("e5", "e6", "e7"), ServerEvents.forFan(many, now = at(2026, 10, 5, 12), limit = 3).map { it.id })
     }
+
+    @Test
+    fun `the line under an event's name never repeats the name`() {
+        // #31, 22/09: the feed row printed "Teste - Madonna" in bold and then
+        // "22/09 · Teste - Madonna" right under it.
+        val e = ServerEvent("e", "São Paulo × Vitória", LocalDate.of(2026, 10, 10), "Morumbi", "São Paulo", "sports")
+
+        assertEquals("10/10 · Morumbi", e.details)
+        assertFalse(e.details!!.contains(e.name))
+    }
+
+    @Test
+    fun `details fall back to the city, and to nothing at all`() {
+        val noVenue = ServerEvent("e", "Rolê", LocalDate.of(2026, 10, 10), null, "Santos", "concert")
+        val bare = ServerEvent("e", "Rolê", null, null, null, "concert")
+
+        assertEquals("10/10 · Santos", noVenue.details)
+        assertNull(bare.details)
+    }
 }

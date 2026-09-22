@@ -113,18 +113,20 @@ fun PermissionScreen(nav: NavHostController) {
         Spacer(Modifier.height(6.dp))
         // A tela seguinte é do sistema e a gente não controla a cara dela — avisar antes.
         Text(stringResource(R.string.perm_system_note), style = TTType.Footnote, color = TT.Gray45)
-        if (!hcAvailable) {
-            Spacer(Modifier.height(10.dp))
-            Text(stringResource(R.string.perm_hc_missing), style = TTType.Footnote, color = TT.Gray70)
-        }
-
         Spacer(Modifier.height(30.dp))
         TTButton(
             stringResource(R.string.perm_allow),
             TTButtonStyle.Ink,
             enabled = hcAvailable,
+            // The reason is printed right under the button; the tap only has
+            // to land somewhere the eye already is (22/09).
+            onDeclined = {},
             onClick = { launcher.launch(container.health.permissions) },
         )
+        if (!hcAvailable) {
+            Spacer(Modifier.height(10.dp))
+            Text(stringResource(R.string.perm_hc_missing), style = TTType.BodySmall, color = TT.Rose)
+        }
         Spacer(Modifier.height(10.dp))
         // "Agora não" segue para o app; o vazio (a5) reconvida sem insistência.
         TTButton(

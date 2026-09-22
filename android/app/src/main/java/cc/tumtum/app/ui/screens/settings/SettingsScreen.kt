@@ -165,12 +165,32 @@ fun SettingsScreen(nav: NavHostController) {
             color = TT.Gray45,
         )
         Spacer(Modifier.height(14.dp))
+        // The button used to fade once the name matched, which was the only sign
+        // a save had happened. It no longer fades (22/09), so the screen says
+        // both things out loud: that it saved, and why a tap did nothing.
+        var nameNote by remember { mutableStateOf<Int?>(null) }
         TTButton(
             stringResource(R.string.profile_save),
             TTButtonStyle.Ink,
             enabled = nameDraft.isNotBlank() && nameDraft.trim() != (user?.account?.name ?: ""),
-            onClick = { scope.launch { container.prefs.setName(nameDraft) } },
+            onDeclined = {
+                nameNote = if (nameDraft.isBlank()) R.string.form_missing_name else R.string.form_same_name
+            },
+            onClick = {
+                scope.launch {
+                    container.prefs.setName(nameDraft)
+                    nameNote = R.string.form_name_saved
+                }
+            },
         )
+        nameNote?.let {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(it),
+                style = TTType.BodySmall,
+                color = if (it == R.string.form_name_saved) TT.Ink else TT.Rose,
+            )
+        }
 
         Spacer(Modifier.height(40.dp))
         // §10 — sensor BLE: parear/trocar/remover também depois do onboarding.

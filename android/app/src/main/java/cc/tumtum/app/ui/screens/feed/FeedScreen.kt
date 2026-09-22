@@ -154,7 +154,7 @@ private fun EventRow(event: ServerEvent, now: Instant, nav: NavHostController) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(if (live) TT.Acid else TT.Gray10)
-            .clickable { nav.navigate(Routes.eventFeed(event.id)) }
+            .clickable { nav.navigate(Routes.eventFeed(event.id, event.name)) }
             .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -165,11 +165,13 @@ private fun EventRow(event: ServerEvent, now: Instant, nav: NavHostController) {
                 style = TTType.ItemSub.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
                 color = TT.Ink,
             )
-            Text(
-                event.label,
-                style = TTType.ItemSub.copy(fontSize = 12.sp),
-                color = TT.Ink.copy(alpha = 0.6f),
-            )
+            event.details?.let {
+                Text(
+                    it,
+                    style = TTType.ItemSub.copy(fontSize = 12.sp),
+                    color = TT.Ink.copy(alpha = 0.6f),
+                )
+            }
         }
         Text(
             stringResource(if (live) R.string.feed_row_live else R.string.feed_row_open),

@@ -169,6 +169,20 @@ fun CreateAccountScreen(nav: NavHostController) {
             if (saving) stringResource(R.string.auth_working) else stringResource(R.string.account_cta),
             TTButtonStyle.Rose,
             enabled = valid && !saving,
+            onDeclined = {
+                if (!saving) {
+                    error = context.getString(
+                        when {
+                            name.isBlank() -> R.string.form_missing_name
+                            usernameClean.length < 3 -> R.string.form_short_username
+                            usernameTaken -> R.string.form_username_taken
+                            !email.contains("@") -> R.string.form_missing_email
+                            password.isEmpty() -> R.string.form_missing_password
+                            else -> R.string.form_short_password
+                        },
+                    )
+                }
+            },
             onClick = {
                 saving = true
                 error = null

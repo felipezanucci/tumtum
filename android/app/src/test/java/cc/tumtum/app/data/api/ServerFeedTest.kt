@@ -136,4 +136,22 @@ class ServerFeedTest {
             ServerFeed.parse(offset).posts.single().at,
         )
     }
+
+    @Test
+    fun `the answer to SENTI TB is read on its own, count and all`() {
+        // #47, 22/09: this response used to be dropped on the wire, so the
+        // screen could not show what its own tap had done.
+        val json = """
+            {"id":"p1","author":{"name":"Felipe Zanucci","initials":"FZ"},
+             "bpm":109,"moment_at":"2026-09-22T21:10:00Z","label":null,"quote":null,
+             "skin":"BLACK","created_at":"2026-09-22T21:20:00Z","reactions":1,
+             "reacted_by_me":true,"mine":true}
+        """.trimIndent()
+
+        val post = ServerPost.parse(json)
+
+        assertEquals("p1", post.id)
+        assertEquals(1, post.reactions)
+        assertTrue(post.reactedByMe)
+    }
 }
