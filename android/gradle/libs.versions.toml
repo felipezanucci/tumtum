@@ -13,7 +13,18 @@ datastore = "1.1.1"
 splashscreen = "1.0.1"
 coroutines = "1.9.0"
 # The card burned into a video, so it posts anywhere (open item 19, 22/09).
-media3 = "1.11.0"
+#
+# Pinned below Kotlin 2.0 on purpose. 1.11.0 is compiled with Kotlin 2.2 and
+# drags kotlin-stdlib 2.2.10 with it, and this project's compiler is 2.0.21 —
+# CI answered in 98 seconds: "metadata is 2.2.0, expected version is 2.0.0",
+# for media3-effect and for the stdlib alike. 1.3.1 predates Kotlin 2.0
+# entirely, so its metadata is one a 2.0 compiler is guaranteed to read, and
+# it already carries every API used here (BitmapOverlay, OverlayEffect,
+# Presentation, the Composition-based Transformer.Listener).
+#
+# **Raising this means raising `kotlin` first**, which pulls the Compose
+# plugin, KSP and Room along with it. Not a one-line bump.
+media3 = "1.3.1"
 junit = "4.13.2"
 
 [libraries]
