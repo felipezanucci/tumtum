@@ -201,6 +201,20 @@
     <string name="event_feed_senti_offline">Sem conexão — seu SENTI TB não chegou. Toca de novo quando voltar.</string>
     <string name="event_feed_senti_failed">Seu SENTI TB não chegou no servidor. Toca de novo.</string>
     <string name="event_feed_takedown_offline">Sem conexão — continua no rolê até dar pra tirar.</string>
+    <!-- The level above the rolê (#33). -->
+    <string name="series_kind_tour">turnê</string>
+    <string name="series_kind_club">torcida</string>
+    <string name="series_kind_league">campeonato</string>
+    <string name="series_kind_tour_the">a turnê</string>
+    <string name="series_kind_club_the">a torcida</string>
+    <string name="series_kind_league_the">o campeonato</string>
+    <string name="series_dates">%1$d datas · %2$s</string>
+    <string name="series_door">%1$s: %2$s · %3$d DATAS →</string>
+    <string name="series_not_there">Esse feed é de quem foi em alguma data. Sua noite não chegou aqui.</string>
+    <string name="series_empty">Ninguém mostrou nada pra todo mundo ainda. Na hora de postar, dá pra escolher mostrar pra todas as datas.</string>
+    <string name="feed_post_consent_series">Quem estava nesse rolê vai ver sua batida no momento e seu nome. Se você incluir %1$s, quem foi em qualquer outra data também vê. Dá pra tirar quando quiser.</string>
+    <string name="feed_post_confirm_series">Pode mostrar — rolê e %1$s</string>
+    <string name="feed_post_confirm_event_only">Só pro rolê</string>
     <!-- Report and block (#36). Quiet and careful: this is a safety screen. -->
     <string name="mod_open">denunciar ou bloquear</string>
     <string name="mod_title">O que tem de errado?</string>

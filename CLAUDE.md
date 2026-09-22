@@ -233,6 +233,21 @@ cards: id (uuid PK), user_id (FK), session_id (FK), peak_id (FK), card_type (sol
 -- Share tracking
 shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link|native), shared_at
 
+-- The event feed (22/09): posts are published health data, only by explicit
+-- act, only to people with a measured night at the event
+event_posts: id, event_id (FK), user_id (FK), session_id (FK), bpm, moment_at, label, quote, skin, created_at, deleted_at
+event_post_reactions: id, post_id (FK), user_id (FK), created_at   -- SENTI TB, the only reaction
+post_reports: id, post_id (FK), reporter_id (FK), reason (abuse|fake|other), created_at, resolution, resolved_at
+user_blocks: id, blocker_id (FK), blocked_id (FK), created_at     -- hides both ways
+
+-- The level above one event (22/09): tour, club or championship
+event_series: id, name, kind (tour|club|league), created_at
+event_series_members: event_id (PK, FK), series_id (FK)
+series_posts: post_id (PK, FK), series_id (FK), created_at      -- the author's consent to the wider audience
+
+-- Sessions (22/09): access token 1 h; refresh token 90 days from last use, rotated
+refresh_tokens: id, user_id (FK), family_id, parent_id, token_hash, expires_at, revoked_at, revoke_reason, created_at
+
 -- Public waitlist (landing page). Email and nothing else: the page promises
 -- "a gente só usa seu e-mail pra te avisar dos próximos eventos", and a column
 -- we do not have is a promise we cannot accidentally break.

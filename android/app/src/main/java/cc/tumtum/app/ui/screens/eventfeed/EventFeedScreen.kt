@@ -37,6 +37,7 @@ import cc.tumtum.app.data.api.ServerCrowd
 import cc.tumtum.app.data.api.ServerPost
 import cc.tumtum.app.data.db.NightEntity
 import cc.tumtum.app.data.repo.CrowdState
+import cc.tumtum.app.data.repo.FeedTarget
 import cc.tumtum.app.data.repo.FeedState
 import cc.tumtum.app.data.repo.Outcome
 import cc.tumtum.app.domain.FeedMoment
@@ -64,7 +65,25 @@ import kotlinx.coroutines.launch
  * list is the defect this project keeps counting.
  */
 @Composable
-fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? = null) {
+fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? = null) =
+    FeedScreenFor(nav, FeedTarget.Event(eventId), eventName)
+
+/**
+ * The tour, club or championship above the rolê (#33, 22/09): everybody who
+ * went to any of its dates, and only the posts their authors chose to show
+ * to all of it. The same screen as the rolê — same rules for SENTI, report,
+ * block and take-down — in Pink instead of Toxic Yellow, so which room you
+ * are in is never in doubt.
+ */
+@Composable
+fun SeriesFeedScreen(nav: NavHostController, seriesId: String, seriesName: String? = null) =
+    FeedScreenFor(nav, FeedTarget.Series(seriesId), seriesName)
+
+@Composable
+private fun FeedScreenFor(nav: NavHostController, target: FeedTarget, title: String?) {
+    val eventId = target.id
+    val isSeries = target is FeedTarget.Series
+    val feed = target
     val container = appContainer()
     val scope = rememberCoroutineScope()
     var state by remember(eventId) { mutableStateOf<FeedState>(FeedState.Loading) }
@@ -75,7 +94,7 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
     // The name the previous screen already had (#32, 22/09). The header used to
     // fall back to "Rolê" whenever the feed was not Ready — a name the app had
     // one tap earlier and dropped. It is kept, and refreshed by the server's.
-    var knownName by remember(eventId) { mutableStateOf(eventName?.takeIf { it.isNotBlank() }) }
+    var knownName by remember(eventId) { mutableStateOf(title?.takeIf { it.isNotBlank() }) }
 
     // Posts with a tap still in flight, and a sentence about the last tap that
     // did not go through — said under the card it was made on (#47).
@@ -95,12 +114,14 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
         // A reload that gets cancelled by a newer one now simply stops: the
         // repository no longer turns cancellation into Failed (#46), so the
         // screen keeps what it had instead of flashing an error.
-        state = container.social.feed(eventId)
+        state = if (isSeries) container.social.seriesFeed(eventId) else container.social.feed(eventId)
         (state as? FeedState.Ready)?.eventName?.takeIf { it.isNotBlank() }?.let { knownName = it }
-        crowd = container.social.crowd(eventId)
+        // Card 04 is a crowd at one night; across a tour's dates the minutes
+        // do not line up, so the series feed has no crowd line at all.
+        if (!isSeries) crowd = container.social.crowd(eventId)
     }
     LaunchedEffect(eventId) {
-        myNight = container.nights.uploadedNightAt(eventId)
+        if (!isSeries) myNight = container.nights.uploadedNightAt(eventId)
     }
 
     fun replacePost(updated: ServerPost) {
@@ -114,40 +135,40 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
     }
 
     val context = LocalContext.current
-    moderating?.let { target ->
+    moderating?.let { chosen ->
         ModerationDialog(
-            authorName = target.authorName,
+            authorName = chosen.authorName,
             onDismiss = { moderating = null },
             onReport = { reason ->
                 moderating = null
-                inFlight = inFlight + target.id
+                inFlight = inFlight + chosen.id
                 notice = null
                 scope.launch {
-                    notice = target.id to when (val r = container.social.report(eventId, target.id, reason)) {
+                    notice = chosen.id to when (val r = container.social.report(feed, chosen.id, reason)) {
                         is Outcome.Done -> R.string.mod_reported
                         is Outcome.Failed -> if (r.offline) R.string.mod_offline else R.string.mod_failed
                         Outcome.NotThere, Outcome.SignedOut -> R.string.mod_failed
                     }
-                    inFlight = inFlight - target.id
+                    inFlight = inFlight - chosen.id
                 }
             },
             onBlock = {
                 moderating = null
-                inFlight = inFlight + target.id
+                inFlight = inFlight + chosen.id
                 notice = null
                 scope.launch {
-                    when (val r = container.social.block(eventId, target.id)) {
+                    when (val r = container.social.block(feed, chosen.id)) {
                         is Outcome.Done -> {
                             // The server now hides every post by this person;
                             // a reload is the honest way to show exactly that.
-                            banner = context.getString(R.string.mod_blocked, target.authorName)
+                            banner = context.getString(R.string.mod_blocked, chosen.authorName)
                             tick++
                         }
-                        is Outcome.Failed -> notice = target.id to
+                        is Outcome.Failed -> notice = chosen.id to
                             if (r.offline) R.string.mod_offline else R.string.mod_failed
-                        Outcome.NotThere, Outcome.SignedOut -> notice = target.id to R.string.mod_failed
+                        Outcome.NotThere, Outcome.SignedOut -> notice = chosen.id to R.string.mod_failed
                     }
-                    inFlight = inFlight - target.id
+                    inFlight = inFlight - chosen.id
                 }
             },
         )
@@ -164,7 +185,7 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
         Column(
             Modifier
                 .fillMaxWidth()
-                .background(TT.Acid)
+                .background(if (isSeries) TT.Rose else TT.Acid)
                 .statusBarsPadding()
                 .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 22.dp),
         ) {
@@ -189,8 +210,33 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
                     color = TT.Ink.copy(alpha = 0.65f),
                 )
             }
+            if (isSeries) {
+                ready?.series?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        stringResource(R.string.series_dates, it.dates, kindWord(it.kind)),
+                        style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
+                        color = TT.Ink.copy(alpha = 0.7f),
+                    )
+                }
+            }
             Spacer(Modifier.height(16.dp))
             CrowdLine(crowd)
+            // The door upstairs (#33): this night belongs to something bigger.
+            if (!isSeries) {
+                ready?.series?.let { series ->
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        stringResource(R.string.series_door, kindWord(series.kind).uppercase(), series.name.uppercase(), series.dates),
+                        style = TTType.MetaSmall.copy(fontWeight = FontWeight.Bold),
+                        color = TT.Rose,
+                        modifier = Modifier
+                            .background(TT.Ink)
+                            .clickable { nav.navigate(Routes.seriesFeed(series.id, series.name)) }
+                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                    )
+                }
+            }
         }
 
         Column(
@@ -202,7 +248,9 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
 
                 // Not an empty list: the server said this account has no
                 // measured night here, and that is its own sentence.
-                is FeedState.NotThere -> Note(stringResource(R.string.event_feed_not_there))
+                is FeedState.NotThere -> Note(
+                    stringResource(if (isSeries) R.string.series_not_there else R.string.event_feed_not_there),
+                )
 
                 // #35, 22/09. Felipe read "Entra na sua conta" while the app still
                 // showed his name and avatar — two claims that contradicted each
@@ -238,13 +286,15 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
 
                 is FeedState.Ready -> {
                     banner?.let { Note(it) }
-                    if (s.isEmpty) {
+                    if (s.isEmpty && isSeries) {
+                        Note(stringResource(R.string.series_empty))
+                    } else if (s.isEmpty) {
                         EmptyFeed(myNight, nav)
                     } else {
                         s.posts.forEach { post ->
                             val busy = post.id in inFlight
                             MomentCard(
-                                moment = post.asMoment(),
+                                moment = post.asMoment(inSeries = isSeries),
                                 onToggleSenti = {
                                     if (!busy) {
                                         inFlight = inFlight + post.id
@@ -253,7 +303,7 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
                                             // The server's answer *is* the new count.
                                             // No refetch: nothing to race, nothing
                                             // to cancel, nothing to guess (#47).
-                                            when (val r = container.social.toggleSenti(eventId, post.id)) {
+                                            when (val r = container.social.toggleSenti(feed, post.id)) {
                                                 is Outcome.Done -> replacePost(r.value)
                                                 Outcome.NotThere ->
                                                     notice = post.id to R.string.event_feed_senti_refused
@@ -281,7 +331,7 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
                                         inFlight = inFlight + post.id
                                         notice = null
                                         scope.launch {
-                                            when (val r = container.social.takeDown(eventId, post.id)) {
+                                            when (val r = container.social.takeDown(post.eventId ?: eventId, post.id)) {
                                                 is Outcome.Done -> dropPost(post.id)
                                                 Outcome.SignedOut -> state = FeedState.SignedOut
                                                 is Outcome.Failed -> notice = post.id to
@@ -398,14 +448,23 @@ private fun EmptyFeed(night: NightEntity?, nav: NavHostController) {
  * screen is from the same event, whose name is the header right above, so the
  * line under the author said it again on every card. It says when instead.
  */
-private fun ServerPost.asMoment(): FeedMoment {
+private fun ServerPost.asMoment(inSeries: Boolean = false): FeedMoment {
     val skinValue = runCatching { Skin.valueOf(skin) }.getOrDefault(Skin.BLACK)
     return FeedMoment(
         id = id.hashCode().toLong(),
         postId = id,
         mine = mine,
         user = SocialUser(handle = "", displayName = authorName, initials = authorInitials, avatarSkin = skinValue),
-        eventName = "",
+        // In a series feed the posts come from several nights, so each says
+        // which: "São Paulo 14/11 · 22h10". In the rolê the header says it.
+        eventName = if (inSeries) {
+            listOfNotNull(
+                eventCity ?: eventName,
+                eventDate?.let { "%02d/%02d".format(it.dayOfMonth, it.monthValue) },
+            ).joinToString(" ")
+        } else {
+            ""
+        },
         whenLabel = Fmt.hour(at),
         // The moment's own name when the timeline gave it one, and nothing
         // invented when it did not.
@@ -479,3 +538,12 @@ private fun ModerationDialog(
         },
     )
 }
+
+@Composable
+private fun kindWord(kind: String): String = stringResource(
+    when (kind) {
+        "club" -> R.string.series_kind_club
+        "league" -> R.string.series_kind_league
+        else -> R.string.series_kind_tour
+    },
+)

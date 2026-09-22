@@ -2,6 +2,7 @@ package cc.tumtum.app.data.repo
 
 import cc.tumtum.app.data.api.ServerCrowd
 import cc.tumtum.app.data.api.ServerPost
+import cc.tumtum.app.data.api.ServerSeries
 import cc.tumtum.app.data.api.TumtumApi
 import java.io.IOException
 import java.time.Instant
@@ -39,6 +40,8 @@ sealed interface FeedState {
         val eventName: String,
         val venue: String?,
         val posts: List<ServerPost>,
+        /** On an event's feed: the tour above it, if any. On a series feed: itself. */
+        val series: ServerSeries? = null,
     ) : FeedState {
         val isEmpty: Boolean get() = posts.isEmpty()
     }
@@ -65,6 +68,23 @@ sealed interface CrowdState {
     data object NotThere : CrowdState
 
     data class Failed(val offline: Boolean) : CrowdState
+}
+
+/**
+ * Which feed a tap was made in: one night's rolê, or the tour above it (#33).
+ * The actions are the same on both; only the address and the gate differ.
+ */
+sealed interface FeedTarget {
+    val id: String
+    val path: String
+
+    data class Event(override val id: String) : FeedTarget {
+        override val path: String get() = "/api/events/$id"
+    }
+
+    data class Series(override val id: String) : FeedTarget {
+        override val path: String get() = "/api/series/$id"
+    }
 }
 
 /**
@@ -95,8 +115,21 @@ class SocialRepository(private val api: TumtumApi) {
         onFailed = { FeedState.Failed(it) },
     ) {
         val feed = api.eventFeed(serverEventId)
-        FeedState.Ready(feed.eventName, feed.venue, feed.posts)
+        FeedState.Ready(feed.eventName, feed.venue, feed.posts, feed.series)
     }
+
+    suspend fun seriesFeed(seriesId: String): FeedState = guard(
+        onRefused = FeedState.NotThere,
+        onSignedOut = FeedState.SignedOut,
+        onFailed = { FeedState.Failed(it) },
+    ) {
+        val feed = api.seriesFeed(seriesId)
+        FeedState.Ready(feed.series.name, null, feed.posts, feed.series)
+    }
+
+    /** The series an event belongs to; null when it has none *or* the question failed. */
+    suspend fun seriesOf(serverEventId: String): ServerSeries? =
+        (outcome { api.eventSeries(serverEventId) } as? Outcome.Done)?.value
 
     suspend fun crowd(serverEventId: String): CrowdState = guard(
         onRefused = CrowdState.NotThere,
@@ -122,22 +155,23 @@ class SocialRepository(private val api: TumtumApi) {
         label: String?,
         quote: String?,
         skin: String,
+        toSeries: Boolean = false,
     ): Boolean = outcome {
-        api.postMoment(serverEventId, serverSessionId, bpm, at, label, quote, skin)
+        api.postMoment(serverEventId, serverSessionId, bpm, at, label, quote, skin, toSeries)
     } is Outcome.Done
 
     suspend fun takeDown(serverEventId: String, postId: String): Outcome<Unit> =
         outcome { api.deletePost(serverEventId, postId) }
 
     /** The post as the server now has it — the count comes from here, not from a refetch. */
-    suspend fun toggleSenti(serverEventId: String, postId: String): Outcome<ServerPost> =
-        outcome { api.toggleSenti(serverEventId, postId) }
+    suspend fun toggleSenti(target: FeedTarget, postId: String): Outcome<ServerPost> =
+        outcome { api.toggleSenti(target.path, postId) }
 
-    suspend fun report(serverEventId: String, postId: String, reason: String): Outcome<Unit> =
-        outcome { api.reportPost(serverEventId, postId, reason) }
+    suspend fun report(target: FeedTarget, postId: String, reason: String): Outcome<Unit> =
+        outcome { api.reportPost(target.path, postId, reason) }
 
-    suspend fun block(serverEventId: String, postId: String): Outcome<Unit> =
-        outcome { api.blockAuthor(serverEventId, postId) }
+    suspend fun block(target: FeedTarget, postId: String): Outcome<Unit> =
+        outcome { api.blockAuthor(target.path, postId) }
 
     suspend fun blocked(): Outcome<List<TumtumApi.BlockedPerson>> = outcome { api.myBlocks() }
 

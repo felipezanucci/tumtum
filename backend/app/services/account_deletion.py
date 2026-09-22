@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.card import Card, Share
 from app.models.event_post import EventPost, EventPostReaction
+from app.models.event_series import SeriesPost
 from app.models.hr_data import HRData
 from app.models.hr_session import HRSession
 from app.models.moderation import PostReport, UserBlock
@@ -34,6 +35,7 @@ from app.models.wearable_connection import WearableConnection
 # points at a person cannot be forgotten here again.
 DELETION_ORDER = (
     "post_reports",
+    "series_posts",
     "event_post_reactions",
     "event_posts",
     "user_blocks",
@@ -66,6 +68,7 @@ async def delete_account(db: AsyncSession, user: User) -> None:
             (PostReport.reporter_id == user.id) | PostReport.post_id.in_(post_ids)
         )
     )
+    await db.execute(delete(SeriesPost).where(SeriesPost.post_id.in_(post_ids)))
     await db.execute(
         delete(EventPostReaction).where(
             (EventPostReaction.user_id == user.id)

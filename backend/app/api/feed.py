@@ -22,7 +22,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -30,6 +30,7 @@ from app.core.auth import get_current_user
 from app.core.database import get_db
 from app.models.event import Event
 from app.models.event_post import EventPost, EventPostReaction
+from app.models.event_series import SeriesPost
 from app.models.hr_session import HRSession
 from app.models.moderation import PostReport, UserBlock
 from app.models.peak import Peak
@@ -120,7 +121,21 @@ async def _posts_with_reactions(
         .where(EventPost.event_id == event_id, EventPost.deleted_at.is_(None))
         .order_by(EventPost.created_at.desc())
     )
-    posts = list(rows.all())
+    return await render_posts(db, list(rows.all()), viewer_id)
+
+
+async def render_posts(
+    db: AsyncSession,
+    posts: list[tuple],
+    viewer_id: uuid.UUID,
+    events: dict | None = None,
+) -> list[FeedPostResponse]:
+    """(post, author) rows as the feed shows them, moderation applied.
+
+    Shared by the event feed and the series feed (#33), so a block or a
+    report means the same thing on both. ``events`` maps an event id to the
+    event, for the series feed, where each post says which night it is from.
+    """
 
     # Moderation (#36): a block hides both people from each other, and a post
     # with enough open reports waits for an operator — except for its own
@@ -167,6 +182,7 @@ async def _posts_with_reactions(
             reactions=counts.get(post.id, 0),
             reacted_by_me=post.id in mine,
             mine=post.user_id == viewer_id,
+            event=(events or {}).get(post.event_id),
         )
         for post, author in posts
     ]
@@ -179,6 +195,8 @@ async def get_event_feed(
     db: AsyncSession = Depends(get_db),
 ):
     """Everybody who was at this event and chose to show a moment."""
+    from app.api.series import series_of
+
     event = await _event_or_404(db, event_id)
     return EventFeedResponse(
         event_id=event.id,
@@ -186,6 +204,7 @@ async def get_event_feed(
         venue=event.venue,
         date=event.date,
         posts=await _posts_with_reactions(db, event_id, user.id),
+        series=await series_of(db, event_id),
     )
 
 
@@ -232,6 +251,17 @@ async def post_moment(
     )
     db.add(post)
     await db.flush()
+
+    # The wider audience, only when asked for at this moment (#33). The row is
+    # the consent; an event outside any series simply has nowhere wider to go.
+    if body.to_series:
+        from app.api.series import series_of
+
+        series = await series_of(db, event_id)
+        if series is not None:
+            db.add(SeriesPost(post_id=post.id, series_id=series.id))
+            await db.flush()
+
     return FeedPostResponse.of(
         post, author=user, reactions=0, reacted_by_me=False, mine=True
     )
@@ -263,6 +293,8 @@ async def delete_post(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post não encontrado"
         )
     post.deleted_at = datetime.now(UTC)
+    # Its place in the series feed goes with it — the consent row, withdrawn.
+    await db.execute(delete(SeriesPost).where(SeriesPost.post_id == post.id))
     await db.flush()
 
 
@@ -274,28 +306,20 @@ async def toggle_reaction(
     db: AsyncSession = Depends(get_db),
 ):
     """SENTI TB — the only reaction there is, and it toggles."""
-    result = await db.execute(
-        select(EventPost).where(
-            EventPost.id == post_id,
-            EventPost.event_id == event_id,
-            EventPost.deleted_at.is_(None),
-        )
-    )
-    post = result.scalar_one_or_none()
-    if post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post não encontrado"
-        )
+    return await toggle(db, await _visible_post(db, event_id, post_id), user)
 
+
+async def toggle(db: AsyncSession, post: EventPost, user: User) -> FeedPostResponse:
+    """The reaction itself, shared with the series feed (#33)."""
     existing = await db.execute(
         select(EventPostReaction).where(
-            EventPostReaction.post_id == post_id,
+            EventPostReaction.post_id == post.id,
             EventPostReaction.user_id == user.id,
         )
     )
     row = existing.scalar_one_or_none()
     if row is None:
-        db.add(EventPostReaction(post_id=post_id, user_id=user.id))
+        db.add(EventPostReaction(post_id=post.id, user_id=user.id))
     else:
         await db.delete(row)
     await db.flush()
@@ -305,7 +329,7 @@ async def toggle_reaction(
     ).scalar_one()
     count = (
         await db.execute(
-            select(func.count()).where(EventPostReaction.post_id == post_id)
+            select(func.count()).where(EventPostReaction.post_id == post.id)
         )
     ).scalar_one()
     return FeedPostResponse.of(
@@ -414,7 +438,11 @@ async def report_post(
     report from the same person changes nothing and is not an error, because
     the person's intent was the same both times.
     """
-    post = await _visible_post(db, event_id, post_id)
+    await report(db, await _visible_post(db, event_id, post_id), user, body.reason)
+
+
+async def report(db: AsyncSession, post: EventPost, user: User, reason: str | None):
+    """One report, shared with the series feed (#33)."""
     if post.user_id == user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -423,7 +451,7 @@ async def report_post(
     already = (
         await db.execute(
             select(PostReport.id).where(
-                PostReport.post_id == post_id, PostReport.reporter_id == user.id
+                PostReport.post_id == post.id, PostReport.reporter_id == user.id
             )
         )
     ).scalar_one_or_none()
@@ -431,9 +459,9 @@ async def report_post(
         return
     db.add(
         PostReport(
-            post_id=post_id,
+            post_id=post.id,
             reporter_id=user.id,
-            reason=moderation.clean_reason(body.reason),
+            reason=moderation.clean_reason(reason),
         )
     )
     await db.flush()
@@ -473,7 +501,11 @@ async def block_author(
     Done from a post because nothing in the feed names a person any other
     way. Undone from the list in the app's settings.
     """
-    post = await _visible_post(db, event_id, post_id)
+    await block(db, await _visible_post(db, event_id, post_id), user)
+
+
+async def block(db: AsyncSession, post: EventPost, user: User):
+    """One block, shared with the series feed (#33)."""
     if post.user_id == user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

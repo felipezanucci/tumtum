@@ -11,6 +11,9 @@ import {
   type FixtureBrief,
   type SetlistSong,
   type TimelineEntry,
+  series,
+  type SeriesBrief,
+  type SeriesKind,
 } from '@/lib/api'
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
 import { DateField, TimeField } from '@/components/events/EventForm'
@@ -153,6 +156,8 @@ export default function AdminEventPage() {
                   </p>
                 </div>
               )}
+
+              {operator && <SeriesSection event={event} />}
 
               <Timeline event={event} operator={operator} onChange={load} />
 
@@ -654,5 +659,140 @@ function ManualEntry({ event, onChange }: { event: EventDetail; onChange: () => 
         {busy ? 'Adicionando…' : 'Adicionar marca'}
       </Button>
     </form>
+  )
+}
+
+const seriesKindLabel: Record<SeriesKind, string> = {
+  tour: 'Turnê',
+  club: 'Clube',
+  league: 'Campeonato',
+}
+
+/**
+ * Which tour, club or championship this event belongs to (#33, 22/09).
+ *
+ * Above the rolê sits its series: somebody who went in São Paulo meets
+ * somebody who went in Rio. Only posts whose author chose the series at the
+ * moment of posting appear there — this only says which dates belong to it.
+ */
+function SeriesSection({ event }: { event: EventDetail }) {
+  const [all, setAll] = useState<SeriesBrief[] | null>(null)
+  const [current, setCurrent] = useState<SeriesBrief | null | undefined>(undefined)
+  const [name, setName] = useState('')
+  const [kind, setKind] = useState<SeriesKind>(event.event_type === 'sports' ? 'club' : 'tour')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setError(null)
+    try {
+      const [list, mine] = await Promise.all([series.list(), series.ofEvent(event.id)])
+      setAll(list)
+      setCurrent(mine)
+    } catch (err) {
+      // Not knowing the series is not the same as having none.
+      setError(message(err, 'Não deu pra carregar as turnês.'))
+    }
+  }, [event.id])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  async function assign(seriesId: string | null) {
+    setBusy(true)
+    setError(null)
+    setSaved(null)
+    try {
+      const result = await series.assign(event.id, seriesId)
+      setCurrent(result)
+      setSaved(result ? `Agora faz parte de ${result.name}.` : 'Saiu da turnê.')
+      await load()
+    } catch (err) {
+      setError(message(err, 'Não deu pra salvar.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function createAndAssign() {
+    if (name.trim().length < 2) {
+      setError('Dê um nome, com pelo menos duas letras.')
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      const created = await series.create(name.trim(), kind)
+      setName('')
+      await assign(created.id)
+    } catch (err) {
+      setError(message(err, 'Não deu pra criar.'))
+      setBusy(false)
+    }
+  }
+
+  const field =
+    'w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none'
+
+  return (
+    <section className="mt-8">
+      <h2 className="text-sm font-medium uppercase tracking-wider text-tumtum-muted">
+        Turnê · clube · campeonato
+      </h2>
+      <p className="mt-1 text-sm text-tumtum-muted">
+        Acima do rolê: quem foi em qualquer data se encontra. Só entram os posts de quem
+        escolheu mostrar pra turnê na hora de postar.
+      </p>
+
+      {current === undefined && !error && <p className="mt-3 text-sm text-tumtum-muted">Carregando…</p>}
+
+      {current !== undefined && (
+        <p className="mt-3 text-sm text-tumtum-white">
+          {current
+            ? `${seriesKindLabel[current.kind]}: ${current.name} · ${current.dates} ${current.dates === 1 ? 'data' : 'datas'}`
+            : 'Este evento não faz parte de nenhuma.'}
+        </p>
+      )}
+
+      {all !== null && (
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+          <select
+            className={field}
+            value={current?.id ?? ''}
+            disabled={busy}
+            onChange={(e) => assign(e.target.value || null)}
+          >
+            <option value="">— nenhuma —</option>
+            {all.map((s) => (
+              <option key={s.id} value={s.id}>
+                {seriesKindLabel[s.kind]}: {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
+        <input
+          className={field}
+          placeholder="Nova: The Eras Tour — Brasil, Corinthians 2026…"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <select className={field} value={kind} onChange={(e) => setKind(e.target.value as SeriesKind)}>
+          <option value="tour">Turnê</option>
+          <option value="club">Clube</option>
+          <option value="league">Campeonato</option>
+        </select>
+        <Button type="button" onClick={createAndAssign} disabled={busy}>
+          {busy ? 'Salvando…' : 'Criar e ligar'}
+        </Button>
+      </div>
+
+      {saved && <p className="mt-2 text-sm text-tumtum-white">{saved}</p>}
+      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+    </section>
   )
 }

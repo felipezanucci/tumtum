@@ -701,3 +701,34 @@ export const moderation = {
       body: JSON.stringify({ action }),
     }),
 }
+
+// --- Series: the tour, club or championship above one event (#33, 22/09) ---
+
+export type SeriesKind = 'tour' | 'club' | 'league'
+
+export interface SeriesBrief {
+  id: string
+  name: string
+  kind: SeriesKind
+  dates: number
+}
+
+export const series = {
+  list: () => request<SeriesBrief[]>('/api/series'),
+
+  ofEvent: (eventId: string) => request<SeriesBrief | null>(`/api/events/${eventId}/series`),
+
+  /** Operator only. */
+  create: (name: string, kind: SeriesKind) =>
+    request<SeriesBrief>('/api/series', {
+      method: 'POST',
+      body: JSON.stringify({ name, kind }),
+    }),
+
+  /** Operator only. Null takes the event out of any series. */
+  assign: (eventId: string, seriesId: string | null) =>
+    request<SeriesBrief | null>(`/api/events/${eventId}/series`, {
+      method: 'PUT',
+      body: JSON.stringify({ series_id: seriesId }),
+    }),
+}

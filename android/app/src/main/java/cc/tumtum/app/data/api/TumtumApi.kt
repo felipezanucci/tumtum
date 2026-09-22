@@ -157,9 +157,11 @@ class TumtumApi(private val prefs: UserPrefs) {
         label: String?,
         quote: String?,
         skin: String,
+        toSeries: Boolean = false,
     ) {
         val body = JSONObject()
             .put("session_id", serverSessionId)
+            .put("to_series", toSeries)
             .put("bpm", bpm)
             .put("moment_at", SessionPayload.iso(at))
             .put("skin", skin)
@@ -174,28 +176,34 @@ class TumtumApi(private val prefs: UserPrefs) {
     }
 
     /** SENTI TB, toggled. The server answers with the post as it now stands — count and all. */
-    suspend fun toggleSenti(serverEventId: String, postId: String): ServerPost =
-        ServerPost.parse(
-            request("POST", "/api/events/$serverEventId/feed/$postId/senti", "", token = requireToken()),
-        )
+    suspend fun toggleSenti(base: String, postId: String): ServerPost =
+        ServerPost.parse(request("POST", "$base/feed/$postId/senti", "", token = requireToken()))
+
+    /** The tour's feed (#33): every post shown to it, from every date. */
+    suspend fun seriesFeed(seriesId: String): ServerSeriesFeed =
+        ServerSeriesFeed.parse(request("GET", "/api/series/$seriesId/feed", null, token = requireToken()))
+
+    /** Which tour, club or championship an event belongs to. Public, like the event. */
+    suspend fun eventSeries(serverEventId: String): ServerSeries? =
+        ServerSeries.parseOrNull(request("GET", "/api/events/$serverEventId/series", null, token = null))
 
     // --- Report and block (#36, 22/09) ---
     //
     // Both are made from a post, because the feed names nobody any other way.
 
     /** abuse · fake · other. */
-    suspend fun reportPost(serverEventId: String, postId: String, reason: String) {
+    suspend fun reportPost(base: String, postId: String, reason: String) {
         request(
             "POST",
-            "/api/events/$serverEventId/feed/$postId/report",
+            "$base/feed/$postId/report",
             JSONObject().put("reason", reason).toString(),
             token = requireToken(),
         )
     }
 
     /** Stop seeing the person who posted this, and stop being seen by them. */
-    suspend fun blockAuthor(serverEventId: String, postId: String) {
-        request("POST", "/api/events/$serverEventId/feed/$postId/block", "", token = requireToken())
+    suspend fun blockAuthor(base: String, postId: String) {
+        request("POST", "$base/feed/$postId/block", "", token = requireToken())
     }
 
     data class BlockedPerson(val id: String, val name: String, val initials: String)

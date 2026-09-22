@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.CardPhotoStore
+import cc.tumtum.app.data.api.ServerSeries
 import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
@@ -350,8 +351,13 @@ private fun DoneActions(
     var posted by remember(nightId) { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
 
+    // The tour above this night, if any (#33): it changes what "posting" can
+    // mean, so the consent has to name it.
+    var series by remember(nightId) { mutableStateOf<ServerSeries?>(null) }
+
     LaunchedEffect(nightId) {
         eventId = container.nights.serverEventIdFor(nightId)
+        eventId?.let { series = container.social.seriesOf(it) }
     }
 
     val target = eventId
@@ -365,36 +371,81 @@ private fun DoneActions(
         }
     }
 
+    fun send(toSeries: Boolean) {
+        posting = true
+        scope.launch {
+            val ok = container.social.post(
+                serverEventId = target!!,
+                serverSessionId = sessionId!!,
+                bpm = night.peakBpm,
+                at = night.peakAt,
+                label = night.moments.firstOrNull { it.isPeak }?.label,
+                quote = null,
+                skin = skin.name,
+                toSeries = toSeries,
+            )
+            posted = ok
+            failed = !ok
+            asking = false
+            posting = false
+        }
+    }
+
     if (asking && canPost) {
+        val wider = series
+        // Two audiences, two buttons, and the sentence names both (#33). The
+        // wider one is never the silent default: everyone who posted before
+        // the tour feed existed was promised "só eles".
+        val word = wider?.let {
+            stringResource(
+                when (it.kind) {
+                    "club" -> R.string.series_kind_club
+                    "league" -> R.string.series_kind_league
+                    else -> R.string.series_kind_tour
+                },
+            )
+        }
+        val withArticle = wider?.let {
+            stringResource(
+                when (it.kind) {
+                    "club" -> R.string.series_kind_club_the
+                    "league" -> R.string.series_kind_league_the
+                    else -> R.string.series_kind_tour_the
+                },
+            )
+        }
         Text(
-            stringResource(R.string.feed_post_consent),
+            if (withArticle != null) {
+                stringResource(R.string.feed_post_consent_series, withArticle)
+            } else {
+                stringResource(R.string.feed_post_consent)
+            },
             style = TTType.BodySmall,
             color = TT.Gray45,
         )
         Spacer(Modifier.height(12.dp))
-        TTButton(
-            stringResource(if (posting) R.string.feed_post_running else R.string.feed_post_confirm),
-            TTButtonStyle.Rose,
-            enabled = !posting,
-            onClick = {
-                posting = true
-                scope.launch {
-                    val ok = container.social.post(
-                        serverEventId = target!!,
-                        serverSessionId = sessionId!!,
-                        bpm = night.peakBpm,
-                        at = night.peakAt,
-                        label = night.moments.firstOrNull { it.isPeak }?.label,
-                        quote = null,
-                        skin = skin.name,
-                    )
-                    posted = ok
-                    failed = !ok
-                    asking = false
-                    posting = false
-                }
-            },
-        )
+        if (word != null) {
+            TTButton(
+                if (posting) stringResource(R.string.feed_post_running) else stringResource(R.string.feed_post_confirm_series, word),
+                TTButtonStyle.Rose,
+                enabled = !posting,
+                onClick = { send(toSeries = true) },
+            )
+            Spacer(Modifier.height(8.dp))
+            TTButton(
+                stringResource(R.string.feed_post_confirm_event_only),
+                TTButtonStyle.OutlineOnDark,
+                enabled = !posting,
+                onClick = { send(toSeries = false) },
+            )
+        } else {
+            TTButton(
+                stringResource(if (posting) R.string.feed_post_running else R.string.feed_post_confirm),
+                TTButtonStyle.Rose,
+                enabled = !posting,
+                onClick = { send(toSeries = false) },
+            )
+        }
         Spacer(Modifier.height(8.dp))
         TTButton(
             stringResource(R.string.feed_post_cancel),
