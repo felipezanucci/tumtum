@@ -77,7 +77,7 @@ export default function AdminEventsPage() {
             <h1 className="text-3xl font-hero text-tumtum-white">Eventos</h1>
             {operator && (
               <Link
-                href="/events/novo"
+                href="/admin/eventos/novo"
                 className="shrink-0 rounded-lg bg-tumtum-pink px-4 py-2 text-sm font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow"
               >
                 Novo evento

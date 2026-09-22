@@ -108,7 +108,7 @@ export default function EventDetailPage() {
               the operator. The fan never edits an event (product rule, 21/09). */}
           {user?.is_admin && (
             <div className="mt-4 flex gap-2">
-              <Link href={`/events/${event.id}/editar`}>
+              <Link href={`/admin/eventos/${event.id}/editar`}>
                 <Button variant="secondary" size="sm">
                   Editar evento
                 </Button>

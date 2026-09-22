@@ -65,16 +65,39 @@ def test_a_correction_keeps_the_times_already_measured():
     ]
 
 
-def test_a_song_that_moved_does_not_carry_its_old_time():
-    """Its old stamp is evidence about the old slot, not the new one."""
+def test_correcting_a_typo_does_not_cost_the_show_its_measurement():
+    """The one Felipe hit, 22/09, and the reason the key changed.
+
+    He fixed one word in a title. The row's time vanished, COMEÇOU lit up as
+    if the song had not started, and the only way back the screen offered was
+    to tap it — writing *now* into a song that began an hour before. A false
+    measurement is worse than a lost one.
+    """
+    existing = [(1, "Yellow", AT), (2, "Clocs", LATER), (3, "Fix You", None)]
+    merged = _merge_started(existing, ["Yellow", "Clocks", "Fix You"])
+    assert merged == [(1, "Yellow", AT), (2, "Clocks", LATER), (3, "Fix You", None)]
+
+
+def test_the_time_stays_with_the_slot_when_the_order_is_corrected():
+    """The tap was on the slot: "the second thing started at 21h44"."""
     existing = [(1, "Yellow", AT), (2, "Clocks", LATER)]
     merged = _merge_started(existing, ["Clocks", "Yellow"])
-    assert merged == [(1, "Clocks", None), (2, "Yellow", None)]
+    assert merged == [(1, "Clocks", AT), (2, "Yellow", LATER)]
 
 
-def test_a_new_song_at_a_used_position_starts_unmeasured():
-    existing = [(1, "Yellow", AT)]
-    assert _merge_started(existing, ["Trouble"]) == [(1, "Trouble", None)]
+def test_a_position_nobody_tapped_comes_back_unmeasured():
+    """Nothing is ever invented: no tap, no time."""
+    existing = [(1, "Yellow", None)]
+    assert _merge_started(existing, ["Trouble", "Clocks"]) == [
+        (1, "Trouble", None),
+        (2, "Clocks", None),
+    ]
+
+
+def test_a_paste_can_never_raise_the_number_of_measured_rows():
+    existing = [(1, "Yellow", AT), (2, "Clocks", None)]
+    merged = _merge_started(existing, ["Yellow", "Clocks", "Fix You", "Trouble"])
+    assert sum(1 for _p, _t, at in merged if at is not None) == 1
 
 
 def test_a_song_dropped_from_the_list_takes_its_time_with_it():
@@ -86,8 +109,8 @@ def test_clearing_the_list_clears_everything():
     assert _merge_started([(1, "Yellow", AT)], []) == []
 
 
-def test_a_repeated_title_keeps_only_the_slot_that_matches():
-    """An encore of the same song is a different moment with its own time."""
+def test_an_encore_of_the_same_song_is_its_own_slot():
+    """Two slots, two moments: the stamp on 1 never leaks onto 3."""
     existing = [(1, "Yellow", AT), (2, "Clocks", None), (3, "Yellow", None)]
     merged = _merge_started(existing, ["Yellow", "Clocks", "Yellow"])
     assert merged == [(1, "Yellow", AT), (2, "Clocks", None), (3, "Yellow", None)]

@@ -13,7 +13,7 @@ import {
   type TimelineEntry,
 } from '@/lib/api'
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
-import { TimeField } from '@/components/events/EventForm'
+import { DateField, TimeField } from '@/components/events/EventForm'
 import { Badge, Button, Loading, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { formatDateOnly } from '@/lib/utils/dates'
@@ -138,7 +138,7 @@ export default function AdminEventPage() {
                   {event.event_type === 'sports' ? 'Jogo' : event.event_type === 'festival' ? 'Festival' : 'Show'}
                 </Badge>
                 {operator && (
-                  <Link href={`/events/${event.id}/editar`} className="text-sm text-tumtum-pink">
+                  <Link href={`/admin/eventos/${event.id}/editar`} className="text-sm text-tumtum-pink">
                     Editar dados
                   </Link>
                 )}
@@ -296,6 +296,10 @@ function FootballSource({ event, onChange }: { event: EventDetail; onChange: () 
   async function search() {
     setBusy('search')
     setError(null)
+    // A failed search must not leave the previous answer on screen: with a
+    // stale empty list the page would print "Nenhum jogo com esses dados"
+    // beside the error explaining that no search was made (22/09).
+    setResults(null)
     try {
       setResults(await events.searchFixtures({ team: team.trim() || undefined, on: on || undefined }))
     } catch (err) {
@@ -346,14 +350,20 @@ function FootballSource({ event, onChange }: { event: EventDetail; onChange: () 
           </button>
         </p>
       )}
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
-        <input
-          className={field}
-          placeholder="Time (Corinthians, Palmeiras…)"
-          value={team}
-          onChange={(e) => setTeam(e.target.value)}
-        />
-        <input className={field} type="date" value={on} onChange={(e) => setOn(e.target.value)} />
+      <div className="mt-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_auto_auto]">
+        <div>
+          <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="fixture-team">
+            Time
+          </label>
+          <input
+            id="fixture-team"
+            className={field}
+            placeholder="Corinthians, Palmeiras…"
+            value={team}
+            onChange={(e) => setTeam(e.target.value)}
+          />
+        </div>
+        <DateField id="fixture-on" label="Data do jogo" value={on} onChange={setOn} />
         <Button type="button" onClick={search} disabled={busy !== null}>
           {busy === 'search' ? 'Buscando…' : 'Buscar'}
         </Button>
@@ -482,6 +492,12 @@ function ShowSetlist({ event, onChange }: { event: EventDetail; onChange: () => 
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
           />
+          {songs.some((s) => s.started_at !== null) && (
+            <p className="mt-2 text-sm text-tumtum-muted">
+              As horas já marcadas continuam onde estão. Corrigir um nome ou a ordem
+              não apaga nada — você não vai ter que marcar de novo.
+            </p>
+          )}
           <div className="mt-2 flex gap-2">
             <Button type="button" onClick={save} disabled={busy !== null}>
               {busy === 'save' ? 'Salvando…' : 'Salvar a ordem'}
@@ -630,7 +646,7 @@ function ManualEntry({ event, onChange }: { event: EventDetail; onChange: () => 
             </option>
           ))}
         </select>
-        <input className={field} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <DateField id="manual-date" label="Data" value={date} onChange={setDate} />
         <TimeField id="manual" label="Hora (São Paulo)" value={time} onChange={setTime} />
       </div>
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}

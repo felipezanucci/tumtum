@@ -637,6 +637,134 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-22 — the API had written the answer and the code threw it away
+
+Felipe searched the admin for a Palmeiras match on 20/09 and read **"Nenhum
+jogo com esses dados."** The match existed: Grêmio × Palmeiras, 11h.
+
+What API-Football had actually answered was:
+
+```json
+{"errors": {"season": "The Season field is required."}, "results": 0, "response": []}
+```
+
+**With HTTP 200.** Every call in `football_service.py` ended
+`if response.status_code != 200: return []`, and `grep errors` over the file
+returned nothing. So a wrong key, an uncovered season, a spent quota, an
+illegal parameter combination and a genuine zero all came out as the same
+empty list and the same sentence on screen. The nineteenth instance of the
+defect this project keeps counting, now in an operator tool: **an empty state
+is a claim.**
+
+### What it cost to find
+
+An evening, and it should have cost five seconds. The diagnosis was in the
+response body the whole time. Ruling things out by hand took three rounds at
+Felipe's Terminal, because this environment cannot reach `api-sports.io` and
+the key lives only on Railway:
+
+| ruled out | by |
+|---|---|
+| plan doesn't cover 2026 | dashboard: **Pro**, active |
+| quota spent | `requests: {current: 2, limit_day: 7500}` |
+| bad key | `/status` → HTTP 200 with the account on it |
+| UTC date rollover | kick-off 14:00Z on the 20th — same calendar day |
+| wrong team id | `teams?id=121` → `Palmeiras, PAL, Brazil, 1914` |
+
+Then `&season=2026` returned the fixture, `results: 1`, id 1492384.
+
+**A second lesson, free:** the first diagnostic command I gave Felipe was
+`curl -s`, whose `-s` suppresses the error message. Three blocks came back
+blank and told us nothing. `curl -s` *is* `if status != 200: return []` — I
+wrote the very bug I was hunting, into the tool I was hunting it with. The
+habit is not rare and not anyone's carelessness; it is what "handle the error"
+degrades into when nobody is watching.
+
+### Fixed
+
+- **The season goes out.** `search_fixtures()` already had a `season`
+  parameter and already built `params["season"]` — `events.py` simply never
+  passed one. The calendar year is right for Brazil, whose championships run
+  January to December; European leagues label 2026/27 as season 2026, which
+  the API will now say out loud if it ever matters.
+- **One door to the API.** `_get()` is the only place that calls it, and
+  nothing below it returns an empty result to mean a failure: a non-200 and a
+  200 carrying `errors` both raise `FootballApiError`, which carries the API's
+  own sentence to the operator's screen.
+- **A team nobody has heard of no longer returns the whole day.** A typo used
+  to fall through to `date` alone — 1151 fixtures.
+- **A failed search clears the previous answer**, so the page cannot print
+  "Nenhum jogo com esses dados" beside an error saying no search was made.
+
+Ten tests, `backend/tests/test_football_api_errors.py`, built around the exact
+payload that hid.
+
+---
+
+## 2026-09-22 — a measured time belongs to the slot, not to the song
+
+**A reversal.** `_merge_started` keyed a setlist row's `started_at` on
+`(position, title)`, reasoning that a song which moved should not carry its
+old stamp onto a new slot. The reasoning was about the wrong thing.
+
+Felipe corrected one word in a song's title during a test. The row's time
+vanished, **COMEÇOU lit up again** as if the song had not started, and the
+only recovery the screen offered was to tap it — writing *now* into a song
+that began an hour earlier. His question was the whole argument: *"Como é que
+eu vou marcar de novo? Se eu estiver fazendo isso pelo show mesmo."*
+
+**A false measurement is worse than a lost one**, and the old key had made the
+false one the easy path.
+
+What the operator taps is a **slot**. "The third thing started at 21h44" is a
+fact about the show's third thing, whatever it turns out to be called. So the
+key is the position. Correcting a spelling, fixing the order after the fact,
+or extending the tail all keep the record intact; a position nobody tapped
+still comes back `None`, and a paste can never raise the number of measured
+rows. The edit screen now says so where the operator is about to edit.
+
+The case this does not handle: inserting a song *before* rows already
+measured shifts them onto the wrong titles. In practice an operator editing
+mid-show inserts at the current position, i.e. after the measured rows, so it
+degenerates to editing the tail. Written down here rather than defended in
+code.
+
+---
+
+## 2026-09-22 — the operator kept being dropped into the fan's site
+
+Felipe clicked *Editar* on an event inside `/admin/eventos/{id}`, landed
+somewhere that did not look like the admin, **read it as having been signed
+out**, and typed `/admin/eventos` back in by hand.
+
+He had not been signed out. Two operator screens were living in the fan's part
+of the site and pushing back into it on save:
+
+| was | is |
+|---|---|
+| `/events/novo` → pushes to `/events` | `/admin/eventos/novo` → pushes to the new event |
+| `/events/[id]/editar` → pushes to `/events/{id}` | `/admin/eventos/[id]/editar` → back to the event |
+
+Both also spoke in the fan's voice ("a noite que **você** vai capturar") about
+an act the fan is never allowed to perform. **Events are TumTum's** (21/09),
+and where a screen lives is part of saying so — `/events/novo` was a door to
+creating an event sitting inside the fan's own list.
+
+### And the date was still typed, in the wrong order
+
+`<input type="date">` renders in the **browser's** locale, not the product's,
+so Felipe got month-first and a box to type into. Two standing rules meet
+there: a time is never typed, and every date or time field is a picker,
+operator screens included. `DateField` is now three selects — **dia, mês,
+ano** — beside the `TimeField` that already worked this way, months named
+(`set`, not `09`) so they are read rather than counted. February knows how
+many days it has; picking a month clamps the day instead of wiping it; a
+value from another year is kept rather than silently shown as `--`. The stored
+value stays ISO, because that is what the API reads — only the reading order
+changed.
+
+---
+
 ## 2026-09-22 — the link that was always there
 
 Felipe asked for an APK link that downloads by itself. The answer took three

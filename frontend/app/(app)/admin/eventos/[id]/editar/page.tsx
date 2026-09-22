@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 import { Nav } from '@/components/layout'
 import { Loading, SignInRequired } from '@/components/ui'
@@ -9,13 +10,19 @@ import { EventForm, type EventFormValues, toApiTime } from '@/components/events/
 import { ApiError, events, type TumtumEvent } from '@/lib/api'
 
 /**
- * Correct an event someone already created.
+ * Operação › Eventos › Corrigir — fix an event already registered.
  *
  * There was no way to do this at all — not a missing screen, a missing
  * endpoint. An event typed with the wrong date could only be abandoned and
  * typed again, leaving the wrong one sitting in the list on the night it
  * mattered. And a wrong date is not cosmetic: it is what ties a capture to
  * the moments inside an event.
+ *
+ * Moved out of `/events/[id]/editar` on 2026-09-22. It was an operator screen
+ * sitting in the fan's part of the site, and on saving it pushed to the fan's
+ * event page — so correcting an event dropped the operator out of the admin
+ * mid-job. Felipe read that as having been signed out and typed
+ * `/admin/eventos` back in by hand.
  */
 export default function EditEventPage() {
   const router = useRouter()
@@ -94,9 +101,16 @@ export default function EditEventPage() {
       <Nav />
       <main className="min-h-screen bg-tumtum-black">
         <div className="mx-auto max-w-lg px-4 py-8">
-          <h1 className="text-3xl font-hero text-tumtum-white">Editar evento</h1>
+          <Link
+            href={`/admin/eventos/${event.id}`}
+            className="text-sm text-tumtum-muted hover:text-tumtum-white"
+          >
+            ← Voltar para o evento
+          </Link>
+          <h1 className="mt-3 text-3xl font-hero text-tumtum-white">Corrigir evento</h1>
           <p className="mt-2 text-sm text-tumtum-muted">
-            A data e o horário são o que ligam sua batida aos momentos da noite.
+            A data e o horário são o que ligam a batida de quem estava lá aos momentos
+            da noite.
           </p>
 
           <EventForm
@@ -113,7 +127,7 @@ export default function EditEventPage() {
                 start_time: toApiTime(form.start_time),
                 end_time: toApiTime(form.end_time),
               })
-              router.push(`/events/${event.id}`)
+              router.push(`/admin/eventos/${event.id}`)
             }}
           />
         </div>

@@ -238,6 +238,87 @@ def scheduled_kickoff(fixture: dict) -> datetime:
         return datetime.now(UTC)
 
 
+class FootballApiError(RuntimeError):
+    """API-Football refused, **in its own words**.
+
+    Until 2026-09-22 every call here ended ``if response.status_code != 200:
+    return []`` and never once read ``data["errors"]`` — which is where this
+    API writes "your plan does not cover", "invalid key", "quota spent" and
+    "this parameter needs that one", **with HTTP 200 and an empty list**. So a
+    wrong key, an uncovered season, a spent quota and a genuine zero all
+    produced the same screen: *"Nenhum jogo com esses dados."*
+
+    It cost an evening to find that the real message had been there all along:
+    ``{"season": "The Season field is required."}``. An empty state is a claim,
+    and this exception exists so the operator reads the API's sentence instead
+    of ours.
+    """
+
+    def __init__(self, reason: str, status_code: int | None = None):
+        super().__init__(reason)
+        self.reason = reason
+        self.status_code = status_code
+
+
+def _reason_from(errors: object) -> str:
+    """API-Football's own words: a dict of field → complaint, or a string."""
+    if isinstance(errors, dict):
+        return "; ".join(f"{k}: {v}" for k, v in errors.items())
+    return str(errors)
+
+
+async def _get(path: str, params: dict) -> dict:
+    """One call to API-Football, or an exception that says why not.
+
+    Nothing here returns an empty result to mean a failure. The two ways this
+    API says no — a non-200, and a 200 carrying ``errors`` — both raise.
+    """
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        try:
+            response = await client.get(
+                f"{API_FOOTBALL_BASE}/{path}",
+                params=params,
+                headers={"x-apisports-key": settings.api_football_key},
+            )
+        except httpx.HTTPError as exc:
+            raise FootballApiError(f"não deu pra falar com a API-Football: {exc}")
+
+    if response.status_code != 200:
+        raise FootballApiError(
+            f"a API-Football respondeu {response.status_code}",
+            status_code=response.status_code,
+        )
+
+    try:
+        data = response.json()
+    except ValueError:
+        raise FootballApiError("a API-Football respondeu algo que não é JSON")
+
+    # The one that hid for a whole evening: HTTP 200, empty list, and the
+    # reason sitting right here.
+    if errors := data.get("errors"):
+        raise FootballApiError(_reason_from(errors), status_code=200)
+    return data
+
+
+def _get_response(data: dict) -> list[dict]:
+    """The payload's ``response`` list. Only ever reached after [_get] passed."""
+    return data.get("response", []) or []
+
+
+def season_for(date: str) -> int:
+    """The season a match on ``date`` (YYYY-MM-DD) belongs to.
+
+    API-Football rejects ``team`` or ``league`` without a season, so this is
+    not optional. The calendar year is right for Brazilian football, whose
+    championships run January to December, and Brazil is the whole of Phase 0.
+    European leagues label 2026/27 as season 2026, so a January fixture there
+    would need ``year - 1``; when that day comes the API will say so out loud
+    now that [FootballApiError] carries its words.
+    """
+    return int(date[:4])
+
+
 async def search_fixtures(
     team_name: str | None = None,
     league_id: int | None = None,
@@ -260,69 +341,41 @@ async def search_fixtures(
         params["date"] = date
     if league_id:
         params["league"] = league_id
-    if season:
-        params["season"] = season
 
     # If team_name is provided, first resolve to team ID
     if team_name:
         team_id = await _find_team_id(team_name)
-        if team_id:
-            params["team"] = team_id
+        if team_id is None:
+            raise FootballApiError(
+                f'a API-Football não conhece nenhum time chamado "{team_name}"'
+            )
+        params["team"] = team_id
 
     if not params:
         return []
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_FOOTBALL_BASE}/fixtures",
-            params=params,
-            headers={
-                "x-apisports-key": settings.api_football_key,
-            },
-        )
+    # **The season is not optional** (2026-09-22). API-Football answers
+    # ``team`` or ``league`` without one with HTTP 200, an empty list and
+    # ``{"season": "The Season field is required."}`` — which this module used
+    # to discard, so a Palmeiras match that was sitting right there read as
+    # "Nenhum jogo com esses dados" on the operator's screen.
+    if season:
+        params["season"] = season
+    elif ("team" in params or "league" in params) and date:
+        params["season"] = season_for(date)
 
-    if response.status_code != 200:
-        return []
-
-    data = response.json()
-    return data.get("response", [])
+    return _get_response(await _get("fixtures", params))
 
 
 async def get_fixture(fixture_id: int) -> dict | None:
     """One fixture by id: teams, scheduled kick-off, status."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_FOOTBALL_BASE}/fixtures",
-            params={"id": fixture_id},
-            headers={
-                "x-apisports-key": settings.api_football_key,
-            },
-        )
-
-    if response.status_code != 200:
-        return None
-
-    data = response.json()
-    results = data.get("response", [])
+    results = _get_response(await _get("fixtures", {"id": fixture_id}))
     return results[0] if results else None
 
 
 async def get_fixture_events(fixture_id: int) -> list[dict]:
     """Fetch events (goals, cards, substitutions) for a specific fixture."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_FOOTBALL_BASE}/fixtures/events",
-            params={"fixture": fixture_id},
-            headers={
-                "x-apisports-key": settings.api_football_key,
-            },
-        )
-
-    if response.status_code != 200:
-        return []
-
-    data = response.json()
-    return data.get("response", [])
+    return _get_response(await _get("fixtures/events", {"fixture": fixture_id}))
 
 
 def parse_fixture_to_timeline(
@@ -466,20 +519,7 @@ def parse_fixture_to_timeline(
 
 async def _find_team_id(team_name: str) -> int | None:
     """Search for a team by name and return its API-Football ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_FOOTBALL_BASE}/teams",
-            params={"search": team_name},
-            headers={
-                "x-apisports-key": settings.api_football_key,
-            },
-        )
-
-    if response.status_code != 200:
-        return None
-
-    data = response.json()
-    results = data.get("response", [])
+    results = _get_response(await _get("teams", {"search": team_name}))
     if results:
         return results[0].get("team", {}).get("id")
     return None
