@@ -80,7 +80,7 @@ data class WatchSource(
     val isBest: Boolean,
 )
 
-// ---- Social (repositório fake até o backend existir, §2) ----
+// ---- Social: the event's feed, over the real server (22/09) ----
 
 data class SocialUser(
     val handle: String,
@@ -94,6 +94,10 @@ data class SocialUser(
 /** A unidade social é o card compartilhado + uma frase. Reação única: SENTI TB. */
 data class FeedMoment(
     val id: Long,
+    /** The server's id for the post, for a reaction or a take-down. */
+    val postId: String = "",
+    /** Whether the viewer may take it down — shown only where it is true. */
+    val mine: Boolean = false,
     val user: SocialUser,
     val eventName: String,
     val whenLabel: String,
@@ -106,33 +110,6 @@ data class FeedMoment(
     val sentiByMe: Boolean,
     val showCurve: Boolean = false,
 )
-
-data class UpcomingEvent(
-    val eventName: String,
-    val friendsConfirmed: Int,
-)
-
-data class EventFeed(
-    val eventName: String,
-    val venueDate: String,
-    val sharedCount: Int,
-    val collectivePeakLabel: String,
-    val samePeakPct: Int,
-    val moments: List<FeedMoment>,
-    val compactMoments: List<FeedMoment>,
-    val userWasThere: Boolean,
-)
-
-data class CrowdStats(
-    val eventName: String,
-    val sharedCount: Int,
-    val cohortPct: Int,
-    val windowStartLabel: String,
-    val windowEndLabel: String,
-    val peaks: List<CrowdPeak>,
-)
-
-data class CrowdPeak(val timeLabel: String, val label: String, val people: Int, val highlight: Boolean)
 
 data class PublicProfile(
     val user: SocialUser,

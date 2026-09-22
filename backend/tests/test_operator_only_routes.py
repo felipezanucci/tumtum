@@ -87,3 +87,46 @@ def test_the_setlist_source_that_could_not_be_licensed_is_gone():
     paths = {getattr(r, "path", "") for r in app.routes}
     assert "/api/events/sources/setlist" not in paths
     assert "/api/events/{event_id}/timeline/setlist" not in paths
+
+
+# --- the event feed: a different gate, and it must not be the admin one ---
+#
+# The feed is for the people who were at the event (Felipe, 22/09). That is
+# neither "anyone signed in" nor "operators": it is proved by an hr_sessions
+# row, and `require_attendance` is the only thing that proves it.
+
+ATTENDANCE_ONLY = {
+    ("GET", "/api/events/{event_id}/feed"),
+    ("POST", "/api/events/{event_id}/feed"),
+    ("POST", "/api/events/{event_id}/feed/{post_id}/senti"),
+    ("GET", "/api/events/{event_id}/crowd"),
+}
+
+
+def test_reading_posting_and_reacting_all_need_you_to_have_been_there():
+    from app.api.feed import require_attendance
+
+    missing = [f"{m} {p}" for m, p in ATTENDANCE_ONLY if guards(m, p) is None]
+    assert missing == [], f"route gone or renamed: {missing}"
+
+    ungated = [
+        f"{m} {p}"
+        for m, p in ATTENDANCE_ONLY
+        if require_attendance.__name__ not in (guards(m, p) or set())
+    ]
+    assert ungated == [], f"open to anyone signed in: {ungated}"
+
+
+def test_taking_your_own_post_down_is_not_gated_on_attendance():
+    """The undo must outlive the night — consent is only real while it does."""
+    from app.api.feed import require_attendance
+
+    found = guards("DELETE", "/api/events/{event_id}/feed/{post_id}")
+    assert found is not None, "the undo is gone"
+    assert require_attendance.__name__ not in found
+
+
+def test_the_feed_is_not_an_operator_surface():
+    """Being staff is not being at the match."""
+    for method, path in ATTENDANCE_ONLY:
+        assert require_admin.__name__ not in (guards(method, path) or set())

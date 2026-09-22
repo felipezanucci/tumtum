@@ -58,8 +58,12 @@ fun MomentCard(
         ) {
             Avatar(moment.user.initials, moment.user.avatarSkin, size = 32.dp)
             Column {
+                // A name, not a handle (22/09). The feed is per event and
+                // there are no public profiles behind it, so the server sends
+                // a display name and initials and nothing that identifies the
+                // person anywhere else.
                 Text(
-                    "@${moment.user.handle}",
+                    moment.user.displayName,
                     style = TTType.ItemSub.copy(fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold),
                     color = TT.Ink,
                 )
@@ -72,7 +76,11 @@ fun MomentCard(
         }
         // Plate do momento
         Column(Modifier.fillMaxWidth().background(plateBg).padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 14.dp)) {
-            Text(moment.title, style = TTType.CardShout, color = plateFg)
+            // A moment nothing named carries no title rather than an empty
+            // line: the app either knows or says nothing (product rule, 22/09).
+            if (moment.title.isNotBlank()) {
+                Text(moment.title, style = TTType.CardShout, color = plateFg)
+            }
             Text(
                 "${moment.bpm}",
                 style = TextStyle(
@@ -105,7 +113,7 @@ fun MomentCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "“${moment.quote}”",
+                if (moment.quote.isNotBlank()) "“${moment.quote}”" else "",
                 style = TTType.BodySmall.copy(fontStyle = FontStyle.Italic),
                 color = TT.Gray70,
                 modifier = Modifier.weight(1f),

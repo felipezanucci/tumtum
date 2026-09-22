@@ -21,7 +21,6 @@ import cc.tumtum.app.ui.components.TTTab
 import cc.tumtum.app.ui.screens.account.CreateAccountScreen
 import cc.tumtum.app.ui.screens.card.CardScreen
 import cc.tumtum.app.ui.screens.choose.ChooseSkinScreen
-import cc.tumtum.app.ui.screens.crowd.CrowdScreen
 import cc.tumtum.app.ui.screens.eventfeed.EventFeedScreen
 import cc.tumtum.app.ui.screens.feed.FeedScreen
 import cc.tumtum.app.ui.screens.gallery.GalleryScreen
@@ -49,18 +48,17 @@ object Routes {
     const val Gallery = "gallery"
     const val Capture = "capture"
     const val EndNight = "end_night"
-    const val EventFeed = "event_feed"
+    const val EventFeed = "event_feed/{eventId}"
     const val Settings = "settings"
     const val Reveal = "reveal/{nightId}"
     const val Choose = "choose/{nightId}"
     const val Card = "card/{nightId}/{skin}"
-    const val Crowd = "crowd/{nightId}"
     const val Profile = "profile/{handle}"
 
     fun reveal(nightId: Long) = "reveal/$nightId"
     fun choose(nightId: Long) = "choose/$nightId"
     fun card(nightId: Long, skin: Skin) = "card/$nightId/${skin.name}"
-    fun crowd(nightId: Long) = "crowd/$nightId"
+    fun eventFeed(eventId: String) = "event_feed/$eventId"
     fun profile(handle: String) = "profile/$handle"
 }
 
@@ -164,14 +162,11 @@ fun TumTumRoot(
                 )
             }
             composable(
-                Routes.Crowd,
-                arguments = listOf(navArgument("nightId") { type = NavType.LongType }),
+                Routes.EventFeed,
+                arguments = listOf(navArgument("eventId") { type = NavType.StringType }),
             ) { entry ->
-                CrowdScreen(nav, nightId = entry.arguments!!.getLong("nightId"))
+                EventFeedScreen(nav, eventId = entry.arguments!!.getString("eventId").orEmpty())
             }
-
-            // Social
-            composable(Routes.EventFeed) { EventFeedScreen(nav) }
             composable(
                 Routes.Profile,
                 arguments = listOf(navArgument("handle") { type = NavType.StringType }),

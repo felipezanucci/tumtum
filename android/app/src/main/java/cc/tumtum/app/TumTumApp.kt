@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import cc.tumtum.app.data.api.TumtumApi
 import cc.tumtum.app.data.health.HealthConnectSource
 import cc.tumtum.app.data.prefs.UserPrefs
-import cc.tumtum.app.data.repo.FakeSocialRepository
 import cc.tumtum.app.data.repo.NightRepository
 import cc.tumtum.app.data.repo.NightSync
 import cc.tumtum.app.data.repo.SocialRepository
@@ -44,7 +43,7 @@ class AppContainer(app: Application) {
     val db = TumTumDatabase.build(app)
     val nights = NightRepository(db, health)
     val sync = NightSync(db, api, prefs)
-    val social: SocialRepository = FakeSocialRepository()
+    val social: SocialRepository = SocialRepository(api)
     val endNight = EndNightCache()
     val exporter = SessionExporter(app, db, prefs)
 }

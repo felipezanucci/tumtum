@@ -11,6 +11,7 @@ from app.api.cards import router as cards_router
 from app.api.demo import router as demo_router
 from app.api.events import router as events_router
 from app.api.experience import router as experience_router
+from app.api.feed import router as feed_router
 from app.api.health import router as health_router
 from app.api.users import router as users_router
 from app.api.waitlist import router as waitlist_router
@@ -33,6 +34,10 @@ async def lifespan(app: FastAPI):
     from app.core.database import Base, engine
     from app.models.card import Card, Share  # noqa: F401
     from app.models.event import Event  # noqa: F401
+    from app.models.event_post import (  # noqa: F401
+        EventPost,
+        EventPostReaction,
+    )
     from app.models.event_setlist import EventSetlist  # noqa: F401
     from app.models.event_timeline import EventTimeline  # noqa: F401
     from app.models.hr_data import HRData  # noqa: F401
@@ -111,6 +116,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(health_router)
 app.include_router(events_router)
+app.include_router(feed_router)
 app.include_router(experience_router)
 app.include_router(cards_router)
 app.include_router(users_router)
