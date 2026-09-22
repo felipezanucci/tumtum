@@ -1,7 +1,6 @@
 package cc.tumtum.app.ui.screens.card
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,7 +49,6 @@ import cc.tumtum.app.ui.nav.Routes
 import android.graphics.Bitmap
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.text.style.TextAlign
 
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
@@ -117,22 +115,21 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             )
         }
         if (skin == Skin.BLACK && !cameBack) {
-            Text(
+            // A button in Toxic Yellow, not a line of small caps. Felipe missed
+            // the option entirely on b145 (22/09): white meta type above a pink
+            // CTA reads as a caption for the card, not as a thing to press.
+            TTButton(
                 stringResource(if (photo == null) R.string.card_photo_add else R.string.card_photo_remove),
-                style = TTType.Meta,
-                color = TT.Paper,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if (photo == null) {
-                            photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        } else {
-                            photo = null
-                        }
+                TTButtonStyle.OutlineAcid,
+                onClick = {
+                    if (photo == null) {
+                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    } else {
+                        photo = null
                     }
-                    .padding(vertical = 10.dp),
+                },
             )
+            Spacer(Modifier.height(10.dp))
         }
         if (cameBack) {
             // The loop ends on a TumTum screen, not on Android's share sheet
