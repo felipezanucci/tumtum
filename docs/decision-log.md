@@ -517,16 +517,54 @@ the linked documents — this file is the index and the reasoning, not a diary.
     one of them backwards in a way that would have changed the plan. Before
     any money or any promise rests on this: **a human opens
     `setlist.fm/help/api-terms` and `api-sports.io`'s terms and reads them.**
-47. **Who may write a timeline entry is undecided, and it is a real hole.**
-    Found 22/09 while building the web admin. `POST /events/{id}/timeline`
-    accepts **any signed-in account**, while create/update event now needs an
-    operator. So a fan can write into the timeline that names everyone's
-    moments at that event. Closing it with `require_admin` is one line — and
-    it would break the fan's own *"Toca pra dizer o que tava rolando"*, which
-    posts through the same endpoint. The fix is to separate the two kinds:
-    an operator's entry is the event's truth and names moments for everybody,
-    a fan's entry is private to their own night. **Felipe's call**, because it
-    decides whether a fan's tap is shared at all.
+47. ~~**Who may write a timeline entry.**~~ **Closed 22/09 — and it was a
+    data leak, not only a correctness bug.** Felipe asked whether this was
+    about the community feed; it was not, and checking in order to answer him
+    found that the hole was **worse than the item described**. The assistant
+    had told him the fan's naming was "annotation on their own night". It was
+    not: `nameMoment` → `addMark` → `NightSync.pushMarks` →
+    `POST /events/{id}/timeline`, so what a fan typed went onto the **shared**
+    event timeline. Two consequences, neither of them malice — just two uses
+    sent down one pipe. A fan typing *"golaço kkkk"* on their own 22h41 could
+    put those words on a stranger's card, since the correlator reads that
+    table for everyone at the event; and what they meant as a private note was
+    readable by the operator and by anyone else there.
+    **The fix cost nothing.** The label was already kept on the phone, and
+    `NightSync` already carries a local label across a re-analysis when the
+    server has no name for that moment — so the server call added only the
+    unwanted half. It is gone, the endpoint takes `require_admin`, and the
+    re-upload that used to follow a naming went with it (there is nothing
+    left to tell the server). `tests/test_operator_only_routes.py` reads the
+    router rather than a docstring, and was checked by reverting the guard and
+    watching it go red.
+    **One trap on the way:** locking the endpoint means a non-operator account
+    gets a 403 there, and `upload` would have turned that into a FAILED night
+    — the platform's permissions costing a fan their own readings. `upload`
+    now survives a **refusal** and nothing else: swallowing every failure
+    would let a network blip upload a night linked to no event *for good*,
+    since `serverSessionId` is stored and never recreated.
+52. **The OPERADOR toggle is a UI gate, not a permission.** Noticed 22/09
+    closing item 47. The capture screen's mark buttons are behind
+    `user.operatorMarks`, which is a **local DataStore flag** anyone can turn
+    on in Configurações — the app never asks the server who it is talking to,
+    even though `/api/auth/me` has answered `is_admin` since #77. Harmless
+    today, because the server refuses the write and the night survives it
+    (item 47), but the app can end up showing a counted mark that will never
+    leave the phone — the "app stating something false about its own state"
+    class, again. The fix is to read `is_admin` into the session and gate the
+    toggle on it. Not urgent while the operator and the founder are the same
+    person.
+53. **The community feed does not exist, and the first question about it is
+    not technical.** Raised by Felipe 22/09 — cards shared into a TumTum feed
+    so the community engages. Nothing is built: no endpoint, no table, no
+    page. Item 34 is the price of entry (a public feed with user content needs
+    block and report to pass an open Play review, and the minimum version —
+    report a night, block a profile, both landing where a human reads — ships
+    *with* it, not after). The product question that comes first: **is the
+    feed everybody, or is it per event?** "A galera que estava neste jogo" is
+    a different and much stronger product than "everyone on the app", and it
+    is exactly card 04 (*A galera*), which the brand manual already specifies
+    and which has never had a sample large enough to exist.
 48. **The video export has never run on hardware.** `VideoCard.burn` was
     written in an environment with no Android SDK and no device; CI compiles
     it and never executes it, and encoder behaviour is the classic thing that
@@ -564,6 +602,82 @@ the linked documents — this file is the index and the reasoning, not a diary.
     `retryPending` already queue a mark offline and send it when signal
     returns. **If the first real show loses taps, the fix is to port this
     screen into the app**, and the queueing is already there.
+
+---
+
+## 2026-09-22 — item 47 was a leak, and the question that found it was about something else
+
+Felipe asked whether item 47 was about the TumTum feed — the place where
+people would share cards and the community engages. It was not: the **event
+timeline** is the factual script of an event ("Gol de pênalti aos 39", "Yellow
+às 22h12"), invisible to fans, read by the correlator to name moments. The
+feed is a different thing and **does not exist yet** (item 53).
+
+Checking the code in order to answer him found that the item understated its
+own problem, and that the assistant had told him something false the message
+before: that a fan naming their own moment was annotation on their own night.
+
+It was not. `nameMoment` called `addMark`, and `NightSync.pushMarks` sends
+every unsynced mark to `POST /events/{id}/timeline`. **What a fan typed went
+onto the shared timeline of the event.** So a fan at Corinthians × Palmeiras
+typing *"golaço kkkk vai corinthians"* on their 22h41 wrote a label that the
+correlator could put on a stranger's card — and the note they thought was
+private was visible to the operator and to everyone else there.
+
+Neither half is malice. Two different uses had been sent down one pipe, and
+nobody had looked at the pipe since.
+
+### The fix cost nothing, which is why it should have been found sooner
+
+The fan's label was **already** saved on the phone by `setMomentLabel`, and
+`NightSync` **already** preserves a local label across a re-analysis when the
+server has no name of its own for that moment. Everything the person sees
+worked without the server call. What the call added was only the part nobody
+wanted.
+
+So: the `addMark` is gone, the endpoint takes `require_admin` like the rest of
+the operator surface, and the re-upload that used to follow a naming went too
+— there is nothing left to tell the server.
+
+### The trap under the fix
+
+Locking the endpoint means a non-operator account is refused there with a 403,
+and `upload` pushes the event and its marks **before** the readings. Left
+alone, TumTum's own permissions would have turned into a FAILED night for a
+fan — their readings lost to a rule about who may write our timeline.
+
+The first version swallowed every failure there, which was worse and wrong in
+a quieter way: a night that uploads while its event could not be created is
+linked to no event **permanently**, because `serverSessionId` is stored and
+the branch never runs again. A network blip would have cost that night its
+names forever, where failing the upload costs only a retry.
+
+It now survives a **refusal** and nothing else. 403 is a statement about who
+this account is, which no retry changes; everything else is a failure a retry
+can fix, and stays one.
+
+### The guard is a test that reads the router
+
+`tests/test_operator_only_routes.py` walks the FastAPI routes and asserts the
+dependency names, so the guard cannot be lost to a refactor without a red
+build. It was checked the only way a test is worth anything — by reverting
+`require_admin` and watching it go red, then restoring it.
+
+It also pins the asymmetry that makes this correct rather than merely locked:
+browsing events and **reading** a timeline stay open; writing does not.
+
+### Two items opened
+
+**52:** the OPERADOR toggle is a local DataStore flag, not a permission. The
+app has never asked the server who it is talking to, although `/api/auth/me`
+has answered `is_admin` since #77. Harmless now that the server refuses and
+the night survives, but it can show a counted mark that will never leave the
+phone — the same old class.
+
+**53:** the feed, with the product question that precedes any code: everybody,
+or per event? Card 04 already specifies the second, and it is the stronger one.
+
+Backend 135 tests and ruff clean.
 
 ---
 

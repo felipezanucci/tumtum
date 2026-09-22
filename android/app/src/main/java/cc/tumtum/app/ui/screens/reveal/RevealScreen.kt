@@ -108,11 +108,10 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             onDismiss = { naming = null },
             onSave = { text ->
                 naming = null
-                scope.launch {
-                    container.nights.nameMoment(n.id, moment.id, moment.at, text)
-                    // The server learns the cause and names the moment by it on re-analysis.
-                    if (n.uploadState == UploadState.ANALYSED) container.sync.uploadLater(n.id)
-                }
+                // Their own note on their own night (item 47): it is kept on
+                // the phone and survives a re-analysis, so there is nothing
+                // here for the server to be told.
+                scope.launch { container.nights.nameMoment(moment.id, text) }
             },
         )
     }

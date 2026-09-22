@@ -7,7 +7,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.auth import get_current_user, require_admin
+from app.core.auth import require_admin
 from app.core.database import get_db
 from app.models.event import Event
 from app.models.event_setlist import EventSetlist
@@ -164,9 +164,24 @@ async def get_event(event_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
 async def add_timeline_entry(
     event_id: uuid.UUID,
     body: TimelineEntryCreate,
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
+    """One entry on the event's timeline — an operator act (item 47, 22/09).
+
+    **The timeline is the event's truth, not one person's note.** Every entry
+    here names moments for *everybody* who was at that event, because the
+    correlator reads this table for all of them. It accepted any signed-in
+    account until now, which was wrong twice over: a fan typing "golaço kkkk"
+    on their own moment wrote a label onto strangers' cards, and what they
+    meant as a private note about their own night was visible to the operator
+    and to anyone else at that event.
+
+    So the two uses are separated rather than sharing one pipe. A fan naming
+    their own moment now stays on their phone (`NightRepository.nameMoment`),
+    where it already survives re-analysis; the event's timeline is written by
+    the operator, the match feed, and the show's setlist screen.
+    """
     # Verify event exists
     result = await db.execute(select(Event).where(Event.id == event_id))
     if not result.scalar_one_or_none():
