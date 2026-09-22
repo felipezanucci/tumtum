@@ -389,7 +389,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
     unnamed peak; "TAVA ROLANDO UMA DESSAS?" chips under the moment). The
     rule that ties them: **a measured time asserts, a derived time offers**
     — an entry with `estimated: true` or `anchored: false` never reaches the
-    correlator. Waiting on a real match to be tested.
+    correlator. Waiting on a real match to be tested. **Amended the same
+    day by item 44:** the guess list stands, but *Setlist.fm cannot feed
+    it* — its API terms forbid the local datastore the feature writes into.
+    The order has to come from the operator typing it, or from MusicBrainz.
 43. **Can the card carry a video, not just a photo?** Felipe asked on
     22/09 to check before building. **Yes, and it is the most expensive
     thing on the list.** The picker is one word (`ImageAndVideo` instead
@@ -410,8 +413,151 @@ the linked documents — this file is the index and the reasoning, not a diary.
     `ADD_TO_STORY`. Two things only the phone can answer: how large
     Instagram draws a full-frame sticker, and whether it insists on the
     Facebook App ID (`res/values/instagram.xml`, empty until registered).
+44. **Setlist.fm cannot be the setlist source, and it is not about money.**
+    Researched 22/09 when Felipe asked whether the two API keys are his to
+    sign up for (they are — neither can be provisioned programmatically).
+    Three separate walls, any one of which is fatal:
+    **(a)** The API is non-commercial only, and commercial is defined by
+    *purpose*, not revenue: *"If the primary purpose of your application is
+    to derive revenue, it is considered commercial."* Pre-revenue is not a
+    defence. **(b)** setlist.fm has been a **Live Nation / Ticketmaster**
+    property since March 2012, so a commercial licence is a Live Nation
+    contract rather than a self-serve upgrade — and the requests go
+    unanswered: a developer emailed `help@setlist.fm` three times with no
+    acknowledgement, and a forum moderator confirmed the address was right
+    while saying *"it usually takes ages to get a reply, and I honestly
+    don't know why."* **(c) The one that bites regardless of money:** the
+    **API** terms (`setlist.fm/help/api-terms`, a different document from
+    the general terms) forbid a persistent local datastore — short-lived
+    caching only, direct server calls, immediate distribution to end users
+    — plus a mandatory followable attribution link per setlist
+    (`json_Setlist.url`). **`attach_setlist` writes every song into our
+    `event_timeline` and keeps it**, which is exactly what that clause
+    forbids, on a free key and on a paid one alike. So #77's setlist source
+    is built against a source we may not use in production. One thing the
+    research *settled* in our favour: `json_Song` in setlist.fm's own
+    OpenAPI spec has exactly five fields — cover, info, name, tape, with —
+    so "order only, never times" is **proven**, not inferred, and the guess
+    list's whole premise holds. **The route that survives is the operator
+    typing the setlist**: zero cost, zero terms risk, guaranteed coverage,
+    and `setlist_guess.py` already does not care where the order came from.
+    Second-best is **MusicBrainz**, the only free, commercial-use-permitted
+    source that structurally holds setlists — `setlist` is a *core column*
+    of the replicated `event` table (CC0), not a CC-BY-NC-SA annotation —
+    but its coverage is probably too thin for São Paulo and could not be
+    sampled from here. Ruled out: Songkick (closed to applicants, from
+    USD 500/month, tour dates not setlists), Bandsintown (self-serve but
+    artist-scoped, no setlists), Last.fm (no setlists), Spotify (does not
+    expose setlists through the Web API — the suspicion was right),
+    scraping (same breach with the rate protection removed).
+45. **API-Football is fine, cheap, and already publishes the anchors we
+    built taps for.** Same research, 22/09. Signing up is five minutes:
+    `dashboard.api-football.com/register`, no credit card, the free plan
+    active on clicking the confirmation link, key at Account → My Access.
+    **Take the direct route, never RapidAPI** — RapidAPI is the same data
+    behind `api-football-v1.p.rapidapi.com` with `x-rapidapi-key`, and the
+    keys are not interchangeable with the `v3.football.api-sports.io` +
+    `x-apisports-key` pair our code uses. Free is 100 requests/day and
+    **10/minute** (not 30). **Whether a free key can read the *current*
+    season is genuinely disputed in the sources** — one verification pass
+    found two September-2026 GitHub reports quoting a live API error
+    *"free plan serves seasons 2022 to 2024 only"*, another found the
+    opposite framing (free covers current, paid unlocks deeper history).
+    Every vendor page is egress-blocked from this environment, so **one
+    request with a real key settles it and nothing else will.** It matters
+    less than it looks: the live route needs polling (480 requests at 15 s
+    or 120 at 60 s for a two-hour match) which blows 100/day either way, so
+    a real pilot is **Pro at USD 19/month** regardless. Two findings worth
+    code: **(i)** the fixture object carries `periods.first` and
+    `periods.second` — UNIX timestamps for each half's start — and
+    `football_service.py` reads neither (verified by grep); whether they are
+    the *real* whistles or the schedule restated is undetermined and rests
+    on a single source, so they belong **below** the operator's taps and
+    **above** the schedule guess, never asserted as measured. **(ii)** A
+    documented second route to the real whistle: poll `/fixtures?live=all`
+    and watch `status.short` cross `NS`→`1H` and `HT`→`2H`, with `BT`
+    (break time) sitting between the last two. Terms: API-SPORTS grants **no
+    competition rights of its own** and pushes the licence burden onto us,
+    disclaims ownership of crests and logos (so a club crest on a share card
+    is our risk, which widens the manual's existing ban), prohibits reselling
+    the data, and **encourages caching** — so storing match events in our own
+    tables is fine, unlike setlist.fm. Brazilian alternative for the record:
+    **API Futebol** (self-serve, commercial use permitted, Brasileirão +
+    Copa do Brasil + Libertadores + estaduais, `/ao-vivo` with the current
+    minute) at **R$ 99/month per championship** — not cheaper, but it covers
+    the estaduais and it is local.
+46. **Nothing in items 44 and 45 is legal clearance.** Every primary page —
+    `setlist.fm`, `api-sports.io`, `api-football.com`, `football-data.org`,
+    `musicbrainz.org`, `fotmob.com` — is blocked by this environment's
+    egress proxy (403 on CONNECT, reproduced twice). Every quotation above
+    reached us as a search-engine extraction of a page nobody here could
+    open. Of 33 checked claims on the alternatives pass, 18 survived
+    adversarial verification, 11 came back UNCERTAIN and **4 were refuted**,
+    one of them backwards in a way that would have changed the plan. Before
+    any money or any promise rests on this: **a human opens
+    `setlist.fm/help/api-terms` and `api-sports.io`'s terms and reads them.**
 
 ---
+
+## 2026-09-22 — the two API keys: one is five minutes, the other is a Live Nation contract
+
+Felipe asked whether he has to sign up for the football and setlist APIs by
+hand. He does — neither can be provisioned programmatically. The useful part
+of the answer is what the signing up runs into, and it is asymmetric enough
+that it changes what #77 built. Detail in items **44**, **45** and **46**;
+the short version:
+
+**API-Football: yes, do it, take the direct route.** Five minutes at
+`dashboard.api-football.com/register`, no credit card, free plan live on the
+confirmation click. **Never RapidAPI** — same data, different host and
+header, keys not interchangeable, and our code is wired for the direct pair.
+Budget **USD 19/month** for the pilot whatever the free tier turns out to
+allow, because catching the real whistle means polling and polling blows
+100 requests/day on its own.
+
+**Setlist.fm: no, and not for the reason anyone expected.** The
+non-commercial restriction is real and is defined by *purpose* rather than
+revenue, so being pre-revenue is not a defence; setlist.fm is a Live Nation
+property, so the commercial licence is a contract nobody answers requests
+about. But the clause that actually settles it is one neither I nor the
+first research pass had looked for: **the API terms forbid a persistent
+local datastore.** Short-lived caching, direct server calls, immediate
+distribution. `attach_setlist`, merged hours earlier in #77, writes every
+song title into `event_timeline` and keeps it — which is the forbidden
+thing, on a free key and a paid one alike. **Paying would not fix it.**
+
+So #77 shipped a setlist source pointed at a source we may not use. The
+guess list itself is untouched and its premise got *stronger*: setlist.fm's
+own OpenAPI spec defines `json_Song` with exactly five fields — cover, info,
+name, tape, with — so "order only, never times" is now proven rather than
+inferred. What has to change is where the order comes from: **the operator
+types it**, which costs nothing, risks nothing and is already what
+`setlist_guess.py` expects. MusicBrainz is the honourable second (setlist is
+a core CC0 column, not a non-commercial annotation) and is probably too thin
+for São Paulo.
+
+**And a thing we built that may not have been necessary.** API-Football's
+fixture object already carries `periods.first` and `periods.second` — UNIX
+timestamps for each half's start — and `football_service.py` reads neither.
+Whether they are the real whistles or the schedule restated is undetermined
+and rests on one source, so they cannot replace the operator's two taps;
+they can sit *between* the taps and the schedule guess, which is strictly
+better than what ships today. There is also a documented live route:
+`/fixtures?live=all`, watching `status.short` cross NS→1H and HT→2H (with
+BT in between).
+
+**The method note, because it earned its place.** Four research agents, each
+re-checked by an adversarial verifier told to refute rather than agree. On
+the alternatives pass alone: 18 of 33 claims confirmed, 11 uncertain, **4
+refuted** — and one of the refutations was *backwards*, the first pass having
+named API-Football's season limit as the pilot's main risk when the
+restriction may run the other way. Without the second pass that would have
+gone into this log as fact. Every vendor page is egress-blocked here, so all
+of it is search-engine extraction of pages nobody could open: **item 46 says
+plainly that none of this is legal clearance and a human has to read the two
+terms pages.** The process lesson from earlier today repeats itself — the
+first pass researched the price before the viability, and this one researched
+the licence before the storage clause that mattered more.
 
 ## 2026-09-22 — four items in one batch: the match clock, the guess list, the web admin, video on the card
 

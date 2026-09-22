@@ -3,6 +3,34 @@
 Fetches concert setlists to build event timelines.
 API docs: https://api.setlist.fm/docs/1.0/index.html
 Rate limit: 2 requests/second.
+
+**NOT CLEARED FOR PRODUCTION — see open item 44 in docs/decision-log.md.**
+Researched 2026-09-22. Three separate walls stand in front of this source,
+and the third is not solved by paying:
+
+1. The API is non-commercial only, and commercial is defined by *purpose*:
+   "If the primary purpose of your application is to derive revenue, it is
+   considered commercial." Being pre-revenue is not a defence.
+2. setlist.fm is a Live Nation / Ticketmaster property, so a commercial
+   licence is a contract, not a self-serve upgrade — and the requests
+   documented in their own forum go unanswered for months.
+3. **The API terms (`setlist.fm/help/api-terms`, a different document from
+   the general terms) forbid a persistent local datastore** — short-lived
+   caching only, direct server calls, immediate distribution to end users —
+   plus a mandatory followable attribution link per setlist
+   (`json_Setlist.url`). `parse_setlist_to_timeline` exists to write songs
+   into our own `event_timeline` and keep them, which is exactly that.
+
+So this module works and must not be pointed at a real event until a human
+has read those terms first-hand (every setlist.fm page is blocked from the
+environment this was researched in, so all of the above is search-engine
+extraction, not a primary read — item 46).
+
+**What the guess list actually needs is the song ORDER, from anywhere.** The
+research settled that setlist.fm's own OpenAPI spec gives `json_Song` exactly
+five fields — cover, info, name, tape, with — with no timestamp, so the order
+is all this source ever had. An operator typing it costs nothing and risks
+nothing; `setlist_guess.py` does not care where the order came from.
 """
 
 from datetime import datetime, timedelta

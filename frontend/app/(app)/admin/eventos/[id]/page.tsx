@@ -439,6 +439,21 @@ function SetlistSource({ event, onChange }: { event: EventDetail; onChange: () =
         estimada — quatro minutos a partir do começo do evento — e no app vira
         &ldquo;tava tocando uma dessas?&rdquo;, nunca um nome no card.
       </p>
+      {/*
+        An offer the page must not make silently. Researched 22/09 (open item
+        44): the Setlist.fm API terms forbid keeping their data in our own
+        database — which is what this button does — and the free key is
+        non-commercial only, by purpose rather than by revenue. Offering the
+        button with no warning is the same class of defect as an empty state
+        that claims "nothing there": the operator would have no way to know.
+      */}
+      <p className="mt-2 rounded-lg border border-tumtum-yellow/40 bg-tumtum-yellow/5 p-3 text-sm text-tumtum-yellow">
+        <strong>Só para teste.</strong> Os termos do Setlist.fm proíbem guardar os
+        dados deles no nosso banco — que é o que este botão faz — e a chave grátis
+        é só para uso não comercial. Vale para a chave paga também. Para valer em
+        evento real, a ordem das músicas tem que vir de outro lugar (alguém
+        digitando, por exemplo). Item 44 do log de decisões.
+      </p>
       {!event.start_time && (
         <p className="mt-2 text-sm text-tumtum-yellow">
           O evento precisa de um horário de começo antes: é dele que a estimativa parte.

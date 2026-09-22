@@ -288,6 +288,15 @@ async def attach_setlist(
     Order only, never times: each song is placed four minutes after the last,
     from the event's own start, and every entry is marked estimated so it
     reaches a fan as a guess to pick from and never as a name on a card.
+
+    **NOT CLEARED FOR PRODUCTION (open item 44).** Setlist.fm's API terms
+    forbid the persistent local datastore this endpoint writes into — that is
+    true on a free key and a paid one alike — on top of a non-commercial
+    restriction defined by purpose rather than revenue. See the module
+    docstring of `setlist_service`. Left reachable because the operator may
+    need it against a test event, and because removing it is Felipe's call,
+    not a silent one; the admin page says the same thing where the operator
+    can read it.
     """
     event = await _event_or_404(db, event_id)
     if not settings.setlist_fm_api_key:
