@@ -43,6 +43,13 @@ object CardRenderer {
     private const val GRAY10 = 0xFFE6E6E6.toInt()
     private const val SCRIM = 0x99000000.toInt()
 
+    /**
+     * @param sticker The card as a layer for Instagram's Story editor (item
+     *   43): the same drawing with no background colour, so the person's own
+     *   video shows through, and the scrim kept so the type stays legible
+     *   over anything. Black skin only — the one whose surface a photo or a
+     *   video can take.
+     */
     fun render(
         context: Context,
         night: Night,
@@ -51,6 +58,7 @@ object CardRenderer {
         meta: String,
         chip: String?,
         photo: Bitmap? = null,
+        sticker: Boolean = false,
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -63,10 +71,14 @@ object CardRenderer {
         }
         val fg = if (skin == Skin.BLACK) PAPER else INK
         val num = if (skin == Skin.BLACK) ROSE else INK
-        canvas.drawColor(bg)
+        if (sticker && skin == Skin.BLACK) {
+            canvas.drawColor(SCRIM)
+        } else {
+            canvas.drawColor(bg)
+        }
         // A fan's own photo (§5.11): cover-scaled behind the black skin, under a
         // scrim dark enough for white text and the pink number to stay legible.
-        if (photo != null && skin == Skin.BLACK) {
+        if (photo != null && skin == Skin.BLACK && !sticker) {
             val scale = maxOf(W.toFloat() / photo.width, H.toFloat() / photo.height)
             val dw = photo.width * scale
             val dh = photo.height * scale
@@ -271,11 +283,17 @@ object CardRenderer {
         context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
     }.getOrNull()
 
-    /** Grava o PNG no cache e devolve o chooser com a imagem anexa. Nada sai sem o toque (§1). */
-    fun shareIntent(context: Context, bitmap: Bitmap, fileName: String): Intent {
+    /** The PNG in the cache, where the FileProvider can serve it. */
+    fun writePng(context: Context, bitmap: Bitmap, fileName: String): File {
         val dir = File(context.cacheDir, "cards").apply { mkdirs() }
         val file = File(dir, fileName)
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        return file
+    }
+
+    /** Grava o PNG no cache e devolve o chooser com a imagem anexa. Nada sai sem o toque (§1). */
+    fun shareIntent(context: Context, bitmap: Bitmap, fileName: String): Intent {
+        val file = writePng(context, bitmap, fileName)
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         return Intent.createChooser(
             Intent(Intent.ACTION_SEND)

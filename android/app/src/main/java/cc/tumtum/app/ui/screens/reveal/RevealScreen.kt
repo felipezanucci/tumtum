@@ -61,6 +61,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.text.font.FontWeight
 import cc.tumtum.app.domain.Moment
 import cc.tumtum.app.ui.components.TTField
+import cc.tumtum.app.ui.components.TribeChip
+import androidx.compose.foundation.horizontalScroll
 
 /**
  * a3 — A noite, a revela. O momento de maior impacto do produto:
@@ -245,6 +247,40 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                     }
                     if (moment.isPeak) {
                         Badge(stringResource(R.string.reveal_biggest), hPad = 7.dp, vPad = 3.dp)
+                    }
+                }
+                if (moment.label == null && moment.candidates.isNotEmpty()) {
+                    // The guess list (22/09): the server has no exact cause for
+                    // this moment but a setlist's order or a match schedule
+                    // puts two or three things around it. Offered as chips —
+                    // recognition over recall (§5.6) — and the app never
+                    // asserts one of these on its own: a wrong name on a card
+                    // costs more than no name.
+                    Text(
+                        stringResource(R.string.moment_guess_title),
+                        style = TTType.MetaSmall,
+                        color = TT.Gray55,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(bottom = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        moment.candidates.forEach { guess ->
+                            TribeChip(
+                                text = guess,
+                                selected = false,
+                                onToggle = {
+                                    scope.launch {
+                                        container.nights.nameMoment(n.id, moment.id, moment.at, guess)
+                                        if (n.uploadState == UploadState.ANALYSED) container.sync.uploadLater(n.id)
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
                 DividerDark()

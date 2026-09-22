@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, require_admin
 from app.core.database import get_db
 from app.models.event import Event
 from app.models.event_timeline import EventTimeline
@@ -207,8 +207,15 @@ SEED_EVENTS = [
 
 
 @router.post("/seed")
-async def seed_database(db: AsyncSession = Depends(get_db)):
-    """Populate the database with demo events and timelines."""
+async def seed_database(
+    _: User = Depends(require_admin), db: AsyncSession = Depends(get_db)
+):
+    """Populate the database with demo events and timelines.
+
+    Operator only, since 22/09: this writes events, and events are TumTum's.
+    Until then anyone — signed in or not — could seed the list the fans pick
+    from, and the site offered to on every empty screen.
+    """
     # Check if events already exist
     result = await db.execute(select(Event).limit(1))
     if result.scalar_one_or_none():

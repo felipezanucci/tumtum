@@ -3,6 +3,7 @@ package cc.tumtum.app.ui.screens.live
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cc.tumtum.app.AppContainer
+import cc.tumtum.app.data.api.MarkKinds
 import cc.tumtum.app.data.repo.LiveSnapshot
 import cc.tumtum.app.data.repo.saveEndedNight
 import cc.tumtum.app.domain.EventSession
@@ -77,7 +78,15 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
      * a row are two values and the screen answers each — a StateFlow swallows
      * an equal value, and on 21/09 the second GOL got no answer at all.
      */
-    data class MarkFeedback(val id: Long?, val label: String, val at: Instant, val repeated: Boolean, val tick: Long = 0)
+    data class MarkFeedback(
+        val id: Long?,
+        val label: String,
+        val at: Instant,
+        val repeated: Boolean,
+        val tick: Long = 0,
+        /** What kind of mark it was — an anchor's repeat is worded differently. */
+        val kind: String = "",
+    )
 
     private val _lastMark = MutableStateFlow<MarkFeedback?>(null)
     val lastMark: StateFlow<MarkFeedback?> = _lastMark
@@ -104,8 +113,15 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
             _lastMark.value = last.copy(repeated = true, tick = last.tick + 1)
             return
         }
-        _lastMark.value = MarkFeedback(id = null, label = label, at = now, repeated = false, tick = (last?.tick ?: 0) + 1)
+        _lastMark.value = MarkFeedback(id = null, label = label, at = now, repeated = false, tick = (last?.tick ?: 0) + 1, kind = entryType)
         viewModelScope.launch {
+            // An anchor — the whistle, the second half — happens once a match.
+            // A second tap minutes later is a slip, and the first tap is the
+            // one nearest the whistle; nothing is stored and the line says so.
+            if (MarkKinds.isAnchor(entryType) && container.nights.hasMark(event.id, entryType)) {
+                _lastMark.update { cur -> if (cur != null && cur.at == now) cur.copy(repeated = true) else cur }
+                return@launch
+            }
             val id = container.nights.addMark(event.id, label, entryType, now)
             // The id arrives after the write; the line was already on screen.
             _lastMark.update { cur -> if (cur != null && cur.at == now && cur.label == label) cur.copy(id = id) else cur }

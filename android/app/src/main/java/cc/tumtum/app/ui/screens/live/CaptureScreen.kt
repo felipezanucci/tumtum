@@ -231,21 +231,57 @@ fun CaptureScreen(nav: NavHostController) {
                     Text(stringResource(R.string.mark_count, marks), style = TTType.MetaSmall, color = TT.Gray55)
                 }
                 Spacer(Modifier.height(10.dp))
+                // What there is to mark depends on the night. A match (22/09)
+                // gets its two anchors first — the whistle and the second
+                // half, the only two instants everyone in the stadium knows
+                // exactly — because they are what turn every API-Football
+                // minute into a wall-clock time for everyone at the game. A
+                // marked anchor shows its own clock on the button: the state
+                // is said where the thumb already is.
+                val sports = e.eventType == "sports"
+                if (sports) {
+                    val anchors by container.nights.anchors(e.id).collectAsStateWithLifecycle(initialValue = emptyMap())
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(
+                            stringResource(R.string.mark_kickoff) to MarkKinds.KICKOFF,
+                            stringResource(R.string.mark_second_half) to MarkKinds.SECOND_HALF,
+                        ).forEach { (label, kind) ->
+                            val at = anchors[kind]
+                            MarkButton(
+                                label = if (at != null) "$label · ${Fmt.hour(at)}" else label,
+                                tapLabel = label,
+                                kind = kind,
+                                idle = if (at != null) TTButtonStyle.OutlineOnDark else TTButtonStyle.OutlineAcid,
+                                fb = fb,
+                                litTick = litTick,
+                                onMark = vm::mark,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(
-                        stringResource(R.string.mark_goal) to MarkKinds.GOAL,
-                        stringResource(R.string.mark_song) to MarkKinds.SONG,
-                        stringResource(R.string.mark_moment) to MarkKinds.MOMENT,
-                    ).forEach { (label, kind) ->
-                        val lit = fb != null && fb.label == label && litTick == fb.tick
-                        TTButton(
-                            label,
-                            when {
-                                lit && fb!!.repeated -> TTButtonStyle.Acid
-                                lit -> TTButtonStyle.Rose
-                                else -> TTButtonStyle.OutlineOnDark
-                            },
-                            onClick = { vm.mark(label, kind) },
+                    val kinds = if (sports) {
+                        listOf(
+                            stringResource(R.string.mark_goal) to MarkKinds.GOAL,
+                            stringResource(R.string.mark_moment) to MarkKinds.MOMENT,
+                        )
+                    } else {
+                        listOf(
+                            stringResource(R.string.mark_song) to MarkKinds.SONG,
+                            stringResource(R.string.mark_moment) to MarkKinds.MOMENT,
+                        )
+                    }
+                    kinds.forEach { (label, kind) ->
+                        MarkButton(
+                            label = label,
+                            tapLabel = label,
+                            kind = kind,
+                            idle = TTButtonStyle.OutlineOnDark,
+                            fb = fb,
+                            litTick = litTick,
+                            onMark = vm::mark,
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -257,7 +293,11 @@ fun CaptureScreen(nav: NavHostController) {
                     if (fb != null) {
                         Text(
                             stringResource(
-                                if (fb.repeated) R.string.mark_repeated else R.string.mark_stored,
+                                when {
+                                    fb.repeated && MarkKinds.isAnchor(fb.kind) -> R.string.mark_anchor_repeated
+                                    fb.repeated -> R.string.mark_repeated
+                                    else -> R.string.mark_stored
+                                },
                                 fb.label,
                                 Fmt.hour(fb.at),
                             ),
@@ -309,4 +349,35 @@ fun CaptureScreen(nav: NavHostController) {
             )
         }
     }
+}
+
+/**
+ * One mark button, answered three ways on a tap: it lights rose for a mark
+ * stored, acid for one already there (see [LiveViewModel.mark]), and goes back
+ * to [idle] after the haptic. [tapLabel] is what the mark is called on the
+ * timeline; [label] is what the button shows, which for a marked anchor also
+ * carries the clock of its tap.
+ */
+@Composable
+private fun MarkButton(
+    label: String,
+    tapLabel: String,
+    kind: String,
+    idle: TTButtonStyle,
+    fb: LiveViewModel.MarkFeedback?,
+    litTick: Long,
+    onMark: (String, String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val lit = fb != null && fb.label == tapLabel && litTick == fb.tick
+    TTButton(
+        label,
+        when {
+            lit && fb!!.repeated -> TTButtonStyle.Acid
+            lit -> TTButtonStyle.Rose
+            else -> idle
+        },
+        onClick = { onMark(tapLabel, kind) },
+        modifier = modifier,
+    )
 }

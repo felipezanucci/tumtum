@@ -179,6 +179,16 @@ A inversão de 1 e 2 tem um motivo além de (a) ter caído: futebol é o único
 lugar onde o nome pode ser **exato**, e `docs/pilot-event-options.md` já
 escolhe o jogo como teste técnico do piloto.
 
+**Construídos em 22/09 (#77), os dois.** O relógio do jogo vive em
+`backend/app/services/football_service.py` (`MatchClock`, duas âncoras lidas
+da linha do tempo, `APITO` e `2º TEMPO` na tela de captura de um jogo). O
+palpite vive em `setlist_guess.py` e chega ao app como `candidate_labels`
+em cada momento sem nome — chips "TAVA ROLANDO UMA DESSAS?". A regra que
+liga os dois: **horário medido afirma, horário derivado oferece** — uma
+entrada com `estimated: true` ou `anchored: false` nunca chega ao
+correlator. E o admin web (`/admin/eventos/{id}`) é onde o jogo ou o
+setlist são ligados ao evento. Falta um jogo de verdade para testar.
+
 **Nada disso mexe no detector.** Ele já faz a parte que o Felipe pediu.
 
 As marcas do operador **ficam**, como rede de segurança: são o que salva um

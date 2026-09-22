@@ -1,6 +1,10 @@
 from pydantic_settings import BaseSettings
 
 
+def _emails(value: str) -> set[str]:
+    return {email.strip().lower() for email in value.split(",") if email.strip()}
+
+
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://user:password@localhost/tumtum"
     redis_url: str = "redis://localhost:6379"
@@ -20,6 +24,12 @@ class Settings(BaseSettings):
     # nobody, which is the safe default — the list is other people's contact
     # details, and "any signed-in user" is not an access rule for that.
     waitlist_admin_emails: str = ""
+    # Who operates the platform: registers events, attaches a match or a
+    # setlist to one, corrects what is there. Comma-separated emails. Events
+    # are TumTum's — the fan never creates one (product rule, 21/09) — so an
+    # empty list closes those endpoints to everyone, and the waitlist's own
+    # admins are admins here too so that one setting on Railway is enough.
+    admin_emails: str = ""
     # Resend. Empty means the app cannot send mail, and every path that needs
     # to says so out loud rather than pretending it sent something.
     resend_api_key: str = ""
@@ -37,11 +47,14 @@ class Settings(BaseSettings):
 
     @property
     def waitlist_admins(self) -> set[str]:
-        return {
-            email.strip().lower()
-            for email in self.waitlist_admin_emails.split(",")
-            if email.strip()
-        }
+        return _emails(self.waitlist_admin_emails)
+
+    @property
+    def admins(self) -> set[str]:
+        return _emails(self.admin_emails) | self.waitlist_admins
+
+    def is_admin(self, email: str) -> bool:
+        return email.strip().lower() in self.admins
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

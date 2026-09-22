@@ -11,6 +11,13 @@ data class ServerMoment(
     val durationSec: Int,
     val label: String?,
     val rank: Int?,
+    /**
+     * What it might have been, when nothing exact names it (22/09): the songs
+     * a setlist's order puts around it, a match minute with no anchor. The
+     * screen offers these for the person to pick; a card never carries one
+     * unasked.
+     */
+    val candidates: List<String> = emptyList(),
 )
 
 /** Reads the list `POST /api/experience/{id}/analyze` answers with. Pure, tested. */
@@ -26,6 +33,9 @@ object ServerMoments {
                 label = item.optString("matched_label", "").ifBlank { null }
                     .takeUnless { item.isNull("matched_label") },
                 rank = if (item.isNull("rank")) null else item.optInt("rank"),
+                candidates = item.optJSONArray("candidate_labels")?.let { arr ->
+                    (0 until arr.length()).map { arr.getString(it) }.filter { it.isNotBlank() }
+                } ?: emptyList(),
             )
         }
     }
