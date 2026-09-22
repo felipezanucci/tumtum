@@ -36,9 +36,12 @@ class EventTimesTest {
     }
 
     @Test
-    fun `um fim igual ao comeco e o dia seguinte, nao uma noite de zero minuto`() {
+    fun `um fim igual ao comeco e o dia seguinte — e vinte e quatro horas nao e uma noite`() {
+        // The rule that carries 22h→02h also says what 22h→22h means: the next
+        // day, a full 24 h, which is past MAX_NIGHT. Better refused than saved
+        // as a night nobody meant to describe.
         val r = EventTimes.upcoming(LocalDate.of(2026, 9, 25), LocalTime.of(22, 0), LocalTime.of(22, 0), now, sp)
-        assertEquals(EventTimes.Result.Ok(at(2026, 9, 25, 22), at(2026, 9, 26, 22)), r)
+        assertEquals(EventTimes.Result.Error(EventTimes.Reason.TOO_LONG), r)
     }
 
     @Test
