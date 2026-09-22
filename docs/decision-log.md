@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **22/09: b142 in Felipe's hands the same night** — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -175,6 +175,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     has not yet said yes. The Apple gates (US$ 99/year, a Mac or a macOS
     runner, TestFlight instead of a link) are calendar, not code.
 28. **The timeline code cannot produce a usable timeline.** Found 2026-09-17.
+    *(22/09: the naming half of this is now item 42 and
+    `docs/naming-moments-plan.md`, which costs both parsers honestly and
+    says why the setlist one has a ceiling no fix can raise.)*
     *(Sidestepped for the pilot on 18/09, Etapa 3: marks tapped during the
     capture become timeline entries with wall-clock instants, and the
     fourth rehearsal proved it end to end — a GOL tapped at 14h51 named the
@@ -329,7 +332,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
     sheet on the phone is the admin, and it sends the same fields. Costed at
     half a session. Not on the pilot's critical path while the operator and
     the founder are the same person.
-41. **Did teste3 reach the server?** Unknown, and it matters: the GOL tapped
+41. ~~**Did teste3 reach the server?**~~ **Answered 22/09 on b145**: yes,
+    the pipeline works. teste7 uploaded 240 readings, showed both steps under
+    the curve, came back `Momentos encontrados pelo servidor`, and the peak at
+    22h35 carried the name **GOL** from the mark tapped during the capture.
+    teste3's silence on b140 was the invisibility bug, not a failed upload.
+    *(Original:)* Unknown, and it matters: the GOL tapped
     at 18h20 did not name the moment at 18h20·35 s. The upload's state was
     invisible on b140 (entry of 21/09, item 6), so the night may have failed
     to go up, or gone up and been analysed without the mark matching. The
@@ -340,6 +348,100 @@ the linked documents — this file is the index and the reasoning, not a diary.
     backend's correlator tests cover a goal just before a region; nothing
     covers a mark *inside* a region that is the peak's own cause. If the
     night did go up, that is the test to write next.
+42. **A moment's name cannot depend on anyone remembering to tap.**
+    Felipe, 22/09: *"a pessoa que está no estádio assistindo o jogo não vai
+    lembrar de clicar gol."* Right, and narrower than it sounds — the
+    detector already finds moments with no marks at all (its `timeline`
+    parameter is unused), and the fan already never sees a mark button
+    (operator switch, off by default). What marks buy is the **name**.
+    Analysed in **`docs/naming-moments-plan.md`**: football is solvable
+    (fix the half-time, anchor on two operator taps — kick-off and the
+    second half — and every goal names itself for everyone, ~1 session);
+    a concert is not solvable from the setlist at all, because Setlist.fm
+    publishes order and never times, so any estimate has a ceiling of a
+    few minutes and a few minutes is a wrong name. Three paths, costed:
+    a **guess list** from setlist + Spotify durations (~1 session, honest,
+    works everywhere, recommended first), **audio recognition on one
+    device per event** publishing the timeline server-side (1–2 sessions
+    + a paid API; the only thing that names a whole show with nobody
+    touching anything, and it uses no fan's microphone), or not naming at
+    all (card 01 needs no name). Supersedes the naming half of item 28.
+43. **Can the card carry a video, not just a photo?** Felipe asked on
+    22/09 to check before building. **Yes, and it is the most expensive
+    thing on the list.** The picker is one word (`ImageAndVideo` instead
+    of `ImageOnly`); the render is not — compositing the card over a video
+    means MediaExtractor → MediaCodec decode → an OpenGL surface → MediaCodec
+    encode → MediaMuxer, ~400–600 lines of EGL and timestamp work that ships
+    with Android (no dependency) and behaves differently per chipset, which
+    is exactly the code that cannot be verified from an environment with no
+    SDK. **A much cheaper 80% exists:** Instagram's `ADD_TO_STORY` intent
+    takes a video as the background and a transparent PNG as the sticker
+    layer — the person's video with our card over it, in the place this
+    product actually gets posted, for about half a session. Recommendation:
+    the Instagram route now if video matters before the pilot, the full
+    encoder after it, never both at once.
+
+---
+
+## 2026-09-22 — the loop closed on a phone, and the two questions it raised
+
+b145 in Felipe's hand, minutes after the merge. **teste7: 240 readings on the
+Polar, uploaded, both sync steps drawn under the curve, `Momentos encontrados
+pelo servidor`, and the peak at 22h35 named GOL by the mark tapped during the
+capture.** Every one of the eight findings of 21/09 is now confirmed fixed on
+a real phone, the Compose wheels roll, the event registered for 20h00 came
+back in the list badged MARCADO, and **item 41 is answered**: the night does
+reach the server, and teste3's silence on b140 was the invisibility bug rather
+than a failed upload. This is the first time the whole chain — capture,
+upload, detector, a moment with a name, a card — has been seen working by the
+person it was built for, on one screen, in one sitting.
+
+Two things came out of it, and neither is a defect.
+
+**The photo option was invisible.** *"Esse escrito branco… tem que ficar mais
+evidente."* On the black card it was white meta type between the card and a
+pink CTA, which reads as a caption for the card rather than a control. It is
+now a button in Toxic Yellow (a new `OutlineAcid` style: 18.97:1 on black, the
+loudest thing the palette has on a dark surface) that does not take the filled
+surface belonging to the primary action.
+
+**And the big one: a moment's name cannot depend on anyone remembering to
+tap.** Felipe is right, and the problem is both smaller and harder than it
+reads. Smaller: the detector never needed the marks — `detect_peaks()` does
+not look at the timeline, the parameter is literally marked unused, and the
+peak at 22h35 was found before any name was attached; and the fan already
+never sees a mark button, because that is an operator switch that ships off.
+Harder: what the marks buy is the **name**, and the only source of names that
+works today is a person present and paying attention. That serves a pilot of
+five and nothing beyond it.
+
+`docs/naming-moments-plan.md` is the analysis (open item 42). Its two findings
+worth carrying here: **football is solvable** — the half-time bug is
+arithmetic, and two operator taps (kick-off, second half) collapse a
+fifteen-minute error to seconds, after which every goal names itself for
+everyone at the match — and **a concert is not solvable from the setlist,
+ever**, because Setlist.fm publishes order and never times. That is a property
+of the source, not of our parser: even with real durations from Spotify,
+banter and intros push a twenty-song set 20–30 minutes past the sum, so by the
+third song the estimate is outside the correlator's window and by the tenth
+the card would simply lie. The honest cheap answer is to **offer a guess
+rather than make a claim** — "tava tocando uma dessas?" with the two or three
+songs whose window covers that minute — which is the same
+recognition-over-recall principle (§5.6) that already justified letting the
+person name a moment. The real answer is **audio recognition on one device per
+event**, publishing the timeline server-side: no fan's microphone, no new
+permission, a paid API and a decision to make.
+
+Also asked and answered without building: **video on the card is possible and
+is the most expensive item on the board** (item 43). The picker is one word;
+the render is a MediaCodec/OpenGL/MediaMuxer pipeline that ships with Android
+and varies by chipset — unverifiable from here. Instagram's `ADD_TO_STORY`
+takes a video background plus a transparent sticker, which buys most of it for
+half a session, in the place the product is actually posted.
+
+**What it settles:** item 41, and the shape of the naming problem.
+**What is open:** items 42 and 43, and Bloco 8 (the reveal lock, before 10h),
+still the only test from the 21/09 list never run.
 
 ---
 
