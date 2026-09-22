@@ -554,17 +554,49 @@ the linked documents — this file is the index and the reasoning, not a diary.
     class, again. The fix is to read `is_admin` into the session and gate the
     toggle on it. Not urgent while the operator and the founder are the same
     person.
-53. **The community feed does not exist, and the first question about it is
-    not technical.** Raised by Felipe 22/09 — cards shared into a TumTum feed
-    so the community engages. Nothing is built: no endpoint, no table, no
-    page. Item 34 is the price of entry (a public feed with user content needs
-    block and report to pass an open Play review, and the minimum version —
-    report a night, block a profile, both landing where a human reads — ships
-    *with* it, not after). The product question that comes first: **is the
-    feed everybody, or is it per event?** "A galera que estava neste jogo" is
-    a different and much stronger product than "everyone on the app", and it
-    is exactly card 04 (*A galera*), which the brand manual already specifies
-    and which has never had a sample large enough to exist.
+53. **The community feed: decided per event, 22/09 — and the screens already
+    exist, on invented data.** Felipe's call: *"apenas as pessoas que
+    estiveram no evento podem interagir. Isso deve criar um senso de
+    comunidade maior."* Agreed, and it is the stronger product: it is card 04
+    (*A galera*), which the brand manual already specifies, the closed group
+    makes moderation tractable, and "a galera que estava neste jogo" is a
+    reason to open the app that "everyone on TumTum" is not.
+    **Correction to what this item said an hour earlier.** It claimed nothing
+    was built — no endpoint, no table, no page. The first two are true; the
+    third is not. `FeedScreen`, `EventFeedScreen` and `CrowdScreen` have been
+    in the app since the design mockups, behind `SocialRepository`, and the
+    implementation wired in is `FakeSocialRepository`. So **the design work is
+    done** and what is missing is the backend and the gate — which makes this
+    much cheaper than it was costed at, and much more urgent than it looked
+    (item 54).
+    The sub-question the decision opens, and it is the one with teeth:
+    **what proves someone was there?** The honest answer already in the
+    database is an `hr_sessions` row linked to that `event_id` — evidence, no
+    new data, and it ties posting to having a night to post. Its edge is a
+    person whose strap died: they were there and cannot take part.
+    Still true: item 34 is the price of entry, and block and report ship
+    **with** the feed rather than after it. Still open: a card carries the
+    person's BPM, so posting publishes health data — that needs consent per
+    post, not a blanket setting, and it needs to be undoable, which ties it to
+    item 35 (deleting one night does not exist).
+54. **The app's first screen shows invented people, and it is on a Play
+    track.** Found 22/09 while answering Felipe about the feed. `Routes.Feed`
+    is the **start destination** and the first tab, and it renders
+    `FakeSocialRepository`: a banner claiming *"Hoje: Taylor Swift · 3 amigos
+    confirmados"*, and moments by **Mariana Alves (194 bpm)** and **Rodrigo
+    Costa (176 bpm)** — people who do not exist, with heart rates nobody
+    measured. One tap on the banner opens the event feed, which claims
+    **8,734 people shared** and *"64% bateram o próprio pico"* at a Taylor
+    Swift show at the Morumbi.
+    This is the class this log has now counted seventeen times — the app
+    stating something false — in its worst form yet: not a stale control or a
+    wrong message, but **fabricated people and fabricated measurements**, on
+    the first screen, shipped to the internal testing track since 18/09.
+    Mitigating: `postOwnMoment` is never called, so a real card never mixes
+    into the invented list, and `CrowdScreen` has no entry point (that one was
+    deliberate — see 22/09's note about 3,412 invented people).
+    It has probably been read as placeholder by the only person who has seen
+    it. It cannot survive a tester who is not the founder.
 48. **The video export has never run on hardware.** `VideoCard.burn` was
     written in an environment with no Android SDK and no device; CI compiles
     it and never executes it, and encoder behaviour is the classic thing that
@@ -602,6 +634,88 @@ the linked documents — this file is the index and the reasoning, not a diary.
     `retryPending` already queue a mark offline and send it when signal
     returns. **If the first real show loses taps, the fix is to port this
     screen into the app**, and the queueing is already there.
+
+---
+
+## 2026-09-22 — the feed is per event, and the one we already ship is made of invented people
+
+Felipe decided the shape: **per event.** *"Assim apenas as pessoas que
+estiveram no evento podem interagir. Isso deve criar um senso de comunidade
+maior."*
+
+It is the right call, and not only for the community reason. It is card 04 of
+the brand manual, which has been specified since v0.4 and never had a sample
+to exist. A closed group makes moderation tractable in a way an open feed does
+not. And it gives someone a reason to open the app the day after a match that
+"everyone on TumTum" never would.
+
+### What checking the codebase found instead
+
+An hour earlier this log said the feed was not built: no endpoint, no table,
+no page. **The third was wrong**, and the way it was wrong matters.
+
+`FeedScreen`, `EventFeedScreen` and `CrowdScreen` have been in the app since
+the design mockups, behind a `SocialRepository` interface whose only
+implementation is `FakeSocialRepository`. `Routes.Feed` is the **start
+destination** and the first tab of the bottom bar. So the first thing the app
+shows, today, on the Play internal testing track, is:
+
+- a banner: *"Hoje: Taylor Swift · 3 amigos confirmados"*
+- a moment by **Mariana Alves**, 194 bpm at 23h47, *"aqui acabou meu
+  psicológico"*
+- a moment by **Rodrigo Costa**, 176 bpm aos 89 do segundo tempo
+
+None of these people exist. None of those hearts were measured. One tap on the
+banner opens an event feed claiming **8,734 people shared** and that **64%
+bateram o próprio pico** at a Taylor Swift night at the Morumbi.
+
+This is the defect class the log keeps counting — the app stating something
+false about itself — and this is the worst instance recorded. Everything
+before it was a stale control, a message describing the wrong condition, an
+empty state claiming "nothing here". This is **fabricated people carrying
+fabricated heart rates**, on the first screen, in a product whose entire
+promise is that the number is really yours.
+
+Two things limit it. `postOwnMoment` is never called, so a real card never
+mixes into the invented list — the two do not touch. And `CrowdScreen` is
+unreachable, which was deliberate: the entry to "sua noite × a galera" was
+kept out precisely because the screen behind it shows 3,412 invented people.
+Somebody drew that line once and did not carry it to the tab next door.
+
+It has almost certainly been read as placeholder by the only person who has
+opened it. It does not survive one tester who is not the founder.
+
+### What this changes about the estimate
+
+The design is **done** — three screens, the domain models, the repository
+interface, the seam already cut in the right place. What is missing is the
+backend behind `SocialRepository` and the gate that decides who may post. That
+is a great deal less than building a feed from nothing, and it means the
+honest fix and the real feature are the same piece of work rather than two.
+
+### The sub-question the decision opens
+
+**What proves somebody was at the event?** The answer already in the database
+is an `hr_sessions` row carrying that `event_id`: evidence rather than a
+claim, no new data, and it ties the right to post to having a night to post
+about. Its edge is the person whose strap died — there, and unable to take
+part.
+
+### What is still unresolved, and is not technical
+
+A card carries the person's BPM. Posting it **publishes health data** to
+strangers who happen to have been at the same match. That needs consent at the
+moment of posting rather than a setting agreed once, and it needs to be
+undoable — which runs straight into item 35, where deleting a single night
+still does not exist.
+
+And the honest risk in the decision itself: **per event is stronger at scale
+and weaker at pilot size.** With three to five people carrying straps, a
+per-event feed has three to five posts, and a feed that looks abandoned says
+something worse than no feed. The same data at that size is not a feed at all
+— it is card 04, one line: *"você e mais três estavam lá; seu pico foi o
+maior."* Same query, same table, different surface. That is what the pilot can
+actually fill.
 
 ---
 
