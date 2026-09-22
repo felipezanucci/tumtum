@@ -10,6 +10,9 @@ falls back to the schedule only when it has to, saying so.
 from datetime import UTC, datetime, timedelta
 
 from app.services.football_service import (
+    CLOCK_API,
+    CLOCK_SCHEDULE,
+    CLOCK_TAP,
     HALF_TIME_MINUTES,
     KICKOFF,
     SECOND_HALF,
@@ -174,3 +177,109 @@ def test_entries_come_out_in_time_order():
     timeline = parse_fixture_to_timeline(fixture(), [goal(70), goal(12), card(30)])
     stamps = [e["timestamp"] for e in timeline]
     assert stamps == sorted(stamps)
+
+
+# --- the API's own periods (22/09) ---
+#
+# The fixture carries periods.first and periods.second, and the research that
+# found them could not settle whether they are real whistles or the schedule
+# restated. The fixture settles it itself: a period that differs from the
+# scheduled kick-off cannot be the schedule.
+
+
+def with_periods(
+    first: datetime | None,
+    second: datetime | None,
+    kickoff: datetime = SCHEDULED,
+) -> dict:
+    f = fixture(kickoff)
+    f["fixture"]["periods"] = {
+        "first": int(first.timestamp()) if first else None,
+        "second": int(second.timestamp()) if second else None,
+    }
+    return f
+
+
+def test_period_equal_to_the_schedule_proves_nothing():
+    """A tie is indistinguishable from a feed that measured nothing."""
+    clock = match_clock(SCHEDULED, [], period_first=SCHEDULED)
+    assert clock.first_half_source == CLOCK_SCHEDULE
+    assert clock.first_half_anchored is False
+    assert clock.first_half_start == SCHEDULED
+
+
+def test_a_period_that_differs_is_a_measurement():
+    real = SCHEDULED + minutes(7)
+    clock = match_clock(SCHEDULED, [], period_first=real)
+    assert clock.first_half_source == CLOCK_API
+    assert clock.first_half_anchored is True
+    assert clock.first_half_start == real
+
+
+def test_the_operators_tap_still_outranks_the_api():
+    tapped = SCHEDULED + minutes(4)
+    clock = match_clock(
+        SCHEDULED, [], kickoff_at=tapped, period_first=SCHEDULED + minutes(9)
+    )
+    assert clock.first_half_source == CLOCK_TAP
+    assert clock.first_half_start == tapped
+
+
+def test_both_halves_are_judged_on_one_verdict():
+    """Once the feed is shown to measure, its second period is measured too."""
+    first = SCHEDULED + minutes(6)
+    second = first + minutes(63)
+    clock = match_clock(SCHEDULED, [], period_first=first, period_second=second)
+    assert clock.second_half_source == CLOCK_API
+    assert clock.second_half_start == second
+
+
+def test_an_unproven_feed_does_not_lend_its_second_period():
+    """periods.first equal to the schedule discredits the whole payload."""
+    second = SCHEDULED + minutes(70)
+    clock = match_clock(SCHEDULED, [], period_first=SCHEDULED, period_second=second)
+    assert clock.second_half_source == CLOCK_SCHEDULE
+    assert clock.second_half_start != second
+
+
+def test_a_measured_first_half_with_no_second_period_still_falls_back():
+    first = SCHEDULED + minutes(6)
+    clock = match_clock(SCHEDULED, [], period_first=first, period_second=None)
+    assert clock.first_half_source == CLOCK_API
+    assert clock.second_half_source == CLOCK_SCHEDULE
+    assert clock.second_half_start == first + minutes(45 + HALF_TIME_MINUTES)
+
+
+def test_clock_skew_under_a_minute_is_not_evidence():
+    clock = match_clock(SCHEDULED, [], period_first=SCHEDULED + timedelta(seconds=30))
+    assert clock.first_half_source == CLOCK_SCHEDULE
+
+
+def test_periods_are_read_off_the_fixture_and_named_in_metadata():
+    first = SCHEDULED + minutes(8)
+    second = first + minutes(62)
+    timeline = parse_fixture_to_timeline(
+        with_periods(first, second), [goal(39), goal(70)]
+    )
+    entries = [e for e in timeline if e["entry_type"] == "goal"]
+    assert [e["metadata"]["clock_source"] for e in entries] == [CLOCK_API, CLOCK_API]
+    # Measured, so the correlator may use them: no uncertainty is attached.
+    assert all("uncertainty_sec" not in e["metadata"] for e in entries)
+    assert entries[0]["timestamp"] == first + minutes(39)
+    assert entries[1]["timestamp"] == second + minutes(70 - 45)
+
+
+def test_a_schedule_only_fixture_still_says_so():
+    timeline = parse_fixture_to_timeline(with_periods(None, None), [goal(39)])
+    entry = [e for e in timeline if e["entry_type"] == "goal"][0]
+    assert entry["metadata"]["clock_source"] == CLOCK_SCHEDULE
+    assert entry["metadata"]["anchored"] is False
+    assert "uncertainty_sec" in entry["metadata"]
+
+
+def test_a_garbled_period_does_not_crash_the_parse():
+    f = fixture()
+    f["fixture"]["periods"] = {"first": "not a number", "second": None}
+    timeline = parse_fixture_to_timeline(f, [goal(12)])
+    entry = [e for e in timeline if e["entry_type"] == "goal"][0]
+    assert entry["metadata"]["clock_source"] == CLOCK_SCHEDULE

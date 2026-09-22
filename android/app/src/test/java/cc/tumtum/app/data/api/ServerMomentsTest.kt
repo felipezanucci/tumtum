@@ -33,25 +33,18 @@ class ServerMomentsTest {
     }
 
     @Test
-    fun `an unnamed moment carries the server's guesses, a named one carries none`() {
+    fun `a payload that still carries candidate_labels is read without them`() {
+        // The field went on 22/09 and a deployed server may still send it for
+        // a while. Reading past it must not cost the moment its own numbers.
         val json = """[
             {"id":"a","session_id":"s","timestamp":"2026-10-10T22:07:12Z","bpm":134,"duration_seconds":166,
              "magnitude":498.0,"timeline_entry_id":null,"rank":1,"matched_label":null,
-             "candidate_labels":["Música 9","Música 8","Música 7"]},
-            {"id":"b","session_id":"s","timestamp":"2026-10-10T22:40:00Z","bpm":118,"duration_seconds":31,
-             "magnitude":87.0,"timeline_entry_id":"t","rank":2,"matched_label":"GOL","candidate_labels":[]}
+             "candidate_labels":["Música 9","Música 8"]}
         ]"""
-        val moments = ServerMoments.parse(json)
+        val moment = ServerMoments.parse(json).single()
 
-        assertEquals(listOf("Música 9", "Música 8", "Música 7"), moments[0].candidates)
-        assertNull(moments[0].label)
-        assertEquals(emptyList<String>(), moments[1].candidates)
-    }
-
-    @Test
-    fun `a server that predates the guess list is read as before`() {
-        val json = """[{"id":"a","session_id":"s","timestamp":"2026-10-10T22:07:12Z","bpm":134,
-            "duration_seconds":166,"magnitude":498.0,"timeline_entry_id":null,"rank":1,"matched_label":null}]"""
-        assertEquals(emptyList<String>(), ServerMoments.parse(json)[0].candidates)
+        assertEquals(134, moment.bpm)
+        assertEquals(166, moment.durationSec)
+        assertNull(moment.label)
     }
 }

@@ -264,12 +264,6 @@ export interface Peak {
   timeline_entry_id: string | null
   rank: number | null
   matched_label: string | null
-  /**
-   * What the moment might have been when nothing exact names it — the songs
-   * a setlist's order puts around it, a match minute with no anchor. Offered
-   * to the person to pick from, never asserted.
-   */
-  candidate_labels: string[]
 }
 
 /** A match as API-Football lists it. */
@@ -282,14 +276,18 @@ export interface FixtureBrief {
   status: string | null
 }
 
-/** A setlist as Setlist.fm lists it. */
-export interface SetlistBrief {
-  setlist_id: string
-  artist: string | null
-  event_date: string | null
-  venue: string | null
-  city: string | null
-  song_count: number
+/**
+ * One line of the operator's script for a show.
+ *
+ * A concert has no API that says which song was playing at 22h12, so a person
+ * taps COMEÇOU and that tap is the measurement. `started_at` is null until
+ * then, and null is what the screen counts to know which song is next.
+ */
+export interface SetlistSong {
+  id: string
+  position: number
+  title: string
+  started_at: string | null
 }
 
 export interface HRDataPointBrief {
@@ -406,18 +404,25 @@ export const events = {
       body: JSON.stringify({ fixture_id: fixtureId }),
     }),
 
-  /** Setlists on Setlist.fm for an artist, optionally on a date (YYYY-MM-DD). */
-  searchSetlists: (params: { artist: string; on?: string }) => {
-    const qs = new URLSearchParams({ artist: params.artist })
-    if (params.on) qs.set('on', params.on)
-    return request<SetlistBrief[]>(`/api/events/sources/setlist?${qs.toString()}`)
-  },
+  /** The operator's script for a show, and how far through it the show is. */
+  getSetlist: (eventId: string) =>
+    request<SetlistSong[]>(`/api/events/${eventId}/setlist`),
 
-  /** Build the timeline from a setlist, every song marked as an estimate. */
-  attachSetlist: (eventId: string, setlistId: string) =>
-    request<TimelineEntry[]>(`/api/events/${eventId}/timeline/setlist`, {
+  /** Paste the order, before the show. Replaces the list; measured times survive. */
+  replaceSetlist: (eventId: string, songs: string[]) =>
+    request<SetlistSong[]>(`/api/events/${eventId}/setlist`, {
+      method: 'PUT',
+      body: JSON.stringify({ songs }),
+    }),
+
+  /**
+   * COMEÇOU — one tap, and the song has a measured time on every fan's night.
+   * With no position it advances to the first song nobody has started.
+   */
+  startSong: (eventId: string, position?: number) =>
+    request<SetlistSong>(`/api/events/${eventId}/setlist/start`, {
       method: 'POST',
-      body: JSON.stringify({ setlist_id: setlistId }),
+      body: JSON.stringify({ position: position ?? null }),
     }),
 }
 

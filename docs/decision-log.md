@@ -537,6 +537,127 @@ the linked documents — this file is the index and the reasoning, not a diary.
     returns null and the photo and Instagram routes stay standing — so the
     worst case is the old behaviour. **First real test: one video through
     "Compartilhar" on b150.**
+49. ~~**Setlist.fm**~~ — **removed from the codebase 22/09.** Item 44 said it
+    could not be pointed at a real event; what settled it was not the three
+    walls but that it never solved the problem. It publishes **order, never
+    times**, so a fully-licensed integration would still leave "which song
+    was playing at 22h12" unanswered. `setlist_service.py`, both endpoints,
+    `SetlistBrief` and the admin's search are gone. What replaces it is the
+    operator's own list (item 50).
+50. **A show needs a person, and that does not scale.** Decided 22/09 with
+    the rule above. A match gets its times from an API; a concert has none,
+    audio fingerprinting is retracted, and a derived time is withheld — so
+    the only source of a measured time at a show is somebody standing there
+    tapping. That is fine for the pilot and it is a real ceiling: **football
+    scales to every match in the country on one API call; shows cost one body
+    per event.** It strengthens the reading in `pilot-event-options.md` that
+    the match is the better technical test. The long-term escape, unbuilt and
+    speculative: **the crowd's own readings mark the song boundaries** — if
+    fifty people rise together, something started — which, aligned against a
+    known order, would need nobody tapping. It uses data already collected
+    and needs a crowd the pilot does not have.
+51. **The operator's show screen is on the web, not in the app, and venue
+    signal is the open question.** Built 22/09 on `/admin/eventos/{id}`,
+    matching the operator model of item 40 — staff work from a browser. The
+    risk is that a packed venue has no usable data connection, and the web
+    page needs one for every tap. The app would not: `pushMarksLater` and
+    `retryPending` already queue a mark offline and send it when signal
+    returns. **If the first real show loses taps, the fix is to port this
+    screen into the app**, and the queueing is already there.
+
+---
+
+## 2026-09-22 — the card arrives ready, or it says nothing
+
+Felipe made the rule absolute, and it is the one that reorganises everything
+else: *"tanto pro futebol quanto pro show, a gente tem que dar pronto pro
+usuário. [...] A gente não pode depender de nenhuma ação do usuário em nenhum
+dos dois cenários."* The card must say *"esse pico foi por causa de um pênalti
+aos 39 do primeiro tempo"* or *"esse pico foi porque tocou Yellow às 22h12"*,
+and nothing may be asked of the fan to get there.
+
+One distinction makes the rest tractable: **"no user action" is not "no TumTum
+action".** The fan is the user. A person on TumTum's payroll is an operating
+cost, which the rule permits — and for a concert it is the only thing that
+works at all.
+
+### The guess list is gone
+
+The chips under an unnamed moment — *"tava rolando uma dessas?"* — were built
+on 22/09 that morning and removed the same evening at Felipe's word: *"a gente
+não pode contar com o usuário para ele ter que lembrar que aquele batimento
+foi de uma música determinada, pode eliminar."*
+
+They were the honest half-answer to a problem we had not solved, and the rule
+says the honest half-answer is not wanted: either the app knows or it is
+quiet. `candidate_labels` is out of the schema, the API, the client and the
+Reveal screen. What survives is the rule underneath them, moved into
+`event_correlator.is_tentative`: **a derived time reaches nothing.** An
+unanchored match minute can be ten minutes out, and a name ten minutes out is
+worse than no name, because a card that lies costs trust an unlabelled one
+does not.
+
+The fan's own free-text naming stays. That is annotation on their own night,
+not a dependency the product rests on.
+
+### Football: the API had the answer and we were not reading it
+
+The API gives *what* and *which match minute*; it never gave *what time that
+minute was*, which is why the two operator taps exist. Item 45 found
+`periods.first` and `periods.second` in the fixture and could not settle
+whether they are real whistles or the schedule restated — every vendor page
+is egress-blocked from here, and it still is: `v3.football.api-sports.io`
+returns `connect_rejected`, reproduced again today.
+
+**So the code settles it instead, per match.** A period that differs from the
+scheduled kick-off *cannot be the schedule restated* — something measured it.
+A period equal to the schedule is indistinguishable from a feed that measured
+nothing, and the safe reading of a tie is the pessimistic one. Both halves are
+judged on one verdict, because what is being judged is the feed, not a number:
+once `periods.first` is shown to be real for a fixture, `periods.second` from
+the same payload is real too.
+
+Every entry now carries `clock_source` — `tap`, `api_periods` or `schedule` —
+so **the question answers itself over real matches** instead of waiting on a
+document nobody here can open. If the periods turn out to be real, the two
+operator taps at a match become optional and football needs nobody in the
+stadium. Ten tests, including the tie, the sub-minute clock skew, a garbled
+payload, and a feed that lends its second period only once it has proved the
+first.
+
+Priority is unchanged where it matters: the operator's tap still outranks the
+API, because they were standing there.
+
+### Shows: paste the order, then one button
+
+No API exists and none is coming. So `event_setlist` holds the operator's
+script: the order pasted in beforehand — a tour plays close to the same set
+every night, so last night's is a good draft — and, during the show, one
+**COMEÇOU** button that stamps the next song with the instant it really
+started and writes a `song_start` entry on the event's timeline. Twenty taps
+across two hours, no typing, nothing to decide while the music plays.
+
+Each tap is a measured time, so the drift never accumulates: missing one costs
+only that song, the next re-anchors, and the gap is visible on the screen
+rather than silently guessed at. A correction pasted mid-show keeps the times
+of songs still at the same position with the same title — moving a song drops
+its stamp, because an old measurement is not evidence about a new slot.
+
+Two things the tests pin that a careless version gets wrong: pasted numbering
+is stripped, but **a dash tight against the title is not numbering** — strip
+it blind and Logic's "1-800-273-8255" is filed as "800-273-8255"; and a song
+that is only a number survives.
+
+### What is not settled
+
+Item 51: this screen is on the web, and a packed venue may have no signal.
+The app would queue taps offline and already has the machinery. If the first
+real show loses taps, that is the port to make.
+
+Item 50 is the strategic one: **football scales and shows do not.** One API
+call covers every match in the country; every show costs a body.
+
+Backend 131 tests and ruff clean; frontend tsc, lint and 55 tests.
 
 ---
 

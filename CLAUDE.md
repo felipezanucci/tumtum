@@ -488,3 +488,10 @@ designed against them. The values live in `detect_peaks()` in
 - **A time is never typed.** (21/09) Every date or time field in the product
   is the platform's picker — the rolling selector — never a free-text
   `HH:mm` or `dd/MM/yyyy`. This holds for operator screens too.
+- **The card arrives ready, or it says nothing.** (22/09) A moment reaches
+  the fan already named — *"tocou Yellow às 22h12"*, *"pênalti aos 39 do
+  primeiro tempo"* — and **nothing is ever asked of the fan to get there**.
+  No guess list, no "tava rolando uma dessas?", no tap to remember. A time
+  the app derived names nothing; only a measured one does. Note the
+  distinction this rests on: *no user action* is not *no TumTum action* —
+  the fan is the user, and staff are an operating cost the rule permits.

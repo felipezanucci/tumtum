@@ -9,7 +9,7 @@ import {
   events,
   type EventDetail,
   type FixtureBrief,
-  type SetlistBrief,
+  type SetlistSong,
   type TimelineEntry,
 } from '@/lib/api'
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
@@ -28,9 +28,10 @@ import { formatDateOnly } from '@/lib/utils/dates'
  * - **Exact** — an operator's tap during the capture (GOL, APITO INICIAL,
  *   2º TEMPO), a match minute anchored on those taps, a name a person typed.
  *   These *assert*: the correlator names a moment by them.
- * - **Estimated** — a setlist's order at four minutes a song, a match built
- *   from the schedule with no anchor. These only *offer*: the app shows them
- *   as "tava tocando uma dessas?" and never puts one on a card unasked.
+ * - **Estimated** — a match built from the schedule with no anchor. These
+ *   name nothing: the correlator never sees them, and the moment stays
+ *   unnamed rather than carrying a guess (22/09 — the app either knows or
+ *   says nothing, and never asks the fan to remember).
  *
  * Everything here is operator-only on the server; this page says so instead
  * of showing an empty list.
@@ -159,7 +160,7 @@ export default function AdminEventPage() {
                 <FootballSource event={event} onChange={load} />
               )}
               {operator && event.event_type !== 'sports' && (
-                <SetlistSource event={event} onChange={load} />
+                <ShowSetlist event={event} onChange={load} />
               )}
               {operator && <ManualEntry event={event} onChange={load} />}
             </>
@@ -256,7 +257,8 @@ function Timeline({
       {event.timeline.some(isEstimated) && (
         <p className="mt-2 text-xs text-tumtum-muted">
           <span className="text-tumtum-yellow">estimado</span> = horário derivado, não medido.
-          No app vira um palpite pra pessoa escolher, nunca um nome no card.
+          Não nomeia momento nenhum: o momento fica sem nome até uma hora medida
+          chegar (um toque do operador, ou os períodos da API do jogo).
         </p>
       )}
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
@@ -388,39 +390,70 @@ function FootballSource({ event, onChange }: { event: EventDetail; onChange: () 
   )
 }
 
-/** Find the setlist on Setlist.fm; every song comes in as an estimate. */
-function SetlistSource({ event, onChange }: { event: EventDetail; onChange: () => Promise<void> }) {
-  const [artist, setArtist] = useState(event.name)
-  const [on, setOn] = useState(event.date.slice(0, 10))
-  const [results, setResults] = useState<SetlistBrief[] | null>(null)
-  const [busy, setBusy] = useState<'search' | string | null>(null)
+/**
+ * The operator's script for a show — paste the order, then one button.
+ *
+ * A concert has no API. Setlist.fm publishes order and never times, audio
+ * fingerprinting matches a studio recording and not a band playing live, and
+ * four-minutes-a-song is outside the correlator's window by the third song.
+ * So a person taps, and the tap is the measurement that names the moment on
+ * every fan's card.
+ *
+ * The order goes in beforehand, with no pressure — a tour plays close to the
+ * same set every night, so last night's is a good draft. During the show
+ * there is nothing to read and nothing to decide: the next song is large, and
+ * COMEÇOU is the only thing to press.
+ */
+function ShowSetlist({ event, onChange }: { event: EventDetail; onChange: () => Promise<void> }) {
+  const [songs, setSongs] = useState<SetlistSong[] | null>(null)
+  const [draft, setDraft] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const attached = event.external_id?.startsWith('setlist.fm:')
-    ? event.external_id.split(':')[1]
-    : null
+  const load = useCallback(async () => {
+    try {
+      setSongs(await events.getSetlist(event.id))
+      setError(null)
+    } catch (err) {
+      // An empty list and a list we could not fetch are different things, and
+      // the screen must never show the first while meaning the second.
+      setSongs(null)
+      setError(message(err, 'Não deu para carregar a ordem das músicas.'))
+    }
+  }, [event.id])
 
-  async function search() {
-    setBusy('search')
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const next = songs?.find((s) => s.started_at === null) ?? null
+  const done = songs?.filter((s) => s.started_at !== null).length ?? 0
+
+  async function save() {
+    setBusy('save')
     setError(null)
     try {
-      setResults(await events.searchSetlists({ artist: artist.trim(), on: on || undefined }))
+      const saved = await events.replaceSetlist(event.id, draft.split('\n'))
+      setSongs(saved)
+      setEditing(false)
+      await onChange()
     } catch (err) {
-      setError(message(err, 'A busca falhou.'))
+      setError(message(err, 'Não deu para salvar a ordem.'))
     } finally {
       setBusy(null)
     }
   }
 
-  async function attach(setlistId: string) {
-    setBusy(setlistId)
+  async function start(position?: number) {
+    setBusy(position ? `p${position}` : 'next')
     setError(null)
     try {
-      await events.attachSetlist(event.id, setlistId)
-      setResults(null)
+      await events.startSong(event.id, position)
+      await load()
       await onChange()
     } catch (err) {
-      setError(message(err, 'Não foi possível montar a linha do tempo.'))
+      setError(message(err, 'Não deu para marcar o começo.'))
     } finally {
       setBusy(null)
     }
@@ -432,80 +465,106 @@ function SetlistSource({ event, onChange }: { event: EventDetail; onChange: () =
   return (
     <section className="mt-8">
       <h2 className="text-sm font-medium uppercase tracking-wider text-tumtum-muted">
-        Setlist · Setlist.fm
+        Show · ordem das músicas
       </h2>
       <p className="mt-1 text-sm text-tumtum-muted">
-        O Setlist.fm tem a ordem das músicas e nunca o horário. Cada música entra
-        estimada — quatro minutos a partir do começo do evento — e no app vira
-        &ldquo;tava tocando uma dessas?&rdquo;, nunca um nome no card.
+        Cole a ordem antes do show. Durante, um toque em COMEÇOU a cada música: é
+        esse toque que dá a hora exata e nomeia o momento no card de quem estava lá.
       </p>
-      {/*
-        An offer the page must not make silently. Researched 22/09 (open item
-        44): the Setlist.fm API terms forbid keeping their data in our own
-        database — which is what this button does — and the free key is
-        non-commercial only, by purpose rather than by revenue. Offering the
-        button with no warning is the same class of defect as an empty state
-        that claims "nothing there": the operator would have no way to know.
-      */}
-      <p className="mt-2 rounded-lg border border-tumtum-yellow/40 bg-tumtum-yellow/5 p-3 text-sm text-tumtum-yellow">
-        <strong>Só para teste.</strong> Os termos do Setlist.fm proíbem guardar os
-        dados deles no nosso banco — que é o que este botão faz — e a chave grátis
-        é só para uso não comercial. Vale para a chave paga também. Para valer em
-        evento real, a ordem das músicas tem que vir de outro lugar (alguém
-        digitando, por exemplo). Item 44 do log de decisões.
-      </p>
-      {!event.start_time && (
-        <p className="mt-2 text-sm text-tumtum-yellow">
-          O evento precisa de um horário de começo antes: é dele que a estimativa parte.
-        </p>
-      )}
-      {attached && (
-        <p className="mt-2 text-sm text-tumtum-white">
-          Setlist ligado: <span className="font-mono">{attached}</span>
-        </p>
-      )}
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
-        <input
-          className={field}
-          placeholder="Artista"
-          value={artist}
-          onChange={(e) => setArtist(e.target.value)}
-        />
-        <input className={field} type="date" value={on} onChange={(e) => setOn(e.target.value)} />
-        <Button type="button" onClick={search} disabled={busy !== null || artist.trim().length < 2}>
-          {busy === 'search' ? 'Buscando…' : 'Buscar'}
-        </Button>
-      </div>
-      {results && results.length === 0 && (
-        <p className="mt-3 text-sm text-tumtum-muted">Nenhum setlist com esses dados.</p>
-      )}
-      {results && results.length > 0 && (
-        <ul className="mt-3 space-y-2">
-          {results.map((s) => (
-            <li
-              key={s.setlist_id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm text-tumtum-white">
-                  {s.artist} · {s.event_date}
-                </p>
-                <p className="text-xs text-tumtum-muted">
-                  {[s.venue, s.city].filter(Boolean).join(', ')}
-                  {` · ${s.song_count} músicas`}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                type="button"
-                onClick={() => attach(s.setlist_id)}
-                disabled={busy !== null || !event.start_time || s.song_count === 0}
-              >
-                {busy === s.setlist_id ? 'Montando…' : 'Usar este'}
+
+      {songs === null && !error && <p className="mt-3 text-sm text-tumtum-muted">Carregando…</p>}
+
+      {songs !== null && (songs.length === 0 || editing) && (
+        <div className="mt-3">
+          <textarea
+            className={`${field} min-h-[180px] font-mono text-sm`}
+            placeholder={'Uma música por linha.\n\nYellow\nClocks\nFix You'}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <div className="mt-2 flex gap-2">
+            <Button type="button" onClick={save} disabled={busy !== null}>
+              {busy === 'save' ? 'Salvando…' : 'Salvar a ordem'}
+            </Button>
+            {editing && (
+              <Button variant="secondary" type="button" onClick={() => setEditing(false)} disabled={busy !== null}>
+                Cancelar
               </Button>
-            </li>
-          ))}
-        </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      {songs !== null && songs.length > 0 && !editing && (
+        <>
+          {/* The one control of the night, and it says what it will do. */}
+          <div className="mt-4 rounded-xl border border-tumtum-border bg-tumtum-surface p-4">
+            {next ? (
+              <>
+                <p className="text-xs uppercase tracking-wider text-tumtum-muted">Próxima</p>
+                <p className="mt-1 truncate text-2xl font-semibold text-tumtum-white">
+                  {next.position}. {next.title}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => start()}
+                  disabled={busy !== null}
+                  className="mt-4 w-full rounded-xl bg-tumtum-pink px-4 py-5 text-lg font-bold uppercase tracking-wide text-black disabled:opacity-50"
+                >
+                  {busy === 'next' ? 'Marcando…' : 'Começou'}
+                </button>
+              </>
+            ) : (
+              <p className="text-sm text-tumtum-white">
+                Todas as {songs.length} músicas já começaram. O show está inteiro na linha do tempo.
+              </p>
+            )}
+            <p className="mt-3 text-xs text-tumtum-muted">
+              {done} de {songs.length} marcadas
+            </p>
+          </div>
+
+          <ul className="mt-3 space-y-1">
+            {songs.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-center justify-between gap-3 rounded-lg border border-tumtum-border px-3 py-2"
+              >
+                <span className="min-w-0 truncate text-sm text-tumtum-white">
+                  <span className="tabular-nums text-tumtum-muted">{s.position}.</span> {s.title}
+                </span>
+                {s.started_at ? (
+                  <span className="shrink-0 tabular-nums text-sm text-tumtum-pink">
+                    {clock(s.started_at)}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => start(s.position)}
+                    disabled={busy !== null}
+                    className="shrink-0 text-xs uppercase tracking-wider text-tumtum-muted disabled:opacity-50"
+                  >
+                    {busy === `p${s.position}` ? '…' : 'marcar'}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(songs.map((s) => s.title).join('\n'))
+              setEditing(true)
+            }}
+            className="mt-3 text-sm text-tumtum-pink"
+          >
+            Corrigir a ordem
+          </button>
+          <p className="mt-1 text-xs text-tumtum-muted">
+            As músicas que já começaram guardam a hora, desde que continuem no mesmo lugar.
+          </p>
+        </>
       )}
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </section>

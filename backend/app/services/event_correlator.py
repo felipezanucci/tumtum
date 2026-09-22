@@ -11,11 +11,35 @@ is then outside any window measured from the peak. The rule now is causal —
 **the latest entry that happened between the start of the elevated region and
 the peak** — with the old nearest-within-±60 s rule as the fallback for a peak
 that no entry precedes.
+
+One entry never reaches any of that: a **derived** time. See [is_tentative].
 """
 
 from datetime import timedelta
 
 from app.services.peak_detection import region_bounds
+
+
+def is_tentative(metadata: dict | None) -> bool:
+    """Whether an entry's time was derived rather than measured.
+
+    **A measured time asserts a name; a derived one names nothing.** A match
+    built from the schedule with no anchor puts a goal up to ten minutes from
+    where it happened, and an entry that far out would name the wrong moment
+    — which is worse than leaving the moment unnamed, because a card that
+    lies costs trust that an unlabelled one does not.
+
+    Derived entries used to survive as a guess list the fan picked from. That
+    went on 2026-09-22, at Felipe's instruction: *"a gente não pode contar com
+    o usuário para ele ter que lembrar que aquele batimento foi de uma música
+    determinada."* Either the app knows or it says nothing. So a tentative
+    entry is now simply withheld, and the work of making times measured moved
+    to where it belongs — the API's periods for a match, the operator's taps
+    for a show.
+    """
+    if not metadata:
+        return False
+    return bool(metadata.get("estimated")) or metadata.get("anchored") is False
 
 
 def correlate_peaks_to_timeline(
