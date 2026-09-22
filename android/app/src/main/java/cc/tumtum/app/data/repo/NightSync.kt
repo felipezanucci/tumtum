@@ -94,6 +94,19 @@ class NightSync(
         db.markDao().eventsWithUnsynced().forEach { runCatching { pushMarksFor(it) } }
     }
 
+    /**
+     * Runs [block], answering null when the server **refused** it — and
+     * rethrowing anything else, so a failure that a retry would fix stays a
+     * failure. See the call sites in [upload]: 403 is a statement about who
+     * this account is, which no retry changes.
+     */
+    private suspend fun <T> withoutRefusal(block: suspend () -> T): T? =
+        try {
+            block()
+        } catch (e: TumtumApi.ApiException) {
+            if (e.code == 403) null else throw e
+        }
+
     suspend fun upload(nightId: Long) {
         val claimed = gate.withLock {
             if (nightId in inFlight.value) false else { inFlight.update { it + nightId }; true }
@@ -120,8 +133,21 @@ class NightSync(
             // entry there — the correlator names moments from it. Marks are
             // pushed on every attempt, so a late one still lands before the
             // next analysis.
-            val serverEventId = ensureServerEvent(night.eventId)
-            if (serverEventId != null) pushMarks(night.eventId, serverEventId)
+            //
+            // A **refusal** here is survivable, and only a refusal (item 47,
+            // 22/09). The event and its timeline are TumTum's side of the
+            // night; the readings are the person's. Both are operator-only on
+            // the server, so an account that does not operate the platform
+            // gets a 403 — and that must never cost somebody their own night.
+            //
+            // Nothing else is swallowed, and the difference matters: a night
+            // that uploads while the event could not be created is linked to
+            // no event **for good**, because `serverSessionId` is stored and
+            // never recreated. Letting a network blip through that door would
+            // cost the night its names permanently, where failing the upload
+            // costs only a retry.
+            val serverEventId = withoutRefusal { ensureServerEvent(night.eventId) }
+            if (serverEventId != null) withoutRefusal { pushMarks(night.eventId, serverEventId) }
 
             var serverId = night.serverSessionId
             if (serverId == null) {

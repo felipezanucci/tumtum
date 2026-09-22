@@ -91,16 +91,25 @@ class NightRepository(
         }
 
     /**
-     * The person names the moment (§5.6 of the 19/09 research): saved on the
-     * phone at once, and offered to the event's timeline as a mark, so the
-     * server names it the same way on the next analysis. Nobody knows the
-     * cause better than the person who was there.
+     * The person names their own moment (§5.6 of the 19/09 research), and it
+     * **stays theirs** (item 47, 22/09).
+     *
+     * Until now this also wrote the label onto the *event's* timeline, which
+     * is shared: the correlator reads that table for everybody who was at
+     * the same match or the same show. So a fan typing "golaço kkkk" on
+     * their own 22h41 could put those words on a stranger's card — and what
+     * they meant as a private note about their own night was readable by the
+     * operator and by anyone else there. Two different things had been sent
+     * down one pipe.
+     *
+     * Nothing is lost by cutting it: the label is kept on the phone, and
+     * [NightSync] already carries a local label across a re-analysis when
+     * the server has no name of its own for that moment. What the server
+     * call added was only the part nobody wanted.
      */
-    suspend fun nameMoment(nightId: Long, momentId: Long, at: Instant, label: String) {
+    suspend fun nameMoment(momentId: Long, label: String) {
         val clean = label.trim()
         db.nightDao().setMomentLabel(momentId, clean.ifBlank { null })
-        val night = db.nightDao().nightRow(nightId) ?: return
-        if (clean.isNotBlank()) addMark(night.eventId, clean, "highlight", at)
     }
 
     /** Undo the last tap. False when the mark was already on the server — then it stays, honestly. */

@@ -261,7 +261,7 @@ def test_periods_are_read_off_the_fixture_and_named_in_metadata():
     timeline = parse_fixture_to_timeline(
         with_periods(first, second), [goal(39), goal(70)]
     )
-    entries = [e for e in timeline if e["entry_type"] == "goal"]
+    entries = by_type(timeline, "goal")
     assert [e["metadata"]["clock_source"] for e in entries] == [CLOCK_API, CLOCK_API]
     # Measured, so the correlator may use them: no uncertainty is attached.
     assert all("uncertainty_sec" not in e["metadata"] for e in entries)
@@ -271,7 +271,7 @@ def test_periods_are_read_off_the_fixture_and_named_in_metadata():
 
 def test_a_schedule_only_fixture_still_says_so():
     timeline = parse_fixture_to_timeline(with_periods(None, None), [goal(39)])
-    entry = [e for e in timeline if e["entry_type"] == "goal"][0]
+    entry = by_type(timeline, "goal")[0]
     assert entry["metadata"]["clock_source"] == CLOCK_SCHEDULE
     assert entry["metadata"]["anchored"] is False
     assert "uncertainty_sec" in entry["metadata"]
@@ -281,5 +281,5 @@ def test_a_garbled_period_does_not_crash_the_parse():
     f = fixture()
     f["fixture"]["periods"] = {"first": "not a number", "second": None}
     timeline = parse_fixture_to_timeline(f, [goal(12)])
-    entry = [e for e in timeline if e["entry_type"] == "goal"][0]
+    entry = by_type(timeline, "goal")[0]
     assert entry["metadata"]["clock_source"] == CLOCK_SCHEDULE
