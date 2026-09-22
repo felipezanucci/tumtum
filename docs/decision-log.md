@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **21/09: b140 met Felipe's hands.** Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | **22/09: b142 in Felipe's hands the same night** — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -288,6 +288,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     is a false claim in a tester's hands. Hide the button until the feed is
     the server's.
 38. **The ranked backlog of behavioural mechanics is written, not decided.**
+    *(22/09: the §5.1 answer built on 20/09 — a night brought from the
+    watch's history — was cut at Felipe's word; "the first value is days
+    or weeks from install" is fully open again.)*
     `docs/app-psychology-principles.md` §5 lists thirteen, costed in
     sessions, with the principle behind each; §6 lists eleven the brand
     refuses so the argument is not had twice. The largest one is not a
@@ -337,6 +340,66 @@ the linked documents — this file is the index and the reasoning, not a diary.
     backend's correlator tests cover a goal just before a region; nothing
     covers a mark *inside* a region that is the peak's own cause. If the
     night did go up, that is the test to write next.
+
+---
+
+## 2026-09-22 — b142 in a real hand: the wheels were blank, and the past night is cut
+
+Felipe installed b142 within the hour. What he confirmed on the phone:
+the OPERADOR door with its control beside the label and the hint under it
+(item 1); the gallery tile drawing his photo behind the black card
+(item 8); the three status rows on AO VIVO, the battery one included
+(item 3); the operator's shortcuts lit by the new switch. Three of eight,
+seen. Two things came back.
+
+**The wheels were blank.** *"A janelinha para rodar dia, mês, ano aparece
+em branco… tanto as datas quanto as horas."* The photo shows the dialog
+open with the selection dividers drawn and not one digit. b142 inflated
+Android's own `DatePicker`/`TimePicker` in spinner mode, betting on
+"the platform's picker" being the safest thing to ship without an SDK.
+On One UI it is the opposite: Samsung replaces those widgets, and the
+plain `Theme.Material.Light` this app declares does not carry whatever
+their version reads its text colour from. **Rebuilt in Compose**: a
+`LazyColumn` five rows tall, the middle row framed, snapping to the row
+under the frame when the scroll settles — the snap written by hand
+(`animateScrollToItem` on `isScrollInProgress` turning false) instead of
+`rememberSnapFlingBehavior`, whose experimental status on this BOM nobody
+here can check. Day rolls 1..N for the chosen month, month rolls jan–dez,
+year rolls this year and two ahead; hour 0–23, minute 0–59. No OEM in the
+path, and it can look like TumTum. The two XML layouts went with it.
+Lesson for the file: *"the platform's own widget" is not the safe choice
+on a phone whose maker replaces the platform's widgets.*
+
+**"Trazer uma noite que já passou" is cut — for everyone.** Felipe asked
+whether the third operator shortcut also showed to fans, and did not wait
+for the answer: *"na verdade, elimina geral. Nem para mim como
+administrador, nem para ninguém. Essa sessão ela é irrelevante. Pode
+excluir essa parte do aplicativo de uma vez por todas."* Gone: the
+shortcut, the sheet's Past mode, the fan list's JÁ ROLARAM section and its
+TRAZER badge, `EventTimes.past` and NOT_PAST, `createPastEvent`. The
+fan's list is now only what has not ended, a live one first; an event that
+ends leaves it. **What this costs, written down so it is not relearned:**
+lote 5 (20/09) built that flow as the answer to §5.1 of the psychology
+research — *the first value must not be weeks away* — by bringing a night
+the watch already held. That answer is gone, and item 38's largest entry
+("the first value is days or weeks from install") is open again. The
+product side is Felipe's call and is made; the research question stands.
+
+**One thing added, not asked for, and why.** With the Past mode gone
+nothing on the phone rolled an *end* time, so the upcoming sheet now rolls
+COMEÇO and FIM. Not tidiness: the end is the window a fan's AGORA badge
+lives in and the window a capture is measured against, and with no end an
+event is taken to last five hours (`ServerEvents.NIGHT_LENGTH`) — so a
+two-hour match would read AGORA for three hours after the whistle, which
+is the same false claim about the app's own state as everything else
+fixed this week. An end at or before the start is the next day (22h→02h
+is one roll); more than sixteen hours is a slip of the wheel.
+
+**Still open from b142:** the two tests that matter were not reached
+because the wheels blocked the first — whether the night's server state
+shows under the curve and the GOL names its moment (item 41), and whether
+a registered event comes back in the list as MARCADO. b143 carries the
+wheels; those two are its test.
 
 ---
 

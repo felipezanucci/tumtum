@@ -50,9 +50,6 @@ data class ServerEvent(
     }
 }
 
-/** The events a fan can activate: the ones with a time, split by where they stand against now. */
-data class FanEvents(val upcoming: List<ServerEvent>, val past: List<ServerEvent>)
-
 /** Reads `GET /api/events` and picks what matters tonight. Pure, tested. */
 object ServerEvents {
     /**
@@ -123,19 +120,18 @@ object ServerEvents {
         ).take(limit)
 
     /**
-     * What a fan sees on AO VIVO (21/09): the events TumTum registered with a
-     * time, the ones still to come (a live one first) soonest first, and the
-     * ones already over, latest first. An event with no time is an operator's
-     * leftover and is not offered — there is nothing to count down to and no
-     * window to ask the watch over.
+     * What a fan sees on AO VIVO: the events TumTum registered that have not
+     * ended — one going on right now first, then the soonest — each a single
+     * tap away from being activated.
+     *
+     * An event with no time is an operator's leftover and is not offered:
+     * there is nothing to count down to. An event already over simply leaves
+     * the list; bringing a past night back was cut on 22/09.
      */
-    fun forFan(events: List<ServerEvent>, now: Instant, limit: Int = 6): FanEvents {
-        val timed = events.filter { it.startAt != null }
-        return FanEvents(
-            upcoming = timed.filter { !it.isPastAt(now) }.sortedBy { it.startAt }.take(limit),
-            past = timed.filter { it.isPastAt(now) }.sortedByDescending { it.startAt }.take(limit),
-        )
-    }
+    fun forFan(events: List<ServerEvent>, now: Instant, limit: Int = 6): List<ServerEvent> =
+        events.filter { it.startAt != null && !it.isPastAt(now) }
+            .sortedBy { it.startAt }
+            .take(limit)
 }
 
 /** The three things a person can mark with one tap in the dark, and what the server calls each. */

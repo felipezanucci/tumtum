@@ -107,23 +107,27 @@ class ServerEventsTest {
     }
 
     @Test
-    fun `a fan sees what is to come soonest first, what is over latest first, and never an event without a time`() {
+    fun `a fan sees what is going on and what is coming, soonest first, and never an event without a time`() {
         val events = ServerEvents.parse(json, sp) + listOf(
             ServerEvents.from(JSONObject("""{"id":"soon","name":"Soon","date":"2026-09-22","start_time":"20:00:00Z"}"""), sp),
             ServerEvents.from(JSONObject("""{"id":"live","name":"Live","date":"2026-09-21","start_time":"18:00:00Z","end_time":"23:00:00Z"}"""), sp),
         )
-        val fan = ServerEvents.forFan(events, now = at(2026, 9, 21, 19))
-        assertEquals(listOf("live", "soon", "tonight"), fan.upcoming.map { it.id })
-        assertEquals(listOf("past"), fan.past.map { it.id })
+        // "far" has no time and "past" is over; neither is offered.
+        assertEquals(listOf("live", "soon", "tonight"), ServerEvents.forFan(events, now = at(2026, 9, 21, 19)).map { it.id })
     }
 
     @Test
-    fun `the fan's lists are capped`() {
+    fun `an event that ended simply leaves the list`() {
+        val match = ServerEvents.parse(json, sp).first { it.id == "tonight" }
+        assertEquals(listOf("tonight"), ServerEvents.forFan(listOf(match), now = at(2026, 10, 10, 18, 14)).map { it.id })
+        assertEquals(emptyList<String>(), ServerEvents.forFan(listOf(match), now = at(2026, 10, 10, 18, 15)).map { it.id })
+    }
+
+    @Test
+    fun `the fan's list is capped`() {
         val many = (1..10).map {
             ServerEvents.from(JSONObject("""{"id":"e$it","name":"E$it","date":"2026-10-${"%02d".format(it)}","start_time":"20:00:00Z"}"""), sp)
         }
-        val fan = ServerEvents.forFan(many, now = at(2026, 10, 5, 12), limit = 3)
-        assertEquals(listOf("e5", "e6", "e7"), fan.upcoming.map { it.id })
-        assertEquals(listOf("e4", "e3", "e2"), fan.past.map { it.id })
+        assertEquals(listOf("e5", "e6", "e7"), ServerEvents.forFan(many, now = at(2026, 10, 5, 12), limit = 3).map { it.id })
     }
 }

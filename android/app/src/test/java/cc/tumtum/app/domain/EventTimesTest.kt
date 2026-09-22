@@ -18,39 +18,41 @@ class EventTimesTest {
     private val now = at(2026, 9, 20, 12)
 
     @Test
-    fun `o proximo evento e lido de dia e hora`() {
-        val r = EventTimes.upcoming(LocalDate.of(2026, 10, 10), LocalTime.of(16, 0), now, sp)
-        assertEquals(EventTimes.Result.Ok(at(2026, 10, 10, 16), null), r)
+    fun `o evento e lido do dia, do comeco e do fim`() {
+        val r = EventTimes.upcoming(LocalDate.of(2026, 10, 10), LocalTime.of(16, 0), LocalTime.of(18, 15), now, sp)
+        assertEquals(EventTimes.Result.Ok(at(2026, 10, 10, 16), at(2026, 10, 10, 18, 15)), r)
     }
 
     @Test
-    fun `um proximo evento no passado e recusado`() {
-        val r = EventTimes.upcoming(LocalDate.of(2026, 9, 19), LocalTime.of(21, 0), now, sp)
+    fun `um evento que ja comecou e recusado`() {
+        val r = EventTimes.upcoming(LocalDate.of(2026, 9, 19), LocalTime.of(21, 0), LocalTime.of(23, 0), now, sp)
         assertEquals(EventTimes.Result.Error(EventTimes.Reason.IN_PAST), r)
     }
 
     @Test
-    fun `uma noite que vara a madrugada termina no dia seguinte`() {
-        val r = EventTimes.past(LocalDate.of(2026, 9, 19), LocalTime.of(21, 0), LocalTime.of(2, 30), now, sp)
-        assertEquals(EventTimes.Result.Ok(at(2026, 9, 19, 21), at(2026, 9, 20, 2, 30)), r)
+    fun `um show que vara a madrugada termina no dia seguinte`() {
+        val r = EventTimes.upcoming(LocalDate.of(2026, 9, 25), LocalTime.of(22, 0), LocalTime.of(2, 30), now, sp)
+        assertEquals(EventTimes.Result.Ok(at(2026, 9, 25, 22), at(2026, 9, 26, 2, 30)), r)
     }
 
     @Test
-    fun `uma noite que ainda nao terminou nao e passado`() {
-        val r = EventTimes.past(LocalDate.of(2026, 9, 20), LocalTime.of(11, 0), LocalTime.of(14, 0), now, sp)
-        assertEquals(EventTimes.Result.Error(EventTimes.Reason.NOT_PAST), r)
-    }
-
-    @Test
-    fun `mais de 16 horas e um deslize da roda`() {
-        val r = EventTimes.past(LocalDate.of(2026, 9, 18), LocalTime.of(10, 0), LocalTime.of(9, 0), now, sp)
+    fun `um fim igual ao comeco e o dia seguinte — e vinte e quatro horas nao e uma noite`() {
+        // The rule that carries 22h→02h also says what 22h→22h means: the next
+        // day, a full 24 h, which is past MAX_NIGHT. Better refused than saved
+        // as a night nobody meant to describe.
+        val r = EventTimes.upcoming(LocalDate.of(2026, 9, 25), LocalTime.of(22, 0), LocalTime.of(22, 0), now, sp)
         assertEquals(EventTimes.Result.Error(EventTimes.Reason.TOO_LONG), r)
     }
 
     @Test
-    fun `hoje e ontem saem do relogio do aparelho`() {
+    fun `mais de 16 horas e um deslize da roda`() {
+        val r = EventTimes.upcoming(LocalDate.of(2026, 9, 25), LocalTime.of(10, 0), LocalTime.of(9, 0), now, sp)
+        assertEquals(EventTimes.Result.Error(EventTimes.Reason.TOO_LONG), r)
+    }
+
+    @Test
+    fun `hoje sai do relogio do aparelho`() {
         assertEquals(LocalDate.of(2026, 9, 20), EventTimes.today(now, sp))
-        assertEquals(LocalDate.of(2026, 9, 19), EventTimes.yesterday(now, sp))
     }
 
     @Test
