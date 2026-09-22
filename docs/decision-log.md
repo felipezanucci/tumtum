@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **22/09, later: four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | **22/09, b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -413,6 +413,27 @@ the linked documents — this file is the index and the reasoning, not a diary.
     `ADD_TO_STORY`. Two things only the phone can answer: how large
     Instagram draws a full-frame sticker, and whether it insists on the
     Facebook App ID (`res/values/instagram.xml`, empty until registered).
+    **Both phone questions answered 22/09, and the scope widened.** Felipe
+    put a video through the Instagram route: it worked *without* the
+    Facebook App ID, and Instagram drew the sticker **smaller than the
+    screen** — the flat scrim showed as a visible black box behind the card.
+    His ask then changed the item: *"pros usuários poderem subir video em
+    qualquer rede social. seja instagram, x, snap, tiktok, etc."* **Built
+    the same day, and the 400–600 lines never had to be written.** The
+    insight is that it is **one file, not N integrations**: every one of
+    those apps, plus the gallery, takes an MP4 from the system share sheet,
+    so nothing social-network-specific is needed at all. `androidx.media3`
+    Transformer does the decode → overlay → encode → mux pipeline that was
+    costed as hand-written EGL (`export/VideoCard.kt`, 175 lines including
+    its reasoning). API 23 needed, this app is minSdk 28. Choices: 9:16
+    scale-to-fill with centre crop, 30 s from the start with the screen
+    saying it was trimmed, and **the encoder's own progress figure** rather
+    than a bar on a timer — Media3 answers "not started" and "unavailable"
+    as well as a number, and a bar sitting at 0% because nobody asked is the
+    same lie as a spinner. The scrim became a gradient anchored on the
+    *measured* top of the type block, plus a text shadow as a second net;
+    Felipe asked whether the mask could go entirely and it cannot — his own
+    test video had a white t-shirt directly behind the white meta line.
 44. **Setlist.fm cannot be the setlist source, and it is not about money.**
     Researched 22/09 when Felipe asked whether the two API keys are his to
     sign up for (they are — neither can be provisioned programmatically).
@@ -496,8 +517,134 @@ the linked documents — this file is the index and the reasoning, not a diary.
     one of them backwards in a way that would have changed the plan. Before
     any money or any promise rests on this: **a human opens
     `setlist.fm/help/api-terms` and `api-sports.io`'s terms and reads them.**
+47. **Who may write a timeline entry is undecided, and it is a real hole.**
+    Found 22/09 while building the web admin. `POST /events/{id}/timeline`
+    accepts **any signed-in account**, while create/update event now needs an
+    operator. So a fan can write into the timeline that names everyone's
+    moments at that event. Closing it with `require_admin` is one line — and
+    it would break the fan's own *"Toca pra dizer o que tava rolando"*, which
+    posts through the same endpoint. The fix is to separate the two kinds:
+    an operator's entry is the event's truth and names moments for everybody,
+    a fan's entry is private to their own night. **Felipe's call**, because it
+    decides whether a fan's tap is shared at all.
+48. **The video export has never run on hardware.** `VideoCard.burn` was
+    written in an environment with no Android SDK and no device; CI compiles
+    it and never executes it, and encoder behaviour is the classic thing that
+    differs per chipset. Two specific unknowns: whether the pipeline honours
+    `Presentation` before `OverlayEffect` (so the card lands on the finished
+    9:16 frame rather than the source's shape), and whether a full-frame
+    static overlay lands edge to edge. It is built to fail loudly — `burn`
+    returns null and the photo and Instagram routes stay standing — so the
+    worst case is the old behaviour. **First real test: one video through
+    "Compartilhar" on b150.**
 
 ---
+
+## 2026-09-22 — b149 in a real hand: the card burned into the video, and nine findings
+
+Felipe tested b149 and the site through the morning. **Bloco B passed six of
+six** — the first test of the match clock in a hand. The two anchors appear
+first on a sports capture, a tapped one carries its own clock on the button,
+a second tap of the same anchor is refused with *"é uma vez por jogo"*, a
+repeated GOL is not refused (it is a second goal), and a show never shows
+APITO. The clock built the night before survives contact.
+
+Everything else here is what the morning found.
+
+### Video, anywhere — and it was never N integrations
+
+Felipe, after putting a video through the Instagram route: *"acho que
+precisamos começar a solucionar esse problema de vez... pros usuários poderem
+subir video em qualquer rede social. seja instagram, x, snap, tiktok, etc."*
+
+Item 43 had costed the general case at 400–600 lines of MediaExtractor,
+MediaCodec and EGL, and called it the most expensive thing on the board. Both
+halves of that were wrong, for the same reason: **it is one file, not N
+integrations.** Instagram, X, TikTok, Snapchat, WhatsApp, Telegram and "save
+to the gallery" all accept the same thing — one MP4 through the system share
+sheet. Burn the card into the file and every one of them is covered, with no
+social-network SDK anywhere. And `androidx.media3` Transformer already *is*
+the decode → overlay → encode → mux pipeline, so the EGL was never ours to
+write. `export/VideoCard.kt` is 175 lines, most of them the reasoning.
+
+Three choices, each reversible and each written down where the code is:
+9:16 scaled to fill and centre-cropped (a Story crops, it does not letterbox);
+30 s from the start, **with the screen saying it was trimmed** rather than
+quietly shortening; and the encoder's own progress figure, polled — Media3
+answers "not started" and "unavailable" as well as a number, and a bar sitting
+at 0% because nobody asked is the same lie as a spinner that means nothing.
+
+`ADD_TO_STORY` stays as the Instagram shortcut, where the card remains a
+sticker the person can drag. Two of its unknowns are now answered: it works
+**without** the Facebook App ID, and Instagram draws a full-frame sticker
+smaller than the screen.
+
+### The mask could not go, and his own video is why
+
+Felipe asked whether the black mask behind the card could be removed
+entirely, leaving only the peak and the number. It cannot — the frame he sent
+has a white t-shirt sitting directly behind the white meta line. What it
+could stop being is a *box*: the flat 60% scrim became a gradient anchored on
+the **measured** top of the type block rather than a guessed fraction of the
+height, so the video runs clean through the top half and behind the acid
+chip and only darkens under the words. A text shadow is the second net.
+
+### Marks are the event's truth, not one person's capture
+
+jogo1's four marks — APITO, 2º TEMPO and two GOL — never reached the server.
+Cause: `pushMarks` only ever ran **inside a night's upload**, and that capture
+had no readings, so no night was ever created, so nothing carried them up.
+
+That is worse than a lost test. If the operator's strap drops or their battery
+dies, every fan at that match loses the two taps that turn API-Football's
+minutes into real times — which is exactly the situation the taps exist for.
+Marks now go up the moment they are tapped (`NightSync.pushMarksLater`), and
+a failure leaves them unsynced for `retryPending` to find through
+`eventsWithUnsynced`, with no night involved.
+
+### Three more of the same family — the app knowing and not saying
+
+The class the log has now recorded sixteen times.
+
+- **jogo1 and show1 never registered on the server, and the app knew.** It
+  wrote the warning to the AO VIVO tab, which "Começa agora" leaves in the
+  same instant. The warning is on the capture screen now — where the eye
+  already is. Same shape as 21/09's upload evidence below the fold.
+- **Every `<select>` on the site was white text on the OS's white popup.**
+  Only the selected option was readable, so the popup looked like a tall
+  empty box. Felipe read the entry-type dropdown as *"only Momento exists"* —
+  and his teste6 mark went in as the wrong type because of it. A dropdown
+  that shows one of six options is not a cosmetic bug; it is the control
+  lying about what it offers. Six selects, four files, one rule in
+  `globals.css` (`color-scheme: dark`, which is what makes the OS draw the
+  popup dark rather than us painting over it).
+- **A jogo spoke like a show.** ROLANDO HÁ, "aproveita o jogo", and plurals
+  so "1 marcados" counts in its own language — plus one word per kind
+  everywhere, since the app said Esporte in one place and JOGO in another.
+
+### And the small ones
+
+The already-registered events in the operator sheet collapse behind a counted
+row (Felipe: *"tá muito feio eles aparecendo tudo"*). The media button is
+**"Foto ou vídeo atrás"** — it had still said "Tirar foto" while accepting
+video — with *trocar* and *tirar* side by side instead of two steps to swap.
+
+### What is not proven
+
+The video export has never run on hardware (item 48). CI compiles it; no
+device has executed it. It is built to fail loudly — `burn` returns null and
+the photo and Instagram routes stay standing — so the worst case is the
+behaviour b149 already had.
+
+CI also answered a version question the environment could not: **media3
+1.11.0 is compiled with Kotlin 2.2 and this project is on 2.0.21**, so
+`kspDebugKotlin` refused to read its metadata. Pinned to **1.3.1**, which
+predates the Kotlin 2.0 boundary entirely and already carries every API used
+here. The constraint is written beside the version in `libs.versions.toml`
+so nobody bumps it blind. Raising the project's Kotlin instead would drag the
+Compose plugin, KSP and Room, and cannot be checked from here.
+
+Backend 114 tests and ruff clean; frontend tsc, lint and 55 tests.
 
 ## 2026-09-22 — the two API keys: one is five minutes, the other is a Live Nation contract
 

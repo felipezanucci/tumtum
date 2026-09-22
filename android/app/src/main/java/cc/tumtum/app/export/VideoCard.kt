@@ -29,7 +29,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * The card burned into the person's own video, so it can be posted anywhere
- * (item 43 / open item 19, 22/09).
+ * (decision log, item 43, 22/09).
  *
  * Felipe: *"pros usuários poderem subir video em qualquer rede social. seja
  * instagram, x, snap, tiktok, etc."* The insight that makes this small is that
