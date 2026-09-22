@@ -40,6 +40,7 @@ import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
 import cc.tumtum.app.export.InstagramStory
+import cc.tumtum.app.export.VideoCard
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.ui.components.ShareCardView
@@ -55,15 +56,17 @@ import kotlinx.coroutines.withContext
 
 /**
  * What the person put behind the black card: their own photo, or their own
- * video (item 43, 22/09). A video's preview is its first frame — what the
- * card will sit over — and it leaves through Instagram's Story editor, the
- * one place that can play it under the card, instead of the system sheet.
+ * video. A video's preview is its first frame — what the card will sit over.
  */
 private sealed interface CardMedia {
     val preview: Bitmap
 
     data class Photo(override val preview: Bitmap) : CardMedia
-    data class Video(val uri: Uri, override val preview: Bitmap) : CardMedia
+    data class Video(
+        val uri: Uri,
+        override val preview: Bitmap,
+        val durationMs: Long?,
+    ) : CardMedia
 }
 
 /**
@@ -71,6 +74,11 @@ private sealed interface CardMedia {
  * daqui sem o toque em Compartilhar. "Postar no feed" saiu em 19/09 (item 37):
  * postava num repositório falso deste celular e confirmava que a galera
  * podia sentir — ninguém podia. Volta quando o feed for o do servidor.
+ *
+ * Com um vídeo atrás (22/09), o card é **gravado dentro do arquivo** e sai
+ * pelo share sheet do sistema — Instagram, X, TikTok, Snap, WhatsApp, galeria,
+ * todos aceitam um MP4. O `ADD_TO_STORY` do Instagram fica como atalho, para
+ * quem quer o card móvel dentro do editor de Story.
  */
 @Composable
 fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
@@ -79,24 +87,29 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val scope = rememberCoroutineScope()
     val night by container.nights.night(nightId).collectAsStateWithLifecycle(initialValue = null)
     var sharing by remember { mutableStateOf(false) }
+    // The encoder's own figure while a video is being burned, or null. Never a
+    // made-up percentage: a bar that moves on a timer is a lie about work.
+    var burning by remember { mutableStateOf<Int?>(null) }
     // The share sheet came back. That is all it means: whether the card was
     // sent, nobody here knows, and the screen says only what is true.
     var cameBack by remember { mutableStateOf(false) }
     var failure by remember { mutableStateOf<Int?>(null) }
     val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { cameBack = true }
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
-    // A fan's own photo or video behind the black skin (§5.11, item 43): for this card, this share.
     var media by remember { mutableStateOf<CardMedia?>(null) }
     var loadingMedia by remember { mutableStateOf(false) }
     val instagram = remember { InstagramStory.isInstalled(context) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         loadingMedia = true
+        failure = null
         scope.launch {
             media = withContext(Dispatchers.IO) {
                 val type = context.contentResolver.getType(uri).orEmpty()
                 if (type.startsWith("video/")) {
-                    InstagramStory.firstFrame(context, uri)?.let { CardMedia.Video(uri, it) }
+                    InstagramStory.firstFrame(context, uri)?.let {
+                        CardMedia.Video(uri, it, VideoCard.durationMs(context, uri))
+                    }
                 } else {
                     CardRenderer.loadPhoto(context, uri)?.let { CardMedia.Photo(it) }
                 }
@@ -120,6 +133,18 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val cardMeta = stringResource(R.string.reveal_bpm) + " " + stringResource(R.string.reveal_at, Fmt.hour(n.peakAt))
     val cardChip = "${n.eventName.uppercase()} · ${Fmt.hour(n.peakAt).uppercase()}"
     val video = media as? CardMedia.Video
+    val busy = sharing || loadingMedia
+
+    /** The night keeps what its last shared card looked like — a video leaves its first frame. */
+    suspend fun publish(chosen: CardMedia?) {
+        val photoPath = if (skin == Skin.BLACK && chosen != null) {
+            CardPhotoStore.save(context, n.id, chosen.preview, n.photoPath)
+        } else {
+            CardPhotoStore.delete(n.photoPath)
+            null
+        }
+        container.nights.publish(n.id, skin, photoPath)
+    }
 
     Column(
         Modifier
@@ -148,56 +173,51 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             )
         }
         if (skin == Skin.BLACK && !cameBack) {
-            // A button in Toxic Yellow, not a line of small caps. Felipe missed
-            // the option entirely on b145 (22/09): white meta type above a pink
-            // CTA reads as a caption for the card, not as a thing to press.
-            TTButton(
-                stringResource(
-                    when {
-                        loadingMedia -> R.string.card_media_loading
-                        video != null -> R.string.card_video_remove
-                        media != null -> R.string.card_photo_remove
-                        instagram -> R.string.card_media_add
-                        else -> R.string.card_photo_add
-                    },
-                ),
-                TTButtonStyle.OutlineAcid,
-                enabled = !loadingMedia && !sharing,
-                onClick = {
-                    if (media == null) {
-                        // Video only where it can go out: without Instagram the
-                        // picker offers photos, and the line below says why.
-                        picker.launch(
-                            PickVisualMediaRequest(
-                                if (instagram) {
-                                    ActivityResultContracts.PickVisualMedia.ImageAndVideo
-                                } else {
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                                },
-                            ),
-                        )
-                    } else {
-                        media = null
-                    }
-                },
-            )
+            // A button in Toxic Yellow, not a line of small caps (b145). With
+            // something already behind the card it splits in two, because going
+            // from photo to video used to mean tirar-and-then-colocar — two
+            // steps where one would do.
+            if (media == null) {
+                TTButton(
+                    stringResource(if (loadingMedia) R.string.card_media_loading else R.string.card_media_add),
+                    TTButtonStyle.OutlineAcid,
+                    enabled = !busy,
+                    onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) },
+                )
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TTButton(
+                        stringResource(if (loadingMedia) R.string.card_media_loading else R.string.card_media_swap),
+                        TTButtonStyle.OutlineAcid,
+                        enabled = !busy,
+                        onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    TTButton(
+                        stringResource(R.string.card_media_remove),
+                        TTButtonStyle.OutlineOnDark,
+                        enabled = !busy,
+                        onClick = { media = null },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
             Spacer(Modifier.height(6.dp))
+            val trimmed = video?.durationMs?.let { it > VideoCard.MAX_MS } == true
             Text(
-                stringResource(
-                    when {
-                        video != null -> R.string.card_video_hint
-                        !instagram -> R.string.card_video_needs_instagram
-                        else -> R.string.card_media_hint
-                    },
-                ),
+                when {
+                    trimmed -> stringResource(R.string.card_video_trimmed, (VideoCard.MAX_MS / 1000).toInt())
+                    video != null -> stringResource(R.string.card_video_hint)
+                    else -> stringResource(R.string.card_media_hint)
+                },
                 style = TTType.BodySmall,
-                color = TT.Gray45,
+                color = if (trimmed) TT.Acid else TT.Gray45,
                 maxLines = 2,
             )
             Spacer(Modifier.height(10.dp))
         }
         failure?.let {
-            Text(stringResource(it), style = TTType.BodySmall, color = TT.Rose, maxLines = 2)
+            Text(stringResource(it), style = TTType.BodySmall, color = TT.Rose, maxLines = 3)
             Spacer(Modifier.height(8.dp))
         }
         if (cameBack) {
@@ -235,66 +255,90 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 onClick = { cameBack = false },
             )
         } else {
-            // Compartilhar é sempre ativo (§1): o card vira PNG 1080×1920 e sai
-            // pelo share sheet do sistema, com a imagem anexa — ou, com um
-            // vídeo atrás, vira a camada de cima no editor de Story do
-            // Instagram, com o vídeo tocando embaixo. Nada sai sem este toque.
+            // Compartilhar é sempre ativo (§1). Sem vídeo, o card vira PNG
+            // 1080×1920 e sai pelo share sheet. Com vídeo, ele é gravado dentro
+            // do MP4 e sai pelo mesmo share sheet — que é o que faz ele chegar
+            // em qualquer rede sem uma integração por rede.
             TTButton(
-                stringResource(
-                    when {
-                        sharing && video != null -> R.string.card_share_instagram_running
-                        sharing -> R.string.card_share_running
-                        video != null -> R.string.card_share_instagram
-                        else -> R.string.card_share
-                    },
-                ),
+                when {
+                    burning != null -> stringResource(R.string.card_share_burning, burning ?: 0)
+                    sharing -> stringResource(R.string.card_share_running)
+                    else -> stringResource(R.string.card_share)
+                },
                 TTButtonStyle.Rose,
-                enabled = !sharing && !loadingMedia,
+                enabled = !busy,
                 onClick = {
                     sharing = true
                     failure = null
                     val chosen = media
                     scope.launch {
-                        // A pele escolhida fica com a noite (capa da galeria) no
-                        // momento em que o card sai — antes era o "Postar" que gravava.
-                        // Com a pele preta, a foto vai junto (de um vídeo, o
-                        // primeiro quadro); com outra, ou sem foto, a noite deixa de ter uma.
-                        val photoPath = if (skin == Skin.BLACK && chosen != null) {
-                            CardPhotoStore.save(context, n.id, chosen.preview, n.photoPath)
+                        publish(chosen)
+                        val intent = if (chosen is CardMedia.Video) {
+                            burning = 0
+                            val sticker = withContext(Dispatchers.IO) {
+                                CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, sticker = true)
+                            }
+                            val file = VideoCard.burn(context, chosen.uri, sticker, n.id) { burning = it }
+                            burning = null
+                            file?.let { CardRenderer.shareFileIntent(context, it, "video/mp4") }
                         } else {
-                            CardPhotoStore.delete(n.photoPath)
-                            null
-                        }
-                        container.nights.publish(n.id, skin, photoPath)
-                        val intent = withContext(Dispatchers.IO) {
-                            runCatching {
-                                if (chosen is CardMedia.Video) {
-                                    val sticker = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, sticker = true)
-                                    val stickerFile = CardRenderer.writePng(context, sticker, "tumtum-${n.id}-sticker.png")
-                                    val videoFile = InstagramStory.copyVideo(context, chosen.uri, n.id)
-                                    if (videoFile == null) null else InstagramStory.intent(context, videoFile, stickerFile)
-                                } else {
+                            withContext(Dispatchers.IO) {
+                                runCatching {
                                     val bitmap = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = chosen?.preview)
                                     CardRenderer.shareIntent(context, bitmap, "tumtum-${n.id}-${skin.name.lowercase()}.png")
-                                }
-                            }.getOrNull()
+                                }.getOrNull()
+                            }
                         }
                         if (intent == null) {
-                            // Instagram would not take it, or the video could not
-                            // be read: said here, not swallowed behind a button
-                            // that went back to normal.
-                            failure = if (chosen is CardMedia.Video) R.string.card_instagram_refused else R.string.card_share_failed
-                        } else {
-                            try {
-                                shareLauncher.launch(intent)
-                            } catch (e: ActivityNotFoundException) {
-                                failure = R.string.card_instagram_refused
+                            failure = if (chosen is CardMedia.Video) {
+                                R.string.card_share_video_failed
+                            } else {
+                                R.string.card_share_failed
                             }
+                        } else {
+                            runCatching { shareLauncher.launch(intent) }
+                                .onFailure { failure = R.string.card_share_failed }
                         }
                         sharing = false
                     }
                 },
             )
+            // The shortcut, for the one destination that can do better than a
+            // finished file: inside Instagram's Story editor the card stays a
+            // sticker the person can move, and the video stays live.
+            if (video != null && instagram) {
+                Spacer(Modifier.height(10.dp))
+                TTButton(
+                    stringResource(R.string.card_story_shortcut),
+                    TTButtonStyle.OutlineOnDark,
+                    enabled = !busy,
+                    onClick = {
+                        sharing = true
+                        failure = null
+                        scope.launch {
+                            publish(video)
+                            val intent = withContext(Dispatchers.IO) {
+                                runCatching {
+                                    val sticker = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, sticker = true)
+                                    val stickerFile = CardRenderer.writePng(context, sticker, "tumtum-${n.id}-sticker.png")
+                                    InstagramStory.copyVideo(context, video.uri, n.id)
+                                        ?.let { InstagramStory.intent(context, it, stickerFile) }
+                                }.getOrNull()
+                            }
+                            if (intent == null) {
+                                failure = R.string.card_instagram_refused
+                            } else {
+                                try {
+                                    shareLauncher.launch(intent)
+                                } catch (e: ActivityNotFoundException) {
+                                    failure = R.string.card_instagram_refused
+                                }
+                            }
+                            sharing = false
+                        }
+                    },
+                )
+            }
         }
         Spacer(Modifier.height(2.dp))
     }

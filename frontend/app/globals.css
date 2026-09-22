@@ -27,3 +27,30 @@ body {
 :root {
   --font-instrument-sans: 'Instrument Sans', system-ui, -apple-system, sans-serif;
 }
+
+/*
+  A <select> is the one control a browser draws twice: the closed box, which
+  our own classes style, and the open popup, which the operating system draws
+  on its own background. Every field on this site sets `text-tumtum-white`, and
+  that white is inherited by the options — on a white popup, which is what the
+  OS draws by default. Found on 2026-09-22: the admin's entry-type dropdown
+  read as "only Momento exists", because the selected row is the one the OS
+  repaints with forced contrast and the other six were white on white. The
+  popup being tall enough for all seven rows is what gave it away.
+
+  `color-scheme: dark` asks the OS to draw the popup dark instead, which both
+  restores the contrast our classes always assumed and matches the site. The
+  explicit option colours are the second net, for browsers that ignore
+  color-scheme but honour option styling.
+
+  Applied to every select rather than the one that was reported: there are six,
+  in four files, and all of them carry the same class.
+*/
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #141414;
+  color: #ffffff;
+}

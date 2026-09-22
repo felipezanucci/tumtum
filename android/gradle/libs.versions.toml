@@ -12,6 +12,8 @@ healthConnect = "1.1.0"
 datastore = "1.1.1"
 splashscreen = "1.0.1"
 coroutines = "1.9.0"
+# The card burned into a video, so it posts anywhere (open item 19, 22/09).
+media3 = "1.11.0"
 junit = "4.13.2"
 
 [libraries]
@@ -35,6 +37,9 @@ androidx-health-connect = { group = "androidx.health.connect", name = "connect-c
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+androidx-media3-transformer = { group = "androidx.media3", name = "media3-transformer", version.ref = "media3" }
+androidx-media3-effect = { group = "androidx.media3", name = "media3-effect", version.ref = "media3" }
+androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 json = { group = "org.json", name = "json", version = "20240303" }
 

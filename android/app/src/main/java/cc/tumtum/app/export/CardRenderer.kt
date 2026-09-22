@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Typeface
@@ -20,6 +21,7 @@ import java.time.Duration
 import java.time.Instant
 import android.graphics.BitmapFactory
 import android.graphics.RectF
+import android.graphics.Shader
 import android.net.Uri
 
 /**
@@ -42,13 +44,15 @@ object CardRenderer {
     private const val GRAY70 = 0xFF4A4A4A.toInt()
     private const val GRAY10 = 0xFFE6E6E6.toInt()
     private const val SCRIM = 0x99000000.toInt()
+    // How far above the block of type the sticker's gradient starts to darken.
+    private const val GRADIENT_LEAD = 240f
 
     /**
-     * @param sticker The card as a layer for Instagram's Story editor (item
-     *   43): the same drawing with no background colour, so the person's own
-     *   video shows through, and the scrim kept so the type stays legible
-     *   over anything. Black skin only — the one whose surface a photo or a
-     *   video can take.
+     * @param sticker The card as a layer over someone's own video (item 43):
+     *   the same drawing with no background of its own, so the video shows
+     *   through, and a gradient under the block of type instead of the flat
+     *   wash the photo card uses — see the note where it is drawn. Black skin
+     *   only, the one whose surface a photo or a video can take.
      */
     fun render(
         context: Context,
@@ -71,11 +75,10 @@ object CardRenderer {
         }
         val fg = if (skin == Skin.BLACK) PAPER else INK
         val num = if (skin == Skin.BLACK) ROSE else INK
-        if (sticker && skin == Skin.BLACK) {
-            canvas.drawColor(SCRIM)
-        } else {
-            canvas.drawColor(bg)
-        }
+        // A sticker has no background of its own: the video runs behind it. Its
+        // base is a gradient drawn later, once the block of type has been
+        // measured, so it covers exactly what needs covering.
+        if (!(sticker && skin == Skin.BLACK)) canvas.drawColor(bg)
         // A fan's own photo (§5.11): cover-scaled behind the black skin, under a
         // scrim dark enough for white text and the pink number to stay legible.
         if (photo != null && skin == Skin.BLACK && !sticker) {
@@ -151,6 +154,35 @@ object CardRenderer {
 
         val blockH = titleH + numTopPad + numH + (if (hasCurve) curveTopPad + curveH else 0f) + metaTopPad + metaRowH
         var y = H - PAD - blockH
+
+        // The base under the type, for a sticker over someone's video (22/09).
+        // It used to be the flat 60% wash the photo card uses, and over a video
+        // that is an eraser — it darkens the whole frame to win legibility in
+        // the one band where the type actually is. Felipe asked whether the
+        // mask could go entirely; it cannot, and his own test video is the
+        // reason: a white t-shirt sat directly behind the white meta line.
+        // A gradient gives both. The video runs clean through the top half and
+        // behind the acid chip — black on acid, legible over anything — and
+        // darkens into a base beneath the block, which is anchored to the
+        // bottom and measured just above, so this moves with it instead of
+        // guessing at a fixed fraction of the height.
+        if (sticker && skin == Skin.BLACK) {
+            val top = (y - GRADIENT_LEAD).coerceAtLeast(0f)
+            val wash = Paint().apply {
+                shader = LinearGradient(
+                    0f, top, 0f, H.toFloat(),
+                    intArrayOf(0x00000000, 0x70000000, 0xE6000000.toInt()),
+                    floatArrayOf(0f, 0.35f, 1f),
+                    Shader.TileMode.CLAMP,
+                )
+            }
+            canvas.drawRect(0f, top, W.toFloat(), H.toFloat(), wash)
+            // The second net, for the stretch where the gradient is still
+            // light: a shadow costs nothing and saves a bright frame.
+            listOf(titlePaint, numPaint, metaPaint).forEach {
+                it.setShadowLayer(14f, 0f, 3f, 0xB3000000.toInt())
+            }
+        }
 
         titleLines.forEach { line ->
             val fm = titlePaint.fontMetrics
@@ -292,15 +324,22 @@ object CardRenderer {
     }
 
     /** Grava o PNG no cache e devolve o chooser com a imagem anexa. Nada sai sem o toque (§1). */
-    fun shareIntent(context: Context, bitmap: Bitmap, fileName: String): Intent {
-        val file = writePng(context, bitmap, fileName)
+    fun shareIntent(context: Context, bitmap: Bitmap, fileName: String): Intent =
+        shareFileIntent(context, writePng(context, bitmap, fileName), "image/png")
+
+    /**
+     * O chooser do sistema com um arquivo anexo. Um MP4 com o card gravado
+     * dentro sai por aqui para Instagram, X, TikTok, Snap, WhatsApp ou a
+     * galeria — um arquivo, não uma integração por rede (22/09).
+     */
+    fun shareFileIntent(context: Context, file: File, mime: String): Intent {
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         return Intent.createChooser(
             Intent(Intent.ACTION_SEND)
-                .setType("image/png")
+                .setType(mime)
                 .putExtra(Intent.EXTRA_STREAM, uri)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
-            fileName,
+            file.name,
         )
     }
 }

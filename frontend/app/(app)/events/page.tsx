@@ -9,9 +9,12 @@ import { Card, Badge, Loading, Input, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { formatDateOnly } from '@/lib/utils/dates'
 
+// One word per kind, everywhere. Until 22/09 a match was "Esporte" here,
+// "Jogo" in the operator's list and "JOGO" on the phone's chip — three names
+// for one thing, visible side by side the moment the admin shipped.
 const eventTypeLabels: Record<string, string> = {
   concert: 'Show',
-  sports: 'Esporte',
+  sports: 'Jogo',
   festival: 'Festival',
 }
 

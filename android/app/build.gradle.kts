@@ -94,6 +94,11 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.kotlinx.coroutines.android)
+    // The card burned into someone's own video, so it posts anywhere — one
+    // MP4 through the share sheet beats an SDK per social network (22/09).
+    implementation(libs.androidx.media3.transformer)
+    implementation(libs.androidx.media3.effect)
+    implementation(libs.androidx.media3.common)
     testImplementation(libs.junit)
     // Android ships org.json, but the stub on the unit-test classpath throws
     // on every call. AccessToken reads a JWT payload with it. Test-only.
