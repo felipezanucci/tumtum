@@ -82,15 +82,14 @@ import kotlinx.coroutines.launch
  * Aba AO VIVO: com evento ativo vai direto para a captura (a2, tela cheia);
  * sem evento, é o lugar do próximo evento marcado (§5.7) e, desde 21/09, da
  * lista dos eventos da TumTum. A regra do fundador: **o evento é da TumTum, o
- * fã nunca cria um.** O fã vê o que a TumTum cadastrou — o que vem, o que já
- * rolou — e ativa com um toque: o que vem vira o PRÓXIMO (com o lembrete uma
- * hora antes), o que está rolando começa a captura, o que já passou é buscado
- * no relógio. Nome, lugar, tipo, data e hora nunca são perguntados a um fã.
+ * fã nunca cria um.** O fã vê o que a TumTum cadastrou e ativa com um toque:
+ * o que vem vira o PRÓXIMO (com o lembrete uma hora antes), o que está
+ * rolando começa a captura. Nome, lugar, tipo, data e hora nunca são
+ * perguntados a um fã.
  *
- * Quem cadastra é o operador, pelos três atalhos que a chave "Cadastrar
+ * Quem cadastra é o operador, pelos dois atalhos que a chave "Cadastrar
  * eventos pelo celular" (Configurações → OPERADOR) acende no fim desta aba.
- * A folha do operador é a mesma de antes, com uma diferença: hora nunca é
- * digitada — data e horas são as rodas do Android.
+ * Data e horas são rodas, nunca texto.
  */
 @Composable
 fun LiveTabScreen(nav: NavHostController) {
@@ -187,27 +186,15 @@ fun LiveTabScreen(nav: NavHostController) {
         askNotifications()
     }
 
-    fun bringPast(name: String, venue: String, eventType: String, serverEventId: String?, startAt: Instant, endAt: Instant) {
-        scope.launch {
-            // The event is created already closed; the watch is asked over
-            // that window; the usual chooser and reveal follow.
-            val event = container.nights.createPastEvent(name, venue, eventType, serverEventId, startAt, endAt)
-            container.endNight.event = event
-            container.endNight.measurement = container.nights.measureSources(event, endAt)
-            nav.navigate(Routes.EndNight)
-        }
-    }
-
-    /** The fan's one gesture: what the event is against now decides what activating it means. */
+    /** The fan's one gesture: an event going on starts the capture, one still to come is marked. */
     fun activate(ev: ServerEvent) {
         notice = null
         val startAt = ev.startAt ?: return
         val up = UpcomingEvent(ev.name, ev.venue.orEmpty(), ev.eventType, startAt, ev.id)
-        when {
-            ev.isLiveAt(now) -> startCapture(StartRequest(up, clearsMark = state.upcoming?.serverEventId == ev.id))
-            ev.isUpcomingAt(now) -> markUpcoming(up)
-            state.watchConnected -> bringPast(ev.name, ev.venue.orEmpty(), ev.eventType, ev.id, startAt, ev.endsAt ?: startAt)
-            else -> notice = context.getString(R.string.events_past_needs_watch)
+        if (ev.isLiveAt(now)) {
+            startCapture(StartRequest(up, clearsMark = state.upcoming?.serverEventId == ev.id))
+        } else {
+            markUpcoming(up)
         }
     }
 
@@ -318,26 +305,12 @@ fun LiveTabScreen(nav: NavHostController) {
                         Spacer(Modifier.height(6.dp))
                     }
                     val fan = ServerEvents.forFan(events.orEmpty(), now)
-                    if (!listFailed && fan.upcoming.isEmpty() && fan.past.isEmpty()) {
+                    if (!listFailed && fan.isEmpty()) {
                         Text(stringResource(R.string.events_none), style = TTType.Footnote, color = TT.Gray45)
                     }
-                    if (fan.upcoming.isNotEmpty()) {
-                        Text(stringResource(R.string.events_upcoming), style = TTType.MetaSmall, color = TT.Gray55)
-                        Spacer(Modifier.height(6.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            fan.upcoming.forEach { ev ->
-                                EventRow(ev, now, marked = up?.serverEventId == ev.id) { activate(ev) }
-                            }
-                        }
-                        Spacer(Modifier.height(14.dp))
-                    }
-                    if (fan.past.isNotEmpty()) {
-                        Text(stringResource(R.string.events_past), style = TTType.MetaSmall, color = TT.Gray55)
-                        Spacer(Modifier.height(6.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            fan.past.forEach { ev ->
-                                EventRow(ev, now, marked = false) { activate(ev) }
-                            }
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        fan.forEach { ev ->
+                            EventRow(ev, now, marked = up?.serverEventId == ev.id) { activate(ev) }
                         }
                     }
                 }
@@ -357,8 +330,6 @@ fun LiveTabScreen(nav: NavHostController) {
                 TTButton(stringResource(R.string.event_starts_now), TTButtonStyle.Outline, onClick = { sheetMode = EventSheetMode.Now })
                 Spacer(Modifier.height(8.dp))
                 TTButton(stringResource(R.string.upcoming_mark), TTButtonStyle.Outline, onClick = { sheetMode = EventSheetMode.Upcoming })
-                Spacer(Modifier.height(8.dp))
-                TTButton(stringResource(R.string.past_bring), TTButtonStyle.Outline, onClick = { sheetMode = EventSheetMode.Past })
             }
         }
     }
@@ -383,13 +354,6 @@ fun LiveTabScreen(nav: NavHostController) {
                         )
                         EventSheetMode.Upcoming -> event.startAt?.let { startAt ->
                             markUpcoming(UpcomingEvent(event.name, event.venue, event.eventType, startAt, event.serverEventId))
-                        }
-                        EventSheetMode.Past -> {
-                            val startAt = event.startAt
-                            val endAt = event.endAt
-                            if (startAt != null && endAt != null) {
-                                bringPast(event.name, event.venue, event.eventType, event.serverEventId, startAt, endAt)
-                            }
                         }
                     }
                     fetchTick++
@@ -434,8 +398,8 @@ private fun StatusRow(ok: Boolean, text: String) {
 
 /**
  * One of TumTum's events, as a fan sees it: when, what, where, and what a tap
- * does — MARCAR for one to come, AGORA for one going on, TRAZER for one
- * already over, MARCADO for the one already chosen.
+ * does — AGORA for one going on, MARCAR for one still to come, MARCADO for
+ * the one already chosen.
  */
 @Composable
 private fun EventRow(ev: ServerEvent, now: Instant, marked: Boolean, onClick: () -> Unit) {
@@ -458,10 +422,9 @@ private fun EventRow(ev: ServerEvent, now: Instant, marked: Boolean, onClick: ()
             ev.venue?.let { Text(it, style = TTType.BodySmall, color = TT.Gray45, maxLines = 1) }
         }
         when {
-            marked -> Badge(stringResource(R.string.events_badge_marked))
             ev.isLiveAt(now) -> Badge(stringResource(R.string.events_badge_now))
-            ev.isUpcomingAt(now) -> OutlineBadge(stringResource(R.string.events_badge_mark), borderColor = TT.Gray25, contentColor = TT.Ink)
-            else -> OutlineBadge(stringResource(R.string.events_badge_bring), borderColor = TT.Gray25, contentColor = TT.Ink)
+            marked -> Badge(stringResource(R.string.events_badge_marked))
+            else -> OutlineBadge(stringResource(R.string.events_badge_mark), borderColor = TT.Gray25, contentColor = TT.Ink)
         }
     }
 }
@@ -523,8 +486,8 @@ private fun UpcomingCard(
     }
 }
 
-/** Which question the operator's sheet asks: an event starting now, the next one, or a night that already happened. */
-enum class EventSheetMode { Now, Upcoming, Past }
+/** Which question the operator's sheet asks: an event starting now, or one still to come. */
+enum class EventSheetMode { Now, Upcoming }
 
 /**
  * A folha do operador (21/09): como a TumTum cadastra um evento pelo celular.
@@ -536,11 +499,15 @@ enum class EventSheetMode { Now, Upcoming, Past }
  * private event with the same name. Typing a name still works; the kind
  * decides which timeline entries the server will accept.
  *
- * Three modes since 2026-09-20: [EventSheetMode.Now] ("Começa agora"),
- * [EventSheetMode.Upcoming] (date and time, the calendar as the trigger) and
- * [EventSheetMode.Past] (date, start and end — a night the watch already
- * holds). Since 21/09 the date and the times are the platform's wheels, never
- * text; what a picked time can still get wrong lives in [EventTimes].
+ * Two modes: [EventSheetMode.Now] ("Começa agora", for something starting as
+ * it is registered) and [EventSheetMode.Upcoming] (date, start and end — the
+ * calendar as the trigger). "Trazer uma noite que já passou" was the third
+ * and was cut on 22/09. Date and times are wheels, never text; what a rolled
+ * time can still get wrong lives in [EventTimes].
+ *
+ * The end matters as much as the start: it is the window a fan's AGORA badge
+ * lives in, and without one the app calls a two-hour match live for five
+ * hours — the same class of false claim as the rest.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -556,9 +523,7 @@ fun CreateEventSheet(
     var picked by remember { mutableStateOf<ServerEvent?>(null) }
     var serverEvents by remember { mutableStateOf<List<ServerEvent>?>(null) }
     var listFailed by remember { mutableStateOf(false) }
-    var day by remember {
-        mutableStateOf(if (mode == EventSheetMode.Past) EventTimes.yesterday(Instant.now()) else EventTimes.today(Instant.now()))
-    }
+    var day by remember { mutableStateOf(EventTimes.today(Instant.now())) }
     var start by remember { mutableStateOf(LocalTime.of(21, 0)) }
     var end by remember { mutableStateOf(LocalTime.of(23, 30)) }
     var timeError by remember { mutableStateOf<EventTimes.Reason?>(null) }
@@ -587,7 +552,6 @@ fun CreateEventSheet(
                     when (mode) {
                         EventSheetMode.Now -> R.string.event_new_title
                         EventSheetMode.Upcoming -> R.string.upcoming_mark
-                        EventSheetMode.Past -> R.string.past_bring
                     },
                 ),
                 style = TTType.TitleSmall,
@@ -661,19 +625,17 @@ fun CreateEventSheet(
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     WheelTimeField(
-                        stringResource(if (mode == EventSheetMode.Past) R.string.event_start_label else R.string.event_time_label),
+                        stringResource(R.string.event_start_label),
                         start,
                         { start = it; timeError = null },
                         modifier = Modifier.weight(1f),
                     )
-                    if (mode == EventSheetMode.Past) {
-                        WheelTimeField(
-                            stringResource(R.string.event_end_label),
-                            end,
-                            { end = it; timeError = null },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    WheelTimeField(
+                        stringResource(R.string.event_end_label),
+                        end,
+                        { end = it; timeError = null },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
             Spacer(Modifier.height(26.dp))
@@ -689,7 +651,6 @@ fun CreateEventSheet(
                     stringResource(
                         when (reason) {
                             EventTimes.Reason.IN_PAST -> R.string.event_in_past
-                            EventTimes.Reason.NOT_PAST -> R.string.event_not_past
                             EventTimes.Reason.TOO_LONG -> R.string.event_too_long
                         },
                     ),
@@ -703,7 +664,6 @@ fun CreateEventSheet(
                     when (mode) {
                         EventSheetMode.Now -> R.string.event_starts_now
                         EventSheetMode.Upcoming -> R.string.event_mark
-                        EventSheetMode.Past -> R.string.event_fetch
                     },
                 ),
                 TTButtonStyle.Rose,
@@ -714,8 +674,7 @@ fun CreateEventSheet(
                     }
                     val times: EventTimes.Result? = when (mode) {
                         EventSheetMode.Now -> null
-                        EventSheetMode.Upcoming -> EventTimes.upcoming(day, start, Instant.now())
-                        EventSheetMode.Past -> EventTimes.past(day, start, end, Instant.now())
+                        EventSheetMode.Upcoming -> EventTimes.upcoming(day, start, end, Instant.now())
                     }
                     when (times) {
                         null -> onCreate(NewEvent(name = name, venue = venue, eventType = eventType, serverEventId = picked?.id))

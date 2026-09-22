@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- A time is never typed (21/09): the platform's rolling date picker, the
-     calendar hidden so only the three wheels show. -->
-<DatePicker xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:calendarViewShown="false"
-    android:datePickerMode="spinner"
-    android:spinnersShown="true" />
