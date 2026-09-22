@@ -21,8 +21,6 @@ data class Moment(
     val label: String? = null,
     /** The row on the phone, so the person can name it. 0 for a moment not yet stored. */
     val id: Long = 0,
-    /** What it might have been, when nothing names it — offered, never asserted (22/09). */
-    val candidates: List<String> = emptyList(),
 )
 
 /** Where a night stands with the server (Etapa 2). */

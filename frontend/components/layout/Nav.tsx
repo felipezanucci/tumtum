@@ -45,7 +45,8 @@ export default function Nav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const user = useCurrentUser()
-  // "Operação" — registering events, attaching a match or a setlist — is the
+  // "Operação" — registering events, attaching a match, running a show's
+  // setlist — is the
   // operator's door. It shows only for an account the server says operates
   // the platform; the endpoints behind it check for themselves either way.
   const links = user?.is_admin

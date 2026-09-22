@@ -280,7 +280,6 @@ class NightRepository(
                     Moment(
                         it.bpm, Instant.ofEpochMilli(it.at), it.durationSec, it.isPeak, it.label,
                         id = it.id,
-                        candidates = MomentEntity.splitCandidates(it.candidates),
                     )
                 },
             serverSessionId = night.serverSessionId,

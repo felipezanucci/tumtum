@@ -154,7 +154,6 @@ class NightSync(
                         durationSec = it.durationSec,
                         isPeak = it.bpm == top,
                         label = it.label ?: previous.firstOrNull { p -> kotlin.math.abs(p.at - it.at.toEpochMilli()) <= 60_000 }?.label,
-                        candidates = MomentEntity.joinCandidates(it.candidates),
                     )
                 },
             )

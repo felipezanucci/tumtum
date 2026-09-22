@@ -1,6 +1,6 @@
+import re
 import uuid
-from datetime import date, datetime
-from zoneinfo import ZoneInfo
+from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_, select
@@ -10,6 +10,7 @@ from app.config import settings
 from app.core.auth import get_current_user, require_admin
 from app.core.database import get_db
 from app.models.event import Event
+from app.models.event_setlist import EventSetlist
 from app.models.event_timeline import EventTimeline
 from app.models.user import User
 from app.schemas.event import (
@@ -19,12 +20,13 @@ from app.schemas.event import (
     EventUpdateRequest,
     FixtureAttachRequest,
     FixtureBrief,
-    SetlistAttachRequest,
-    SetlistBrief,
+    SetlistReplaceRequest,
+    SetlistSong,
+    SetlistStartRequest,
     TimelineEntryCreate,
     TimelineEntryResponse,
 )
-from app.services import football_service, setlist_service
+from app.services import football_service
 
 router = APIRouter(prefix="/api/events", tags=["events"])
 
@@ -143,24 +145,6 @@ async def search_football_fixtures(
     return [FixtureBrief.from_api(f) for f in fixtures]
 
 
-@router.get("/sources/setlist", response_model=list[SetlistBrief])
-async def search_setlists(
-    artist: str = Query(..., min_length=2),
-    on: date | None = Query(None, description="Show date, YYYY-MM-DD"),
-    _: User = Depends(require_admin),
-):
-    """Setlists on Setlist.fm for an artist, to pick the one a show is."""
-    if not settings.setlist_fm_api_key:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="A chave do Setlist.fm não está configurada no servidor.",
-        )
-    result = await setlist_service.search_setlists(
-        artist_name=artist, date=on.strftime("%d-%m-%Y") if on else None
-    )
-    return [SetlistBrief.from_api(s) for s in result.get("setlist", [])]
-
-
 @router.get("/{event_id}", response_model=EventDetailResponse)
 async def get_event(event_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Event).where(Event.id == event_id))
@@ -276,60 +260,6 @@ async def attach_fixture(
     return await _timeline(db, event_id)
 
 
-@router.post("/{event_id}/timeline/setlist", response_model=list[TimelineEntryResponse])
-async def attach_setlist(
-    event_id: uuid.UUID,
-    body: SetlistAttachRequest,
-    _: User = Depends(require_admin),
-    db: AsyncSession = Depends(get_db),
-):
-    """Build the event's timeline from a setlist on Setlist.fm.
-
-    Order only, never times: each song is placed four minutes after the last,
-    from the event's own start, and every entry is marked estimated so it
-    reaches a fan as a guess to pick from and never as a name on a card.
-
-    **NOT CLEARED FOR PRODUCTION (open item 44).** Setlist.fm's API terms
-    forbid the persistent local datastore this endpoint writes into — that is
-    true on a free key and a paid one alike — on top of a non-commercial
-    restriction defined by purpose rather than revenue. See the module
-    docstring of `setlist_service`. Left reachable because the operator may
-    need it against a test event, and because removing it is Felipe's call,
-    not a silent one; the admin page says the same thing where the operator
-    can read it.
-    """
-    event = await _event_or_404(db, event_id)
-    if not settings.setlist_fm_api_key:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="A chave do Setlist.fm não está configurada no servidor.",
-        )
-    if event.start_time is None:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="O evento precisa de um horário de começo para estimar o setlist.",
-        )
-    setlist = await setlist_service.get_setlist_by_id(body.setlist_id)
-    if not setlist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Setlist não encontrado no Setlist.fm.",
-        )
-    # The stored time's offset carries no information (see offset_aware): the
-    # digits are the event's own wall clock, in the display timezone.
-    start = datetime.combine(
-        event.date,
-        event.start_time.replace(tzinfo=None),
-        tzinfo=ZoneInfo(settings.display_timezone),
-    )
-    entries = setlist_service.parse_setlist_to_timeline(setlist, start)
-    existing = await _timeline(db, event_id)
-    await _replace_source(db, existing, setlist_service.SOURCE, event_id, entries)
-    event.external_id = f"{setlist_service.SOURCE}:{body.setlist_id}"
-    await db.flush()
-    return await _timeline(db, event_id)
-
-
 async def _event_or_404(db: AsyncSession, event_id: uuid.UUID) -> Event:
     result = await db.execute(select(Event).where(Event.id == event_id))
     event = result.scalar_one_or_none()
@@ -371,3 +301,185 @@ async def _replace_source(
             )
         )
     await db.flush()
+
+
+# --- The operator's setlist for a show (22/09) ---
+#
+# Felipe's rule, made absolute the same day: the card arrives naming the
+# moment, and nothing is asked of the fan. A match gets that from the API. A
+# show has no API — so a person taps, and the tap is the measurement.
+
+
+SETLIST_SOURCE = "operator-setlist"
+
+
+def _clean_songs(raw: list[str]) -> list[str]:
+    """What a pasted setlist becomes: one title a line, in order.
+
+    People paste from anywhere, so the numbering that comes with it ("1.",
+    "03 -", "12)") is stripped and blank lines are dropped. Nothing else is
+    touched: a song's real name may contain anything at all.
+
+    A dot or a bracket after the number is unambiguous numbering and may sit
+    tight against the title. **A dash or a colon must be followed by a
+    space**, because a title can open with a number and a hyphen — strip
+    those blind and "1-800-273-8255" is filed as "800-273-8255".
+    """
+    songs = []
+    for line in raw:
+        title = re.sub(r"^\s*\d{1,3}\s*(?:[.)]\s*|[-–—:]\s+)", "", line or "").strip()
+        if title:
+            songs.append(title[:255])
+    return songs
+
+
+def _merge_started(
+    existing: list[tuple[int, str, datetime | None]],
+    songs: list[str],
+) -> list[tuple[int, str, datetime | None]]:
+    """The new order, keeping the times that still belong to the same song.
+
+    A pasted correction must not cost the show its measurements. A song keeps
+    its ``started_at`` only when the new list has the same title at the same
+    position: move a song and its old time is not evidence about the new one,
+    and carrying it over would put a measured stamp on something nobody
+    measured — the exact lie the whole design exists to avoid.
+    """
+    kept = {(p, t): at for p, t, at in existing if at is not None}
+    return [(i, title, kept.get((i, title))) for i, title in enumerate(songs, start=1)]
+
+
+async def _setlist(db: AsyncSession, event_id: uuid.UUID) -> list[EventSetlist]:
+    result = await db.execute(
+        select(EventSetlist)
+        .where(EventSetlist.event_id == event_id)
+        .order_by(EventSetlist.position)
+    )
+    return list(result.scalars().all())
+
+
+@router.get("/{event_id}/setlist", response_model=list[SetlistSong])
+async def get_setlist(
+    event_id: uuid.UUID,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """The operator's script, and how far through it the show is."""
+    await _event_or_404(db, event_id)
+    return await _setlist(db, event_id)
+
+
+@router.put("/{event_id}/setlist", response_model=list[SetlistSong])
+async def replace_setlist(
+    event_id: uuid.UUID,
+    body: SetlistReplaceRequest,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Paste the order, before the show.
+
+    A tour plays close to the same set every night, so last night's is a good
+    draft and this can be done days ahead with no pressure. Replacing the
+    list keeps the times of songs that have already started and still sit at
+    the same position with the same title — correcting song 14 during the
+    show must not erase that song 3 began at 21h44.
+    """
+    await _event_or_404(db, event_id)
+    existing = await _setlist(db, event_id)
+    merged = _merge_started(
+        [(row.position, row.title, row.started_at) for row in existing],
+        _clean_songs(body.songs),
+    )
+    for row in existing:
+        await db.delete(row)
+    await db.flush()
+
+    for position, title, started_at in merged:
+        db.add(
+            EventSetlist(
+                event_id=event_id,
+                position=position,
+                title=title,
+                started_at=started_at,
+            )
+        )
+    await db.flush()
+    return await _setlist(db, event_id)
+
+
+@router.post("/{event_id}/setlist/start", response_model=SetlistSong)
+async def start_song(
+    event_id: uuid.UUID,
+    body: SetlistStartRequest,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """COMEÇOU — one tap, and the song has a measured time.
+
+    The tap stamps the row and writes a ``song_start`` entry on the event's
+    timeline, which is what the correlator reads and what names the moment on
+    every fan's card. With no position given it advances to the first song
+    nobody has started yet, so the whole show is one button.
+
+    Missing a tap costs only that song: the next one re-anchors, and the gap
+    is visible on the operator's screen rather than silently guessed at.
+    """
+    await _event_or_404(db, event_id)
+    songs = await _setlist(db, event_id)
+    if not songs:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cole a ordem das músicas antes do show começar.",
+        )
+
+    if body.position is not None:
+        song = next((s for s in songs if s.position == body.position), None)
+        if song is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Música não encontrada."
+            )
+    else:
+        song = next((s for s in songs if s.started_at is None), None)
+        if song is None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Todas as músicas já começaram.",
+            )
+
+    at = body.at or datetime.now(UTC)
+    song.started_at = at
+
+    # The timeline entry is the authority — the setlist row only lets the
+    # operator's screen show what is done. A song re-tapped replaces its own
+    # entry rather than giving the correlator two names for one moment.
+    existing = await db.execute(
+        select(EventTimeline).where(
+            EventTimeline.event_id == event_id,
+            EventTimeline.entry_type == "song_start",
+        )
+    )
+    for entry in existing.scalars().all():
+        meta = entry.metadata_ or {}
+        if (
+            meta.get("source") == SETLIST_SOURCE
+            and meta.get("position") == song.position
+        ):
+            await db.delete(entry)
+
+    db.add(
+        EventTimeline(
+            event_id=event_id,
+            timestamp=at,
+            label=song.title,
+            entry_type="song_start",
+            metadata_={
+                "source": SETLIST_SOURCE,
+                "position": song.position,
+                # Measured, by a person who was standing there. This is the
+                # whole point: it asserts a name instead of offering one.
+                "anchored": True,
+            },
+        )
+    )
+    await db.flush()
+    return song

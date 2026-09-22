@@ -139,7 +139,6 @@
     <string name="reveal_share">Escolher como compartilhar</string>
     <string name="reveal_no_data">Não achamos batida nessa janela.</string>
     <string name="moment_name_empty">Toca pra dizer o que tava rolando</string>
-    <string name="moment_guess_title">TAVA ROLANDO UMA DESSAS?</string>
     <string name="moment_name_title">O que tava rolando?</string>
     <string name="moment_name_label">NESSE MOMENTO</string>
     <string name="moment_name_hint">a música, o gol, o que foi</string>

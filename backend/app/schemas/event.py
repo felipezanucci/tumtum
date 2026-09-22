@@ -174,32 +174,41 @@ class FixtureAttachRequest(BaseModel):
     fixture_id: int
 
 
-class SetlistBrief(BaseModel):
-    """A setlist as Setlist.fm lists it."""
-
-    setlist_id: str
-    artist: str | None
-    event_date: str | None  # dd-MM-yyyy, as the service writes it
-    venue: str | None
-    city: str | None
-    song_count: int
-
-    @classmethod
-    def from_api(cls, item: dict) -> "SetlistBrief":
-        venue = item.get("venue") or {}
-        sets = (item.get("sets") or {}).get("set") or []
-        return cls(
-            setlist_id=item.get("id", ""),
-            artist=(item.get("artist") or {}).get("name"),
-            event_date=item.get("eventDate"),
-            venue=venue.get("name"),
-            city=(venue.get("city") or {}).get("name"),
-            song_count=sum(len(s.get("song") or []) for s in sets),
-        )
+# --- The operator's setlist for a show ---
 
 
-class SetlistAttachRequest(BaseModel):
-    setlist_id: str
+class SetlistSong(BaseModel):
+    """One line of the operator's script."""
+
+    id: uuid.UUID
+    position: int
+    title: str
+    # Null until the operator taps COMEÇOU on it. The instant is measured,
+    # which is what lets it name a moment.
+    started_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class SetlistReplaceRequest(BaseModel):
+    """The order, pasted. One song a line; blanks and numbering are dropped.
+
+    Replaces the whole list rather than editing it, because that is what
+    pasting a corrected setlist means. Songs already started keep their
+    time if their title still matches at the same position — the operator
+    fixing a typo in song 14 must not erase that song 3 began at 21h44.
+    """
+
+    songs: list[str] = Field(default_factory=list, max_length=200)
+
+
+class SetlistStartRequest(BaseModel):
+    """Which song just started. Omit the position to advance to the next."""
+
+    position: int | None = None
+    # The instant it started, when it is not now: a tap logged a little late
+    # is still better placed by hand than left wrong.
+    at: datetime | None = None
 
 
 # --- Peak ---
@@ -215,10 +224,6 @@ class PeakResponse(BaseModel):
     timeline_entry_id: uuid.UUID | None
     rank: int | None
     matched_label: str | None = None
-    # What the moment *might* have been, when nothing exact names it: the two
-    # or three estimated entries (a setlist's songs, an unanchored match
-    # minute) whose window covers it. Offered to the person, never asserted.
-    candidate_labels: list[str] = []
 
     model_config = {"from_attributes": True}
 

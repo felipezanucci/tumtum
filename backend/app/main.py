@@ -33,6 +33,7 @@ async def lifespan(app: FastAPI):
     from app.core.database import Base, engine
     from app.models.card import Card, Share  # noqa: F401
     from app.models.event import Event  # noqa: F401
+    from app.models.event_setlist import EventSetlist  # noqa: F401
     from app.models.event_timeline import EventTimeline  # noqa: F401
     from app.models.hr_data import HRData  # noqa: F401
     from app.models.hr_session import HRSession  # noqa: F401
