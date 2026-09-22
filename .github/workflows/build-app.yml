@@ -53,14 +53,24 @@ jobs:
           name: tumtum-app-apk
           path: android/tumtum-1.0-b*.apk
 
-      # Felipe installs from Releases; a build from a branch stays an artifact.
+      # Felipe installs from Releases, and **every build gets one** (22/09).
+      #
+      # A workflow artifact cannot be a direct download: GitHub requires a
+      # signed-in session for it and always wraps it in a .zip, so handing one
+      # over means "log in, download a zip, unzip it, find the apk". A release
+      # asset on a public repository is a plain URL that starts the download —
+      #
+      #   https://github.com/felipezanucci/tumtum/releases/download/app-bN/tumtum-1.0-bN.apk
+      #
+      # Builds off main are marked prerelease so they never become the repo's
+      # "Latest release" while still having that link.
       - name: Publish GitHub Release
-        if: github.ref == 'refs/heads/main'
         continue-on-error: true
         uses: softprops/action-gh-release@v2
         with:
           tag_name: app-b${{ env.TUMTUM_VERSION_CODE }}
           name: TumTum app 1.0 — build ${{ env.TUMTUM_VERSION_CODE }}
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
           target_commitish: ${{ github.sha }}
           body: |
             APK de teste (assinatura de debug) para instalar no celular — Android 9+ com Health Connect.
