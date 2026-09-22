@@ -38,6 +38,7 @@ The other durable documents:
 | `docs/one-app-plan.md` | **Two Android apps became one on 18/09**: `cc.tumtum.app` (the designed experience, branch `app`) absorbs the proven pipeline of `cc.tumtum.capture`, in five staged gates |
 | `docs/pilot-event-options.md` | **The events that can carry the pilot** after 25/09 was lost: the São Paulo calendar shortlisted against this project's own constraints, and football evaluated honestly against a concert |
 | `docs/design-brief.md` | **Self-contained brand + product handoff for design tools and outside collaborators.** Paste it whole before asking for design work |
+| `docs/naming-moments-plan.md` | **Como um momento ganha nome sem ninguém tocar, 22/09**: o detector já acha sozinho, a marca só nomeia; futebol resolvido com o intervalo e duas âncoras, show sem solução pelo setlist (que não tem horário), e os três caminhos com seus custos |
 | `docs/app-psychology-principles.md` | **What makes an app feel great, 19/09**: the sourced catalogue of behavioural principles, the benchmark of thirty apps with their published numbers, TumTum's loop audited screen by screen against both, and the ranked list of what to borrow, what to refuse, and what the pilot can measure |
 
 One working rule the log records, learned four times: push everything first,

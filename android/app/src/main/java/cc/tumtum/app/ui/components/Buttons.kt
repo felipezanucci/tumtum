@@ -19,7 +19,7 @@ import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 
 /** Botão §3: raio 12dp, altura 56dp, label 16/600. */
-enum class TTButtonStyle { Ink, Rose, Acid, Outline, OutlineOnDark }
+enum class TTButtonStyle { Ink, Rose, Acid, Outline, OutlineOnDark, OutlineAcid }
 
 @Composable
 fun TTButton(
@@ -33,7 +33,7 @@ fun TTButton(
         TTButtonStyle.Ink -> TT.Ink
         TTButtonStyle.Rose -> TT.Rose
         TTButtonStyle.Acid -> TT.Acid
-        TTButtonStyle.Outline, TTButtonStyle.OutlineOnDark -> Color.Transparent
+        TTButtonStyle.Outline, TTButtonStyle.OutlineOnDark, TTButtonStyle.OutlineAcid -> Color.Transparent
     }
     // Nunca texto branco sobre rosa/amarelo (manual): label preto nos dois.
     val fg = when (style) {
@@ -41,10 +41,15 @@ fun TTButton(
         TTButtonStyle.Rose, TTButtonStyle.Acid -> TT.Ink
         TTButtonStyle.Outline -> TT.Ink
         TTButtonStyle.OutlineOnDark -> TT.Paper
+        // Toxic Yellow on black is 18.97:1 — the loudest thing the palette has
+        // on a dark surface, which is what a secondary action needs when the
+        // first build made it a line of small caps nobody saw (22/09).
+        TTButtonStyle.OutlineAcid -> TT.Acid
     }
     val borderColor = when (style) {
         TTButtonStyle.Outline -> TT.Gray10
         TTButtonStyle.OutlineOnDark -> TT.Ink600
+        TTButtonStyle.OutlineAcid -> TT.Acid
         else -> null
     }
     val shape = RoundedCornerShape(12.dp)
