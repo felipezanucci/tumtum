@@ -602,6 +602,30 @@ the linked documents — this file is the index and the reasoning, not a diary.
     one, and the pilot's crowd is people Felipe knows. **Before the store
     listing goes public it is still a blocker**: report a post, block a
     person, both landing where a human reads them.
+57. **Every APK link this session was the wrong one, and the right one already
+    existed.** Felipe, 22/09: *"eu quero o link que inicie o download direto...
+    sem clicar em nada. sempre me mande o link do apk assim."* A workflow
+    artifact can never be that — GitHub requires a signed-in session and always
+    wraps it in a `.zip` — so every link sent this session really meant "log
+    in, download a zip, unzip it, find the apk".
+    **The direct links were already there.** `build-app.yml` has published a
+    GitHub Release on every `main` build since b136, and this repository is
+    public, so `releases/download/app-bN/tumtum-1.0-bN.apk` has always been a
+    plain URL that starts the download with no account at all. Releases exist
+    for b136, b140, b142, b145, b147, b149, b153, b156, b159, b161 — one for
+    **every build Felipe merged**. The assistant never opened the Releases page
+    and offered only the artifact route, so he accepted the bad path because it
+    was the only one on the table.
+    The 404 he hit was `app-b160`: a *branch* build, and the release step was
+    gated `if: github.ref == 'refs/heads/main'`. Fixed by publishing on every
+    build, branch builds as prereleases, so an APK can be tested before the
+    merge. **That fix is real but smaller than it looked** — what was missing
+    was not the mechanism but reading what the repository already did.
+    Verified rather than assumed: `app-b161` returns HTTP 200, 38 MB,
+    `application/vnd.android.package-archive` with no credentials, and the
+    branch build published `app-b162` as a prerelease on its own.
+    Recorded in CLAUDE.md as standing: **never send an
+    `actions/runs/.../artifacts/...` URL again.**
 56. **Nobody has ever seen the feed with more than one person in it.** The
     privacy floor in `services/crowd` is four measured nights, and a pilot
     with three to five straps sits exactly on it. So the two states most
@@ -610,6 +634,52 @@ the linked documents — this file is the index and the reasoning, not a diary.
     collective moment (card 04) cannot be judged until an event has four
     nights uploaded, which makes **one match with four straps** the cheapest
     experiment that answers whether any of this is worth anything.
+
+---
+
+## 2026-09-22 — the link that was always there
+
+Felipe asked for an APK link that downloads by itself. The answer took three
+exchanges and the last one was the one that mattered: **the link he wanted had
+existed for every build he ever merged, and nobody had looked.**
+
+`build-app.yml` publishes a GitHub Release on each `main` build, and has since
+b136. The repository is public. So
+`releases/download/app-bN/tumtum-1.0-bN.apk` has always been a plain URL that
+starts a download with no account — b136, b140, b142, b145, b147, b149, b153,
+b156, b159, b161, one for every merge.
+
+What was sent instead, all session, was the workflow artifact: a URL that
+requires a signed-in GitHub session and always serves a `.zip`. "Here is the
+APK" really meant "log in, download a zip, unzip it, find the apk". He took
+that route without complaint because it was the only one offered.
+
+His 404 was `app-b160` — a *branch* build, and the release step was gated on
+`main`, so branch builds never published one. That gate is now gone and branch
+builds publish prereleases, which is genuinely useful: an APK can be tested
+before the merge rather than after. But it is a smaller fix than it first
+looked, and calling it "the fix" would have hidden the real failure.
+
+### The failure is not the gate
+
+It is that a capability sitting in the repository's own workflow file went
+unread for a month while its absence was worked around every single day. The
+artifact route was never chosen over the release route — the release route was
+never seen. Both were in `build-app.yml`, eleven lines apart.
+
+The same shape as the `FakeSocialRepository` finding earlier today: the thing
+that mattered was already in the codebase, and what was missing was reading
+it. Twice in one day is a pattern worth naming — **before building a mechanism,
+check whether the repository already has one.**
+
+### Verified, not assumed
+
+`app-b161` → HTTP 200, 38,069,756 bytes,
+`application/vnd.android.package-archive`, no credentials sent. The branch
+build published `app-b162` as a prerelease on its own, confirming the change
+works. `app-b160` → 404, which is exactly why he saw one.
+
+b161 is `main` with #83 merged, so it is the build carrying the real feed.
 
 ---
 
