@@ -113,14 +113,13 @@ class NightRepository(
      * feed needs it, and a null is the honest answer that there is no feed to
      * post to rather than a failure.
      */
+    /** This phone's uploaded night at [serverEventId], or null when it lives elsewhere or nowhere. */
+    suspend fun uploadedNightAt(serverEventId: String): NightEntity? =
+        db.nightDao().uploadedNightAt(serverEventId)
+
     suspend fun serverEventIdFor(nightId: Long): String? {
         val night = db.nightDao().nightRow(nightId) ?: return null
         return db.eventDao().byId(night.eventId)?.serverEventId
-    }
-
-    suspend fun nameMoment(momentId: Long, label: String) {
-        val clean = label.trim()
-        db.nightDao().setMomentLabel(momentId, clean.ifBlank { null })
     }
 
     /** Undo the last tap. False when the mark was already on the server — then it stays, honestly. */

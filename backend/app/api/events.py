@@ -139,9 +139,18 @@ async def search_football_fixtures(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Informe o time ou a data.",
         )
-    fixtures = await football_service.search_fixtures(
-        team_name=team, date=on.isoformat() if on else None
-    )
+    try:
+        fixtures = await football_service.search_fixtures(
+            team_name=team, date=on.isoformat() if on else None
+        )
+    except football_service.FootballApiError as exc:
+        # Never an empty list for a failed question: an empty state is a
+        # claim, and this one used to claim "no such match" for a wrong key,
+        # a spent quota and a missing parameter alike (22/09).
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"A busca não foi feita — {exc.reason}",
+        ) from exc
     return [FixtureBrief.from_api(f) for f in fixtures]
 
 
@@ -254,13 +263,19 @@ async def attach_fixture(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="A chave da API-Football não está configurada no servidor.",
         )
-    fixture = await football_service.get_fixture(body.fixture_id)
-    if not fixture:
+    try:
+        fixture = await football_service.get_fixture(body.fixture_id)
+        if not fixture:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Jogo não encontrado na API-Football.",
+            )
+        api_events = await football_service.get_fixture_events(body.fixture_id)
+    except football_service.FootballApiError as exc:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Jogo não encontrado na API-Football.",
-        )
-    api_events = await football_service.get_fixture_events(body.fixture_id)
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"A timeline não foi montada — {exc.reason}",
+        ) from exc
 
     existing = await _timeline(db, event_id)
     kickoff_at, second_half_at = football_service.anchors_from_timeline(
@@ -352,16 +367,29 @@ def _merge_started(
     existing: list[tuple[int, str, datetime | None]],
     songs: list[str],
 ) -> list[tuple[int, str, datetime | None]]:
-    """The new order, keeping the times that still belong to the same song.
+    """The new order, keeping every time already measured.
 
-    A pasted correction must not cost the show its measurements. A song keeps
-    its ``started_at`` only when the new list has the same title at the same
-    position: move a song and its old time is not evidence about the new one,
-    and carrying it over would put a measured stamp on something nobody
-    measured — the exact lie the whole design exists to avoid.
+    **A measured time belongs to the position, not to the title** (Felipe,
+    2026-09-22). Until then the key was ``(position, title)``, on the reasoning
+    that a song which moved should not carry its old stamp onto a new slot.
+    That reasoning was about the wrong thing. What the operator taps is a
+    *slot*: "the third thing started at 21h44" is a fact about the show's
+    third thing, whatever it turns out to be called.
+
+    Keying on the title made a typo destroy a measurement. Felipe corrected
+    one word in a title and the row's time vanished, COMEÇOU lit up again as
+    if the song had not started, and the only recovery the screen offered was
+    to tap it — which would have written *now* into a song that began an hour
+    earlier. **A false measurement is worse than a lost one**, and this had
+    made the false one the easy path.
+
+    So the times stay at their positions. Correcting a spelling, fixing the
+    order after the fact, or extending the tail all keep the show's record
+    intact. Nothing here ever invents a time: a position nobody tapped comes
+    back ``None``, and shortening the list drops the tail's times with it.
     """
-    kept = {(p, t): at for p, t, at in existing if at is not None}
-    return [(i, title, kept.get((i, title))) for i, title in enumerate(songs, start=1)]
+    kept = {position: at for position, _title, at in existing if at is not None}
+    return [(i, title, kept.get(i)) for i, title in enumerate(songs, start=1)]
 
 
 async def _setlist(db: AsyncSession, event_id: uuid.UUID) -> list[EventSetlist]:
@@ -395,9 +423,9 @@ async def replace_setlist(
 
     A tour plays close to the same set every night, so last night's is a good
     draft and this can be done days ahead with no pressure. Replacing the
-    list keeps the times of songs that have already started and still sit at
-    the same position with the same title — correcting song 14 during the
-    show must not erase that song 3 began at 21h44.
+    list keeps every time already measured, at the position it was measured
+    at — correcting song 14 during the show, or a typo in song 3's name, must
+    not erase that the third song began at 21h44. See [_merge_started].
     """
     await _event_or_404(db, event_id)
     existing = await _setlist(db, event_id)

@@ -32,6 +32,19 @@ data class ServerEvent(
     val label: String
         get() = (date?.let { "%02d/%02d · ".format(it.dayOfMonth, it.monthValue) } ?: "") + name
 
+    /**
+     * Everything about the event **except its name**: `10/10 · Morumbi`.
+     *
+     * For a line that sits under the name. The feed row used [label] there and
+     * so printed the name twice, once in bold and once again beside the date
+     * (#31, 22/09). Null when the server gave nothing but a name.
+     */
+    val details: String?
+        get() = listOfNotNull(
+            date?.let { "%02d/%02d".format(it.dayOfMonth, it.monthValue) },
+            venue?.takeIf { it.isNotBlank() } ?: city?.takeIf { it.isNotBlank() },
+        ).joinToString(" · ").ifBlank { null }
+
     /** When the night is over: the server's end, or [ServerEvents.NIGHT_LENGTH] after the start. */
     val endsAt: Instant?
         get() = endAt ?: startAt?.plus(ServerEvents.NIGHT_LENGTH)

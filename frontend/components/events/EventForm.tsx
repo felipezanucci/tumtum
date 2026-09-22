@@ -123,6 +123,126 @@ export function TimeField({
   )
 }
 
+/** The months, named. "set" is read at a glance; "09" has to be counted. */
+const MONTHS = [
+  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+  'jul', 'ago', 'set', 'out', 'nov', 'dez',
+]
+
+/** How many days that month really has, leap years included. */
+function daysIn(year: number, month: number): number {
+  if (!year || !month) return 31
+  return new Date(year, month, 0).getDate()
+}
+
+/**
+ * A date as three lists, in the order this country writes it: dia, mês, ano.
+ *
+ * This was `<input type="date">`, and on Felipe's machine it rendered the
+ * American order — month first — with the day typed into it. Two standing
+ * rules meet here: **a time is never typed** (21/09), and every date or time
+ * field is a picker rather than a free-text box, operator screens included.
+ * `type="date"` obeys neither reliably: its order follows the browser's
+ * locale, not the product's, and it accepts typing.
+ *
+ * The value stays ISO (`YYYY-MM-DD`) because that is what the API reads; only
+ * the reading order changes.
+ */
+export function DateField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  const [year = '', month = '', day = ''] = value ? value.split('-') : []
+  const now = new Date().getFullYear()
+
+  // Near-term events, plus whatever this one already holds — an event from
+  // another year must never be silently dropped to "--".
+  const years: number[] = []
+  for (let y = now - 1; y <= now + 2; y++) years.push(y)
+  const held = Number(year)
+  if (held && !years.includes(held)) years.push(held)
+  years.sort((a, b) => a - b)
+
+  const lastDay = daysIn(Number(year) || now, Number(month))
+  const days = Array.from({ length: lastDay }, (_, i) => String(i + 1).padStart(2, '0'))
+
+  const select =
+    'w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-2 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none'
+
+  function set(nextDay: string, nextMonth: string, nextYear: string) {
+    if (!nextDay && !nextMonth && !nextYear) {
+      onChange('')
+      return
+    }
+    const y = nextYear || String(now)
+    const m = nextMonth || '01'
+    // 31 de janeiro, then February: clamp rather than drop. Picking a month
+    // must not silently wipe the day somebody already chose.
+    const max = daysIn(Number(y), Number(m))
+    const d = Math.min(Number(nextDay) || 1, max)
+    onChange(`${y}-${m}-${String(d).padStart(2, '0')}`)
+  }
+
+  return (
+    <div>
+      <label className="mb-1 block text-sm text-tumtum-muted" htmlFor={`${id}-day`}>
+        {label}
+      </label>
+      <div className="flex items-center gap-2">
+        <select
+          id={`${id}-day`}
+          aria-label={`${label} — dia`}
+          className={select}
+          value={day}
+          onChange={(e) => set(e.target.value, month, year)}
+        >
+          <option value="">--</option>
+          {days.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+        <select
+          id={`${id}-month`}
+          aria-label={`${label} — mês`}
+          className={select}
+          value={month}
+          onChange={(e) => set(day, e.target.value, year)}
+        >
+          <option value="">--</option>
+          {MONTHS.map((name, i) => (
+            <option key={name} value={String(i + 1).padStart(2, '0')}>
+              {name}
+            </option>
+          ))}
+        </select>
+        <select
+          id={`${id}-year`}
+          aria-label={`${label} — ano`}
+          className={select}
+          value={year}
+          onChange={(e) => set(day, month, e.target.value)}
+        >
+          <option value="">--</option>
+          {years.map((y) => (
+            <option key={y} value={String(y)}>
+              {y}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  )
+}
+
 /**
  * The fields of an event, shared by creating one and correcting one.
  *
@@ -200,16 +320,14 @@ export function EventForm({
           ))}
         </select>
 
-        <label className={`${label} mt-4`} htmlFor="date">
-          Data
-        </label>
-        <input
-          id="date"
-          type="date"
-          className={field}
-          value={form.date}
-          onChange={(e) => set('date', e.target.value)}
-        />
+        <div className="mt-4">
+          <DateField
+            id="date"
+            label="Data"
+            value={form.date}
+            onChange={(value) => set('date', value)}
+          />
+        </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           <TimeField

@@ -77,7 +77,7 @@ export default function AdminEventsPage() {
             <h1 className="text-3xl font-hero text-tumtum-white">Eventos</h1>
             {operator && (
               <Link
-                href="/events/novo"
+                href="/admin/eventos/novo"
                 className="shrink-0 rounded-lg bg-tumtum-pink px-4 py-2 text-sm font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow"
               >
                 Novo evento
@@ -87,6 +87,11 @@ export default function AdminEventsPage() {
           <p className="mt-2 text-sm text-tumtum-muted">
             O que a TumTum cobre. O fã escolhe daqui; ninguém além da operação cadastra.
           </p>
+          {operator && (
+            <Link href="/admin/denuncias" className="mt-2 inline-block text-sm text-tumtum-pink">
+              Denúncias do feed →
+            </Link>
+          )}
 
           {user && !operator && (
             <div className="mt-6 rounded-lg border border-tumtum-border bg-tumtum-surface p-4">

@@ -99,6 +99,13 @@ fun LoginScreen(nav: NavHostController) {
             if (saving) stringResource(R.string.auth_working) else stringResource(R.string.login_cta),
             TTButtonStyle.Rose,
             enabled = valid && !saving,
+            onDeclined = {
+                if (!saving) {
+                    error = context.getString(
+                        if (!email.contains("@")) R.string.form_missing_email else R.string.form_missing_password,
+                    )
+                }
+            },
             onClick = {
                 saving = true
                 error = null
@@ -118,7 +125,14 @@ fun LoginScreen(nav: NavHostController) {
                                 tribes = existing?.tribes ?: emptySet(),
                             ),
                         )
-                        nav.navigate(Routes.Permission)
+                        // Signing back in (an expired session, from Configurações or
+                        // from the feed that asked) returns to where the person
+                        // was. Only a first sign-in goes on to the permissions.
+                        if (user?.onboarded == true && nav.previousBackStackEntry != null) {
+                            nav.popBackStack()
+                        } else {
+                            nav.navigate(Routes.Permission)
+                        }
                     } catch (e: Exception) {
                         error = AuthErrors.messageFor(e, context)
                     } finally {

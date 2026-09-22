@@ -31,6 +31,12 @@ OPERATOR_ONLY = {
     ("PUT", "/api/events/{event_id}/setlist"),
     ("POST", "/api/events/{event_id}/setlist/start"),
     ("GET", "/api/events/sources/football"),
+    # The moderation queue: what was reported, and the decision on it (#36).
+    ("GET", "/api/admin/reports"),
+    ("POST", "/api/admin/reports/{post_id}"),
+    # Which series an event belongs to is the operator's to say (#33).
+    ("POST", "/api/series"),
+    ("PUT", "/api/events/{event_id}/series"),
 }
 
 # What a fan may do without operating the platform.
@@ -100,6 +106,9 @@ ATTENDANCE_ONLY = {
     ("POST", "/api/events/{event_id}/feed"),
     ("POST", "/api/events/{event_id}/feed/{post_id}/senti"),
     ("GET", "/api/events/{event_id}/crowd"),
+    # Report and block (#36): only somebody who can see a post can act on it.
+    ("POST", "/api/events/{event_id}/feed/{post_id}/report"),
+    ("POST", "/api/events/{event_id}/feed/{post_id}/block"),
 }
 
 
@@ -130,3 +139,26 @@ def test_the_feed_is_not_an_operator_surface():
     """Being staff is not being at the match."""
     for method, path in ATTENDANCE_ONLY:
         assert require_admin.__name__ not in (guards(method, path) or set())
+
+
+# --- the series feed (#33): one level up, the same kind of gate ---
+
+SERIES_ATTENDANCE_ONLY = {
+    ("GET", "/api/series/{series_id}/feed"),
+    ("POST", "/api/series/{series_id}/feed/{post_id}/senti"),
+    ("POST", "/api/series/{series_id}/feed/{post_id}/report"),
+    ("POST", "/api/series/{series_id}/feed/{post_id}/block"),
+}
+
+
+def test_the_series_feed_needs_a_night_at_some_date_of_it():
+    from app.api.series import require_series_attendance
+
+    missing = [f"{m} {p}" for m, p in SERIES_ATTENDANCE_ONLY if guards(m, p) is None]
+    assert missing == [], f"route gone or renamed: {missing}"
+    ungated = [
+        f"{m} {p}"
+        for m, p in SERIES_ATTENDANCE_ONLY
+        if require_series_attendance.__name__ not in (guards(m, p) or set())
+    ]
+    assert ungated == [], f"open to anyone signed in: {ungated}"

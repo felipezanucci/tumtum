@@ -2,9 +2,11 @@ package cc.tumtum.app.data.repo
 
 import cc.tumtum.app.data.api.ServerCrowd
 import cc.tumtum.app.data.api.ServerPost
+import cc.tumtum.app.data.api.ServerSeries
 import cc.tumtum.app.data.api.TumtumApi
 import java.io.IOException
 import java.time.Instant
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * The event's feed, over the real server.
@@ -38,6 +40,8 @@ sealed interface FeedState {
         val eventName: String,
         val venue: String?,
         val posts: List<ServerPost>,
+        /** On an event's feed: the tour above it, if any. On a series feed: itself. */
+        val series: ServerSeries? = null,
     ) : FeedState {
         val isEmpty: Boolean get() = posts.isEmpty()
     }
@@ -66,6 +70,43 @@ sealed interface CrowdState {
     data class Failed(val offline: Boolean) : CrowdState
 }
 
+/**
+ * Which feed a tap was made in: one night's rolê, or the tour above it (#33).
+ * The actions are the same on both; only the address and the gate differ.
+ */
+sealed interface FeedTarget {
+    val id: String
+    val path: String
+
+    data class Event(override val id: String) : FeedTarget {
+        override val path: String get() = "/api/events/$id"
+    }
+
+    data class Series(override val id: String) : FeedTarget {
+        override val path: String get() = "/api/series/$id"
+    }
+}
+
+/**
+ * What a tap on the feed actually did.
+ *
+ * Until 22/09 every action here was `runCatching { … }.isSuccess`, and the
+ * screen ignored even that Boolean. A reaction the server refused, one that
+ * never left the phone and one that went through were the same nothing on
+ * screen — Felipe tapped SENTI TB, the counter did not move, and nobody could
+ * say why, because the answer had been thrown away twice. Same shape as the
+ * football search that same evening (#43).
+ */
+sealed interface Outcome<out T> {
+    data class Done<T>(val value: T) : Outcome<T>
+
+    data object NotThere : Outcome<Nothing>
+
+    data object SignedOut : Outcome<Nothing>
+
+    data class Failed(val offline: Boolean) : Outcome<Nothing>
+}
+
 class SocialRepository(private val api: TumtumApi) {
 
     suspend fun feed(serverEventId: String): FeedState = guard(
@@ -74,8 +115,21 @@ class SocialRepository(private val api: TumtumApi) {
         onFailed = { FeedState.Failed(it) },
     ) {
         val feed = api.eventFeed(serverEventId)
-        FeedState.Ready(feed.eventName, feed.venue, feed.posts)
+        FeedState.Ready(feed.eventName, feed.venue, feed.posts, feed.series)
     }
+
+    suspend fun seriesFeed(seriesId: String): FeedState = guard(
+        onRefused = FeedState.NotThere,
+        onSignedOut = FeedState.SignedOut,
+        onFailed = { FeedState.Failed(it) },
+    ) {
+        val feed = api.seriesFeed(seriesId)
+        FeedState.Ready(feed.series.name, null, feed.posts, feed.series)
+    }
+
+    /** The series an event belongs to; null when it has none *or* the question failed. */
+    suspend fun seriesOf(serverEventId: String): ServerSeries? =
+        (outcome { api.eventSeries(serverEventId) } as? Outcome.Done)?.value
 
     suspend fun crowd(serverEventId: String): CrowdState = guard(
         onRefused = CrowdState.NotThere,
@@ -101,15 +155,33 @@ class SocialRepository(private val api: TumtumApi) {
         label: String?,
         quote: String?,
         skin: String,
-    ): Boolean = runCatching {
-        api.postMoment(serverEventId, serverSessionId, bpm, at, label, quote, skin)
-    }.isSuccess
+        toSeries: Boolean = false,
+    ): Boolean = outcome {
+        api.postMoment(serverEventId, serverSessionId, bpm, at, label, quote, skin, toSeries)
+    } is Outcome.Done
 
-    suspend fun takeDown(serverEventId: String, postId: String): Boolean =
-        runCatching { api.deletePost(serverEventId, postId) }.isSuccess
+    suspend fun takeDown(serverEventId: String, postId: String): Outcome<Unit> =
+        outcome { api.deletePost(serverEventId, postId) }
 
-    suspend fun toggleSenti(serverEventId: String, postId: String): Boolean =
-        runCatching { api.toggleSenti(serverEventId, postId) }.isSuccess
+    /** The post as the server now has it — the count comes from here, not from a refetch. */
+    suspend fun toggleSenti(target: FeedTarget, postId: String): Outcome<ServerPost> =
+        outcome { api.toggleSenti(target.path, postId) }
+
+    suspend fun report(target: FeedTarget, postId: String, reason: String): Outcome<Unit> =
+        outcome { api.reportPost(target.path, postId, reason) }
+
+    suspend fun block(target: FeedTarget, postId: String): Outcome<Unit> =
+        outcome { api.blockAuthor(target.path, postId) }
+
+    suspend fun blocked(): Outcome<List<TumtumApi.BlockedPerson>> = outcome { api.myBlocks() }
+
+    suspend fun unblock(blockId: String): Outcome<Unit> = outcome { api.unblock(blockId) }
+
+    private suspend fun <T> outcome(block: suspend () -> T): Outcome<T> = guard(
+        onRefused = Outcome.NotThere,
+        onSignedOut = Outcome.SignedOut,
+        onFailed = { Outcome.Failed(it) },
+    ) { Outcome.Done(block()) }
 
     /**
      * Runs [block], turning the two codes that mean something specific into
@@ -126,6 +198,14 @@ class SocialRepository(private val api: TumtumApi) {
         block: suspend () -> T,
     ): T = try {
         block()
+    } catch (e: CancellationException) {
+        // **Never a failure.** A cancelled request is one somebody stopped
+        // waiting for — here, the screen starting a newer load. Until 22/09 the
+        // generic catch below took it (CancellationException *is* an
+        // Exception), returned Failed, and the screen painted "Não deu pra
+        // carregar o rolê" for a request that was never in trouble: the error
+        // Felipe saw for a second after taking his post down.
+        throw e
     } catch (e: TumtumApi.ApiException) {
         when (e.code) {
             403 -> onRefused

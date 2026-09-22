@@ -136,4 +136,62 @@ class ServerFeedTest {
             ServerFeed.parse(offset).posts.single().at,
         )
     }
+
+    @Test
+    fun `the answer to SENTI TB is read on its own, count and all`() {
+        // #47, 22/09: this response used to be dropped on the wire, so the
+        // screen could not show what its own tap had done.
+        val json = """
+            {"id":"p1","author":{"name":"Felipe Zanucci","initials":"FZ"},
+             "bpm":109,"moment_at":"2026-09-22T21:10:00Z","label":null,"quote":null,
+             "skin":"BLACK","created_at":"2026-09-22T21:20:00Z","reactions":1,
+             "reacted_by_me":true,"mine":true}
+        """.trimIndent()
+
+        val post = ServerPost.parse(json)
+
+        assertEquals("p1", post.id)
+        assertEquals(1, post.reactions)
+        assertTrue(post.reactedByMe)
+    }
+
+    @Test
+    fun `an event in a tour carries the door to it`() {
+        val json = """{"event_id":"e1","event_name":"Eras SP N1","venue":"Allianz","date":"2026-11-14",
+            "posts":[],"series":{"id":"s1","name":"The Eras Tour — Brasil","kind":"tour","dates":5}}"""
+
+        val series = ServerFeed.parse(json).series
+
+        assertEquals("The Eras Tour — Brasil", series?.name)
+        assertEquals(5, series?.dates)
+    }
+
+    @Test
+    fun `an event in no tour carries no door, and JSON null is read as none`() {
+        val json = """{"event_id":"e1","event_name":"Rolê","venue":null,"date":"2026-10-10","posts":[]}"""
+
+        assertNull(ServerFeed.parse(json).series)
+        assertNull(ServerSeries.parseOrNull("null"))
+    }
+
+    @Test
+    fun `a series feed says which night each post is from`() {
+        val json = """
+            {"series_id":"s1","name":"The Eras Tour — Brasil","kind":"tour",
+             "events":[{"id":"e1","name":"SP N1","date":"2026-11-14","city":"São Paulo"},
+                       {"id":"e2","name":"Rio","date":"2026-11-18","city":"Rio de Janeiro"}],
+             "posts":[{"id":"p1","author":{"name":"A","initials":"A"},"bpm":150,
+               "moment_at":"2026-11-19T01:10:00Z","label":null,"quote":null,"skin":"PINK",
+               "created_at":"2026-11-19T02:00:00Z","reactions":0,"reacted_by_me":false,"mine":false,
+               "event_id":"e2","event_name":"Rio","event_date":"2026-11-18","event_city":"Rio de Janeiro"}]}
+        """.trimIndent()
+
+        val feed = ServerSeriesFeed.parse(json)
+        val post = feed.posts.single()
+
+        assertEquals(2, feed.series.dates)
+        assertEquals("e2", post.eventId)
+        assertEquals("Rio de Janeiro", post.eventCity)
+        assertEquals(18, post.eventDate?.dayOfMonth)
+    }
 }

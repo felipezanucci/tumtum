@@ -12,7 +12,11 @@ from app.core.database import get_db
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
+# One hour (#34, 22/09). It was 24 hours with nothing to renew it, so every
+# account was signed out daily. The session's length now lives in the refresh
+# token — 90 days from last use — and this one only has to be short enough
+# that a revoked session actually stops working soon after.
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:

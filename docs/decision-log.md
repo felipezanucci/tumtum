@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **22/09, b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | **22/09 evening — the night's test findings, all nineteen, built in five waves (b164–b168):** the app stops describing itself falsely (the button that faded, the error that was a cancellation, the SENTI that threw its answer away), a session lasts as long as the phone is used (refresh tokens, 90 days), the feed has colour, the card is A2, report and block exist, and the tour sits above the rolê. Waiting on Felipe's merge and hand. *(earlier 22/09:)* **b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -591,7 +591,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     is that the number is really yours. The repository, `CrowdScreen` and its
     3,412 invented people are gone, and what replaced them is item 53's real
     feed — the honest fix and the feature were the same work.
-55. **Block and report still do not exist, and the feed is live.** Item 34
+55. ~~**Block and report still do not exist, and the feed is live.**~~
+    **Built 22/09** — see the entry "report and block exist". The Play
+    content questionnaire's two answers change to *yes*. Item 34
     said they ship *with* a public feed. The feed shipped on 22/09 and they
     did not, so this is the gap, recorded rather than left implicit. What
     makes it survivable for now: the feed is **per event and closed** — only
@@ -634,6 +636,358 @@ the linked documents — this file is the index and the reasoning, not a diary.
     collective moment (card 04) cannot be judged until an event has four
     nights uploaded, which makes **one match with four straps** the cheapest
     experiment that answers whether any of this is worth anything.
+
+---
+
+## 2026-09-22 — the tour above the rolê
+
+**#33, Felipe's call** on the proposal that *the social unit of music is the
+fandom, not the room*: *"faz sentido… ter uma hierarquia de a turnê e depois
+um show isolado."* Built as proposed — **the tour (or club, or championship),
+not the artist, and added above the event feed, never in its place.**
+
+- **Why not "the artist".** Two nights of one tour share a setlist, an era and
+  a production; their crowds are comparable. Taylor in 2019 and in 2026 are
+  not. And "is a Swiftie" cannot be proved, while "was at a date of this tour"
+  can.
+- **The gate climbs one level and stays evidence**: a measured night at *any*
+  date of the series. Somebody who went in São Paulo meets somebody who went
+  in Rio.
+- **Consent does not climb on its own.** Everyone who posted until now was
+  told *"Quem estava no mesmo rolê vai ver… Só eles."* So a post reaches the
+  tour only when its author chooses that at the moment of posting — the
+  consent sheet then shows two buttons, *"Pode mostrar — rolê e turnê"* and
+  *"Só pro rolê"*, and names both audiences in the sentence above them. The
+  choice is stored as its own row (`series_posts`); taking the post down
+  removes it.
+- **Same rules downstairs and up.** SENTI TB, report, block and take-down are
+  one set of functions called from both feeds, so a block means the same
+  thing in both.
+- **The rolê stays Toxic Yellow; the tour is Pink.** Which room you are in is
+  never in doubt. The rolê's header carries the door: *"TURNÊ: THE ERAS TOUR —
+  BRASIL · 5 DATAS →"*. The tour feed has no crowd line — card 04 is a crowd at
+  one night, and across dates the minutes do not line up.
+- **Football's version is the club or the championship**; the word changes
+  with the kind (*turnê*, *torcida*, *campeonato*).
+- **The operator says which dates belong to which series** in
+  `/admin/eventos/{id}`: pick one, or create it there.
+
+**Built as three new tables and no change to an old one** — `event_series`,
+`event_series_members`, `series_posts` — because the deployed server creates
+tables at startup and never alters them (open item 16). A column on `events`
+would have been the obvious shape and would have silently not existed in
+production.
+
+**What it does not solve**, said in the proposal and still true: a tour feed
+assumes TumTum covers several dates of the same tour, and each show today
+costs **one person present** tapping COMEÇOU. The idea is right for scale; the
+scale meets that bottleneck first.
+
+---
+
+## 2026-09-22 — report and block exist, and deleting an account that had posted did not work
+
+**#36 / item 55, decided by Felipe:** *"a gente não vai ter como fugir dessa."*
+The feed shipped this morning without report or block, and the log said so:
+a crowd-sized moderation problem, but a blocker before the store listing goes
+public. Built in the smaller shape item 34 described — report a post, block a
+person, both landing where a human reads them:
+
+- **Both are made from a post.** The feed names nobody any other way — no
+  handles, no profiles, no ids on the wire — so the server resolves the post
+  to its author. Only somebody who can see a post (`require_attendance`) can
+  act on it.
+- **A report is one of three reasons**, *ofensivo*, *parece falso*, *outra
+  coisa*, and **no free text**: a report box is the one place strangers could
+  otherwise write to each other. One per person per post.
+- **It lands in `/admin/denuncias`**, where an operator keeps the post or
+  takes it down, and in an e-mail to every operator when e-mail is configured.
+  **Three distinct reports hide the post** until somebody decides — a crowd
+  acts faster than an inbox — and "Manter" brings it back. The author still
+  sees their own post; a post does not vanish on the person who made it.
+- **A block works both ways.** Neither sees the other's posts, so a block
+  cannot be used to watch somebody who can no longer see you. It is undone in
+  Configurações, where the list shows names and nothing else.
+- The screens are the careful kind the manual asks for on safety: plain
+  words, no jokes, each choice saying what it will do before it does it.
+
+**The Play questionnaire now changes.** On 18/09 it was answered *no* to
+"can users block others" and *no* to "can users report users or content",
+which was true. Both are now *yes*.
+
+### The bug this found
+
+Writing the deletion rows for the two new tables showed that the feed's own
+two tables — `event_posts`, `event_post_reactions` — had never been added to
+`account_deletion.py`. `event_posts` points at the user **and** at the night,
+with no ON DELETE clause, so **deleting an account that had ever posted was
+refused by the database**: the privacy page's promise, broken for exactly the
+people who used the feature, since this morning. Found before anybody tried.
+
+The deletion list was a tuple somebody had to remember to update, and the
+test checked the tuple against itself. The new test reads **every foreign
+key in the schema** and fails if any table that points at a person, a night,
+a card or a post is missing from the list. Refresh tokens, reports and blocks
+are in it; so is whatever gets written next.
+
+---
+
+## 2026-09-22 — colour on the first screen, one Pink button on the last, and the card Felipe picked
+
+Wave 4 of the evening's findings.
+
+**The feed home had no colour (#30).** Felipe: *"tá muito cinza, preta e
+branca… mais colorida, mais viva."* The manual's digital default is a black
+canvas with Pink as the main emphasis and Toxic Yellow as the second
+explosion; the screen had a white page, grey rows, and one yellow row when
+something was live. It is now black; the headline's second line is Pink at 34
+sp; the night that is on now is a **full Pink block** with black type; every
+other event is a dark card whose door is a Toxic Yellow pill. Pink on black is
+half as loud as the old lime, so the emphasis comes from surface and scale,
+as the manual says it must.
+
+**The Stories button is gone (#40).** Felipe: *"a gente pode tirar esse botão
+de postar no Instagram Stories."* The card is burned into the video and
+leaves through the system share sheet, which reaches every network alike; a
+button naming one of them put it above the rest. With it went the
+`<queries>` entry that let the app ask whether Instagram was installed on the
+phone — a question it no longer needs to ask about anybody.
+
+**The done screen had two Pink buttons and a card drawn over its own text
+(#41).** The card preview was a fixed 214 dp wide inside a box that shrank as
+the done state stacked title, stats and five buttons below — so the 380 dp
+card overflowed and drew its curve across "8 noites em 2026 · 10 momentos".
+The preview now takes its width from the height it is given. And the screen
+has **one primary act at a time**: *Mostrar pra galera do rolê* when the night
+can go to its rolê; only *Pode mostrar* / *Agora não* while asking; *Ver a
+galeria* once posted or when posting is impossible. "Compartilhar de novo" is
+a line of text.
+
+**Card A2 (#42), Felipe's pick from three mockups.** The acid chip that sat
+alone at the top of the card is gone; the event now sits in an acid box **at
+the foot**, "bpm às 22h12" beside it, the wordmark to the right — everything
+about *where* on one line under the evidence. A long name ("SÃO PAULO ×
+VITÓRIA") takes its own row rather than being cut to four letters; the rule
+lives in `CardFoot`, shared by the renderer and the preview so they cannot
+disagree. On the yellow and white skins the box turns black, since acid on
+either would vanish. **The curve is thicker (8 → 11 px) with a dark outline**,
+and the peak marker is ringed: over a bright frame the old line disappeared,
+and the curve is the card's evidence.
+
+---
+
+## 2026-09-22 — a session lasts as long as the phone is used
+
+**#34, decided by Felipe:** *"refresh token de verdade, e a pessoa só reentra
+quando desinstala ou sai — conserta a causa."* Until now the only credential
+was a 24-hour access token with nothing to renew it, so every account was
+signed out once a day — while the app went on showing the person's name and
+avatar. Felipe read "Entra na sua conta" on a screen that plainly knew who he
+was, and could not tell whether to sign in again or whether something was
+broken. Both claims were the app's; they contradicted each other.
+
+What replaced it:
+
+| | |
+|---|---|
+| access token | **1 hour** — short enough that a revoked session stops soon |
+| refresh token | **90 days from last use**, opaque, stored only as a hash |
+| every renewal | **rotates** the refresh token |
+| a spent token presented again | a copy exists → **the whole family is revoked** |
+| "Sair" | revokes the family on the server, not just the phone |
+| password reset | revokes every device's family |
+
+**The part that took thought: stadium cellular.** Rotation plus "reuse means
+theft" has a failure mode exactly where this product lives. The server
+rotates, the answer is lost on a saturated network, the phone asks again with
+the token it still holds — and a strict reading signs the fan out mid-match.
+So for **two minutes** after a rotation, and only while the token it produced
+has never been used, the old token may ask again: the unused child is revoked
+and a fresh one issued. Once the child has been used, whoever holds the parent
+holds a copy by definition. `parent_id` and `revoke_reason` exist for that
+rule and nothing else. A logout or a reset gets no grace.
+
+Two self-inflicted versions of the same failure are closed on the clients:
+the app renews under a mutex and the web under a browser-wide lock
+(`navigator.locks`), so two requests — or two tabs — renewing at once cannot
+spend the same token twice and revoke their own session. The app renews a
+minute before expiry rather than after a 401, so no request leaves with a
+token that dies in flight.
+
+`Session.isLive` now means *usable without a password*: a live access token
+**or** a refresh token to renew it. Judged by the hour-long token alone, every
+screen would have announced "sessão expirada" sixty minutes after sign-in.
+When the server refuses the chain, the app drops the refresh token, and the
+session then reads as expired — which is at last true, and is said with
+"Entrar de novo", which returns to where the person was (#35).
+
+**What the merge costs, said before it happens:** any client that does not
+read `refresh_token` — the APK in Felipe's hand today, and the retired
+`android-capture` app — now holds a one-hour session instead of a 24-hour
+one, until it is replaced. Installing the build from the same merge ends it.
+The web admin renews on its own from the same merge.
+
+Migration `010_refresh_tokens`; the deployed app creates the table itself at
+startup (open item 16). Tests: `backend/tests/test_refresh_tokens.py`.
+
+---
+
+## 2026-09-22 — the app stops describing itself falsely, eight times over
+
+Wave 2 of the evening's test findings, all one family: **the app stating
+something about its own state that is not true.**
+
+- **The button that faded (#45).** A disabled button was drawn at 40% alpha.
+  TumTum Pink at 40% over white is about `#FFD4DE` — on a phone, in real light,
+  no button at all. Felipe had raised it before ("tem que ficar rosa o tempo
+  inteiro"). The fill is now always the fill; "not yet" became a sentence
+  under the button naming what is missing. Settings' name field had used the
+  fade as its *only* confirmation that a save happened; it now says "Salvo."
+- **The error that was a cancellation (#46).** `catch (e: Exception)` caught
+  `CancellationException`, so every reload that a newer one superseded
+  painted "Não deu pra carregar o rolê" for a second. Proved by the
+  screenshot: the crowd chip vanished in the same frame, as it had to.
+- **SENTI TB (#47).** The server answered with the post's new count; the app
+  dropped the body at the wire, reduced the rest to a Boolean, and ignored the
+  Boolean. The answer is now the count, applied in place. Third time in one
+  evening that the reason for a failure had been thrown away — with the
+  football search (#43) and the cancellation above.
+- **The invitation with no door (#48).** "Pode ser você" now comes with
+  "Mostrar a minha" when this phone has a night at the event, and stops
+  inviting when it cannot offer the act.
+- **The fan is never asked (#49).** Felipe: *"pode tirar, não vai haver mais
+  essa possibilidade do usuário digitar."* "Toca pra dizer o que tava rolando"
+  was the last door left after the guess chips. A moment arrives named by the
+  timeline, or stays nameless.
+- **The header that forgot (#32)** and **the name said twice (#31).**
+
+---
+
+## 2026-09-22 — the API had written the answer and the code threw it away
+
+Felipe searched the admin for a Palmeiras match on 20/09 and read **"Nenhum
+jogo com esses dados."** The match existed: Grêmio × Palmeiras, 11h.
+
+What API-Football had actually answered was:
+
+```json
+{"errors": {"season": "The Season field is required."}, "results": 0, "response": []}
+```
+
+**With HTTP 200.** Every call in `football_service.py` ended
+`if response.status_code != 200: return []`, and `grep errors` over the file
+returned nothing. So a wrong key, an uncovered season, a spent quota, an
+illegal parameter combination and a genuine zero all came out as the same
+empty list and the same sentence on screen. The nineteenth instance of the
+defect this project keeps counting, now in an operator tool: **an empty state
+is a claim.**
+
+### What it cost to find
+
+An evening, and it should have cost five seconds. The diagnosis was in the
+response body the whole time. Ruling things out by hand took three rounds at
+Felipe's Terminal, because this environment cannot reach `api-sports.io` and
+the key lives only on Railway:
+
+| ruled out | by |
+|---|---|
+| plan doesn't cover 2026 | dashboard: **Pro**, active |
+| quota spent | `requests: {current: 2, limit_day: 7500}` |
+| bad key | `/status` → HTTP 200 with the account on it |
+| UTC date rollover | kick-off 14:00Z on the 20th — same calendar day |
+| wrong team id | `teams?id=121` → `Palmeiras, PAL, Brazil, 1914` |
+
+Then `&season=2026` returned the fixture, `results: 1`, id 1492384.
+
+**A second lesson, free:** the first diagnostic command I gave Felipe was
+`curl -s`, whose `-s` suppresses the error message. Three blocks came back
+blank and told us nothing. `curl -s` *is* `if status != 200: return []` — I
+wrote the very bug I was hunting, into the tool I was hunting it with. The
+habit is not rare and not anyone's carelessness; it is what "handle the error"
+degrades into when nobody is watching.
+
+### Fixed
+
+- **The season goes out.** `search_fixtures()` already had a `season`
+  parameter and already built `params["season"]` — `events.py` simply never
+  passed one. The calendar year is right for Brazil, whose championships run
+  January to December; European leagues label 2026/27 as season 2026, which
+  the API will now say out loud if it ever matters.
+- **One door to the API.** `_get()` is the only place that calls it, and
+  nothing below it returns an empty result to mean a failure: a non-200 and a
+  200 carrying `errors` both raise `FootballApiError`, which carries the API's
+  own sentence to the operator's screen.
+- **A team nobody has heard of no longer returns the whole day.** A typo used
+  to fall through to `date` alone — 1151 fixtures.
+- **A failed search clears the previous answer**, so the page cannot print
+  "Nenhum jogo com esses dados" beside an error saying no search was made.
+
+Ten tests, `backend/tests/test_football_api_errors.py`, built around the exact
+payload that hid.
+
+---
+
+## 2026-09-22 — a measured time belongs to the slot, not to the song
+
+**A reversal.** `_merge_started` keyed a setlist row's `started_at` on
+`(position, title)`, reasoning that a song which moved should not carry its
+old stamp onto a new slot. The reasoning was about the wrong thing.
+
+Felipe corrected one word in a song's title during a test. The row's time
+vanished, **COMEÇOU lit up again** as if the song had not started, and the
+only recovery the screen offered was to tap it — writing *now* into a song
+that began an hour earlier. His question was the whole argument: *"Como é que
+eu vou marcar de novo? Se eu estiver fazendo isso pelo show mesmo."*
+
+**A false measurement is worse than a lost one**, and the old key had made the
+false one the easy path.
+
+What the operator taps is a **slot**. "The third thing started at 21h44" is a
+fact about the show's third thing, whatever it turns out to be called. So the
+key is the position. Correcting a spelling, fixing the order after the fact,
+or extending the tail all keep the record intact; a position nobody tapped
+still comes back `None`, and a paste can never raise the number of measured
+rows. The edit screen now says so where the operator is about to edit.
+
+The case this does not handle: inserting a song *before* rows already
+measured shifts them onto the wrong titles. In practice an operator editing
+mid-show inserts at the current position, i.e. after the measured rows, so it
+degenerates to editing the tail. Written down here rather than defended in
+code.
+
+---
+
+## 2026-09-22 — the operator kept being dropped into the fan's site
+
+Felipe clicked *Editar* on an event inside `/admin/eventos/{id}`, landed
+somewhere that did not look like the admin, **read it as having been signed
+out**, and typed `/admin/eventos` back in by hand.
+
+He had not been signed out. Two operator screens were living in the fan's part
+of the site and pushing back into it on save:
+
+| was | is |
+|---|---|
+| `/events/novo` → pushes to `/events` | `/admin/eventos/novo` → pushes to the new event |
+| `/events/[id]/editar` → pushes to `/events/{id}` | `/admin/eventos/[id]/editar` → back to the event |
+
+Both also spoke in the fan's voice ("a noite que **você** vai capturar") about
+an act the fan is never allowed to perform. **Events are TumTum's** (21/09),
+and where a screen lives is part of saying so — `/events/novo` was a door to
+creating an event sitting inside the fan's own list.
+
+### And the date was still typed, in the wrong order
+
+`<input type="date">` renders in the **browser's** locale, not the product's,
+so Felipe got month-first and a box to type into. Two standing rules meet
+there: a time is never typed, and every date or time field is a picker,
+operator screens included. `DateField` is now three selects — **dia, mês,
+ano** — beside the `TimeField` that already worked this way, months named
+(`set`, not `09`) so they are read rather than counted. February knows how
+many days it has; picking a month clamps the day instead of wiping it; a
+value from another year is kept rather than silently shown as `--`. The stored
+value stays ISO, because that is what the API reads — only the reading order
+changed.
 
 ---
 

@@ -57,10 +57,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import cc.tumtum.app.data.repo.SyncPhase
 import androidx.core.app.NotificationManagerCompat
-import androidx.compose.material3.AlertDialog
-import androidx.compose.ui.text.font.FontWeight
-import cc.tumtum.app.domain.Moment
-import cc.tumtum.app.ui.components.TTField
 
 /**
  * a3 — A noite, a revela. O momento de maior impacto do produto:
@@ -73,7 +69,6 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var exporting by remember { mutableStateOf(false) }
-    var naming by remember { mutableStateOf<Moment?>(null) }
     val night by container.nights.night(nightId).collectAsStateWithLifecycle(initialValue = null)
 
     val progress = remember { Animatable(0f) }
@@ -102,20 +97,6 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             lockTick++
         }
     }
-    naming?.let { moment ->
-        NameMomentDialog(
-            initial = moment.label.orEmpty(),
-            onDismiss = { naming = null },
-            onSave = { text ->
-                naming = null
-                // Their own note on their own night (item 47): it is kept on
-                // the phone and survives a re-analysis, so there is nothing
-                // here for the server to be told.
-                scope.launch { container.nights.nameMoment(moment.id, text) }
-            },
-        )
-    }
-
     if (locked) {
         LockedNightView(
             night = n,
@@ -216,7 +197,6 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .clickable { naming = moment }
                         .padding(vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -228,14 +208,14 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                         modifier = Modifier.width(52.dp),
                     )
                     Column(Modifier.weight(1f)) {
-                        // The cause: the event's timeline, or the person (§5.6). Without
-                        // one, the row itself is the invitation — in acid, the colour
-                        // of a thing to touch; grey read as a caption on 21/09.
-                        Text(
-                            moment.label ?: stringResource(R.string.moment_name_empty),
-                            style = TTType.BodySmall,
-                            color = if (moment.label != null) TT.Paper else TT.Acid,
-                        )
+                        // The cause, when the event's timeline measured one — and
+                        // nothing when it did not. **The fan is never asked** (Felipe,
+                        // 22/09): "Toca pra dizer o que tava rolando" was the last
+                        // door left after the guess chips went, and the rule covers
+                        // both. A moment arrives named or stays nameless.
+                        moment.label?.let {
+                            Text(it, style = TTType.BodySmall, color = TT.Paper)
+                        }
                         Text(
                             stringResource(R.string.reveal_moment_meta, Fmt.hour(moment.at), moment.durationSec),
                             style = TTType.BodySmall,
@@ -278,41 +258,6 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             onClick = { nav.navigate(Routes.choose(n.id)) },
         )
     }
-}
-
-/** "O que tava rolando?" — one field, the person's own words. */
-@Composable
-private fun NameMomentDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
-    var text by remember { mutableStateOf(initial) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = TT.Paper,
-        title = { Text(stringResource(R.string.moment_name_title), style = TTType.TitleSmall.copy(fontSize = 22.sp), color = TT.Ink) },
-        text = {
-            TTField(
-                label = stringResource(R.string.moment_name_label),
-                value = text,
-                onValueChange = { text = it },
-                placeholder = stringResource(R.string.moment_name_hint),
-            )
-        },
-        confirmButton = {
-            Text(
-                stringResource(R.string.moment_name_save),
-                style = TTType.Button.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-                color = TT.Ink,
-                modifier = Modifier.clickable { onSave(text) }.padding(12.dp),
-            )
-        },
-        dismissButton = {
-            Text(
-                stringResource(R.string.moment_name_cancel),
-                style = TTType.Button.copy(fontSize = 14.sp),
-                color = TT.Gray45,
-                modifier = Modifier.clickable(onClick = onDismiss).padding(12.dp),
-            )
-        },
-    )
 }
 
 /**

@@ -42,6 +42,9 @@ class FeedPostCreate(BaseModel):
     label: str | None = Field(None, max_length=255)
     quote: str | None = Field(None, max_length=280)
     skin: str = Field("BLACK", max_length=20)
+    # Show it to the whole tour / club / championship too (#33). Chosen at
+    # the moment of posting; without it the post stays in the rolê.
+    to_series: bool = False
 
 
 class FeedPostResponse(BaseModel):
@@ -58,6 +61,15 @@ class FeedPostResponse(BaseModel):
     # Whether the viewer may take this one down. The screen shows the undo
     # only where it exists, rather than offering it and then refusing.
     mine: bool
+    # Which night it is from — only in a series feed, where posts from
+    # several dates sit together (#33). Absent in an event's own feed, whose
+    # header already says it.
+    event_name: str | None = None
+    event_date: date | None = None
+    event_city: str | None = None
+    # Always set: the night a post belongs to, so its author can take it down
+    # from the series feed as well as from the rolê.
+    event_id: uuid.UUID | None = None
 
     @classmethod
     def of(
@@ -67,8 +79,13 @@ class FeedPostResponse(BaseModel):
         reactions: int,
         reacted_by_me: bool,
         mine: bool,
+        event=None,
     ) -> "FeedPostResponse":
         return cls(
+            event_id=post.event_id,
+            event_name=event.name if event is not None else None,
+            event_date=event.date if event is not None else None,
+            event_city=event.city if event is not None else None,
             id=post.id,
             author=FeedAuthor.of(author),
             bpm=post.bpm,
@@ -83,12 +100,49 @@ class FeedPostResponse(BaseModel):
         )
 
 
+class SeriesBrief(BaseModel):
+    """The tour, club or championship an event belongs to (#33)."""
+
+    id: uuid.UUID
+    name: str
+    kind: str
+    dates: int
+
+
 class EventFeedResponse(BaseModel):
     event_id: uuid.UUID
     event_name: str
     venue: str | None
     date: date
     posts: list[FeedPostResponse]
+    # The level above this night, when there is one — the door to it.
+    series: SeriesBrief | None = None
+
+
+class SeriesEvent(BaseModel):
+    id: uuid.UUID
+    name: str
+    date: date
+    city: str | None
+
+
+class SeriesFeedResponse(BaseModel):
+    series_id: uuid.UUID
+    name: str
+    kind: str
+    events: list[SeriesEvent]
+    posts: list[FeedPostResponse]
+
+
+class SeriesCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=255)
+    kind: str = Field("tour", pattern="^(tour|club|league)$")
+
+
+class SeriesAssign(BaseModel):
+    """Put an event in a series, or take it out with null."""
+
+    series_id: uuid.UUID | None = None
 
 
 class CrowdMomentResponse(BaseModel):
@@ -124,3 +178,39 @@ class CrowdResponse(BaseModel):
                 else None
             ),
         )
+
+
+class ReportRequest(BaseModel):
+    """abuse · fake · other. Anything else is read as other."""
+
+    reason: str | None = Field(None, max_length=16)
+
+
+class BlockedPerson(BaseModel):
+    """Somebody this account blocked — the name, so the list is readable, and nothing else."""
+
+    id: uuid.UUID
+    name: str
+    initials: str
+    created_at: datetime
+
+
+class ReportedPost(BaseModel):
+    """One post in the operator's queue, with how many people reported it and why."""
+
+    post_id: uuid.UUID
+    event_id: uuid.UUID
+    event_name: str
+    author: FeedAuthor
+    bpm: int
+    moment_at: datetime
+    label: str | None
+    quote: str | None
+    reports: int
+    reasons: dict[str, int]
+    first_reported_at: datetime
+    hidden: bool
+
+
+class ResolveReportRequest(BaseModel):
+    action: str = Field(..., pattern="^(keep|remove)$")

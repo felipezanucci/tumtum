@@ -33,13 +33,19 @@ data class Account(
 }
 
 /**
- * The server's side of the account: a JWT and the user id it names.
- * Live means the token's own expiry has not passed — the server is still
- * the authority, this only decides what a screen may promise.
+ * The server's side of the account: a JWT, the user id it names, and the
+ * refresh token that renews it (#34, 22/09).
+ *
+ * Live means the session can still be used without a password: the access
+ * token has not expired, **or** there is a refresh token to renew it. The
+ * access token lasts an hour now; judging liveness by it alone would have
+ * every screen announce an expired session sixty minutes after sign-in. The
+ * server is still the authority — when it refuses the refresh token, the app
+ * drops it and the session reads as expired, which is then true.
  */
-data class Session(val token: String, val userId: String?) {
+data class Session(val token: String, val userId: String?, val refreshToken: String? = null) {
     fun isLive(nowMillis: Long): Boolean =
-        !cc.tumtum.app.data.api.AccessToken.isExpired(token, nowMillis)
+        refreshToken != null || !cc.tumtum.app.data.api.AccessToken.isExpired(token, nowMillis)
 }
 
 /** The next event the person marked (§5.7): the calendar is the trigger, not a push. */
@@ -115,6 +121,7 @@ class UserPrefs(private val context: Context) {
         val upcomingServerEventId = stringPreferencesKey("upcoming_server_event_id")
         val accessToken = stringPreferencesKey("access_token")
         val userId = stringPreferencesKey("user_id")
+        val refreshToken = stringPreferencesKey("refresh_token")
     }
 
     val state: Flow<UserState> = context.dataStore.data.map { p ->
@@ -150,7 +157,9 @@ class UserPrefs(private val context: Context) {
                     )
                 }
             },
-            session = p[Keys.accessToken]?.let { Session(token = it, userId = p[Keys.userId]) },
+            session = p[Keys.accessToken]?.let {
+                Session(token = it, userId = p[Keys.userId], refreshToken = p[Keys.refreshToken])
+            },
         )
     }
 
@@ -158,6 +167,7 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { p ->
             p[Keys.accessToken] = session.token
             session.userId?.let { p[Keys.userId] = it } ?: p.remove(Keys.userId)
+            session.refreshToken?.let { p[Keys.refreshToken] = it } ?: p.remove(Keys.refreshToken)
         }
     }
 
@@ -166,6 +176,7 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { p ->
             p.remove(Keys.accessToken)
             p.remove(Keys.userId)
+            p.remove(Keys.refreshToken)
         }
     }
 

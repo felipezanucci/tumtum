@@ -16,11 +16,13 @@ from app.schemas.auth import (
     ForgotPasswordRequest,
     LoginRequest,
     MessageResponse,
+    RefreshRequest,
     RegisterRequest,
     ResetPasswordRequest,
     TokenResponse,
     UserResponse,
 )
+from app.services import refresh_tokens
 from app.services.email import EmailNotConfigured, send_email
 from app.services.password_reset import (
     expiry_from,
@@ -30,6 +32,14 @@ from app.services.password_reset import (
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+
+async def _signed_in(db: AsyncSession, user_id, family_id=None) -> TokenResponse:
+    """An access token and the refresh token that renews it."""
+    return TokenResponse(
+        access_token=create_access_token({"sub": str(user_id)}),
+        refresh_token=await refresh_tokens.issue(db, user_id, family_id=family_id),
+    )
 
 
 def hash_password(password: str) -> str:
@@ -59,8 +69,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     db.add(user)
     await db.flush()
 
-    token = create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token)
+    return await _signed_in(db, user.id)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -77,8 +86,39 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Email ou senha incorretos"
         )
 
-    token = create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token)
+    return await _signed_in(db, user.id)
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    """Renew a session without a password — and rotate the token that did it.
+
+    The refusal is one sentence whatever the cause, and it is **committed
+    before it is raised**: a reused token revokes its whole family, and the
+    request's own rollback must not quietly undo that.
+    """
+    try:
+        user_id, nxt = await refresh_tokens.rotate(db, body.refresh_token)
+    except refresh_tokens.RefreshRefused:
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sua sessão terminou. Entre de novo.",
+        ) from None
+    return TokenResponse(
+        access_token=create_access_token({"sub": str(user_id)}),
+        refresh_token=nxt,
+    )
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    """ "Sair" means out: this device's refresh chain is revoked.
+
+    No access token required, so a device whose hour has run out can still
+    sign itself out properly; knowing the refresh token is the proof.
+    """
+    await refresh_tokens.revoke(db, body.refresh_token)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -199,8 +239,11 @@ async def reset_password(
     for outstanding in others.scalars().all():
         outstanding.used_at = now
 
-    await db.flush()
+    # Every signed-in device goes too (#34). A reset is what somebody does
+    # when they fear a break-in, and a stolen refresh token would otherwise
+    # outlive the password it was issued under by up to 90 days.
+    await refresh_tokens.revoke_all(db, user.id)
 
     # Signing them straight in: they just proved control of the mailbox and
     # chose a password. A login form here would only ask them to type it again.
-    return TokenResponse(access_token=create_access_token({"sub": str(user.id)}))
+    return await _signed_in(db, user.id)

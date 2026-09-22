@@ -86,6 +86,7 @@ fun ChooseSkinScreen(nav: NavHostController, nightId: Long) {
                         bpm = n.peakBpm,
                         meta = stringResource(R.string.reveal_bpm) + " " + stringResource(R.string.reveal_at, Fmt.hour(n.peakAt)),
                         width = 150.dp,
+                        chip = n.eventName.uppercase(),
                     )
                     Text(
                         label,

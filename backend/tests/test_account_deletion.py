@@ -28,3 +28,39 @@ def test_the_user_goes_last_and_events_are_not_touched():
     assert DELETION_ORDER[-1] == "users"
     assert "events" not in DELETION_ORDER
     assert "event_timeline" not in DELETION_ORDER
+
+
+def test_every_table_that_points_at_a_person_is_deleted_with_them():
+    """Read the schema, not a list somebody remembered to update.
+
+    The feed shipped on 22/09 with four tables pointing at users and nights,
+    and none of them here: deleting an account that had ever posted was
+    refused by the database. This walks every foreign key instead.
+    """
+    import app.main  # noqa: F401 — registers every model
+    from app.core.database import Base
+
+    owned = {"users", "hr_sessions", "cards", "event_posts"}
+    pointing = set()
+    changed = True
+    while changed:
+        changed = False
+        for table in Base.metadata.tables.values():
+            for fk in table.foreign_keys:
+                if fk.column.table.name in owned and table.name not in owned | pointing:
+                    if table.name in {"events", "event_timeline", "event_setlist"}:
+                        continue
+                    pointing.add(table.name)
+                    changed = True
+        owned |= pointing
+
+    missing = sorted((owned - {"events"}) - set(DELETION_ORDER))
+    assert missing == [], f"not deleted with the account: {missing}"
+
+
+def test_the_feed_goes_before_the_nights_and_the_people_it_points_at():
+    assert _before("post_reports", "event_posts")
+    assert _before("event_post_reactions", "event_posts")
+    assert _before("event_posts", "hr_sessions")
+    assert _before("user_blocks", "users")
+    assert _before("refresh_tokens", "users")

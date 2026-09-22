@@ -19,7 +19,83 @@ data class ServerPost(
     val reactedByMe: Boolean,
     /** Whether the viewer may take this one down — the undo is shown only where it exists. */
     val mine: Boolean,
-)
+    /** The night it belongs to — so it can be taken down from the series feed too (#33). */
+    val eventId: String? = null,
+    /** Which night it is from, only in a series feed, where several dates sit together. */
+    val eventName: String? = null,
+    val eventDate: java.time.LocalDate? = null,
+    val eventCity: String? = null,
+) {
+    companion object {
+        /**
+         * One post, whether it arrived inside the feed or alone as the answer
+         * to a SENTI TB. Until 22/09 the second never got parsed at all: the
+         * reaction's response was dropped on the wire and the screen had to
+         * refetch the whole feed to find out what its own tap had done.
+         */
+        fun parse(p: JSONObject): ServerPost {
+            val author = p.optJSONObject("author") ?: JSONObject()
+            return ServerPost(
+                id = p.optString("id", ""),
+                authorName = author.optString("name", "Alguém"),
+                authorInitials = author.optString("initials", "TT"),
+                bpm = p.optInt("bpm", 0),
+                at = Json.instant(p.getString("moment_at")),
+                label = Json.text(p, "label"),
+                quote = Json.text(p, "quote"),
+                skin = p.optString("skin", "BLACK"),
+                reactions = p.optInt("reactions", 0),
+                reactedByMe = p.optBoolean("reacted_by_me", false),
+                mine = p.optBoolean("mine", false),
+                eventId = Json.text(p, "event_id"),
+                eventName = Json.text(p, "event_name"),
+                eventDate = Json.text(p, "event_date")?.let { java.time.LocalDate.parse(it) },
+                eventCity = Json.text(p, "event_city"),
+            )
+        }
+
+        fun parse(json: String): ServerPost = parse(JSONObject(json))
+    }
+}
+
+/** A tour, club or championship — the level above one night (#33). */
+data class ServerSeries(val id: String, val name: String, val kind: String, val dates: Int) {
+    companion object {
+        fun parse(o: JSONObject): ServerSeries = ServerSeries(
+            id = o.getString("id"),
+            name = o.optString("name", ""),
+            kind = o.optString("kind", "tour"),
+            dates = o.optInt("dates", 0),
+        )
+
+        /** `GET /api/events/{id}/series` answers the series or JSON null. */
+        fun parseOrNull(json: String): ServerSeries? =
+            json.trim().takeIf { it.startsWith("{") }?.let { parse(JSONObject(it)) }
+    }
+}
+
+/** The series feed: every post shown to the tour, from every date. */
+data class ServerSeriesFeed(
+    val series: ServerSeries,
+    val posts: List<ServerPost>,
+) {
+    companion object {
+        fun parse(json: String): ServerSeriesFeed {
+            val o = JSONObject(json)
+            val events = o.optJSONArray("events") ?: JSONArray()
+            val posts = o.optJSONArray("posts") ?: JSONArray()
+            return ServerSeriesFeed(
+                series = ServerSeries(
+                    id = o.optString("series_id", ""),
+                    name = o.optString("name", ""),
+                    kind = o.optString("kind", "tour"),
+                    dates = events.length(),
+                ),
+                posts = (0 until posts.length()).map { ServerPost.parse(posts.getJSONObject(it)) },
+            )
+        }
+    }
+}
 
 /** The event's feed: the people who were there, and what they chose to show. */
 data class ServerFeed(
@@ -27,6 +103,8 @@ data class ServerFeed(
     val eventName: String,
     val venue: String?,
     val posts: List<ServerPost>,
+    /** The level above this night, when there is one — the door to it. */
+    val series: ServerSeries? = null,
 ) {
     /** Reads `GET /api/events/{id}/feed`. Pure, tested. */
     companion object {
@@ -37,23 +115,8 @@ data class ServerFeed(
                 eventId = o.optString("event_id", ""),
                 eventName = o.optString("event_name", ""),
                 venue = Json.text(o, "venue"),
-                posts = (0 until array.length()).map { i ->
-                    val p = array.getJSONObject(i)
-                    val author = p.optJSONObject("author") ?: JSONObject()
-                    ServerPost(
-                        id = p.optString("id", ""),
-                        authorName = author.optString("name", "Alguém"),
-                        authorInitials = author.optString("initials", "TT"),
-                        bpm = p.optInt("bpm", 0),
-                        at = Json.instant(p.getString("moment_at")),
-                        label = Json.text(p, "label"),
-                        quote = Json.text(p, "quote"),
-                        skin = p.optString("skin", "BLACK"),
-                        reactions = p.optInt("reactions", 0),
-                        reactedByMe = p.optBoolean("reacted_by_me", false),
-                        mine = p.optBoolean("mine", false),
-                    )
-                },
+                posts = (0 until array.length()).map { i -> ServerPost.parse(array.getJSONObject(i)) },
+                series = o.optJSONObject("series")?.let { ServerSeries.parse(it) },
             )
         }
     }

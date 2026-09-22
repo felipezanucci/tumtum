@@ -1,5 +1,6 @@
 package cc.tumtum.app.ui.nav
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -22,6 +23,7 @@ import cc.tumtum.app.ui.screens.account.CreateAccountScreen
 import cc.tumtum.app.ui.screens.card.CardScreen
 import cc.tumtum.app.ui.screens.choose.ChooseSkinScreen
 import cc.tumtum.app.ui.screens.eventfeed.EventFeedScreen
+import cc.tumtum.app.ui.screens.eventfeed.SeriesFeedScreen
 import cc.tumtum.app.ui.screens.feed.FeedScreen
 import cc.tumtum.app.ui.screens.gallery.GalleryScreen
 import cc.tumtum.app.ui.screens.live.CaptureScreen
@@ -48,7 +50,10 @@ object Routes {
     const val Gallery = "gallery"
     const val Capture = "capture"
     const val EndNight = "end_night"
-    const val EventFeed = "event_feed/{eventId}"
+    /** The name rides along (#32): the header should never lose what the list already showed. */
+    const val EventFeed = "event_feed/{eventId}?name={name}"
+    /** The tour, club or championship above the rolê (#33). */
+    const val SeriesFeed = "series_feed/{seriesId}?name={name}"
     const val Settings = "settings"
     const val Reveal = "reveal/{nightId}"
     const val Choose = "choose/{nightId}"
@@ -58,7 +63,11 @@ object Routes {
     fun reveal(nightId: Long) = "reveal/$nightId"
     fun choose(nightId: Long) = "choose/$nightId"
     fun card(nightId: Long, skin: Skin) = "card/$nightId/${skin.name}"
-    fun eventFeed(eventId: String) = "event_feed/$eventId"
+    fun seriesFeed(seriesId: String, name: String? = null) =
+        "series_feed/$seriesId" + (name?.takeIf { it.isNotBlank() }?.let { "?name=${Uri.encode(it)}" } ?: "")
+
+    fun eventFeed(eventId: String, name: String? = null) =
+        "event_feed/$eventId" + (name?.takeIf { it.isNotBlank() }?.let { "?name=${Uri.encode(it)}" } ?: "")
     fun profile(handle: String) = "profile/$handle"
 }
 
@@ -163,9 +172,37 @@ fun TumTumRoot(
             }
             composable(
                 Routes.EventFeed,
-                arguments = listOf(navArgument("eventId") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("eventId") { type = NavType.StringType },
+                    navArgument("name") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
             ) { entry ->
-                EventFeedScreen(nav, eventId = entry.arguments!!.getString("eventId").orEmpty())
+                EventFeedScreen(
+                    nav,
+                    eventId = entry.arguments!!.getString("eventId").orEmpty(),
+                    eventName = entry.arguments?.getString("name"),
+                )
+            }
+            composable(
+                Routes.SeriesFeed,
+                arguments = listOf(
+                    navArgument("seriesId") { type = NavType.StringType },
+                    navArgument("name") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
+            ) { entry ->
+                SeriesFeedScreen(
+                    nav,
+                    seriesId = entry.arguments!!.getString("seriesId").orEmpty(),
+                    seriesName = entry.arguments?.getString("name"),
+                )
             }
             composable(
                 Routes.Profile,
