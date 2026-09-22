@@ -359,13 +359,20 @@ the linked documents — this file is the index and the reasoning, not a diary.
     second half — and every goal names itself for everyone, ~1 session);
     a concert is not solvable from the setlist at all, because Setlist.fm
     publishes order and never times, so any estimate has a ceiling of a
-    few minutes and a few minutes is a wrong name. Three paths, costed:
-    a **guess list** from setlist + Spotify durations (~1 session, honest,
-    works everywhere, recommended first), **audio recognition on one
-    device per event** publishing the timeline server-side (1–2 sessions
-    + a paid API; the only thing that names a whole show with nobody
-    touching anything, and it uses no fan's microphone), or not naming at
-    all (card 01 needs no name). Supersedes the naming half of item 28.
+    few minutes and a few minutes is a wrong name. **Amended the same day:
+    the audio-recognition path is dead for live music** — a fingerprint
+    matches one specific *recording*, and a band playing live is not that
+    recording, so the technique is by construction inapplicable to live
+    performance (a positive Shazam match at a concert is evidence of
+    backing tracks, not of recognition working). It survives only for DJ
+    sets. Price, since it was asked and is not the obstacle: AudD
+    US$0.005/request, ACRCloud ~US$0.0045, ~180 requests for a 3 h show,
+    **under US$1 per show.** So the order is now: **1)** football —
+    half-time arithmetic + two operator anchor taps, the only exact
+    timeline available to us, ~1 session; **2)** the **guess list** from
+    setlist + Spotify durations, which with (a) gone is *the* concert
+    answer rather than a stopgap, ~1 session; **3)** nothing, which is
+    fine — card 01 needs no name. Supersedes the naming half of item 28.
 43. **Can the card carry a video, not just a photo?** Felipe asked on
     22/09 to check before building. **Yes, and it is the most expensive
     thing on the list.** The picker is one word (`ImageAndVideo` instead
@@ -382,6 +389,59 @@ the linked documents — this file is the index and the reasoning, not a diary.
     encoder after it, never both at once.
 
 ---
+
+## 2026-09-22 — the audio-recognition path is retracted: a fingerprint matches a recording, not a song
+
+Felipe asked what the paid API of path (a) costs. The price is trivial and the
+answer is that **path (a) does not work**, which the document should have said
+before recommending it.
+
+`docs/naming-moments-plan.md`, merged in #75 hours earlier, called audio
+recognition on one device per event *"a resposta definitiva para shows"* and
+*"a única opção que nomeia um show inteiro com precisão sem ninguém tocar em
+nada."* The architecture of that idea is still sound — one TumTum device
+listening, publishing a timeline server-side for everyone at that event, no
+fan's microphone, no new permission, no change to the store's privacy
+declaration. **The recognition is what does not happen.**
+
+An acoustic fingerprint identifies **one specific recording** — the studio
+master. It is engineered to survive noise, compression and a bad microphone,
+and explicitly *not* to survive a different tempo, a different key, a
+stretched intro or a crowd singing over the top: *acoustic fingerprinting is
+not robust against considerable musical changes, which is why it is not
+applicable in live music use.* The same band playing the same song live is, to
+the algorithm, a different recording, and there is nothing in the database to
+match it against. The corollary doubles as the test: **when Shazam succeeds at
+a concert, what it detected was playback** — a backing track, or the PA
+playlist between songs. Identifying *which song this is* from an arbitrary
+live performance is cover/version identification, an open research problem,
+not an API integration.
+
+What survives: **DJ sets**, where the recording is literally what is playing.
+Heavy-backing-track pop recognises the tracks that run as bases and silently
+misses the ones actually played, which is worse than nothing, because a wrong
+name on a card is worse than no name.
+
+**The price, for the record**, since it was the question: AudD is
+US$0.005/request pay-as-you-go (300 free, down to ~US$0.002 at 500k volume,
+US$45/month for continuous stream monitoring); ACRCloud sells yearly packages
+at roughly ¥320 per 10,000 requests (~US$0.0045). Listening 10 s a minute over
+a three-hour show is ~180 requests — **under US$1 per show**, a few hundred
+dollars for a thousand shows. Cheap and useless for the case that matters.
+
+The re-ranking: **football first** (half-time + two operator anchor taps — the
+only exact timeline we can get, and `docs/pilot-event-options.md` already
+picks a match as the pilot's technical test), **the guess list second** and now
+as *the* concert answer rather than a placeholder, audio recognition third and
+only for DJ sets.
+
+The process lesson is the embarrassing part and goes in the log because of it:
+**the cost was researched before the viability.** "How much does it cost" is
+only a question after "does it work", and here it came first because the
+answer looked obvious. The document is corrected rather than deleted — the
+retraction is in §4(a) with the reasoning, so nobody re-derives it in three
+months. House rule honoured: #75 is merged, so this correction is a new PR,
+never an edit to that one.
 
 ## 2026-09-22 — the loop closed on a phone, and the two questions it raised
 
