@@ -84,18 +84,61 @@ não dá para confiar, e na décima o nome estaria simplesmente errado** — o q
 
 Três caminhos reais:
 
-### (a) Um aparelho ouvindo por evento — a resposta de verdade
+### (a) Um aparelho ouvindo por evento — ~~a resposta de verdade~~ **não funciona ao vivo**
 
-Reconhecimento de áudio (ACRCloud e similares): um aparelho escuta 10 s por
-minuto e identifica a música. **O ponto que muda tudo: não precisa ser o
-celular do fã.** Um aparelho da TumTum no local — o do operador, ou um
-parado — reconhece e **publica a linha do tempo no servidor, para todo mundo
-daquele evento**. Nenhum microfone de fã é usado, nenhuma permissão nova é
-pedida a ninguém, e a declaração de privacidade da loja não muda.
+> **Retratação, 2026-09-22.** A versão anterior deste documento chamava este
+> caminho de *"a resposta definitiva para shows"* e de *"a única opção que
+> nomeia um show inteiro com precisão sem ninguém tocar em nada"*. **Está
+> errado, e o erro é da tecnologia, não do preço.** A pesquisa que deveria ter
+> vindo antes da recomendação está abaixo.
 
-Custo: API paga (da ordem de centavos por show), ~1–2 sessões de integração, e
-um aparelho presente. **É a única opção que nomeia um show inteiro com
-precisão sem ninguém tocar em nada.**
+**A ideia era:** um aparelho da TumTum no local — o do operador, ou um
+parado — escuta 10 s por minuto, reconhece a música (ACRCloud, AudD) e
+publica a linha do tempo no servidor para todo mundo daquele evento. Nenhum
+microfone de fã, nenhuma permissão nova, nenhuma mudança na declaração de
+privacidade da loja. A arquitetura continua boa. **O reconhecimento é que
+não acontece.**
+
+**Por quê.** Uma impressão digital acústica identifica **uma gravação
+específica** — a master de estúdio — e não a música. Ela é feita para
+sobreviver a ruído, compressão e microfone ruim; **não** para sobreviver a
+andamento diferente, tom diferente, arranjo diferente, a banda esticando a
+intro e a galera cantando por cima. É uma propriedade declarada da técnica:
+*acoustic fingerprinting is not robust against considerable musical changes,
+which is why it is not applicable in live music use.* A mesma banda tocando
+a mesma música ao vivo é, para o algoritmo, outra gravação — e não há nada
+no banco para casar com ela.
+
+O corolário é o teste: **quando o Shazam acerta num show, o que ele
+detectou foi playback.** Backing track, base rodando, ou playlist do PA
+entre uma música e outra. Isso não é uma anedota contra o método; é o que
+o método mede.
+
+**Onde ele continua valendo**, e vale de verdade:
+
+- **DJ set** — o que toca *é* a gravação. Reconhecimento funciona inteiro.
+- **Show com base pesada** — comum no pop brasileiro. Reconhece as faixas
+  que rodam de base e erra as que a banda toca de verdade, sem avisar qual
+  é qual. Um nome errado no card é pior do que nenhum, então isso só serve
+  com uma confirmação humana em cima.
+- **Playlist antes/depois do show** — reconhece, e não interessa a ninguém.
+
+**O preço, para ficar registrado** (o Felipe perguntou, e a resposta é: nunca
+foi o obstáculo):
+
+| | Avulso | Volume |
+|---|---|---|
+| **AudD** | **US$ 0,005 por consulta** (300 grátis) | US$ 450 / 100 mil · US$ 1.800 / 500 mil (~US$ 0,002 a consulta). Monitoramento de stream contínuo: US$ 45 por stream/mês |
+| **ACRCloud** | Pacotes anuais, ~¥320 por 10 mil consultas (**~US$ 0,0045 por consulta**) | ~¥300 por 10 mil no pacote de 1 milhão. Preço da página oficial exige login |
+
+Escutando 10 s a cada minuto, um show de 3 h são ~180 consultas: **menos de
+US$ 1 por show.** Mil shows por ano custariam algumas centenas de dólares.
+**Barato e inútil** para o caso que importa — a banda tocando ao vivo é
+exatamente o que a impressão digital não reconhece.
+
+Identificar *que música é esta* a partir de uma execução ao vivo qualquer é
+um problema de pesquisa em aberto (cover / version identification), não uma
+integração de API. Não é trabalho de uma sessão, e não é trabalho nosso.
 
 ### (b) Oferecer um palpite em vez de afirmar — barato e honesto
 
@@ -110,8 +153,10 @@ sabe; ele oferece. Um palpite errado custa um toque; um nome errado no card
 custa a confiança.
 
 Custo: ~1 sessão. Funciona no dia seguinte ao show, sem aparelho no local, sem
-API paga. E **não conflita com (a)** — quando a linha do tempo for boa, o
-palpite simplesmente vira certeza e a pergunta some.
+API paga. Com (a) fora, **este é o caminho para show** — e ele melhora
+sozinho: quando a linha do tempo de um evento for boa (futebol com âncora, um
+DJ set reconhecido, um setlist com horários que alguém anotou), o palpite
+vira certeza e a pergunta some.
 
 ### (c) Não nomear
 
@@ -122,11 +167,17 @@ valer mais.
 
 ## 5. Recomendação
 
+Revista em 22/09, depois que (a) caiu.
+
 | Ordem | O quê | Custo | Por quê agora |
 |---|---|---|---|
-| 1 | **Palpite do setlist** (b) | ~1 sessão | Barato, honesto, serve show e jogo, e é a única que não depende de nada estar presente no evento |
-| 2 | **Futebol: intervalo + âncora de dois toques** | ~1 sessão | Transforma um jogo inteiro em nomes automáticos. O piloto de futebol depende disto |
-| 3 | **Reconhecimento de áudio por evento** (a) | 1–2 sessões + API paga | A resposta definitiva para shows. Decisão de produto e de custo, não de código |
+| 1 | **Futebol: intervalo + âncora de dois toques** | ~1 sessão | A única fonte de linha do tempo **exata** que existe para nós. Transforma um jogo inteiro em nomes automáticos, para todos os fãs daquele evento. O piloto de futebol depende disto |
+| 2 | **Palpite do setlist** (b) | ~1 sessão | Com (a) fora, **é o caminho para show** — não um paliativo enquanto a resposta boa não vem. Barato, honesto, serve show e jogo, e não depende de nada estar presente no evento |
+| 3 | **Reconhecimento de áudio** (a) | 1–2 sessões + ~US$ 1 por evento | **Só para DJ set.** Fora disso, não reconhece. Não é prioridade e não é a resposta para show |
+
+A inversão de 1 e 2 tem um motivo além de (a) ter caído: futebol é o único
+lugar onde o nome pode ser **exato**, e `docs/pilot-event-options.md` já
+escolhe o jogo como teste técnico do piloto.
 
 **Nada disso mexe no detector.** Ele já faz a parte que o Felipe pediu.
 
@@ -142,3 +193,10 @@ show cuja linha do tempo não veio, e custam uma chave desligada por padrão.
 - Setlist.fm não tem horário e nunca vai ter. Qualquer plano que dependa de
   estimar o horário de uma música pelo setlist tem um teto de precisão de
   poucos minutos — e poucos minutos é um nome errado.
+- **Reconhecimento de áudio identifica uma gravação, não uma música.** Ao
+  vivo, a gravação não existe no banco. O caminho (a) desta mesma página foi
+  recomendado antes de isso ser verificado e retirado no mesmo dia; a API
+  custa menos de US$ 1 por show e isso nunca foi o ponto.
+- A lição de processo, que é a cara: **o custo foi levantado antes da
+  viabilidade.** A pergunta "quanto custa" só vale depois de "funciona", e
+  aqui ela chegou primeiro porque a resposta parecia óbvia.
