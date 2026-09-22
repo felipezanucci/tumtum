@@ -55,6 +55,10 @@ interface MarkDao {
     @Query("UPDATE marks SET synced = 1 WHERE id = :id")
     suspend fun markSynced(id: Long)
 
+    /** Events that still owe the server a mark, so a retry can find them without a night. */
+    @Query("SELECT DISTINCT eventId FROM marks WHERE synced = 0")
+    suspend fun eventsWithUnsynced(): List<Long>
+
     @Query("SELECT COUNT(*) FROM marks WHERE eventId = :eventId")
     fun countFor(eventId: Long): Flow<Int>
 

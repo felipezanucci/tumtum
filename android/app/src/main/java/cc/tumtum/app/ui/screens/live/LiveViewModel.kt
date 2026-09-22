@@ -125,6 +125,9 @@ class LiveViewModel(private val container: AppContainer) : ViewModel() {
             val id = container.nights.addMark(event.id, label, entryType, now)
             // The id arrives after the write; the line was already on screen.
             _lastMark.update { cur -> if (cur != null && cur.at == now && cur.label == label) cur.copy(id = id) else cur }
+            // And it goes up on its own, without waiting for a night that may
+            // never exist (22/09) — see NightSync.pushMarksLater.
+            container.sync.pushMarksLater(event.id)
         }
     }
 

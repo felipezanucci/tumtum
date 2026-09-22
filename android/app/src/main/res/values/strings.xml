@@ -81,6 +81,7 @@
     <string name="event_needs_name">Dá um nome pro evento primeiro.</string>
     <!-- Etapa 3: the server's events, and the kind of the one being typed -->
     <string name="event_pick_title">EVENTOS JÁ MARCADOS</string>
+    <string name="event_pick_title_count">EVENTOS JÁ MARCADOS (%1$d)</string>
     <string name="event_pick_loading">Perguntando ao servidor…</string>
     <string name="event_pick_offline">Não deu pra perguntar ao servidor agora. Dá pra digitar o evento mesmo assim.</string>
     <string name="event_pick_none">Nenhum evento marcado no servidor ainda.</string>
@@ -91,7 +92,11 @@
     <string name="event_type_festival">FESTIVAL</string>
     <!-- Etapa 3: marking a moment during the capture -->
     <string name="mark_label">MARCAR O MOMENTO</string>
-    <string name="mark_count">%1$d marcados</string>
+    <!-- "1 marcados" was the app failing to count in its own language (22/09). -->
+    <plurals name="mark_count">
+        <item quantity="one">%1$d marcado</item>
+        <item quantity="other">%1$d marcados</item>
+    </plurals>
     <string name="mark_goal">GOL</string>
     <string name="mark_song">MÚSICA</string>
     <string name="mark_moment">MOMENTO</string>
@@ -105,11 +110,19 @@
     <!-- a2 · Captura ao vivo -->
     <string name="live_label">AO VIVO</string>
     <string name="live_started_at">começou %1$s</string>
+    <!-- 22/09: jogo1 e show1 não chegaram ao servidor e o operador não teve
+         como saber — o aviso existia, mas na aba AO VIVO, que o "Começa agora"
+         abandona no mesmo instante. Quem fica com o operador é esta tela. -->
+    <string name="live_event_local_only">Só neste celular: o servidor não aceitou o cadastro. Nenhum fã entra neste evento.</string>
     <string name="live_playing_for">TOCANDO HÁ</string>
+    <!-- A match is not "tocando" and nobody there is at a "show" (22/09): the
+         words only became visible once a jogo got its own capture screen. -->
+    <string name="live_playing_for_match">ROLANDO HÁ</string>
     <string name="live_bpm_now">bpm agora</string>
     <string name="live_moments">%1$d MOMENTOS</string>
     <string name="live_peak_so_far">MAIOR ATÉ AGORA %1$d</string>
     <string name="live_hint">A gente só olha depois. Aproveita o show.</string>
+    <string name="live_hint_match">A gente só olha depois. Aproveita o jogo.</string>
     <string name="live_end">Encerrar a noite</string>
     <string name="live_blocked_title">Leitura revogada.</string>
     <string name="live_blocked_body">Suas noites continuam aqui. Para capturar de novo, permita a leitura em Configurações.</string>
@@ -134,16 +147,21 @@
     <string name="moment_name_cancel">Voltar</string>
     <string name="card_photo_add">Colocar uma foto sua atrás</string>
     <string name="card_photo_remove">Tirar a foto</string>
-    <string name="card_media_add">Colocar uma foto ou um vídeo seu atrás</string>
+    <!-- "Colocar uma foto ou um vídeo seu atrás" ocupava a largura inteira e
+         estava no infinitivo, onde a voz é o imperativo informal (22/09). -->
+    <string name="card_media_add">Foto ou vídeo atrás</string>
     <string name="card_media_loading">Abrindo…</string>
-    <string name="card_video_remove">Tirar o vídeo</string>
-    <string name="card_media_hint">Foto sai pelo compartilhar de sempre. Vídeo sai direto pro Story do Instagram, com o card por cima.</string>
-    <string name="card_video_hint">O card vai por cima do vídeo, no editor de Story do Instagram. Aqui você vê o primeiro quadro.</string>
-    <string name="card_video_needs_instagram">Vídeo só sai pelo Instagram, que não está neste celular. Foto continua valendo.</string>
+    <!-- Trocar num passo só: antes, sair de foto pra vídeo era tirar e pôr. -->
+    <string name="card_media_swap">Trocar</string>
+    <string name="card_media_remove">Tirar</string>
+    <string name="card_media_hint">O card vai por cima. Foto ou vídeo, você escolhe.</string>
+    <string name="card_video_hint">O card fica gravado dentro do vídeo — dá pra postar em qualquer lugar. Aqui você vê o primeiro quadro.</string>
+    <string name="card_video_trimmed">Vídeo maior que %1$ds: vai só o começo.</string>
     <string name="card_media_unreadable">Não deu pra abrir esse arquivo. Tenta outro.</string>
-    <string name="card_share_instagram">Postar no Story do Instagram</string>
-    <string name="card_share_instagram_running">Preparando o vídeo…</string>
-    <string name="card_instagram_refused">O Instagram não abriu com esse vídeo. Tenta um mais curto, ou uma foto.</string>
+    <string name="card_share_burning">Gravando o card no vídeo… %1$d%%</string>
+    <string name="card_share_video_failed">Não deu pra gravar o card nesse vídeo. Tenta um mais curto, outro vídeo, ou uma foto.</string>
+    <string name="card_story_shortcut">Story do Instagram</string>
+    <string name="card_instagram_refused">O Instagram não abriu com esse vídeo.</string>
     <string name="card_share_failed">Não deu pra gerar o card. Tenta de novo.</string>
 
     <!-- a1 · Suas noites -->

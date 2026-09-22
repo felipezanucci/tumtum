@@ -558,14 +558,48 @@ fun CreateEventSheet(
                 color = TT.Ink,
             )
             Spacer(Modifier.height(18.dp))
-            Text(stringResource(R.string.event_pick_title), style = TTType.Meta, color = TT.Gray70)
+            // What is already on the server is an offer, not the point of this
+            // sheet. On 22/09 seven old test events filled it top to bottom and
+            // pushed EVENTO, LUGAR and TIPO below the fold — "tá muito feio eles
+            // aparecendo tudo". Closed by default, and the closed row carries the
+            // count, so a shut door says what is behind it. Collapsed, the one
+            // that was picked stays on screen: the sheet never hides which
+            // server event this night is about to be linked to.
+            var pickOpen by remember { mutableStateOf(false) }
+            val pickCount = serverEvents?.size ?: 0
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = pickCount > 0) { pickOpen = !pickOpen },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    if (pickCount > 0) {
+                        stringResource(R.string.event_pick_title_count, pickCount)
+                    } else {
+                        stringResource(R.string.event_pick_title)
+                    },
+                    style = TTType.Meta,
+                    color = TT.Gray70,
+                    modifier = Modifier.weight(1f),
+                )
+                if (pickCount > 0) {
+                    Text(
+                        stringResource(
+                            if (pickOpen) R.string.settings_operator_hide else R.string.settings_operator_show,
+                        ),
+                        style = TTType.Meta,
+                        color = TT.Ink,
+                    )
+                }
+            }
             Spacer(Modifier.height(8.dp))
             when {
                 serverEvents == null -> Text(stringResource(R.string.event_pick_loading), style = TTType.Footnote, color = TT.Gray45)
                 listFailed -> Text(stringResource(R.string.event_pick_offline), style = TTType.Footnote, color = TT.Gray45)
                 serverEvents!!.isEmpty() -> Text(stringResource(R.string.event_pick_none), style = TTType.Footnote, color = TT.Gray45)
                 else -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    serverEvents!!.forEach { ev ->
+                    (if (pickOpen) serverEvents!! else listOfNotNull(picked)).forEach { ev ->
                         val selected = picked?.id == ev.id
                         Row(
                             Modifier

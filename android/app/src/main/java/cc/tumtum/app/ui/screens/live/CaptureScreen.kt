@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -83,6 +84,9 @@ fun CaptureScreen(nav: NavHostController) {
 
     val e = event ?: return
     val bleActive = bus.active && bus.eventId == e.id
+    // What kind of night this is decides more than the mark buttons: a match
+    // is not "tocando" and nobody at one is at a "show" (22/09).
+    val sports = e.eventType == "sports"
 
     BoxWithConstraints(
         Modifier
@@ -139,6 +143,21 @@ fun CaptureScreen(nav: NavHostController) {
                 color = TT.Gray45,
                 maxLines = 1,
             )
+            // An event the server never took is an event no fan can join, and
+            // marks with nowhere to go. The app knew this on 22/09 and said it
+            // on the tab that "Começa agora" leaves in the same instant, so
+            // nobody read it. It belongs here, where the operator stays for the
+            // next two hours — and it clears itself the moment the event
+            // registers, because the row it reads is the live one.
+            if (e.serverEventId == null) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(R.string.live_event_local_only),
+                    style = TTType.BodySmall,
+                    color = TT.Acid,
+                    maxLines = 2,
+                )
+            }
 
             if (revoked && !bleActive) {
                 // §7 — permissão revogada: nova captura bloqueada, com explicação honesta.
@@ -155,7 +174,11 @@ fun CaptureScreen(nav: NavHostController) {
                 Spacer(Modifier.weight(1f))
             } else {
                 Spacer(Modifier.weight(1f))
-                Text(stringResource(R.string.live_playing_for), style = TTType.MetaWide, color = TT.Gray55)
+                Text(
+                    stringResource(if (sports) R.string.live_playing_for_match else R.string.live_playing_for),
+                    style = TTType.MetaWide,
+                    color = TT.Gray55,
+                )
                 Spacer(Modifier.height(6.dp))
                 Text(Fmt.stopwatch(Duration.between(e.startAt, now)), style = clockStyle, color = TT.Paper)
                 Spacer(Modifier.weight(1f))
@@ -228,7 +251,11 @@ fun CaptureScreen(nav: NavHostController) {
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.mark_label), style = TTType.MetaWide, color = TT.Gray55)
-                    Text(stringResource(R.string.mark_count, marks), style = TTType.MetaSmall, color = TT.Gray55)
+                    Text(
+                        pluralStringResource(R.plurals.mark_count, marks, marks),
+                        style = TTType.MetaSmall,
+                        color = TT.Gray55,
+                    )
                 }
                 Spacer(Modifier.height(10.dp))
                 // What there is to mark depends on the night. A match (22/09)
@@ -238,7 +265,6 @@ fun CaptureScreen(nav: NavHostController) {
                 // minute into a wall-clock time for everyone at the game. A
                 // marked anchor shows its own clock on the button: the state
                 // is said where the thumb already is.
-                val sports = e.eventType == "sports"
                 if (sports) {
                     val anchors by container.nights.anchors(e.id).collectAsStateWithLifecycle(initialValue = emptyMap())
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -320,7 +346,7 @@ fun CaptureScreen(nav: NavHostController) {
                 Spacer(Modifier.height(gap))
             }
             Text(
-                stringResource(R.string.live_hint),
+                stringResource(if (sports) R.string.live_hint_match else R.string.live_hint),
                 style = TTType.Body.copy(fontSize = 14.sp),
                 color = TT.Gray55,
                 maxLines = 1,

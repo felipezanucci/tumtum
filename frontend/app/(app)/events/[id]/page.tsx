@@ -89,7 +89,7 @@ export default function EventDetailPage() {
             {event.event_type === 'concert'
               ? 'Show'
               : event.event_type === 'sports'
-              ? 'Esporte'
+              ? 'Jogo'
               : 'Festival'}
           </Badge>
           <h1 className="text-3xl font-bold text-tumtum-white">{event.name}</h1>

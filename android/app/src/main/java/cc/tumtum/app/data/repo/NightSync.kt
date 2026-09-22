@@ -57,12 +57,41 @@ class NightSync(
         scope.launch { upload(nightId) }
     }
 
+    /**
+     * A mark goes up on its own, the moment it is tapped (22/09).
+     *
+     * Until then `pushMarks` ran only inside [upload], as a side effect of a
+     * night reaching the server — and on 22/09 that cost a whole match: the
+     * capture had no readings, so no night was ever created, so the operator's
+     * APITO, 2º TEMPO and two GOL stayed on the phone. **The anchors are the
+     * event's truth, not one person's capture.** If the operator's strap drops
+     * or their battery dies, every fan at that match loses the two taps that
+     * turn API-Football's minutes into real times — which is exactly the
+     * situation the taps exist for.
+     *
+     * Failure costs nothing: the mark stays unsynced and [retryPending] finds
+     * it again through `eventsWithUnsynced`, with no night involved.
+     */
+    fun pushMarksLater(localEventId: Long) {
+        scope.launch { runCatching { pushMarksFor(localEventId) } }
+    }
+
+    private suspend fun pushMarksFor(localEventId: Long) {
+        if (db.markDao().unsyncedFor(localEventId).isEmpty()) return
+        val session = prefs.state.first().session ?: return
+        if (!session.isLive(System.currentTimeMillis())) return
+        val serverEventId = ensureServerEvent(localEventId) ?: return
+        pushMarks(localEventId, serverEventId)
+    }
+
     fun retryPendingLater() {
         scope.launch { retryPending() }
     }
 
     suspend fun retryPending() {
         db.nightDao().pendingUpload().forEach { upload(it.id) }
+        // Marks no night will ever carry — see pushMarksLater.
+        db.markDao().eventsWithUnsynced().forEach { runCatching { pushMarksFor(it) } }
     }
 
     suspend fun upload(nightId: Long) {
