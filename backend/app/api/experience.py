@@ -22,6 +22,7 @@ from app.services import data_quality
 from app.services.display_downsample import downsample_for_display
 from app.services.event_correlator import correlate_peaks_to_timeline
 from app.services.peak_detection import detect_peaks
+from app.services.setlist_guess import candidate_labels, is_tentative
 
 router = APIRouter(prefix="/api/experience", tags=["experience"])
 
@@ -80,14 +81,21 @@ async def analyze_session(
 
     # Run peak detection
     hr_data = [{"time": dp.time, "bpm": dp.bpm} for dp in data_points]
-    tl_data = [
-        {"time": e.timestamp, "label": e.label, "id": e.id} for e in timeline_entries
-    ]
-    detected_peaks = detect_peaks(hr_data, tl_data)
+    # A measured time asserts a name; a derived one only offers (22/09). The
+    # correlator sees the exact entries — operator taps, anchored match
+    # minutes, what a person typed — and the estimated ones (a setlist's
+    # order at four minutes a song, a match built from the schedule) become
+    # the guess list on each moment nothing exact could name.
+    exact, tentative = split_timeline(timeline_entries)
+    detected_peaks = detect_peaks(hr_data, exact)
 
     # Correlate peaks to timeline
-    if tl_data:
-        detected_peaks = correlate_peaks_to_timeline(detected_peaks, tl_data)
+    if exact:
+        detected_peaks = correlate_peaks_to_timeline(detected_peaks, exact)
+    for p in detected_peaks:
+        p["candidate_labels"] = (
+            [] if p.get("timeline_entry_id") else candidate_labels(p, tentative)
+        )
 
     # Delete old peaks for this session and store new ones
     old_peaks = await db.execute(select(Peak).where(Peak.session_id == session_id))
@@ -113,13 +121,30 @@ async def analyze_session(
     # Build response with matched labels
     responses = []
     tl_map = {str(e.id): e.label for e in timeline_entries}
-    for peak in peak_models:
+    for peak, p in zip(peak_models, detected_peaks, strict=True):
         resp = PeakResponse.model_validate(peak)
         if peak.timeline_entry_id:
             resp.matched_label = tl_map.get(str(peak.timeline_entry_id))
+        resp.candidate_labels = p["candidate_labels"]
         responses.append(resp)
 
     return responses
+
+
+def split_timeline(entries) -> tuple[list[dict], list[dict]]:
+    """The timeline as the detector and the guess list each want it."""
+    exact: list[dict] = []
+    tentative: list[dict] = []
+    for e in entries:
+        item = {
+            "time": e.timestamp,
+            "label": e.label,
+            "id": e.id,
+            "entry_type": e.entry_type,
+            "metadata": e.metadata_,
+        }
+        (tentative if is_tentative(e.metadata_) else exact).append(item)
+    return exact, tentative
 
 
 @router.get("/{session_id}", response_model=ExperienceResponse)
@@ -158,11 +183,22 @@ async def get_experience(
         timeline_entries = tl_result.scalars().all()
         tl_map = {str(e.id): e.label for e in timeline_entries}
 
+    _, tentative = split_timeline(timeline_entries)
     peak_responses = []
     for peak in peaks:
         resp = PeakResponse.model_validate(peak)
         if peak.timeline_entry_id:
             resp.matched_label = tl_map.get(str(peak.timeline_entry_id))
+        else:
+            # A stored peak carries no region bounds; the guess is placed at
+            # its timestamp, which region_bounds treats as the region's end.
+            resp.candidate_labels = candidate_labels(
+                {
+                    "timestamp": peak.timestamp,
+                    "duration_seconds": peak.duration_seconds,
+                },
+                tentative,
+            )
         peak_responses.append(resp)
 
     # Fetch HR data points for the curve. A six-hour capture holds ~21,600 of

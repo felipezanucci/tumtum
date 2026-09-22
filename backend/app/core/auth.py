@@ -55,3 +55,19 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário não encontrado"
         )
     return user
+
+
+async def require_admin(user=Depends(get_current_user)):
+    """The signed-in person, if they operate the platform.
+
+    Decided by `admin_emails` in the settings, never by anything the client
+    sends. A 403 rather than a 404: the thing exists, and the honest answer
+    to "may I?" is "not with this account", which the site then says in
+    those words instead of pretending the page is empty.
+    """
+    if not settings.is_admin(user.email):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Esta ação não está disponível para a sua conta.",
+        )
+    return user

@@ -48,7 +48,7 @@ const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '
  * a hand to drag, which is a poor way to say "22:00" and worse in a hurry.
  * Two selects look and behave the same everywhere and can be read at a glance.
  */
-function TimeField({
+export function TimeField({
   id,
   label,
   value,

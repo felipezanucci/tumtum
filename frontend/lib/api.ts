@@ -78,6 +78,12 @@ export interface UserResponse {
   avatar_url: string | null
   auth_provider: string
   created_at: string
+  /**
+   * Whether this account operates the platform — registers events, attaches
+   * a match or a setlist. Decided by the server's `admin_emails`; the site
+   * only uses it to show the operator's doors, every endpoint checks itself.
+   */
+  is_admin: boolean
 }
 
 export const auth = {
@@ -258,6 +264,32 @@ export interface Peak {
   timeline_entry_id: string | null
   rank: number | null
   matched_label: string | null
+  /**
+   * What the moment might have been when nothing exact names it — the songs
+   * a setlist's order puts around it, a match minute with no anchor. Offered
+   * to the person to pick from, never asserted.
+   */
+  candidate_labels: string[]
+}
+
+/** A match as API-Football lists it. */
+export interface FixtureBrief {
+  fixture_id: number
+  kickoff: string | null
+  home: string | null
+  away: string | null
+  league: string | null
+  status: string | null
+}
+
+/** A setlist as Setlist.fm lists it. */
+export interface SetlistBrief {
+  setlist_id: string
+  artist: string | null
+  event_date: string | null
+  venue: string | null
+  city: string | null
+  song_count: number
 }
 
 export interface HRDataPointBrief {
@@ -353,6 +385,40 @@ export const events = {
 
   getTimeline: (eventId: string) =>
     request<TimelineEntry[]>(`/api/events/${eventId}/timeline`),
+
+  // --- Operator only. The server answers 403 for anyone else. ---
+
+  deleteTimelineEntry: (eventId: string, entryId: string) =>
+    request<void>(`/api/events/${eventId}/timeline/${entryId}`, { method: 'DELETE' }),
+
+  /** Matches on API-Football, by team and/or date (YYYY-MM-DD). */
+  searchFixtures: (params: { team?: string; on?: string }) => {
+    const qs = new URLSearchParams()
+    if (params.team) qs.set('team', params.team)
+    if (params.on) qs.set('on', params.on)
+    return request<FixtureBrief[]>(`/api/events/sources/football?${qs.toString()}`)
+  },
+
+  /** Build the timeline from a match; the rows this source wrote before are replaced. */
+  attachFixture: (eventId: string, fixtureId: number) =>
+    request<TimelineEntry[]>(`/api/events/${eventId}/timeline/football`, {
+      method: 'POST',
+      body: JSON.stringify({ fixture_id: fixtureId }),
+    }),
+
+  /** Setlists on Setlist.fm for an artist, optionally on a date (YYYY-MM-DD). */
+  searchSetlists: (params: { artist: string; on?: string }) => {
+    const qs = new URLSearchParams({ artist: params.artist })
+    if (params.on) qs.set('on', params.on)
+    return request<SetlistBrief[]>(`/api/events/sources/setlist?${qs.toString()}`)
+  },
+
+  /** Build the timeline from a setlist, every song marked as an estimate. */
+  attachSetlist: (eventId: string, setlistId: string) =>
+    request<TimelineEntry[]>(`/api/events/${eventId}/timeline/setlist`, {
+      method: 'POST',
+      body: JSON.stringify({ setlist_id: setlistId }),
+    }),
 }
 
 // --- Experience ---

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { Wordmark } from '@/components/brand'
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
 
 /**
  * "Ao vivo" — the browser capture screen — is deliberately absent.
@@ -43,6 +44,13 @@ const navLinks = [
 export default function Nav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const user = useCurrentUser()
+  // "Operação" — registering events, attaching a match or a setlist — is the
+  // operator's door. It shows only for an account the server says operates
+  // the platform; the endpoints behind it check for themselves either way.
+  const links = user?.is_admin
+    ? [...navLinks, { href: '/admin/eventos', label: 'Operação' }]
+    : navLinks
 
   // Following a link should leave the menu behind.
   useEffect(() => {
@@ -101,7 +109,7 @@ export default function Nav() {
 
         {/* Anything wider has room for all five. */}
         <div className="hidden items-center gap-6 sm:flex">
-          {navLinks.map(({ href, label }) => (
+          {links.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -129,7 +137,7 @@ export default function Nav() {
             id="nav-menu"
             className="relative z-40 border-t border-tumtum-border bg-tumtum-black sm:hidden"
           >
-            {navLinks.map(({ href, label }) => (
+            {links.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}

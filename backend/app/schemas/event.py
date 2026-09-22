@@ -105,13 +105,16 @@ class EventSearchQuery(BaseModel):
 
 # --- Event Timeline ---
 
+ENTRY_TYPES = "^(song_start|goal|halftime|encore|highlight|kickoff|second_half)$"
+
 
 class TimelineEntryCreate(BaseModel):
     timestamp: datetime
     label: str
-    entry_type: str = Field(
-        ..., pattern="^(song_start|goal|halftime|encore|highlight)$"
-    )
+    # ``kickoff`` and ``second_half`` are the operator's two anchor taps on a
+    # match (22/09): the instants the halves really started, which turn every
+    # API-Football minute into a wall-clock time for everyone at the game.
+    entry_type: str = Field(..., pattern=ENTRY_TYPES)
     metadata: dict | None = None
 
 
@@ -134,6 +137,71 @@ class EventDetailResponse(EventResponse):
     timeline: list[TimelineEntryResponse] = []
 
 
+# --- Timeline sources (operator) ---
+
+
+class FixtureBrief(BaseModel):
+    """A match as API-Football lists it, enough to recognise the right one."""
+
+    fixture_id: int
+    kickoff: datetime | None
+    home: str | None
+    away: str | None
+    league: str | None
+    status: str | None
+
+    @classmethod
+    def from_api(cls, item: dict) -> "FixtureBrief":
+        fixture = item.get("fixture", {})
+        raw = fixture.get("date")
+        try:
+            kickoff = (
+                datetime.fromisoformat(raw.replace("Z", "+00:00")) if raw else None
+            )
+        except ValueError:
+            kickoff = None
+        return cls(
+            fixture_id=fixture.get("id", 0),
+            kickoff=kickoff,
+            home=item.get("teams", {}).get("home", {}).get("name"),
+            away=item.get("teams", {}).get("away", {}).get("name"),
+            league=item.get("league", {}).get("name"),
+            status=fixture.get("status", {}).get("long"),
+        )
+
+
+class FixtureAttachRequest(BaseModel):
+    fixture_id: int
+
+
+class SetlistBrief(BaseModel):
+    """A setlist as Setlist.fm lists it."""
+
+    setlist_id: str
+    artist: str | None
+    event_date: str | None  # dd-MM-yyyy, as the service writes it
+    venue: str | None
+    city: str | None
+    song_count: int
+
+    @classmethod
+    def from_api(cls, item: dict) -> "SetlistBrief":
+        venue = item.get("venue") or {}
+        sets = (item.get("sets") or {}).get("set") or []
+        return cls(
+            setlist_id=item.get("id", ""),
+            artist=(item.get("artist") or {}).get("name"),
+            event_date=item.get("eventDate"),
+            venue=venue.get("name"),
+            city=(venue.get("city") or {}).get("name"),
+            song_count=sum(len(s.get("song") or []) for s in sets),
+        )
+
+
+class SetlistAttachRequest(BaseModel):
+    setlist_id: str
+
+
 # --- Peak ---
 
 
@@ -147,6 +215,10 @@ class PeakResponse(BaseModel):
     timeline_entry_id: uuid.UUID | None
     rank: int | None
     matched_label: str | None = None
+    # What the moment *might* have been, when nothing exact names it: the two
+    # or three estimated entries (a setlist's songs, an unanchored match
+    # minute) whose window covers it. Offered to the person, never asserted.
+    candidate_labels: list[str] = []
 
     model_config = {"from_attributes": True}
 

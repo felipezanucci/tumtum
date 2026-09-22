@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEventStore } from '@/lib/stores/useEventStore'
 import { demo } from '@/lib/api'
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
 import { TimelineBar } from '@/components/hr'
 import { Badge, Button, Loading } from '@/components/ui'
 import { Nav } from '@/components/layout'
@@ -16,6 +17,7 @@ export default function EventDetailPage() {
   const eventId = params.id as string
 
   const { currentEvent, eventsLoading, loadEvent } = useEventStore()
+  const user = useCurrentUser()
   const [simulating, setSimulating] = useState(false)
   const [simulateError, setSimulateError] = useState<string | null>(null)
 
@@ -102,12 +104,22 @@ export default function EventDetailPage() {
           </div>
 
           {/* The date and the times are what tie a capture to the moments of a
-              night, so getting at them has to be one tap from the event. */}
-          <Link href={`/events/${event.id}/editar`}>
-            <Button variant="secondary" size="sm" className="mt-4">
-              Editar evento
-            </Button>
-          </Link>
+              night, so getting at them has to be one tap from the event — for
+              the operator. The fan never edits an event (product rule, 21/09). */}
+          {user?.is_admin && (
+            <div className="mt-4 flex gap-2">
+              <Link href={`/events/${event.id}/editar`}>
+                <Button variant="secondary" size="sm">
+                  Editar evento
+                </Button>
+              </Link>
+              <Link href={`/admin/eventos/${event.id}`}>
+                <Button variant="secondary" size="sm">
+                  Linha do tempo
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Simulate CTA */}
           <div className="mt-8 rounded-xl border border-tumtum-border bg-tumtum-surface p-6">

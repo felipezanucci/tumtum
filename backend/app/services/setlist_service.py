@@ -5,13 +5,18 @@ API docs: https://api.setlist.fm/docs/1.0/index.html
 Rate limit: 2 requests/second.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import httpx
 
 from app.config import settings
 
 SETLIST_FM_BASE = "https://api.setlist.fm/rest/1.0"
+SOURCE = "setlist.fm"
+# How much further off the estimate is assumed to be with every song: talk,
+# a stretched intro, a solo. A twenty-song set runs 20–30 minutes past the
+# sum of its studio versions.
+DRIFT_PER_SONG_SEC = 60
 
 
 async def search_setlists(
@@ -80,8 +85,16 @@ def parse_setlist_to_timeline(
 ) -> list[dict]:
     """Convert a Setlist.fm setlist into timeline entries.
 
-    Since Setlist.fm doesn't provide exact timestamps per song, we estimate them
-    based on song order and an average duration per song.
+    Setlist.fm publishes the order of the songs and never their times. The
+    timestamps here are **estimates** — ``avg_song_duration_minutes`` a song
+    from the event's start — and every entry says so in its metadata
+    (``estimated``, with its ``index`` in the set, its assumed
+    ``duration_sec`` and an ``uncertainty_sec`` that grows a minute a song).
+    An estimated entry is never handed to the correlator as a cause: it feeds
+    the guess list (``setlist_guess``) that offers the person two or three
+    songs instead of asserting one. By the third song the estimate is outside
+    the correlator's window, and by the tenth a name from it would simply be
+    wrong.
 
     Args:
         setlist_data: Raw setlist data from Setlist.fm API
@@ -94,6 +107,7 @@ def parse_setlist_to_timeline(
     timeline = []
     current_time = event_start_time
     song_delta = avg_song_duration_minutes * 60  # seconds
+    index = 0
 
     sets = setlist_data.get("sets", {}).get("set", [])
     for setlist_set in sets:
@@ -101,12 +115,6 @@ def parse_setlist_to_timeline(
 
         if is_encore and timeline:
             # Add 5-minute break before encore
-            current_time = current_time.replace(
-                second=current_time.second,
-                minute=current_time.minute,
-            )
-            from datetime import timedelta
-
             current_time += timedelta(minutes=5)
 
             timeline.append(
@@ -114,7 +122,12 @@ def parse_setlist_to_timeline(
                     "timestamp": current_time,
                     "label": "Encore",
                     "entry_type": "encore",
-                    "metadata": None,
+                    "metadata": {
+                        "source": SOURCE,
+                        "estimated": True,
+                        "index": index,
+                        "uncertainty_sec": DRIFT_PER_SONG_SEC * (index + 1),
+                    },
                 }
             )
 
@@ -129,6 +142,11 @@ def parse_setlist_to_timeline(
                     "label": song_name,
                     "entry_type": "song_start",
                     "metadata": {
+                        "source": SOURCE,
+                        "estimated": True,
+                        "index": index,
+                        "duration_sec": song_delta,
+                        "uncertainty_sec": DRIFT_PER_SONG_SEC * (index + 1),
                         "cover": song.get("cover", {}).get("name")
                         if song.get("cover")
                         else None,
@@ -140,8 +158,7 @@ def parse_setlist_to_timeline(
                 }
             )
 
-            from datetime import timedelta
-
             current_time += timedelta(seconds=song_delta)
+            index += 1
 
     return timeline

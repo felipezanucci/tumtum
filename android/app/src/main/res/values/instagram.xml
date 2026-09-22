@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        The Facebook App ID Meta's "Sharing to Stories" asks for as
+        `source_application` (export/InstagramStory.kt). Empty until one is
+        registered at developers.facebook.com for cc.tumtum.app; the intent is
+        sent either way, and the first build in a hand tells whether Instagram
+        insists on it. Not a secret — it is public in every app that shares to
+        Stories — so it lives here and not in the keystore.
+    -->
+    <string name="facebook_app_id" translatable="false"></string>
+</resources>

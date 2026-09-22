@@ -83,7 +83,9 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 @router.get("/me", response_model=UserResponse)
 async def me(user: User = Depends(get_current_user)):
-    return user
+    response = UserResponse.model_validate(user)
+    response.is_admin = settings.is_admin(user.email)
+    return response
 
 
 # The same words whichever way it goes. Saying "esse e-mail não está

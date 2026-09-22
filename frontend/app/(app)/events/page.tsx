@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useEventStore } from '@/lib/stores/useEventStore'
-import { ApiError, demo } from '@/lib/api'
-import { Card, Badge, Button, Loading, Input, SignInRequired } from '@/components/ui'
+import { ApiError } from '@/lib/api'
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
+import { Card, Badge, Loading, Input, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { formatDateOnly } from '@/lib/utils/dates'
 
@@ -20,25 +21,25 @@ const eventTypeBadgeVariant: Record<string, 'default' | 'accent' | 'success'> = 
   festival: 'default',
 }
 
+/**
+ * The events TumTum covers, as the fan sees them.
+ *
+ * Events are TumTum's; the fan never creates one (product rule, 21/09). The
+ * "Novo evento" button and the demo seed used to sit here for everyone —
+ * the seed with no login at all — so this page offered every visitor a way
+ * to write into the list every fan picks from. Registering is now the
+ * operator's, at /admin/eventos, and the button shows only to an account the
+ * server says operates.
+ */
 export default function EventsPage() {
   const { eventList, eventsLoading, eventsError, loadEvents } = useEventStore()
+  const user = useCurrentUser()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('')
-  const [seeding, setSeeding] = useState(false)
 
   useEffect(() => {
     loadEvents({ q: search || undefined, event_type: typeFilter || undefined })
   }, [search, typeFilter, loadEvents])
-
-  async function handleSeed() {
-    setSeeding(true)
-    try {
-      await demo.seed()
-      loadEvents()
-    } finally {
-      setSeeding(false)
-    }
-  }
 
   return (
     <>
@@ -47,11 +48,13 @@ export default function EventsPage() {
         <div className="mx-auto max-w-4xl px-4 py-8">
           <div className="mb-6 flex items-center justify-between gap-4">
             <h1 className="text-3xl font-hero text-tumtum-white">Eventos</h1>
-            <Link href="/events/novo">
-              <span className="shrink-0 rounded-lg bg-tumtum-pink px-4 py-2 text-sm font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow">
-                Novo evento
-              </span>
-            </Link>
+            {user?.is_admin && (
+              <Link href="/admin/eventos">
+                <span className="shrink-0 rounded-lg bg-tumtum-pink px-4 py-2 text-sm font-label text-tumtum-black transition-colors hover:bg-tumtum-yellow">
+                  Operação
+                </span>
+              </Link>
+            )}
           </div>
 
           {/* Filters */}
@@ -95,17 +98,8 @@ export default function EventsPage() {
               <p className="mt-1 text-sm text-tumtum-muted">
                 {search || typeFilter
                   ? 'Tente ajustar os filtros ou buscar por outro termo.'
-                  : 'Popule o banco com eventos de demonstração para começar.'}
+                  : 'Os eventos que a TumTum cobre aparecem aqui assim que forem cadastrados.'}
               </p>
-              {!search && !typeFilter && (
-                <Button
-                  className="mt-4"
-                  onClick={handleSeed}
-                  disabled={seeding}
-                >
-                  {seeding ? 'Criando eventos...' : 'Carregar Eventos de Demo'}
-                </Button>
-              )}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">

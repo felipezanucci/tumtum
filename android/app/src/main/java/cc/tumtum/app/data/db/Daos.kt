@@ -58,6 +58,13 @@ interface MarkDao {
     @Query("SELECT COUNT(*) FROM marks WHERE eventId = :eventId")
     fun countFor(eventId: Long): Flow<Int>
 
+    @Query("SELECT COUNT(*) FROM marks WHERE eventId = :eventId AND entryType = :entryType")
+    suspend fun countOfKind(eventId: Long, entryType: String): Int
+
+    /** The match's anchors, as tapped: the screen shows each one's clock on its button. */
+    @Query("SELECT * FROM marks WHERE eventId = :eventId AND entryType IN ('kickoff', 'second_half') ORDER BY at")
+    fun anchorsFor(eventId: Long): Flow<List<MarkEntity>>
+
     /** Undo: only a mark the server has not seen yet can go. Returns rows removed (0 or 1). */
     @Query("DELETE FROM marks WHERE id = :id AND synced = 0")
     suspend fun deleteUnsynced(id: Long): Int

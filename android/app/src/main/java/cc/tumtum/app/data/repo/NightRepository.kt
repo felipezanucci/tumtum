@@ -81,6 +81,15 @@ class NightRepository(
 
     fun marksCount(eventId: Long): Flow<Int> = db.markDao().countFor(eventId)
 
+    /** Whether a mark of this kind is already stored — an anchor happens once a match. */
+    suspend fun hasMark(eventId: Long, entryType: String): Boolean = db.markDao().countOfKind(eventId, entryType) > 0
+
+    /** The match's anchors by kind, with the clock of each tap. */
+    fun anchors(eventId: Long): Flow<Map<String, Instant>> =
+        db.markDao().anchorsFor(eventId).map { list ->
+            list.groupBy { it.entryType }.mapValues { (_, marks) -> Instant.ofEpochMilli(marks.first().at) }
+        }
+
     /**
      * The person names the moment (§5.6 of the 19/09 research): saved on the
      * phone at once, and offered to the event's timeline as a mark, so the
@@ -267,7 +276,13 @@ class NightRepository(
             samples = domainSamples,
             gaps = if (domainSamples.isEmpty()) listOf(Gap(start, end)) else NightAnalyzer.gaps(domainSamples, start, end),
             moments = moments.sortedByDescending { it.bpm }
-                .map { Moment(it.bpm, Instant.ofEpochMilli(it.at), it.durationSec, it.isPeak, it.label, id = it.id) },
+                .map {
+                    Moment(
+                        it.bpm, Instant.ofEpochMilli(it.at), it.durationSec, it.isPeak, it.label,
+                        id = it.id,
+                        candidates = MomentEntity.splitCandidates(it.candidates),
+                    )
+                },
             serverSessionId = night.serverSessionId,
             uploadState = runCatching { UploadState.valueOf(night.uploadState) }.getOrDefault(UploadState.PENDING),
             uploadError = night.uploadError,

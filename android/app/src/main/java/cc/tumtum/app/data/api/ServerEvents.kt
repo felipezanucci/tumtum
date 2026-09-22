@@ -134,11 +134,25 @@ object ServerEvents {
             .take(limit)
 }
 
-/** The three things a person can mark with one tap in the dark, and what the server calls each. */
+/** The things a person can mark with one tap in the dark, and what the server calls each. */
 object MarkKinds {
     const val GOAL = "goal"
     const val SONG = "song_start"
     const val MOMENT = "highlight"
+
+    /**
+     * The two anchors of a match (22/09): the instant each half really
+     * started. API-Football gives every goal a match minute, and a minute is
+     * only a wall-clock time from the whistle it counts from — without these
+     * the server falls back to the scheduled kick-off and an assumed
+     * interval, and a second-half goal can land fifteen minutes off. One tap
+     * each, once per match, and every goal and card names itself for
+     * everyone at the game.
+     */
+    const val KICKOFF = "kickoff"
+    const val SECOND_HALF = "second_half"
+
+    fun isAnchor(entryType: String): Boolean = entryType == KICKOFF || entryType == SECOND_HALF
 
     /** What the correlator will name the moment: the tap's own label, nothing typed. */
     fun label(entryType: String, tapLabel: String): String = tapLabel

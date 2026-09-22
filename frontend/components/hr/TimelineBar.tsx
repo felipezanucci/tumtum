@@ -13,6 +13,8 @@ const entryTypeIcons: Record<string, string> = {
   halftime: '⏸',
   encore: '🔥',
   highlight: '⭐',
+  kickoff: '⏱',
+  second_half: '⏱',
 }
 
 export default function TimelineBar({ entries, className = '' }: TimelineBarProps) {

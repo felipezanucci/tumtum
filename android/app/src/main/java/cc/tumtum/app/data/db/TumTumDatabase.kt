@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class, MarkEntity::class,
         BleSampleEntity::class, RrIntervalEntity::class, MotionEntity::class, ConnectionEventEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class TumTumDatabase : RoomDatabase() {
@@ -100,9 +100,16 @@ abstract class TumTumDatabase : RoomDatabase() {
             }
         }
 
+        /** v6 → v7: a moment keeps the server's guesses at its name (22/09). */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE moments ADD COLUMN candidates TEXT")
+            }
+        }
+
         fun build(context: Context): TumTumDatabase =
             Room.databaseBuilder(context, TumTumDatabase::class.java, "tumtum.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .build()
     }
 }
