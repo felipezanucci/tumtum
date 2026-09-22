@@ -52,8 +52,21 @@ sending that PR's link as "the merge": **before sending a merge link, read
 the PR's state from GitHub — `merged: false`, head SHA equal to the
 branch's — and never from memory.**
 
-**Always end a piece of work by giving Felipe the merge link.** Standing
-instruction from 2026-09-01. He merges everything himself — nothing reaches
+**Always end a piece of work by giving Felipe the merge link, and the APK as
+a direct download.** Standing instruction from 2026-09-01, extended 22/09.
+The APK link must **start the download by itself** — no clicking through a
+page, no GitHub login, no `.zip` to unpack. A workflow artifact can never be
+that (GitHub requires a session for it and always wraps it in a zip), so the
+link to send is the release asset, which this public repository serves to
+anyone:
+
+```
+https://github.com/felipezanucci/tumtum/releases/download/app-b<N>/tumtum-1.0-b<N>.apk
+```
+
+`<N>` is `100 + ` the run number of `build-app.yml`, and every build publishes
+its own release (branch builds as prereleases). Never send an
+`actions/runs/.../artifacts/...` URL again. He merges everything himself — nothing reaches
 tumtum.cc or Railway without it — so a finished task that ends without the
 URL leaves him hunting for it. Close with the link, its verified CI state,
 and what the merge puts live. And the bug class to watch for, found
