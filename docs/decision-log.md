@@ -637,6 +637,93 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-22 — a session lasts as long as the phone is used
+
+**#34, decided by Felipe:** *"refresh token de verdade, e a pessoa só reentra
+quando desinstala ou sai — conserta a causa."* Until now the only credential
+was a 24-hour access token with nothing to renew it, so every account was
+signed out once a day — while the app went on showing the person's name and
+avatar. Felipe read "Entra na sua conta" on a screen that plainly knew who he
+was, and could not tell whether to sign in again or whether something was
+broken. Both claims were the app's; they contradicted each other.
+
+What replaced it:
+
+| | |
+|---|---|
+| access token | **1 hour** — short enough that a revoked session stops soon |
+| refresh token | **90 days from last use**, opaque, stored only as a hash |
+| every renewal | **rotates** the refresh token |
+| a spent token presented again | a copy exists → **the whole family is revoked** |
+| "Sair" | revokes the family on the server, not just the phone |
+| password reset | revokes every device's family |
+
+**The part that took thought: stadium cellular.** Rotation plus "reuse means
+theft" has a failure mode exactly where this product lives. The server
+rotates, the answer is lost on a saturated network, the phone asks again with
+the token it still holds — and a strict reading signs the fan out mid-match.
+So for **two minutes** after a rotation, and only while the token it produced
+has never been used, the old token may ask again: the unused child is revoked
+and a fresh one issued. Once the child has been used, whoever holds the parent
+holds a copy by definition. `parent_id` and `revoke_reason` exist for that
+rule and nothing else. A logout or a reset gets no grace.
+
+Two self-inflicted versions of the same failure are closed on the clients:
+the app renews under a mutex and the web under a browser-wide lock
+(`navigator.locks`), so two requests — or two tabs — renewing at once cannot
+spend the same token twice and revoke their own session. The app renews a
+minute before expiry rather than after a 401, so no request leaves with a
+token that dies in flight.
+
+`Session.isLive` now means *usable without a password*: a live access token
+**or** a refresh token to renew it. Judged by the hour-long token alone, every
+screen would have announced "sessão expirada" sixty minutes after sign-in.
+When the server refuses the chain, the app drops the refresh token, and the
+session then reads as expired — which is at last true, and is said with
+"Entrar de novo", which returns to where the person was (#35).
+
+**What the merge costs, said before it happens:** any client that does not
+read `refresh_token` — the APK in Felipe's hand today, and the retired
+`android-capture` app — now holds a one-hour session instead of a 24-hour
+one, until it is replaced. Installing the build from the same merge ends it.
+The web admin renews on its own from the same merge.
+
+Migration `010_refresh_tokens`; the deployed app creates the table itself at
+startup (open item 16). Tests: `backend/tests/test_refresh_tokens.py`.
+
+---
+
+## 2026-09-22 — the app stops describing itself falsely, eight times over
+
+Wave 2 of the evening's test findings, all one family: **the app stating
+something about its own state that is not true.**
+
+- **The button that faded (#45).** A disabled button was drawn at 40% alpha.
+  TumTum Pink at 40% over white is about `#FFD4DE` — on a phone, in real light,
+  no button at all. Felipe had raised it before ("tem que ficar rosa o tempo
+  inteiro"). The fill is now always the fill; "not yet" became a sentence
+  under the button naming what is missing. Settings' name field had used the
+  fade as its *only* confirmation that a save happened; it now says "Salvo."
+- **The error that was a cancellation (#46).** `catch (e: Exception)` caught
+  `CancellationException`, so every reload that a newer one superseded
+  painted "Não deu pra carregar o rolê" for a second. Proved by the
+  screenshot: the crowd chip vanished in the same frame, as it had to.
+- **SENTI TB (#47).** The server answered with the post's new count; the app
+  dropped the body at the wire, reduced the rest to a Boolean, and ignored the
+  Boolean. The answer is now the count, applied in place. Third time in one
+  evening that the reason for a failure had been thrown away — with the
+  football search (#43) and the cancellation above.
+- **The invitation with no door (#48).** "Pode ser você" now comes with
+  "Mostrar a minha" when this phone has a night at the event, and stops
+  inviting when it cannot offer the act.
+- **The fan is never asked (#49).** Felipe: *"pode tirar, não vai haver mais
+  essa possibilidade do usuário digitar."* "Toca pra dizer o que tava rolando"
+  was the last door left after the guess chips. A moment arrives named by the
+  timeline, or stays nameless.
+- **The header that forgot (#32)** and **the name said twice (#31).**
+
+---
+
 ## 2026-09-22 — the API had written the answer and the code threw it away
 
 Felipe searched the admin for a Palmeiras match on 20/09 and read **"Nenhum

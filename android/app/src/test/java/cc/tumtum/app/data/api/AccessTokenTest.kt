@@ -50,9 +50,18 @@ class AccessTokenTest {
     }
 
     @Test
-    fun `a session is live exactly while its token is`() {
+    fun `without a refresh token a session is live exactly while its token is`() {
         val session = Session(token = jwt("""{"exp":1800000000}"""), userId = "u1")
         assertTrue(session.isLive(1_700_000_000_000L))
         assertFalse(session.isLive(1_800_000_000_000L))
+    }
+
+    @Test
+    fun `with a refresh token an expired hour is not an expired session`() {
+        // #34, 22/09: the access token lasts an hour now. Judged by it alone,
+        // every screen would announce "sessão expirada" sixty minutes after
+        // sign-in while the app could renew it without a word.
+        val session = Session(token = jwt("""{"exp":1800000000}"""), userId = "u1", refreshToken = "r".repeat(43))
+        assertTrue(session.isLive(1_900_000_000_000L))
     }
 }

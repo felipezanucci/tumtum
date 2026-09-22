@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { auth, type UserResponse } from '@/lib/api'
+import { auth, clearTokens, storeTokens, type UserResponse } from '@/lib/api'
 
 interface AuthState {
   user: UserResponse | null
@@ -21,9 +21,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     set({ loading: true })
     try {
-      const { access_token } = await auth.login(email, password)
-      localStorage.setItem('access_token', access_token)
-      set({ token: access_token })
+      const tokens = await auth.login(email, password)
+      storeTokens(tokens)
+      set({ token: tokens.access_token })
       const user = await auth.me()
       set({ user })
     } finally {
@@ -34,9 +34,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (email, name, password) => {
     set({ loading: true })
     try {
-      const { access_token } = await auth.register(email, name, password)
-      localStorage.setItem('access_token', access_token)
-      set({ token: access_token })
+      const tokens = await auth.register(email, name, password)
+      storeTokens(tokens)
+      set({ token: tokens.access_token })
       const user = await auth.me()
       set({ user })
     } finally {
@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
-    localStorage.removeItem('access_token')
+    void auth.logout()
     set({ user: null, token: null })
   },
 
@@ -55,7 +55,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user = await auth.me()
       set({ user })
     } catch {
-      localStorage.removeItem('access_token')
+      clearTokens()
       set({ user: null, token: null })
     } finally {
       set({ loading: false })

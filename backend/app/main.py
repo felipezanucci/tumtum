@@ -46,6 +46,7 @@ async def lifespan(app: FastAPI):
         PasswordResetToken,
     )
     from app.models.peak import Peak  # noqa: F401
+    from app.models.refresh_token import RefreshToken  # noqa: F401
 
     # Import all models so they register with Base.metadata
     from app.models.user import User  # noqa: F401

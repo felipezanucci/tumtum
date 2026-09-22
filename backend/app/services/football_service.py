@@ -281,7 +281,9 @@ async def _get(path: str, params: dict) -> dict:
                 headers={"x-apisports-key": settings.api_football_key},
             )
         except httpx.HTTPError as exc:
-            raise FootballApiError(f"não deu pra falar com a API-Football: {exc}")
+            raise FootballApiError(
+                f"não deu pra falar com a API-Football: {exc}"
+            ) from exc
 
     if response.status_code != 200:
         raise FootballApiError(
@@ -291,8 +293,8 @@ async def _get(path: str, params: dict) -> dict:
 
     try:
         data = response.json()
-    except ValueError:
-        raise FootballApiError("a API-Football respondeu algo que não é JSON")
+    except ValueError as exc:
+        raise FootballApiError("a API-Football respondeu algo que não é JSON") from exc
 
     # The one that hid for a whole evening: HTTP 200, empty list, and the
     # reason sitting right here.

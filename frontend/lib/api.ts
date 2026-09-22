@@ -20,12 +20,74 @@ function isGenericAuthFailure(detail: unknown): boolean {
   return text === '' || text === 'not authenticated' || text === 'erro desconhecido'
 }
 
+// --- The session (#34, 22/09) ---
+//
+// The access token lasts an hour; the refresh token renews it and lasts 90
+// days from its last use. Every renewal rotates the refresh token, and the
+// server treats a spent one presented again as a stolen copy — so two tabs
+// renewing at once would sign each other out. Renewal therefore runs under a
+// browser-wide lock, and a tab that waited finds the other tab's fresh token
+// instead of spending the old one again.
+
+const ACCESS_KEY = 'access_token'
+const REFRESH_KEY = 'refresh_token'
+
+function stored(key: string): string | null {
+  return typeof window !== 'undefined' ? localStorage.getItem(key) : null
+}
+
+/** Keep what the server just issued. Every sign-in path goes through here. */
+export function storeTokens(tokens: { access_token: string; refresh_token?: string | null }) {
+  localStorage.setItem(ACCESS_KEY, tokens.access_token)
+  if (tokens.refresh_token) localStorage.setItem(REFRESH_KEY, tokens.refresh_token)
+}
+
+export function clearTokens() {
+  localStorage.removeItem(ACCESS_KEY)
+  localStorage.removeItem(REFRESH_KEY)
+}
+
+async function withRenewLock<T>(work: () => Promise<T>): Promise<T> {
+  const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined
+  return locks ? locks.request('tumtum-renew', work) : work()
+}
+
+/**
+ * Trade the refresh token for a new pair. True when there is now a fresh
+ * access token — renewed here or, while this tab waited, by another one.
+ */
+async function renew(spent: string | null): Promise<boolean> {
+  return withRenewLock(async () => {
+    const refresh = stored(REFRESH_KEY)
+    if (!refresh) return false
+    if (spent !== null && refresh !== spent) return true // another tab renewed
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refresh }),
+      })
+      if (!response.ok) {
+        // Refused for good (expired, revoked, reused): forget it, so the page
+        // says "sessão expirou" — which is now true.
+        if (response.status === 401) clearTokens()
+        return false
+      }
+      storeTokens(await response.json())
+      return true
+    } catch {
+      return false
+    }
+  })
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
+  retried = false,
 ): Promise<T> {
-  const token =
-    typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const token = stored(ACCESS_KEY)
+  const refreshHeld = stored(REFRESH_KEY)
 
   let response: Response
   try {
@@ -43,6 +105,13 @@ async function request<T>(
     // turns "erro desconhecido" into something diagnosable — a misconfigured
     // NEXT_PUBLIC_API_URL still pointing at localhost is visible immediately.
     throw new ApiError(0, `Não foi possível falar com o servidor em ${API_BASE}`)
+  }
+
+  // An hour-old access token is routine now, not an ending: renew once and
+  // ask again. Only a request that carried a token is retried — a 401 on
+  // /login is a wrong password, not an expired session.
+  if (response.status === 401 && token && !retried && (await renew(refreshHeld))) {
+    return request<T>(path, options, true)
   }
 
   if (!response.ok) {
@@ -69,6 +138,7 @@ async function request<T>(
 export interface TokenResponse {
   access_token: string
   token_type: string
+  refresh_token?: string | null
 }
 
 export interface UserResponse {
@@ -98,6 +168,18 @@ export const auth = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+
+  /** "Sair" means out: the server revokes this browser's refresh chain. */
+  logout: async () => {
+    const refresh = stored(REFRESH_KEY)
+    clearTokens()
+    if (!refresh) return
+    await fetch(`${API_BASE}/api/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refresh }),
+    }).catch(() => undefined)
+  },
 
   me: () => request<UserResponse>('/api/auth/me'),
 }

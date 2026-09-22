@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { Wordmark } from '@/components/brand'
-import { passwordReset } from '@/lib/api'
+import { passwordReset, storeTokens } from '@/lib/api'
 import { Button, Loading, PasswordInput } from '@/components/ui'
 
 /**
@@ -39,8 +39,7 @@ function ResetForm() {
     }
     setSaving(true)
     try {
-      const { access_token } = await passwordReset.complete(token, password)
-      localStorage.setItem('access_token', access_token)
+      storeTokens(await passwordReset.complete(token, password))
       router.push('/events')
     } catch (err) {
       setError(

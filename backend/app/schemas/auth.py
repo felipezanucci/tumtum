@@ -18,6 +18,13 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    # Renews the session without a password (#34, 22/09). Optional in the
+    # schema so older clients that never read it keep working.
+    refresh_token: str | None = None
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(min_length=16, max_length=256)
 
 
 class UserResponse(BaseModel):

@@ -16,6 +16,8 @@ These tests hold both halves of the fix: the season goes out with the request,
 and a refusal arrives as an exception carrying the API's own words.
 """
 
+from typing import ClassVar
+
 import httpx
 import pytest
 
@@ -36,8 +38,8 @@ class FakeResponse:
 class FakeClient:
     """Stands in for httpx.AsyncClient and records what was asked."""
 
-    calls: list[tuple[str, dict]] = []
-    queue: list = []
+    calls: ClassVar[list[tuple[str, dict]]] = []
+    queue: ClassVar[list] = []
 
     def __init__(self, *_args, **_kwargs):
         pass

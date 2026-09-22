@@ -4,6 +4,8 @@ import cc.tumtum.app.data.prefs.Session
 import cc.tumtum.app.data.prefs.UserPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.IOException
@@ -26,6 +28,8 @@ import java.net.URL
  */
 class TumtumApi(private val prefs: UserPrefs) {
 
+    private val renewLock = Mutex()
+
     /** The server refused or could not do what was asked; [detail] is its own sentence. */
     class ApiException(val code: Int, val detail: String) : IOException(detail)
 
@@ -38,13 +42,13 @@ class TumtumApi(private val prefs: UserPrefs) {
     suspend fun register(email: String, name: String, password: String): Session {
         val body = JSONObject().put("email", email).put("name", name).put("password", password)
         val response = JSONObject(request("POST", "/api/auth/register", body.toString(), token = null))
-        return storeSession(response.getString("access_token"))
+        return storeSession(response.getString("access_token"), response.optRefresh())
     }
 
     suspend fun login(email: String, password: String): Session {
         val body = JSONObject().put("email", email).put("password", password)
         val response = JSONObject(request("POST", "/api/auth/login", body.toString(), token = null))
-        return storeSession(response.getString("access_token"))
+        return storeSession(response.getString("access_token"), response.optRefresh())
     }
 
     suspend fun me(): Me {
@@ -52,8 +56,19 @@ class TumtumApi(private val prefs: UserPrefs) {
         return Me(id = json.getString("id"), email = json.getString("email"), name = json.getString("name"))
     }
 
-    /** Forget the token. On sign-out, and when the server refuses it. */
-    suspend fun signOut() = prefs.clearSession()
+    /**
+     * "Sair" means out (#34): the server revokes this phone's refresh chain,
+     * then the phone forgets it. Offline, the phone still forgets — the chain
+     * then simply dies unused after 90 days.
+     */
+    suspend fun signOut() {
+        prefs.state.first().session?.refreshToken?.let { refresh ->
+            runCatching {
+                request("POST", "/api/auth/logout", JSONObject().put("refresh_token", refresh).toString(), token = null)
+            }
+        }
+        prefs.clearSession()
+    }
 
     /**
      * Deletes the account on the server — readings, moments, cards, all of
@@ -168,7 +183,10 @@ class TumtumApi(private val prefs: UserPrefs) {
     suspend fun analyze(serverSessionId: String): List<ServerMoment> =
         ServerMoments.parse(request("POST", "/api/experience/$serverSessionId/analyze", "", token = requireToken()))
 
-    private suspend fun storeSession(token: String): Session {
+    private fun JSONObject.optRefresh(): String? =
+        if (isNull("refresh_token")) null else optString("refresh_token", "").ifBlank { null }
+
+    private suspend fun storeSession(token: String, refreshToken: String?): Session {
         // The user id is in the token's `sub`; reading it here spares a round
         // trip and keeps the session self-describing when the network is gone.
         val userId = runCatching {
@@ -178,15 +196,56 @@ class TumtumApi(private val prefs: UserPrefs) {
             )
             JSONObject(payload).getString("sub")
         }.getOrNull()
-        val session = Session(token = token, userId = userId)
+        val session = Session(token = token, userId = userId, refreshToken = refreshToken)
         prefs.setSession(session)
         return session
     }
 
+    /**
+     * A token the server will accept, renewing it first when it is about to
+     * expire (#34). Until 22/09 this threw "Sessão expirada" the moment the
+     * 24-hour token ran out, and nothing could renew it.
+     */
     private suspend fun requireToken(): String {
         val session = prefs.state.first().session ?: throw ApiException(401, "Sem sessão")
-        if (!session.isLive(System.currentTimeMillis())) throw ApiException(401, "Sessão expirada")
-        return session.token
+        if (!AccessToken.isExpired(session.token, System.currentTimeMillis() + RENEW_MARGIN_MS)) {
+            return session.token
+        }
+        return renew() ?: throw ApiException(401, "Sessão expirada")
+    }
+
+    /**
+     * Trades the refresh token for a new pair, **one caller at a time**.
+     *
+     * The server rotates on every use and treats a spent token presented again
+     * as a stolen copy — revoking the whole chain. Two requests renewing at
+     * once would do exactly that to ourselves, so renewals are serialised, and
+     * the second caller finds the first one's fresh token instead of spending
+     * the old one again.
+     */
+    private suspend fun renew(): String? = renewLock.withLock {
+        val session = prefs.state.first().session ?: return@withLock null
+        if (!AccessToken.isExpired(session.token, System.currentTimeMillis() + RENEW_MARGIN_MS)) {
+            return@withLock session.token
+        }
+        val refresh = session.refreshToken ?: return@withLock null
+        val response = try {
+            JSONObject(
+                request(
+                    "POST",
+                    "/api/auth/refresh",
+                    JSONObject().put("refresh_token", refresh).toString(),
+                    token = null,
+                ),
+            )
+        } catch (e: ApiException) {
+            // The server refused the chain: expired, revoked, or reused. Drop
+            // it so every screen now says "expired", which is finally true.
+            // Anything else (offline) propagates and the token is kept.
+            if (e.code == 401) prefs.setSession(session.copy(refreshToken = null))
+            return@withLock null
+        }
+        storeSession(response.getString("access_token"), response.optRefresh() ?: refresh).token
     }
 
     // --- Wire ---
@@ -232,6 +291,9 @@ class TumtumApi(private val prefs: UserPrefs) {
 
     companion object {
         const val BASE_URL = "https://tumtum-production.up.railway.app"
+
+        /** Renew a minute early, so a request never leaves with a token that dies in flight. */
+        private const val RENEW_MARGIN_MS = 60_000L
         private val TIME_FMT: java.time.format.DateTimeFormatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
     }
 }
