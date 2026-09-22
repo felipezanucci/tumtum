@@ -153,8 +153,6 @@
     <string name="card_media_unreadable">Não deu pra abrir esse arquivo. Tenta outro.</string>
     <string name="card_share_burning">Gravando o card no vídeo… %1$d%%</string>
     <string name="card_share_video_failed">Não deu pra gravar o card nesse vídeo. Tenta um mais curto, outro vídeo, ou uma foto.</string>
-    <string name="card_story_shortcut">Story do Instagram</string>
-    <string name="card_instagram_refused">O Instagram não abriu com esse vídeo.</string>
     <string name="card_share_failed">Não deu pra gerar o card. Tenta de novo.</string>
 
     <!-- a1 · Suas noites -->
@@ -172,7 +170,8 @@
     <string name="event_feed_back">← FEED</string>
     <!-- b5 · A primeira tela: os rolês. Não existe feed de amigos — o feed é
          por evento (22/09), para que só quem esteve junto converse. -->
-    <string name="feed_headline">ONDE A TUMTUM\nTÁ ROLANDO.</string>
+    <string name="feed_headline_a">ONDE A TUMTUM</string>
+    <string name="feed_headline_b">TÁ ROLANDO.</string>
     <string name="feed_sub">Toca num rolê pra ver a galera que estava lá.</string>
     <string name="feed_loading">Carregando os rolês…</string>
     <!-- "Nada aqui" e "não consegui perguntar" são frases diferentes. -->
@@ -215,6 +214,7 @@
     <string name="feed_post_cta">Mostrar pra galera do rolê</string>
     <string name="feed_post_consent">Quem estava no mesmo rolê vai ver sua batida no momento e seu nome. Só eles. Dá pra tirar quando quiser.</string>
     <string name="feed_post_confirm">Pode mostrar</string>
+    <string name="feed_post_running">Mostrando…</string>
     <string name="feed_post_cancel">Agora não</string>
     <string name="feed_post_done">Tá no rolê. Pra tirar, é só abrir o rolê e tocar em “tirar do rolê”.</string>
     <string name="feed_post_failed">Não deu pra mostrar agora. Tenta de novo.</string>

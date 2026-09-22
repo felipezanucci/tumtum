@@ -1,14 +1,14 @@
 package cc.tumtum.app.ui.screens.card
 
-import android.content.ActivityNotFoundException
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,8 +40,8 @@ import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
-import cc.tumtum.app.export.InstagramStory
 import cc.tumtum.app.export.VideoCard
+import cc.tumtum.app.export.VideoFrame
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.ui.components.ShareCardView
@@ -99,7 +99,6 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
     var media by remember { mutableStateOf<CardMedia?>(null) }
     var loadingMedia by remember { mutableStateOf(false) }
-    val instagram = remember { InstagramStory.isInstalled(context) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         loadingMedia = true
@@ -108,7 +107,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             media = withContext(Dispatchers.IO) {
                 val type = context.contentResolver.getType(uri).orEmpty()
                 if (type.startsWith("video/")) {
-                    InstagramStory.firstFrame(context, uri)?.let {
+                    VideoFrame.first(context, uri)?.let {
                         CardMedia.Video(uri, it, VideoCard.durationMs(context, uri))
                     }
                 } else {
@@ -132,7 +131,8 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
 
     val cardTitle = stringResource(R.string.reveal_default_title)
     val cardMeta = stringResource(R.string.reveal_bpm) + " " + stringResource(R.string.reveal_at, Fmt.hour(n.peakAt))
-    val cardChip = "${n.eventName.uppercase()} · ${Fmt.hour(n.peakAt).uppercase()}"
+    // The event only — the hour is already in "bpm às 22h12" beside it (A2).
+    val cardChip = n.eventName.uppercase()
     val video = media as? CardMedia.Video
     val busy = sharing || loadingMedia
 
@@ -160,14 +160,22 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             Spacer(Modifier.weight(1f))
             Text(stringResource(R.string.card_label), style = TTType.MetaSmall, color = TT.Acid)
         }
-        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
+        // The preview takes the room that is left and no more (#41, 22/09).
+        // It was a fixed 214 dp wide — 380 dp tall — inside a weighted box, so
+        // when the done state stacked its title, stats and buttons below, the
+        // box shrank under the card and the card drew straight over "8 noites
+        // em 2026 · 10 momentos". Its width now follows the height it gets.
+        BoxWithConstraints(
+            Modifier.weight(1f).fillMaxWidth().padding(vertical = 14.dp),
+            contentAlignment = Alignment.Center,
+        ) {
             ShareCardView(
                 skin = skin,
                 title = cardTitle,
                 bpm = n.peakBpm,
                 meta = cardMeta,
                 chip = cardChip,
-                width = 214.dp,
+                width = minOf(214.dp, maxHeight * (9f / 16f), maxWidth),
                 curveSamples = if (skin == Skin.BLACK) n.samples else null,
                 curveWindow = if (skin == Skin.BLACK) n.startAt to n.endAt else null,
                 photo = media?.preview?.asImageBitmap(),
@@ -230,7 +238,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 style = TTType.ShoutSmall.copy(fontSize = 23.sp, lineHeight = 24.5.sp),
                 color = TT.Paper,
             )
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             val year = java.time.Year.now().value
             val nightsThisYear = nights.count { it.date.atZone(java.time.ZoneId.systemDefault()).year == year }
             Text(
@@ -239,24 +247,13 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 color = TT.Gray45,
             )
             Spacer(Modifier.height(14.dp))
-            TTButton(
-                stringResource(R.string.card_done_gallery),
-                TTButtonStyle.Rose,
-                onClick = {
-                    nav.navigate(Routes.Gallery) {
-                        popUpTo(Routes.Feed) { saveState = true }
-                        launchSingleTop = true
-                    }
-                },
+            DoneActions(
+                nav = nav,
+                nightId = n.id,
+                night = n,
+                skin = skin,
+                onShareAgain = { cameBack = false },
             )
-            Spacer(Modifier.height(10.dp))
-            TTButton(
-                stringResource(R.string.card_share_again),
-                TTButtonStyle.OutlineOnDark,
-                onClick = { cameBack = false },
-            )
-            Spacer(Modifier.height(18.dp))
-            PostToFeed(nightId = n.id, night = n, skin = skin)
         } else {
             // Compartilhar é sempre ativo (§1). Sem vídeo, o card vira PNG
             // 1080×1920 e sai pelo share sheet. Com vídeo, ele é gravado dentro
@@ -306,42 +303,6 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                     }
                 },
             )
-            // The shortcut, for the one destination that can do better than a
-            // finished file: inside Instagram's Story editor the card stays a
-            // sticker the person can move, and the video stays live.
-            if (video != null && instagram) {
-                Spacer(Modifier.height(10.dp))
-                TTButton(
-                    stringResource(R.string.card_story_shortcut),
-                    TTButtonStyle.OutlineOnDark,
-                    enabled = !busy,
-                    onClick = {
-                        sharing = true
-                        failure = null
-                        scope.launch {
-                            publish(video)
-                            val intent = withContext(Dispatchers.IO) {
-                                runCatching {
-                                    val sticker = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, sticker = true)
-                                    val stickerFile = CardRenderer.writePng(context, sticker, "tumtum-${n.id}-sticker.png")
-                                    InstagramStory.copyVideo(context, video.uri, n.id)
-                                        ?.let { InstagramStory.intent(context, it, stickerFile) }
-                                }.getOrNull()
-                            }
-                            if (intent == null) {
-                                failure = R.string.card_instagram_refused
-                            } else {
-                                try {
-                                    shareLauncher.launch(intent)
-                                } catch (e: ActivityNotFoundException) {
-                                    failure = R.string.card_instagram_refused
-                                }
-                            }
-                            sharing = false
-                        }
-                    },
-                )
-            }
         }
         Spacer(Modifier.height(2.dp))
     }
@@ -364,11 +325,28 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
  * there is nothing honest to offer, so nothing is offered.
  */
 @Composable
-private fun PostToFeed(nightId: Long, night: Night, skin: Skin) {
+private fun DoneActions(
+    nav: NavHostController,
+    nightId: Long,
+    night: Night,
+    skin: Skin,
+    onShareAgain: () -> Unit,
+) {
+    // **One Pink button at a time** (#41, 22/09). The done screen stacked five
+    // blocks with two Pink buttons in them — "Ver a galeria" and "Pode
+    // mostrar" — so the eye had no first place to land. Now the screen has
+    // one primary act, chosen by where the person is:
+    //
+    //  - the night can go to its rolê → "Mostrar pra galera do rolê";
+    //  - they are being asked       → "Pode mostrar", and nothing else;
+    //  - it is posted, or cannot be → "Ver a galeria".
+    //
+    // Everything else is quiet: outlined, or a line of text.
     val container = appContainer()
     val scope = rememberCoroutineScope()
     var eventId by remember(nightId) { mutableStateOf<String?>(null) }
     var asking by remember { mutableStateOf(false) }
+    var posting by remember { mutableStateOf(false) }
     var posted by remember(nightId) { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
 
@@ -378,64 +356,88 @@ private fun PostToFeed(nightId: Long, night: Night, skin: Skin) {
 
     val target = eventId
     val sessionId = night.serverSessionId
-    if (target == null || sessionId == null) return
+    val canPost = target != null && sessionId != null
 
-    when {
-        posted -> Text(
-            stringResource(R.string.feed_post_done),
-            style = TTType.BodySmall,
-            color = TT.Acid,
-        )
-
-        asking -> Column {
-            Text(
-                stringResource(R.string.feed_post_consent),
-                style = TTType.BodySmall,
-                color = TT.Gray45,
-            )
-            Spacer(Modifier.height(10.dp))
-            TTButton(
-                stringResource(R.string.feed_post_confirm),
-                TTButtonStyle.Rose,
-                onClick = {
-                    scope.launch {
-                        val ok = container.social.post(
-                            serverEventId = target,
-                            serverSessionId = sessionId,
-                            bpm = night.peakBpm,
-                            at = night.peakAt,
-                            label = night.moments.firstOrNull { it.isPeak }?.label,
-                            quote = null,
-                            skin = skin.name,
-                        )
-                        posted = ok
-                        failed = !ok
-                        asking = false
-                    }
-                },
-            )
-            Spacer(Modifier.height(8.dp))
-            TTButton(
-                stringResource(R.string.feed_post_cancel),
-                TTButtonStyle.OutlineOnDark,
-                onClick = { asking = false },
-            )
-        }
-
-        else -> Column {
-            TTButton(
-                stringResource(R.string.feed_post_cta),
-                TTButtonStyle.OutlineAcid,
-                onClick = { asking = true; failed = false },
-            )
-            if (failed) {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    stringResource(R.string.feed_post_failed),
-                    style = TTType.BodySmall,
-                    color = TT.Rose,
-                )
-            }
+    val openGallery = {
+        nav.navigate(Routes.Gallery) {
+            popUpTo(Routes.Feed) { saveState = true }
+            launchSingleTop = true
         }
     }
+
+    if (asking && canPost) {
+        Text(
+            stringResource(R.string.feed_post_consent),
+            style = TTType.BodySmall,
+            color = TT.Gray45,
+        )
+        Spacer(Modifier.height(12.dp))
+        TTButton(
+            stringResource(if (posting) R.string.feed_post_running else R.string.feed_post_confirm),
+            TTButtonStyle.Rose,
+            enabled = !posting,
+            onClick = {
+                posting = true
+                scope.launch {
+                    val ok = container.social.post(
+                        serverEventId = target!!,
+                        serverSessionId = sessionId!!,
+                        bpm = night.peakBpm,
+                        at = night.peakAt,
+                        label = night.moments.firstOrNull { it.isPeak }?.label,
+                        quote = null,
+                        skin = skin.name,
+                    )
+                    posted = ok
+                    failed = !ok
+                    asking = false
+                    posting = false
+                }
+            },
+        )
+        Spacer(Modifier.height(8.dp))
+        TTButton(
+            stringResource(R.string.feed_post_cancel),
+            TTButtonStyle.OutlineOnDark,
+            enabled = !posting,
+            onClick = { asking = false },
+        )
+        return
+    }
+
+    if (canPost && !posted) {
+        TTButton(
+            stringResource(R.string.feed_post_cta),
+            TTButtonStyle.Rose,
+            onClick = { asking = true; failed = false },
+        )
+        if (failed) {
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.feed_post_failed), style = TTType.BodySmall, color = TT.Rose)
+        }
+        Spacer(Modifier.height(10.dp))
+        TTButton(
+            stringResource(R.string.card_done_gallery),
+            TTButtonStyle.OutlineOnDark,
+            onClick = openGallery,
+        )
+    } else {
+        if (posted) {
+            Text(stringResource(R.string.feed_post_done), style = TTType.BodySmall, color = TT.Acid)
+            Spacer(Modifier.height(12.dp))
+        }
+        TTButton(
+            stringResource(R.string.card_done_gallery),
+            TTButtonStyle.Rose,
+            onClick = openGallery,
+        )
+    }
+    Spacer(Modifier.height(4.dp))
+    Text(
+        stringResource(R.string.card_share_again),
+        style = TTType.Button.copy(fontSize = 14.sp),
+        color = TT.Paper,
+        modifier = Modifier.clickable(onClick = onShareAgain).padding(vertical = 10.dp),
+    )
 }
+

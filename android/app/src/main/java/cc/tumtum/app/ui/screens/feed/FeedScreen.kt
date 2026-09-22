@@ -26,6 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,16 +73,24 @@ fun FeedScreen(nav: NavHostController) {
             .onFailure { events = null; failed = true }
     }
 
-    Column(Modifier.fillMaxSize().background(TT.Paper).statusBarsPadding()) {
+    // #30, 22/09 — Felipe: "tá muito cinza, preta e branca… mais colorida,
+    // mais viva." The manual's digital default is a black canvas with Pink as
+    // the main emphasis and Toxic Yellow as the second explosion, and this
+    // screen had neither: white page, grey rows, one yellow row when
+    // something happened to be live. Pink on black is half as loud as the old
+    // lime, so the emphasis comes from surface and scale — a full Pink block
+    // for the night that is on now, yellow doors on the rest.
+    Column(Modifier.fillMaxSize().background(TT.Ink).statusBarsPadding()) {
         Row(
             Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 18.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Wordmark(width = 92.dp)
+            Wordmark(width = 92.dp, onDark = true)
             UserAvatar(
                 user?.account?.initials ?: "TT",
-                Skin.BLACK,
+                // A black avatar on the black canvas would vanish.
+                Skin.PINK,
                 photoPath = user?.avatarPath,
                 modifier = Modifier.clickable {
                     user?.account?.let { nav.navigate(Routes.profile(it.username)) }
@@ -94,17 +105,23 @@ fun FeedScreen(nav: NavHostController) {
         ) {
             item(key = "headline") {
                 Text(
-                    stringResource(R.string.feed_headline),
-                    style = TTType.ShoutSmall.copy(fontSize = 24.sp, lineHeight = 25.sp),
-                    color = TT.Ink,
+                    buildAnnotatedString {
+                        append(stringResource(R.string.feed_headline_a))
+                        append("\n")
+                        withStyle(SpanStyle(color = TT.Rose)) {
+                            append(stringResource(R.string.feed_headline_b))
+                        }
+                    },
+                    style = TTType.ShoutSmall.copy(fontSize = 34.sp, lineHeight = 34.sp),
+                    color = TT.Paper,
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
                     stringResource(R.string.feed_sub),
                     style = TTType.BodySmall,
-                    color = TT.Gray70,
+                    color = TT.Gray45,
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(14.dp))
             }
 
             val list = events
@@ -113,7 +130,7 @@ fun FeedScreen(nav: NavHostController) {
                     Text(
                         stringResource(R.string.feed_failed),
                         style = TTType.BodySmall,
-                        color = TT.Gray70,
+                        color = TT.Gray45,
                     )
                 }
 
@@ -121,7 +138,7 @@ fun FeedScreen(nav: NavHostController) {
                     Text(
                         stringResource(R.string.feed_loading),
                         style = TTType.BodySmall,
-                        color = TT.Gray70,
+                        color = TT.Gray45,
                     )
                 }
 
@@ -129,7 +146,7 @@ fun FeedScreen(nav: NavHostController) {
                     Text(
                         stringResource(R.string.feed_empty),
                         style = TTType.BodySmall,
-                        color = TT.Gray70,
+                        color = TT.Gray45,
                     )
                 }
 
@@ -149,35 +166,44 @@ private fun LazyListScope.eventRows(list: List<ServerEvent>, nav: NavHostControl
 @Composable
 private fun EventRow(event: ServerEvent, now: Instant, nav: NavHostController) {
     val live = event.isLiveAt(now)
+    // Live: the whole row is Pink, black type on it (7.93:1; never white on
+    // Pink). The rest: dark cards whose door is Toxic Yellow.
+    val surface = if (live) TT.Rose else TT.Ink800
+    val title = if (live) TT.Ink else TT.Paper
+    val meta = if (live) TT.Ink.copy(alpha = 0.7f) else TT.Gray45
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (live) TT.Acid else TT.Gray10)
+            .clip(RoundedCornerShape(14.dp))
+            .background(surface)
             .clickable { nav.navigate(Routes.eventFeed(event.id, event.name)) }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 18.dp, vertical = if (live) 22.dp else 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
             Text(
                 event.name,
-                style = TTType.ItemSub.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                color = TT.Ink,
+                style = TTType.ItemSub.copy(
+                    fontSize = if (live) 20.sp else 16.sp,
+                    lineHeight = if (live) 22.sp else 19.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+                color = title,
             )
             event.details?.let {
-                Text(
-                    it,
-                    style = TTType.ItemSub.copy(fontSize = 12.sp),
-                    color = TT.Ink.copy(alpha = 0.6f),
-                )
+                Spacer(Modifier.height(3.dp))
+                Text(it, style = TTType.ItemSub.copy(fontSize = 12.sp), color = meta)
             }
         }
         Text(
             stringResource(if (live) R.string.feed_row_live else R.string.feed_row_open),
             style = TTType.MetaSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
-            color = if (live) TT.Acid else TT.Paper,
-            modifier = Modifier.background(TT.Ink).padding(horizontal = 10.dp, vertical = 6.dp),
+            color = if (live) TT.Acid else TT.Ink,
+            modifier = Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .background(if (live) TT.Ink else TT.Acid)
+                .padding(horizontal = 12.dp, vertical = 7.dp),
         )
     }
 }

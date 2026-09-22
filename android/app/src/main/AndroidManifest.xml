@@ -40,10 +40,6 @@
 
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
-        <!-- Item 43 (22/09): the card over the person's own video goes out
-             through Instagram's Stories intent; without this line Android 11+
-             hides Instagram from us and "is it installed?" always says no. -->
-        <package android:name="com.instagram.android" />
     </queries>
 
     <application

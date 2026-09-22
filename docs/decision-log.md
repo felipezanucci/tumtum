@@ -637,6 +637,50 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-22 — colour on the first screen, one Pink button on the last, and the card Felipe picked
+
+Wave 4 of the evening's findings.
+
+**The feed home had no colour (#30).** Felipe: *"tá muito cinza, preta e
+branca… mais colorida, mais viva."* The manual's digital default is a black
+canvas with Pink as the main emphasis and Toxic Yellow as the second
+explosion; the screen had a white page, grey rows, and one yellow row when
+something was live. It is now black; the headline's second line is Pink at 34
+sp; the night that is on now is a **full Pink block** with black type; every
+other event is a dark card whose door is a Toxic Yellow pill. Pink on black is
+half as loud as the old lime, so the emphasis comes from surface and scale,
+as the manual says it must.
+
+**The Stories button is gone (#40).** Felipe: *"a gente pode tirar esse botão
+de postar no Instagram Stories."* The card is burned into the video and
+leaves through the system share sheet, which reaches every network alike; a
+button naming one of them put it above the rest. With it went the
+`<queries>` entry that let the app ask whether Instagram was installed on the
+phone — a question it no longer needs to ask about anybody.
+
+**The done screen had two Pink buttons and a card drawn over its own text
+(#41).** The card preview was a fixed 214 dp wide inside a box that shrank as
+the done state stacked title, stats and five buttons below — so the 380 dp
+card overflowed and drew its curve across "8 noites em 2026 · 10 momentos".
+The preview now takes its width from the height it is given. And the screen
+has **one primary act at a time**: *Mostrar pra galera do rolê* when the night
+can go to its rolê; only *Pode mostrar* / *Agora não* while asking; *Ver a
+galeria* once posted or when posting is impossible. "Compartilhar de novo" is
+a line of text.
+
+**Card A2 (#42), Felipe's pick from three mockups.** The acid chip that sat
+alone at the top of the card is gone; the event now sits in an acid box **at
+the foot**, "bpm às 22h12" beside it, the wordmark to the right — everything
+about *where* on one line under the evidence. A long name ("SÃO PAULO ×
+VITÓRIA") takes its own row rather than being cut to four letters; the rule
+lives in `CardFoot`, shared by the renderer and the preview so they cannot
+disagree. On the yellow and white skins the box turns black, since acid on
+either would vanish. **The curve is thicker (8 → 11 px) with a dark outline**,
+and the peak marker is ringed: over a bright frame the old line disappeared,
+and the curve is the card's evidence.
+
+---
+
 ## 2026-09-22 — a session lasts as long as the phone is used
 
 **#34, decided by Felipe:** *"refresh token de verdade, e a pessoa só reentra

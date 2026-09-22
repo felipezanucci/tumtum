@@ -18,12 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import cc.tumtum.app.domain.HrSample
 import cc.tumtum.app.domain.Skin
+import cc.tumtum.app.export.CardFoot
 import cc.tumtum.app.ui.theme.InstrumentSans
 import cc.tumtum.app.ui.theme.TT
 import java.time.Instant
@@ -67,19 +69,6 @@ fun ShareCardView(
         Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.6f)))
     }
     Column(Modifier.matchParentSize().padding(pad)) {
-        if (chip != null) {
-            Text(
-                chip,
-                style = TextStyle(
-                    fontFamily = InstrumentSans,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = maxOf(8f, w * 0.038f).sp,
-                    letterSpacing = 0.14.em,
-                ),
-                color = TT.Ink,
-                modifier = Modifier.background(TT.Acid).padding(horizontal = 8.dp, vertical = 4.dp),
-            )
-        }
         Spacer(Modifier.weight(1f))
         Text(
             title,
@@ -111,30 +100,82 @@ fun ShareCardView(
                 lineColor = if (skin == Skin.BLACK) TT.DataLineOnDark else TT.DataLineOnLight,
                 markerColor = if (skin == Skin.BLACK) TT.DataMarkerOnDark else TT.DataMarkerOnLight,
                 gapColor = if (skin == Skin.BLACK) TT.DataGap else TT.Gray25,
-                strokeWidth = 1.5.dp,
-                markerRadius = 3.dp,
+                // 11 px on the 1080 px card (A2): the preview scales with it.
+                strokeWidth = maxOf(1.5f, w * 0.0102f).dp,
+                markerRadius = maxOf(3f, w * 0.012f).dp,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height((w * 0.19f).dp)
                     .padding(top = (w * 0.05f).dp),
             )
         }
-        Row(
-            Modifier.fillMaxWidth().padding(top = (w * 0.04f).dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom,
-        ) {
+        // The foot, as CardRenderer draws it (A2, 22/09) — the same rule from
+        // CardFoot decides whether the event shares the line or takes its own.
+        val event = chip?.trim()?.takeIf { it.isNotEmpty() }
+        val metaText: @Composable () -> Unit = {
             Text(
                 meta,
                 style = TextStyle(
                     fontFamily = InstrumentSans,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = maxOf(10f, w * 0.048f).sp,
+                    fontSize = maxOf(8f, w * 0.048f).sp,
                 ),
                 color = fg,
+                maxLines = 1,
             )
-            Wordmark(width = (w * 0.24f).dp, onDark = skin == Skin.BLACK)
+        }
+        val wordmark: @Composable () -> Unit = { Wordmark(width = (w * 0.185f).dp, onDark = skin == Skin.BLACK) }
+        if (event != null && !CardFoot.ownRow(event)) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = (w * 0.04f).dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    EventBox(event, skin, w, Modifier.weight(1f, fill = false))
+                    Spacer(Modifier.width((w * 0.024f).dp))
+                    metaText()
+                }
+                Spacer(Modifier.width((w * 0.028f).dp))
+                wordmark()
+            }
+        } else {
+            if (event != null) {
+                EventBox(event, skin, w, Modifier.padding(top = (w * 0.04f).dp))
+            }
+            Row(
+                Modifier.fillMaxWidth().padding(top = (w * if (event != null) 0.022f else 0.04f).dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                metaText()
+                wordmark()
+            }
         }
     }
     }
+}
+
+/** The event's name in its box: acid with black type, or black on the skins acid would vanish into. */
+@Composable
+private fun EventBox(event: String, skin: Skin, w: Float, modifier: Modifier = Modifier) {
+    val dark = skin == Skin.YELLOW || skin == Skin.WHITE
+    Text(
+        event,
+        style = TextStyle(
+            fontFamily = InstrumentSans,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = maxOf(7f, w * 0.038f).sp,
+            letterSpacing = 0.1.em,
+        ),
+        color = when (skin) {
+            Skin.YELLOW -> TT.Acid
+            Skin.WHITE -> TT.Paper
+            else -> TT.Ink
+        },
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier
+            .background(if (dark) TT.Ink else TT.Acid)
+            .padding(horizontal = (w * 0.035f).dp, vertical = (w * 0.024f).dp),
+    )
 }

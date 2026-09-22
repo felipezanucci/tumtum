@@ -103,22 +103,6 @@ object CardRenderer {
         val bold = Typeface.create(base, 700, false)
         val semibold = Typeface.create(base, 600, false)
 
-        // Chip ácido no topo (evento · hora)
-        if (chip != null) {
-            val chipPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                typeface = semibold
-                textSize = 41f
-                letterSpacing = 0.14f
-                color = INK
-            }
-            val tw = chipPaint.measureText(chip)
-            val chipBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ACID }
-            val chipH = 41f + 40f
-            canvas.drawRect(PAD, PAD, PAD + tw + 80f, PAD + chipH, chipBg)
-            val fm = chipPaint.fontMetrics
-            canvas.drawText(chip, PAD + 40f, PAD + chipH / 2f - (fm.ascent + fm.descent) / 2f, chipPaint)
-        }
-
         // Bloco ancorado embaixo: título → número → curva → meta + wordmark
         val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bold
@@ -147,12 +131,40 @@ object CardRenderer {
             textSize = 52f
             color = fg
         }
-        val wordmarkW = 259
+        val wordmarkW = 200
         val wordmarkH = (wordmarkW * 96f / 636f).toInt() // proporção do SVG oficial
         val metaTopPad = 43f
-        val metaRowH = maxOf(60f, wordmarkH.toFloat())
 
-        val blockH = titleH + numTopPad + numH + (if (hasCurve) curveTopPad + curveH else 0f) + metaTopPad + metaRowH
+        // The foot (version A2, Felipe's pick, 22/09): the event in a box,
+        // "bpm às 22h12" beside it, the wordmark to the right. It replaces the
+        // acid chip that sat alone at the top of the card — "o quadradinho
+        // amarelo… a gente tem que repensar" — so everything the card says
+        // about *where* now sits in one line under the evidence. On the yellow
+        // and white skins an acid box would vanish, so the box turns black.
+        val event = chip?.trim()?.takeIf { it.isNotEmpty() }
+        val boxColor = if (skin == Skin.YELLOW || skin == Skin.WHITE) INK else ACID
+        val eventPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = semibold
+            textSize = 41f
+            letterSpacing = 0.1f
+            color = when (skin) {
+                Skin.YELLOW -> ACID
+                Skin.WHITE -> PAPER
+                else -> INK
+            }
+        }
+        val boxH = 96f
+        val boxPadX = 38f
+        val ownRow = event != null && CardFoot.ownRow(event)
+        val rowGap = 24f
+        val metaRowH = maxOf(60f, wordmarkH.toFloat())
+        val footH = when {
+            event == null -> metaRowH
+            ownRow -> boxH + rowGap + metaRowH
+            else -> boxH
+        }
+
+        val blockH = titleH + numTopPad + numH + (if (hasCurve) curveTopPad + curveH else 0f) + metaTopPad + footH
         var y = H - PAD - blockH
 
         // The base under the type, for a sticker over someone's video (22/09).
@@ -214,21 +226,48 @@ object CardRenderer {
         }
 
         y += metaTopPad
-        val rowBottom = y + metaRowH
-        run {
-            val fm = metaPaint.fontMetrics
-            canvas.drawText(meta, PAD, rowBottom - fm.descent, metaPaint)
-        }
         val wordmark = ResourcesCompat.getDrawable(
             context.resources,
             if (skin == Skin.BLACK) R.drawable.wordmark_white else R.drawable.wordmark_black,
             null,
         )
-        wordmark?.let {
+        fun drawWordmark(centerY: Float) = wordmark?.let {
             val left = (W - PAD - wordmarkW).toInt()
-            val top = (rowBottom - wordmarkH).toInt()
+            val top = (centerY - wordmarkH / 2f).toInt()
             it.setBounds(left, top, left + wordmarkW, top + wordmarkH)
             it.draw(canvas)
+        }
+        fun drawBox(maxWidth: Float): Float {
+            val text = CardFoot.fit(event!!, maxWidth - 2 * boxPadX) { eventPaint.measureText(it) }
+            val boxW = eventPaint.measureText(text) + 2 * boxPadX
+            canvas.drawRect(PAD, y, PAD + boxW, y + boxH, Paint().apply { color = boxColor })
+            val fm = eventPaint.fontMetrics
+            canvas.drawText(text, PAD + boxPadX, y + boxH / 2f - (fm.ascent + fm.descent) / 2f, eventPaint)
+            return boxW
+        }
+        val usable = W - 2 * PAD
+        when {
+            event == null -> {
+                val fm = metaPaint.fontMetrics
+                canvas.drawText(meta, PAD, y + metaRowH - fm.descent, metaPaint)
+                drawWordmark(y + metaRowH - wordmarkH / 2f)
+            }
+
+            ownRow -> {
+                drawBox(usable)
+                y += boxH + rowGap
+                val fm = metaPaint.fontMetrics
+                canvas.drawText(meta, PAD, y + metaRowH - fm.descent, metaPaint)
+                drawWordmark(y + metaRowH - wordmarkH / 2f)
+            }
+
+            else -> {
+                val metaW = metaPaint.measureText(meta)
+                val boxW = drawBox(usable - wordmarkW - 30f - metaW - 26f)
+                val fm = metaPaint.fontMetrics
+                canvas.drawText(meta, PAD + boxW + 26f, y + boxH / 2f - (fm.ascent + fm.descent) / 2f, metaPaint)
+                drawWordmark(y + boxH / 2f)
+            }
         }
 
         return bitmap
@@ -263,18 +302,28 @@ object CardRenderer {
         fun y(bpm: Int): Float =
             top + padTop + (1f - (bpm - lo).toFloat() / span) * (height - padTop - padBottom)
 
+        // Thicker than before (8 → 11 px) and outlined (A2, 22/09): over a
+        // bright photo or video frame the thin line disappeared, and the curve
+        // is the card's evidence — it has to survive the frame behind it.
         val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
-            strokeWidth = 8f
+            strokeWidth = 11f
             strokeCap = Paint.Cap.ROUND
             strokeJoin = Paint.Join.ROUND
             color = lineColor
+        }
+        val outlinePaint = Paint(linePaint).apply {
+            strokeWidth = 17f
+            color = 0x96000000.toInt()
         }
 
         var path: Path? = null
         var prev: HrSample? = null
         fun flush() {
-            path?.let { canvas.drawPath(it, linePaint) }
+            path?.let {
+                canvas.drawPath(it, outlinePaint)
+                canvas.drawPath(it, linePaint)
+            }
             path = null
         }
         for (s in sorted) {
@@ -302,7 +351,13 @@ object CardRenderer {
         }
 
         val peak = sorted.maxBy { it.bpm }
-        canvas.drawCircle(x(peak.time), y(peak.bpm), markerR, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = markerColor })
+        canvas.drawCircle(
+            x(peak.time),
+            y(peak.bpm),
+            markerR,
+            Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x96000000.toInt() },
+        )
+        canvas.drawCircle(x(peak.time), y(peak.bpm), markerR - 3f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = markerColor })
     }
 
     /** A photo from the picker, decoded no larger than the card needs. */
