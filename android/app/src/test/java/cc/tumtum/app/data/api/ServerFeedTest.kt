@@ -175,23 +175,38 @@ class ServerFeedTest {
     }
 
     @Test
-    fun `a series feed says which night each post is from`() {
+    fun `a tour's feed carries its dates, each post its night, and what a block hid`() {
+        // #65: one feed per event — the tour's — with the night as a filter;
+        // #63: an empty feed must know when a block emptied it.
         val json = """
-            {"series_id":"s1","name":"The Eras Tour — Brasil","kind":"tour",
-             "events":[{"id":"e1","name":"SP N1","date":"2026-11-14","city":"São Paulo"},
-                       {"id":"e2","name":"Rio","date":"2026-11-18","city":"Rio de Janeiro"}],
-             "posts":[{"id":"p1","author":{"name":"A","initials":"A"},"bpm":150,
-               "moment_at":"2026-11-19T01:10:00Z","label":null,"quote":null,"skin":"PINK",
-               "created_at":"2026-11-19T02:00:00Z","reactions":0,"reacted_by_me":false,"mine":false,
-               "event_id":"e2","event_name":"Rio","event_date":"2026-11-18","event_city":"Rio de Janeiro"}]}
+            {"event_id":"rio","event_name":"Rihanna Rio","venue":null,"date":"2026-10-26",
+             "series":{"id":"t1","name":"Rihanna no Brasil","kind":"tour","dates":2},
+             "events":[{"id":"sp","name":"Rihanna SP","date":"2026-10-24","city":"São Paulo"},
+                       {"id":"rio","name":"Rihanna Rio","date":"2026-10-26","city":"Rio de Janeiro"}],
+             "hidden_by_block":1,
+             "posts":[{"id":"p1","author":{"name":"Ana","initials":"A"},"bpm":150,
+               "moment_at":"2026-10-24T22:41:00Z","label":null,"quote":null,"skin":"BLACK",
+               "created_at":"2026-10-24T23:00:00Z","reactions":0,"reacted_by_me":false,
+               "mine":false,"event_id":"sp","event_name":"Rihanna SP",
+               "event_date":"2026-10-24","event_city":"São Paulo"}]}
         """.trimIndent()
 
-        val feed = ServerSeriesFeed.parse(json)
-        val post = feed.posts.single()
+        val feed = ServerFeed.parse(json)
 
-        assertEquals(2, feed.series.dates)
-        assertEquals("e2", post.eventId)
-        assertEquals("Rio de Janeiro", post.eventCity)
-        assertEquals(18, post.eventDate?.dayOfMonth)
+        assertEquals("Rihanna no Brasil", feed.series?.name)
+        assertEquals(listOf("sp", "rio"), feed.dates.map { it.id })
+        assertEquals(1, feed.hiddenByBlock)
+        assertEquals("sp", feed.posts.single().eventId)
+        assertEquals("São Paulo", feed.posts.single().eventCity)
+    }
+
+    @Test
+    fun `a feed from an older server has one date and nothing hidden`() {
+        val json = """{"event_id":"e1","event_name":"Show","venue":null,
+            "date":"2026-10-10","posts":[]}"""
+        val feed = ServerFeed.parse(json)
+
+        assertEquals(0, feed.dates.size)
+        assertEquals(0, feed.hiddenByBlock)
     }
 }

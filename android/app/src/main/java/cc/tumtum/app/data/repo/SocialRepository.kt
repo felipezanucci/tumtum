@@ -1,6 +1,7 @@
 package cc.tumtum.app.data.repo
 
 import cc.tumtum.app.data.api.ServerCrowd
+import cc.tumtum.app.data.api.ServerFeedDate
 import cc.tumtum.app.data.api.ServerPost
 import cc.tumtum.app.data.api.ServerSeries
 import cc.tumtum.app.data.api.TumtumApi
@@ -40,10 +41,17 @@ sealed interface FeedState {
         val eventName: String,
         val venue: String?,
         val posts: List<ServerPost>,
-        /** On an event's feed: the tour above it, if any. On a series feed: itself. */
+        /** The tour this event belongs to, whose feed this is (#65); null for a show on its own. */
         val series: ServerSeries? = null,
+        /** The dates this feed covers, oldest first — more than one only for a tour. */
+        val dates: List<ServerFeedDate> = emptyList(),
+        /** Posts a block kept out — the empty feed says so instead of "nobody posted" (#63). */
+        val hiddenByBlock: Int = 0,
     ) : FeedState {
         val isEmpty: Boolean get() = posts.isEmpty()
+
+        /** Several dates in one feed: each post says which, and the night filter appears. */
+        val spansDates: Boolean get() = dates.size > 1
     }
 
     /** The server refused: this account has no measured night at this event. */
@@ -71,20 +79,32 @@ sealed interface CrowdState {
 }
 
 /**
- * Which feed a tap was made in: one night's rolê, or the tour above it (#33).
- * The actions are the same on both; only the address and the gate differ.
+ * Where a feed's taps go. Since #65 there is one feed per event — the tour's
+ * when there is one — so this is always the event the fan came in through;
+ * the server finds the post in the tour from there.
  */
-sealed interface FeedTarget {
-    val id: String
-    val path: String
+data class FeedTarget(val id: String) {
+    val path: String get() = "/api/events/$id"
+}
 
-    data class Event(override val id: String) : FeedTarget {
-        override val path: String get() = "/api/events/$id"
-    }
+/**
+ * What posting a moment did (#58, 23/09).
+ *
+ * `post()` used to reduce every answer to a Boolean, so the server's own
+ * sentence — "Essa noite não é sua ou não é deste evento." — became "Não deu
+ * pra mostrar agora", and nobody could tell a refusal from a network blip.
+ * Felipe hit exactly that: signed in with one account, posting a night the
+ * other account had uploaded. The server's words are kept and said.
+ */
+sealed interface PostResult {
+    data object Posted : PostResult
 
-    data class Series(override val id: String) : FeedTarget {
-        override val path: String get() = "/api/series/$id"
-    }
+    /** The server said no, in its own words. */
+    data class Refused(val detail: String) : PostResult
+
+    data object SignedOut : PostResult
+
+    data class Failed(val offline: Boolean) : PostResult
 }
 
 /**
@@ -115,16 +135,9 @@ class SocialRepository(private val api: TumtumApi) {
         onFailed = { FeedState.Failed(it) },
     ) {
         val feed = api.eventFeed(serverEventId)
-        FeedState.Ready(feed.eventName, feed.venue, feed.posts, feed.series)
-    }
-
-    suspend fun seriesFeed(seriesId: String): FeedState = guard(
-        onRefused = FeedState.NotThere,
-        onSignedOut = FeedState.SignedOut,
-        onFailed = { FeedState.Failed(it) },
-    ) {
-        val feed = api.seriesFeed(seriesId)
-        FeedState.Ready(feed.series.name, null, feed.posts, feed.series)
+        FeedState.Ready(
+            feed.eventName, feed.venue, feed.posts, feed.series, feed.dates, feed.hiddenByBlock,
+        )
     }
 
     /** The series an event belongs to; null when it has none *or* the question failed. */
@@ -156,9 +169,22 @@ class SocialRepository(private val api: TumtumApi) {
         quote: String?,
         skin: String,
         toSeries: Boolean = false,
-    ): Boolean = outcome {
+    ): PostResult = try {
         api.postMoment(serverEventId, serverSessionId, bpm, at, label, quote, skin, toSeries)
-    } is Outcome.Done
+        PostResult.Posted
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: TumtumApi.ApiException) {
+        when {
+            e.code == 401 -> PostResult.SignedOut
+            e.code in 400..499 && e.detail.isNotBlank() -> PostResult.Refused(e.detail)
+            else -> PostResult.Failed(offline = false)
+        }
+    } catch (e: IOException) {
+        PostResult.Failed(offline = true)
+    } catch (e: Exception) {
+        PostResult.Failed(offline = false)
+    }
 
     suspend fun takeDown(serverEventId: String, postId: String): Outcome<Unit> =
         outcome { api.deletePost(serverEventId, postId) }

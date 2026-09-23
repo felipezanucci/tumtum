@@ -19,9 +19,9 @@ data class ServerPost(
     val reactedByMe: Boolean,
     /** Whether the viewer may take this one down — the undo is shown only where it exists. */
     val mine: Boolean,
-    /** The night it belongs to — so it can be taken down from the series feed too (#33). */
+    /** The night it belongs to — the "Só a minha noite" filter reads it, and so does the undo. */
     val eventId: String? = null,
-    /** Which night it is from, only in a series feed, where several dates sit together. */
+    /** Which night it is from: in a tour's feed several dates sit together (#65). */
     val eventName: String? = null,
     val eventDate: java.time.LocalDate? = null,
     val eventCity: String? = null,
@@ -58,7 +58,7 @@ data class ServerPost(
     }
 }
 
-/** A tour, club or championship — the level above one night (#33). */
+/** The tour an event belongs to (#33); its dates share one feed (#65). */
 data class ServerSeries(val id: String, val name: String, val kind: String, val dates: Int) {
     companion object {
         fun parse(o: JSONObject): ServerSeries = ServerSeries(
@@ -74,37 +74,40 @@ data class ServerSeries(val id: String, val name: String, val kind: String, val 
     }
 }
 
-/** The series feed: every post shown to the tour, from every date. */
-data class ServerSeriesFeed(
-    val series: ServerSeries,
-    val posts: List<ServerPost>,
+/** One date of the feed — a tour has several, a show on its own has one (#65). */
+data class ServerFeedDate(
+    val id: String,
+    val name: String,
+    val date: java.time.LocalDate?,
+    val city: String?,
 ) {
     companion object {
-        fun parse(json: String): ServerSeriesFeed {
-            val o = JSONObject(json)
-            val events = o.optJSONArray("events") ?: JSONArray()
-            val posts = o.optJSONArray("posts") ?: JSONArray()
-            return ServerSeriesFeed(
-                series = ServerSeries(
-                    id = o.optString("series_id", ""),
-                    name = o.optString("name", ""),
-                    kind = o.optString("kind", "tour"),
-                    dates = events.length(),
-                ),
-                posts = (0 until posts.length()).map { ServerPost.parse(posts.getJSONObject(it)) },
-            )
-        }
+        fun parse(o: JSONObject): ServerFeedDate = ServerFeedDate(
+            id = o.optString("id", ""),
+            name = o.optString("name", ""),
+            date = Json.text(o, "date")?.let { java.time.LocalDate.parse(it) },
+            city = Json.text(o, "city"),
+        )
     }
 }
 
-/** The event's feed: the people who were there, and what they chose to show. */
+/**
+ * The one feed an event opens onto (#65, 23/09).
+ *
+ * When the event is part of a tour, [series] names it and [posts] come from
+ * every date, each carrying its own — "Só a minha noite" is a filter the
+ * screen applies, never a second feed. [dates] is one entry for a show on its
+ * own. [hiddenByBlock] is how many posts a block kept out, so an empty feed
+ * can say why it is empty (#63).
+ */
 data class ServerFeed(
     val eventId: String,
     val eventName: String,
     val venue: String?,
     val posts: List<ServerPost>,
-    /** The level above this night, when there is one — the door to it. */
     val series: ServerSeries? = null,
+    val dates: List<ServerFeedDate> = emptyList(),
+    val hiddenByBlock: Int = 0,
 ) {
     /** Reads `GET /api/events/{id}/feed`. Pure, tested. */
     companion object {
@@ -117,6 +120,10 @@ data class ServerFeed(
                 venue = Json.text(o, "venue"),
                 posts = (0 until array.length()).map { i -> ServerPost.parse(array.getJSONObject(i)) },
                 series = o.optJSONObject("series")?.let { ServerSeries.parse(it) },
+                dates = (o.optJSONArray("events") ?: JSONArray()).let { d ->
+                    (0 until d.length()).map { ServerFeedDate.parse(d.getJSONObject(it)) }
+                },
+                hiddenByBlock = o.optInt("hidden_by_block", 0),
             )
         }
     }

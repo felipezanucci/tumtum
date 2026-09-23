@@ -172,49 +172,45 @@
          por evento (22/09), para que só quem esteve junto converse. -->
     <string name="feed_headline_a">ONDE A TUMTUM</string>
     <string name="feed_headline_b">TÁ ROLANDO.</string>
-    <string name="feed_sub">Toca num rolê pra ver a galera que estava lá.</string>
-    <string name="feed_loading">Carregando os rolês…</string>
+    <string name="feed_sub">Toca num evento pra ver a galera que estava lá.</string>
+    <string name="feed_loading">Carregando os eventos…</string>
     <!-- "Nada aqui" e "não consegui perguntar" são frases diferentes. -->
-    <string name="feed_empty">Nenhum rolê cadastrado ainda.</string>
-    <string name="feed_failed">Não deu pra carregar os rolês. Confere a conexão e tenta de novo.</string>
+    <string name="feed_empty">Nenhum evento cadastrado ainda.</string>
+    <string name="feed_failed">Não deu pra carregar os eventos. Confere a conexão e tenta de novo.</string>
     <string name="feed_row_live">ROLANDO</string>
     <string name="feed_row_open">ABRIR</string>
 
     <!-- b6 · O feed do evento -->
-    <string name="event_feed_title_fallback">Rolê</string>
+    <string name="event_feed_title_fallback">Feed</string>
     <string name="event_feed_loading">Carregando…</string>
     <string name="event_feed_empty">Ninguém mostrou nada ainda. Pode ser você.</string>
-    <string name="event_feed_not_there">Esse rolê é de quem estava lá. Sua noite não chegou aqui.</string>
+    <string name="event_feed_not_there">Esse feed é de quem estava lá. Sua noite não chegou aqui.</string>
     <string name="event_feed_signed_out">Entra na sua conta pra ver a galera.</string>
     <string name="event_feed_session_expired">Sua sessão venceu — de tempos em tempos a gente pede a senha de novo. Suas noites continuam aqui.</string>
     <string name="event_feed_sign_in_again">Entrar de novo</string>
     <string name="event_feed_sign_in">Entrar</string>
-    <string name="event_feed_offline">Sem conexão. Não deu pra carregar o rolê.</string>
-    <string name="event_feed_failed">Não deu pra carregar o rolê.</string>
+    <string name="event_feed_offline">Sem conexão. Não deu pra carregar o feed.</string>
+    <string name="event_feed_failed">Não deu pra carregar o feed.</string>
     <string name="event_feed_retry">TENTAR DE NOVO</string>
-    <string name="event_feed_take_down">tirar do rolê</string>
+    <string name="event_feed_take_down">tirar do feed</string>
     <string name="event_feed_taking_down">tirando…</string>
     <string name="event_feed_show_mine">Mostrar a minha</string>
     <string name="event_feed_empty_locked">Ninguém mostrou nada ainda. Sua noite abre às %1$s — aí dá pra mostrar.</string>
     <string name="event_feed_empty_elsewhere">Ninguém mostrou nada ainda.</string>
-    <string name="event_feed_senti_refused">Esse SENTI TB não entrou: o servidor diz que sua noite não é desse rolê.</string>
+    <string name="event_feed_senti_refused">Esse SENTI TB não entrou: o servidor diz que sua noite não é desse evento.</string>
     <string name="event_feed_senti_offline">Sem conexão — seu SENTI TB não chegou. Toca de novo quando voltar.</string>
     <string name="event_feed_senti_failed">Seu SENTI TB não chegou no servidor. Toca de novo.</string>
-    <string name="event_feed_takedown_offline">Sem conexão — continua no rolê até dar pra tirar.</string>
-    <!-- The level above the rolê (#33). -->
-    <string name="series_kind_tour">turnê</string>
-    <string name="series_kind_club">torcida</string>
-    <string name="series_kind_league">campeonato</string>
-    <string name="series_kind_tour_the">a turnê</string>
-    <string name="series_kind_club_the">a torcida</string>
-    <string name="series_kind_league_the">o campeonato</string>
-    <string name="series_dates">%1$d datas · %2$s</string>
-    <string name="series_door">%1$s: %2$s · %3$d DATAS →</string>
-    <string name="series_not_there">Esse feed é de quem foi em alguma data. Sua noite não chegou aqui.</string>
-    <string name="series_empty">Ninguém mostrou nada pra todo mundo ainda. Na hora de postar, dá pra escolher mostrar pra todas as datas.</string>
-    <string name="feed_post_consent_series">Quem estava nesse rolê vai ver sua batida no momento e seu nome. Se você incluir %1$s, quem foi em qualquer outra data também vê. Dá pra tirar quando quiser.</string>
-    <string name="feed_post_confirm_series">Pode mostrar — rolê e %1$s</string>
-    <string name="feed_post_confirm_event_only">Só pro rolê</string>
+    <string name="event_feed_takedown_offline">Sem conexão — continua no feed até dar pra tirar.</string>
+    <!-- Um feed só por evento (#65, 23/09): o da turnê, quando há uma. A
+         noite vira filtro, nunca outra tela. Nunca "1 datas" (#66). -->
+    <string name="feed_tour_line">%1$s · %2$d datas</string>
+    <string name="feed_filter_all">TODAS AS DATAS</string>
+    <string name="feed_filter_mine">SÓ A MINHA NOITE</string>
+    <string name="feed_filter_mine_empty">Da sua noite, ninguém mostrou nada ainda. As outras datas estão em “Todas as datas”.</string>
+    <!-- #63: vazio por causa de um bloqueio não é "ninguém postou". -->
+    <string name="event_feed_empty_blocked">Nada pra ver aqui além de quem você bloqueou.</string>
+    <string name="feed_post_cta_tour">Mostrar pra galera da turnê</string>
+    <string name="feed_post_consent_tour">Quem foi em qualquer data da turnê vai ver sua batida no momento e seu nome. Dá pra tirar quando quiser.</string>
     <!-- Report and block (#36). Quiet and careful: this is a safety screen. -->
     <string name="mod_open">denunciar ou bloquear</string>
     <string name="mod_title">O que tem de errado?</string>
@@ -222,17 +218,17 @@
     <string name="mod_report_fake">Denunciar — parece falso</string>
     <string name="mod_report_other">Denunciar — outra coisa</string>
     <string name="mod_block">Bloquear %1$s</string>
-    <string name="mod_block_hint">Vocês deixam de se ver nos rolês. Dá pra desfazer em Configurações.</string>
+    <string name="mod_block_hint">Vocês deixam de se ver nos feeds. Dá pra desfazer em Configurações.</string>
     <string name="mod_cancel">Cancelar</string>
     <string name="mod_reported">Recebido. Alguém da TumTum vai olhar.</string>
-    <string name="mod_blocked">Você não vai mais ver %1$s nos rolês. Dá pra desfazer em Configurações.</string>
+    <string name="mod_blocked">Você não vai mais ver %1$s nos feeds. Dá pra desfazer em Configurações.</string>
     <string name="mod_failed">Não deu pra enviar agora. Tenta de novo.</string>
     <string name="mod_offline">Sem conexão — nada foi enviado. Tenta de novo quando voltar.</string>
     <string name="settings_blocked_section">PESSOAS QUE VOCÊ BLOQUEOU</string>
     <string name="settings_blocked_none">Ninguém.</string>
     <string name="settings_blocked_failed">Não deu pra carregar a lista agora.</string>
     <string name="settings_unblock">desbloquear</string>
-    <string name="event_feed_takedown_failed">Não deu pra tirar agora — continua no rolê. Tenta de novo.</string>
+    <string name="event_feed_takedown_failed">Não deu pra tirar agora — continua no feed. Tenta de novo.</string>
     <string name="feed_post_at">às %1$s</string>
     <!-- Abaixo do piso do servidor não existe número coletivo: ele seria um
          fato sobre cada pessoa do grupo. Diz quantas são, nunca zero. -->
@@ -240,15 +236,19 @@
     <string name="crowd_nights">%1$d NOITES MEDIDAS</string>
     <string name="crowd_top">%1$d JUNTOS ÀS %2$s</string>
 
-    <!-- Postar no rolê é publicar dado de saúde: a pergunta é no momento,
+    <!-- Postar no feed é publicar dado de saúde: a pergunta é no momento,
          com todas as letras, e dá pra tirar depois (item 47 / 22/09). -->
-    <string name="feed_post_cta">Mostrar pra galera do rolê</string>
-    <string name="feed_post_consent">Quem estava no mesmo rolê vai ver sua batida no momento e seu nome. Só eles. Dá pra tirar quando quiser.</string>
+    <string name="feed_post_cta">Mostrar pra quem estava lá</string>
+    <string name="feed_post_consent">Quem estava lá vai ver sua batida no momento e seu nome. Só eles. Dá pra tirar quando quiser.</string>
     <string name="feed_post_confirm">Pode mostrar</string>
     <string name="feed_post_running">Mostrando…</string>
     <string name="feed_post_cancel">Agora não</string>
-    <string name="feed_post_done">Tá no rolê. Pra tirar, é só abrir o rolê e tocar em “tirar do rolê”.</string>
+    <string name="feed_post_done">Tá no feed. Pra tirar, é só abrir o feed e tocar em “tirar do feed”.</string>
     <string name="feed_post_failed">Não deu pra mostrar agora. Tenta de novo.</string>
+    <string name="feed_post_offline">Sem conexão — nada foi mostrado. Tenta de novo quando voltar.</string>
+    <string name="feed_post_signed_out">Sua sessão venceu. Entra de novo pra mostrar.</string>
+    <!-- #58: a noite foi enviada por outra conta; o servidor vai recusar. -->
+    <string name="feed_post_other_account">Essa noite foi enviada por outra conta. Entra com ela pra mostrar.</string>
 
     <!-- b7 · Galeria -->
     <string name="gallery_title">Sua galeria</string>
@@ -391,11 +391,15 @@
     <string name="auth_working">Um segundo…</string>
     <!-- What a declined tap says (22/09): the button never fades, so the missing
          piece is named under it instead. -->
-    <string name="form_missing_name">Falta o seu nome.</string>
+    <!-- #56, 23/09: "Falta um email — com @." soou estranho. Frase simples,
+         dizendo o que fazer. -->
+    <string name="form_missing_name">Coloca seu nome.</string>
     <string name="form_short_username">O @ precisa de pelo menos 3 letras.</string>
     <string name="form_username_taken">Esse @ já tem dono. Tenta outro.</string>
-    <string name="form_missing_email">Falta um email — com @.</string>
-    <string name="form_missing_password">Falta a senha.</string>
+    <string name="form_missing_email_and_password">Coloca seu e-mail e sua senha.</string>
+    <string name="form_missing_email">Coloca seu e-mail.</string>
+    <string name="form_email_without_at">Confere o e-mail: tá faltando o @.</string>
+    <string name="form_missing_password">Coloca sua senha.</string>
     <string name="form_short_password">A senha precisa de 8 caracteres ou mais.</string>
     <string name="form_same_name">Esse já é o seu nome.</string>
     <string name="form_name_saved">Salvo.</string>
@@ -485,4 +489,7 @@
     <string name="locked_badge">LACRADA</string>
     <string name="locked_row_hint">Abre às 10h. Sem espiar — é parte da mágica.</string>
     <string name="locked_export">Exportar sessão — operador</string>
+    <!-- #62: o olhinho da senha. -->
+    <string name="field_password_show">Mostrar a senha</string>
+    <string name="field_password_hide">Esconder a senha</string>
 </resources>

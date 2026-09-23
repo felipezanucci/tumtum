@@ -26,4 +26,33 @@ object CardFoot {
         while (end > 1 && measure(text.substring(0, end).trimEnd() + "…") > maxWidth) end--
         return text.substring(0, end).trimEnd() + "…"
     }
+
+    /**
+     * [text] in at most [maxLines] lines of [maxWidth], broken between words,
+     * the last line cut with an ellipsis only if the name is longer still
+     * (#61, 23/09). "TESTE - MADONNA - CONFES…" on one row read as broken; a
+     * name gets two lines before it loses anything.
+     */
+    fun wrap(text: String, maxWidth: Float, maxLines: Int = 2, measure: (String) -> Float): List<String> {
+        val words = text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        if (words.isEmpty()) return emptyList()
+        val lines = mutableListOf<String>()
+        var current = ""
+        var i = 0
+        while (i < words.size) {
+            val candidate = if (current.isEmpty()) words[i] else "$current ${words[i]}"
+            if (measure(candidate) <= maxWidth || current.isEmpty()) {
+                current = candidate
+                i++
+            } else {
+                lines += current
+                current = ""
+                if (lines.size == maxLines - 1) break
+            }
+        }
+        // Whatever is left belongs to the last line, cut to fit if it must be.
+        val rest = (listOf(current) + words.drop(i)).filter { it.isNotEmpty() }.joinToString(" ")
+        if (rest.isNotEmpty()) lines += fit(rest, maxWidth, measure)
+        return lines.map { fit(it, maxWidth, measure) }
+    }
 }

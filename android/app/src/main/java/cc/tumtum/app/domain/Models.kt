@@ -68,6 +68,8 @@ data class Night(
     val momentsSource: MomentsSource = MomentsSource.LOCAL,
     /** The photo behind the last shared black card, when there was one. */
     val photoPath: String? = null,
+    /** The account that uploaded it; null when unknown (before 23/09). */
+    val ownerUserId: String? = null,
 )
 
 /** Fonte disponível no Health Connect, com densidade real medida na janela (b4). */

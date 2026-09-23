@@ -119,9 +119,12 @@ interface NightDao {
     @Query(
         "SELECT nights.* FROM nights JOIN events ON events.id = nights.eventId " +
             "WHERE events.serverEventId = :serverEventId AND nights.serverSessionId IS NOT NULL " +
+            // Only the signed-in account's night (#58). A night from before the
+            // owner was recorded is still offered; the server has the last word.
+            "AND (nights.ownerUserId IS NULL OR nights.ownerUserId = :ownerUserId) " +
             "ORDER BY nights.startAt DESC LIMIT 1",
     )
-    suspend fun uploadedNightAt(serverEventId: String): NightEntity?
+    suspend fun uploadedNightAt(serverEventId: String, ownerUserId: String?): NightEntity?
 
     @Query("SELECT * FROM samples WHERE nightId = :nightId ORDER BY time")
     suspend fun samplesOf(nightId: Long): List<SampleEntity>
@@ -136,8 +139,8 @@ interface NightDao {
     @Query("SELECT * FROM moments WHERE nightId = :nightId")
     suspend fun momentsOf(nightId: Long): List<MomentEntity>
 
-    @Query("UPDATE nights SET serverSessionId = :serverSessionId WHERE id = :id")
-    suspend fun setServerSessionId(id: Long, serverSessionId: String)
+    @Query("UPDATE nights SET serverSessionId = :serverSessionId, ownerUserId = :ownerUserId WHERE id = :id")
+    suspend fun setServerSessionId(id: Long, serverSessionId: String, ownerUserId: String?)
 
     @Query("UPDATE nights SET uploadState = :state, uploadError = :error WHERE id = :id")
     suspend fun setUploadState(id: Long, state: String, error: String?)

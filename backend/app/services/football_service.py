@@ -72,6 +72,9 @@ SOURCE = "api-football"
 # periods are a third party that proved itself on this fixture; the schedule
 # is a guess.
 CLOCK_TAP = "tap"
+# The server watched the match live and saw the status change (#52): as
+# measured as a tap, and it needs nobody standing there.
+CLOCK_LIVE = "api_live"
 CLOCK_API = "api_periods"
 CLOCK_SCHEDULE = "schedule"
 
@@ -164,6 +167,8 @@ def match_clock(
     second_half_at: datetime | None = None,
     period_first: datetime | None = None,
     period_second: datetime | None = None,
+    kickoff_source: str = CLOCK_TAP,
+    second_half_source: str = CLOCK_TAP,
 ) -> MatchClock:
     """Build the two clocks from what is known.
 
@@ -173,10 +178,12 @@ def match_clock(
     Args:
         scheduled_kickoff: The fixture's advertised time — the fallback.
         events: The API's events, read for first-half stoppage.
-        kickoff_at: The operator's APITO INICIAL tap, if there was one.
-        second_half_at: The operator's 2º TEMPO tap, if there was one.
+        kickoff_at: The measured kick-off — a tap or the live watch — if any.
+        second_half_at: The measured restart — a tap or the live watch — if any.
         period_first: ``periods.first`` from the fixture, if the feed has it.
         period_second: ``periods.second`` from the fixture, if the feed has it.
+        kickoff_source: Who measured ``kickoff_at`` — CLOCK_TAP or CLOCK_LIVE.
+        second_half_source: Who measured ``second_half_at``.
     """
     stoppage = max(
         (
@@ -191,14 +198,14 @@ def match_clock(
     measured = periods_are_measured(scheduled_kickoff, period_first)
 
     if kickoff_at is not None:
-        first, first_source = kickoff_at, CLOCK_TAP
+        first, first_source = kickoff_at, kickoff_source
     elif measured and period_first is not None:
         first, first_source = period_first, CLOCK_API
     else:
         first, first_source = scheduled_kickoff, CLOCK_SCHEDULE
 
     if second_half_at is not None:
-        second, second_source = second_half_at, CLOCK_TAP
+        second, second_source = second_half_at, second_half_source
     elif measured and period_second is not None:
         second, second_source = period_second, CLOCK_API
     else:
@@ -228,6 +235,25 @@ def anchors_from_timeline(
     kickoff = [e["timestamp"] for e in timeline if e.get("entry_type") == KICKOFF]
     second = [e["timestamp"] for e in timeline if e.get("entry_type") == SECOND_HALF]
     return (min(kickoff) if kickoff else None, min(second) if second else None)
+
+
+def anchor_sources_from_timeline(timeline: list[dict]) -> tuple[str, str]:
+    """Who measured the anchors [anchors_from_timeline] picked.
+
+    Each entry may carry ``"source"`` — its metadata's source. The live watch
+    (#52) writes ``api-football-live``; anything else of these two types is
+    an operator's tap.
+    """
+    from app.services.match_watch import LIVE_SOURCE
+
+    def source(entry_type: str) -> str:
+        found = [e for e in timeline if e.get("entry_type") == entry_type]
+        if not found:
+            return CLOCK_TAP
+        earliest = min(found, key=lambda e: e["timestamp"])
+        return CLOCK_LIVE if earliest.get("source") == LIVE_SOURCE else CLOCK_TAP
+
+    return source(KICKOFF), source(SECOND_HALF)
 
 
 def scheduled_kickoff(fixture: dict) -> datetime:
@@ -385,14 +411,18 @@ def parse_fixture_to_timeline(
     events: list[dict],
     kickoff_at: datetime | None = None,
     second_half_at: datetime | None = None,
+    kickoff_source: str = CLOCK_TAP,
+    second_half_source: str = CLOCK_TAP,
 ) -> list[dict]:
     """Convert API-Football fixture events into timeline entries.
 
     Args:
         fixture: Fixture data with match info and scheduled kick-off
         events: List of match events (goals, cards, subs)
-        kickoff_at: When the first half really started (operator's tap)
-        second_half_at: When the second half really started (operator's tap)
+        kickoff_at: When the first half really started (a tap or the live watch)
+        second_half_at: When the second half really started (likewise)
+        kickoff_source: Who measured ``kickoff_at``.
+        second_half_source: Who measured ``second_half_at``.
 
     Returns:
         List of timeline entry dicts ready for EventTimeline creation. Every
@@ -408,6 +438,8 @@ def parse_fixture_to_timeline(
         second_half_at,
         period_first,
         period_second,
+        kickoff_source=kickoff_source,
+        second_half_source=second_half_source,
     )
     home = fixture.get("teams", {}).get("home", {}).get("name")
     away = fixture.get("teams", {}).get("away", {}).get("name")
@@ -439,10 +471,11 @@ def parse_fixture_to_timeline(
     timeline = []
 
     # The two half starts are entries too — a moment at the whistle is named
-    # by the whistle. When the operator tapped one, the tap already is that
-    # entry, and a second copy would only give the correlator two names for
-    # the same instant.
-    if not clock.first_half_anchored:
+    # by the whistle. When a tap or the live watch measured one, that entry
+    # already exists, and a second copy would only give the correlator two
+    # names for the same instant.
+    measured_here = (CLOCK_TAP, CLOCK_LIVE)
+    if clock.first_half_source not in measured_here:
         timeline.append(
             {
                 "timestamp": clock.first_half_start,
@@ -451,7 +484,7 @@ def parse_fixture_to_timeline(
                 "metadata": meta(0, home=home, away=away),
             }
         )
-    if not clock.second_half_anchored:
+    if clock.second_half_source not in measured_here:
         timeline.append(
             {
                 "timestamp": clock.second_half_start,

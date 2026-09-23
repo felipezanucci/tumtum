@@ -31,6 +31,22 @@ const navLinks = [
 ]
 
 /**
+ * Inside the operator's area the bar is the operator's (#64, 23/09).
+ *
+ * Felipe, testing the admin on a phone: *"cliquei em eventos, e eu saí da
+ * parte de administrador."* The fan's menu was still on top of the operator's
+ * pages, and its first word — Eventos — is also the operator's first word, so
+ * the most natural tap led out of the admin. Inside `/admin` the links are the
+ * operator's own, the wordmark goes to the operator's home, and leaving is an
+ * explicit act with a name that says where it goes.
+ */
+const operatorLinks = [
+  { href: '/admin/eventos', label: 'Eventos' },
+  { href: '/admin/denuncias', label: 'Denúncias' },
+  { href: '/events', label: 'Ver o app como fã' },
+]
+
+/**
  * The five links used to sit in a horizontally scrolling strip. On a 360px
  * phone — the one this is tested on — that strip overflowed by 47px with
  * "Perfil" entirely off screen, and its left edge touched the wordmark with
@@ -49,9 +65,13 @@ export default function Nav() {
   // setlist — is the
   // operator's door. It shows only for an account the server says operates
   // the platform; the endpoints behind it check for themselves either way.
-  const links = user?.is_admin
-    ? [...navLinks, { href: '/admin/eventos', label: 'Operação' }]
-    : navLinks
+  const inAdmin = pathname?.startsWith('/admin') ?? false
+  const links = inAdmin
+    ? operatorLinks
+    : user?.is_admin
+      ? [...navLinks, { href: '/admin/eventos', label: 'Operação' }]
+      : navLinks
+  const home = inAdmin ? '/admin/eventos' : '/events'
 
   // Following a link should leave the menu behind.
   useEffect(() => {
@@ -79,8 +99,13 @@ export default function Nav() {
           asking you to create an account. Nav only ever renders inside the
           authenticated area, so its home is the events list.
         */}
-        <Link href="/events" className="flex shrink-0 items-center gap-2">
+        <Link href={home} className="flex shrink-0 items-center gap-2">
           <Wordmark className="h-5 w-auto text-tumtum-white" />
+          {inAdmin && (
+            <span className="rounded bg-tumtum-yellow px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-tumtum-black">
+              Operação
+            </span>
+          )}
         </Link>
 
         {/* Phones: one button, far from the wordmark. */}

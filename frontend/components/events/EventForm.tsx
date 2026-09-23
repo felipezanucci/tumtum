@@ -173,8 +173,12 @@ export function DateField({
   const lastDay = daysIn(Number(year) || now, Number(month))
   const days = Array.from({ length: lastDay }, (_, i) => String(i + 1).padStart(2, '0'))
 
+  // Each select keeps a floor wide enough for its longest value plus the
+  // native arrow. Without one, a narrow column (the football search's date,
+  // on a desktop browser) shared the width three ways and cut "2026" to
+  // "202" (#50, 23/09).
   const select =
-    'w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-2 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none'
+    'min-w-0 rounded-lg border border-tumtum-border bg-tumtum-surface px-2 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none'
 
   function set(nextDay: string, nextMonth: string, nextYear: string) {
     if (!nextDay && !nextMonth && !nextYear) {
@@ -199,7 +203,7 @@ export function DateField({
         <select
           id={`${id}-day`}
           aria-label={`${label} — dia`}
-          className={select}
+          className={`${select} flex-1 min-w-[4.75rem]`}
           value={day}
           onChange={(e) => set(e.target.value, month, year)}
         >
@@ -213,7 +217,7 @@ export function DateField({
         <select
           id={`${id}-month`}
           aria-label={`${label} — mês`}
-          className={select}
+          className={`${select} flex-[1.2] min-w-[5.5rem]`}
           value={month}
           onChange={(e) => set(day, e.target.value, year)}
         >
@@ -227,7 +231,7 @@ export function DateField({
         <select
           id={`${id}-year`}
           aria-label={`${label} — ano`}
-          className={select}
+          className={`${select} flex-[1.4] min-w-[6.5rem]`}
           value={year}
           onChange={(e) => set(day, month, e.target.value)}
         >
@@ -300,7 +304,6 @@ export function EventForm({
           className={field}
           value={form.name}
           onChange={(e) => set('name', e.target.value)}
-          placeholder="Realness Festival 2026"
           autoFocus
         />
 
@@ -366,7 +369,6 @@ export function EventForm({
           className={field}
           value={form.venue}
           onChange={(e) => set('venue', e.target.value)}
-          placeholder="Vibra São Paulo"
         />
 
         <label className={`${label} mt-4`} htmlFor="city">

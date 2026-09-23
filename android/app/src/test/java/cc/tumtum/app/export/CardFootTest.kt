@@ -34,4 +34,33 @@ class CardFootTest {
         assertTrue(cut.length <= 10)
         assertTrue(cut.length > 1)
     }
+
+    @Test
+    fun `a long name takes two lines before it loses a letter`() {
+        val lines = CardFoot.wrap("TESTE - MADONNA - CONFESSIONS", 18f, measure = perChar)
+
+        assertEquals(listOf("TESTE - MADONNA -", "CONFESSIONS"), lines)
+    }
+
+    @Test
+    fun `a name too long for two lines is cut on the second`() {
+        val lines = CardFoot.wrap("UM NOME MUITO MUITO MUITO LONGO DEMAIS PRA CABER", 12f, measure = perChar)
+
+        assertEquals(2, lines.size)
+        assertTrue(lines.last().endsWith("…"))
+        assertTrue(lines.all { it.length <= 12 })
+    }
+
+    @Test
+    fun `a short name stays on one line`() {
+        assertEquals(listOf("SÃO PAULO × VITÓRIA"), CardFoot.wrap("SÃO PAULO × VITÓRIA", 40f, measure = perChar))
+    }
+
+    @Test
+    fun `one word longer than the line is cut, never dropped`() {
+        val lines = CardFoot.wrap("SUPERCALIFRAGILISTICO", 8f, measure = perChar)
+
+        assertEquals(1, lines.size)
+        assertTrue(lines.single().endsWith("…"))
+    }
 }

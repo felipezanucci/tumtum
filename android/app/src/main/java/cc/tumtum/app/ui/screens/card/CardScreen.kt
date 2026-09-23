@@ -38,6 +38,7 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.data.api.ServerSeries
+import cc.tumtum.app.data.repo.PostResult
 import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
@@ -310,7 +311,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
 }
 
 /**
- * "Mostrar pra galera do rolê" — the one place a moment becomes public.
+ * "Mostrar pra galera" — the one place a moment becomes public.
  *
  * Posting is **not** sharing. The share sheet sends a picture the person
  * controls to people they chose; this puts their heart rate, at a named
@@ -319,7 +320,12 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
  *
  *  - it is asked at the moment of posting, never agreed once in a setting;
  *  - the sentence says what will be visible and to whom, in plain words;
- *  - it is undoable, and the feed shows *tirar do rolê* on your own posts.
+ *  - it is undoable, and the feed shows *tirar do feed* on your own posts.
+ *
+ * **One question** (#65, 23/09). A show in a tour posts to the tour — the
+ * people at every date — and the sentence says exactly that; a show on its
+ * own posts to the people who were there. The two-way choice ("rolê e
+ * turnê" / "só pro rolê") is gone with the second feed it chose between.
  *
  * It appears only when there is a feed to post to: the night must have
  * reached the server and belong to an event that exists there. Otherwise
@@ -338,7 +344,7 @@ private fun DoneActions(
     // mostrar" — so the eye had no first place to land. Now the screen has
     // one primary act, chosen by where the person is:
     //
-    //  - the night can go to its rolê → "Mostrar pra galera do rolê";
+    //  - the night can go to its feed → "Mostrar pra galera…";
     //  - they are being asked       → "Pode mostrar", and nothing else;
     //  - it is posted, or cannot be → "Ver a galeria".
     //
@@ -349,7 +355,10 @@ private fun DoneActions(
     var asking by remember { mutableStateOf(false) }
     var posting by remember { mutableStateOf(false) }
     var posted by remember(nightId) { mutableStateOf(false) }
-    var failed by remember { mutableStateOf(false) }
+    // What the last attempt got back, said in words (#58): the server's own
+    // sentence when it refused, never a generic "não deu".
+    var failure by remember { mutableStateOf<String?>(null) }
+    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
 
     // The tour above this night, if any (#33): it changes what "posting" can
     // mean, so the consent has to name it.
@@ -362,7 +371,15 @@ private fun DoneActions(
 
     val target = eventId
     val sessionId = night.serverSessionId
-    val canPost = target != null && sessionId != null
+    // A night belongs to the account that uploaded it (#58). Signed in as
+    // another, the server would refuse — so the app says so instead of
+    // offering an act that cannot succeed.
+    val signedInAs = user?.session?.userId
+    val otherAccount = night.ownerUserId != null && signedInAs != null && night.ownerUserId != signedInAs
+    val canPost = target != null && sessionId != null && !otherAccount
+    val postFailedText = stringResource(R.string.feed_post_failed)
+    val postOfflineText = stringResource(R.string.feed_post_offline)
+    val postSignedOutText = stringResource(R.string.feed_post_signed_out)
 
     val openGallery = {
         nav.navigate(Routes.Gallery) {
@@ -374,7 +391,7 @@ private fun DoneActions(
     fun send(toSeries: Boolean) {
         posting = true
         scope.launch {
-            val ok = container.social.post(
+            val result = container.social.post(
                 serverEventId = target!!,
                 serverSessionId = sessionId!!,
                 bpm = night.peakBpm,
@@ -384,68 +401,32 @@ private fun DoneActions(
                 skin = skin.name,
                 toSeries = toSeries,
             )
-            posted = ok
-            failed = !ok
+            posted = result is PostResult.Posted
+            failure = when (result) {
+                PostResult.Posted -> null
+                is PostResult.Refused -> result.detail
+                PostResult.SignedOut -> postSignedOutText
+                is PostResult.Failed -> if (result.offline) postOfflineText else postFailedText
+            }
             asking = false
             posting = false
         }
     }
 
+    val toTour = series != null
     if (asking && canPost) {
-        val wider = series
-        // Two audiences, two buttons, and the sentence names both (#33). The
-        // wider one is never the silent default: everyone who posted before
-        // the tour feed existed was promised "só eles".
-        val word = wider?.let {
-            stringResource(
-                when (it.kind) {
-                    "club" -> R.string.series_kind_club
-                    "league" -> R.string.series_kind_league
-                    else -> R.string.series_kind_tour
-                },
-            )
-        }
-        val withArticle = wider?.let {
-            stringResource(
-                when (it.kind) {
-                    "club" -> R.string.series_kind_club_the
-                    "league" -> R.string.series_kind_league_the
-                    else -> R.string.series_kind_tour_the
-                },
-            )
-        }
         Text(
-            if (withArticle != null) {
-                stringResource(R.string.feed_post_consent_series, withArticle)
-            } else {
-                stringResource(R.string.feed_post_consent)
-            },
+            stringResource(if (toTour) R.string.feed_post_consent_tour else R.string.feed_post_consent),
             style = TTType.BodySmall,
             color = TT.Gray45,
         )
         Spacer(Modifier.height(12.dp))
-        if (word != null) {
-            TTButton(
-                if (posting) stringResource(R.string.feed_post_running) else stringResource(R.string.feed_post_confirm_series, word),
-                TTButtonStyle.Rose,
-                enabled = !posting,
-                onClick = { send(toSeries = true) },
-            )
-            Spacer(Modifier.height(8.dp))
-            TTButton(
-                stringResource(R.string.feed_post_confirm_event_only),
-                TTButtonStyle.OutlineOnDark,
-                enabled = !posting,
-                onClick = { send(toSeries = false) },
-            )
-        } else {
-            TTButton(
-                stringResource(if (posting) R.string.feed_post_running else R.string.feed_post_confirm),
-                TTButtonStyle.Rose,
-                enabled = !posting,
-                onClick = { send(toSeries = false) },
-            )
-        }
+        TTButton(
+            stringResource(if (posting) R.string.feed_post_running else R.string.feed_post_confirm),
+            TTButtonStyle.Rose,
+            enabled = !posting,
+            onClick = { send(toSeries = toTour) },
+        )
         Spacer(Modifier.height(8.dp))
         TTButton(
             stringResource(R.string.feed_post_cancel),
@@ -458,13 +439,13 @@ private fun DoneActions(
 
     if (canPost && !posted) {
         TTButton(
-            stringResource(R.string.feed_post_cta),
+            stringResource(if (toTour) R.string.feed_post_cta_tour else R.string.feed_post_cta),
             TTButtonStyle.Rose,
-            onClick = { asking = true; failed = false },
+            onClick = { asking = true; failure = null },
         )
-        if (failed) {
+        failure?.let {
             Spacer(Modifier.height(6.dp))
-            Text(stringResource(R.string.feed_post_failed), style = TTType.BodySmall, color = TT.Rose)
+            Text(it, style = TTType.BodySmall, color = TT.Rose)
         }
         Spacer(Modifier.height(10.dp))
         TTButton(
@@ -475,6 +456,9 @@ private fun DoneActions(
     } else {
         if (posted) {
             Text(stringResource(R.string.feed_post_done), style = TTType.BodySmall, color = TT.Acid)
+            Spacer(Modifier.height(12.dp))
+        } else if (otherAccount) {
+            Text(stringResource(R.string.feed_post_other_account), style = TTType.BodySmall, color = TT.Gray45)
             Spacer(Modifier.height(12.dp))
         }
         TTButton(

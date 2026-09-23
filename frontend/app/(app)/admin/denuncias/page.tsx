@@ -70,7 +70,7 @@ export default function ReportsPage() {
       await moderation.resolve(post.post_id, action)
       setDone(
         action === 'remove'
-          ? `O post de ${post.author.name} saiu do rolê.`
+          ? `O post de ${post.author.name} saiu do feed.`
           : `O post de ${post.author.name} fica — e volta pro feed se tinha sido escondido.`,
       )
       await load()
@@ -91,7 +91,7 @@ export default function ReportsPage() {
           </Link>
           <h1 className="mt-3 text-3xl font-hero text-tumtum-white">Denúncias</h1>
           <p className="mt-2 text-sm text-tumtum-muted">
-            O que alguém do rolê achou que não devia estar lá. Com três denúncias o post
+            O que alguém que estava lá achou que não devia estar no feed. Com três denúncias o post
             some do feed até você decidir.
           </p>
 

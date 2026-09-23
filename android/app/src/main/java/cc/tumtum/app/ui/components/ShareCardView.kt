@@ -140,7 +140,8 @@ fun ShareCardView(
             }
         } else {
             if (event != null) {
-                EventBox(event, skin, w, Modifier.padding(top = (w * 0.04f).dp))
+                // Its own row: two lines before a cut, as the renderer (#61).
+                EventBox(event, skin, w, Modifier.padding(top = (w * 0.04f).dp), maxLines = 2)
             }
             Row(
                 Modifier.fillMaxWidth().padding(top = (w * if (event != null) 0.022f else 0.04f).dp),
@@ -157,7 +158,7 @@ fun ShareCardView(
 
 /** The event's name in its box: acid with black type, or black on the skins acid would vanish into. */
 @Composable
-private fun EventBox(event: String, skin: Skin, w: Float, modifier: Modifier = Modifier) {
+private fun EventBox(event: String, skin: Skin, w: Float, modifier: Modifier = Modifier, maxLines: Int = 1) {
     val dark = skin == Skin.YELLOW || skin == Skin.WHITE
     Text(
         event,
@@ -172,7 +173,7 @@ private fun EventBox(event: String, skin: Skin, w: Float, modifier: Modifier = M
             Skin.WHITE -> TT.Paper
             else -> TT.Ink
         },
-        maxLines = 1,
+        maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier
             .background(if (dark) TT.Ink else TT.Acid)

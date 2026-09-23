@@ -113,9 +113,13 @@ class NightRepository(
      * feed needs it, and a null is the honest answer that there is no feed to
      * post to rather than a failure.
      */
-    /** This phone's uploaded night at [serverEventId], or null when it lives elsewhere or nowhere. */
-    suspend fun uploadedNightAt(serverEventId: String): NightEntity? =
-        db.nightDao().uploadedNightAt(serverEventId)
+    /**
+     * This phone's uploaded night at [serverEventId] **that belongs to
+     * [ownerUserId]**, or null when it lives elsewhere, nowhere, or under
+     * another account (#58).
+     */
+    suspend fun uploadedNightAt(serverEventId: String, ownerUserId: String?): NightEntity? =
+        db.nightDao().uploadedNightAt(serverEventId, ownerUserId)
 
     suspend fun serverEventIdFor(nightId: Long): String? {
         val night = db.nightDao().nightRow(nightId) ?: return null
@@ -306,6 +310,7 @@ class NightRepository(
             uploadError = night.uploadError,
             momentsSource = runCatching { MomentsSource.valueOf(night.momentsSource) }.getOrDefault(MomentsSource.LOCAL),
             photoPath = night.photoPath,
+            ownerUserId = night.ownerUserId,
         )
     }
 

@@ -42,8 +42,8 @@ class FeedPostCreate(BaseModel):
     label: str | None = Field(None, max_length=255)
     quote: str | None = Field(None, max_length=280)
     skin: str = Field("BLACK", max_length=20)
-    # Show it to the whole tour / club / championship too (#33). Chosen at
-    # the moment of posting; without it the post stays in the rolê.
+    # Show it to everybody at any date of the tour (#33, #65). Chosen at the
+    # moment of posting; without it only the people at this night see it.
     to_series: bool = False
 
 
@@ -61,14 +61,13 @@ class FeedPostResponse(BaseModel):
     # Whether the viewer may take this one down. The screen shows the undo
     # only where it exists, rather than offering it and then refusing.
     mine: bool
-    # Which night it is from — only in a series feed, where posts from
-    # several dates sit together (#33). Absent in an event's own feed, whose
-    # header already says it.
+    # Which night it is from: in a tour's feed posts from several dates sit
+    # together, and each one carries its own date and city (#33, #65).
     event_name: str | None = None
     event_date: date | None = None
     event_city: str | None = None
-    # Always set: the night a post belongs to, so its author can take it down
-    # from the series feed as well as from the rolê.
+    # Always set: the night a post belongs to — the "Só a minha noite" filter
+    # reads it, and so does its author's undo.
     event_id: uuid.UUID | None = None
 
     @classmethod
@@ -109,21 +108,36 @@ class SeriesBrief(BaseModel):
     dates: int
 
 
-class EventFeedResponse(BaseModel):
-    event_id: uuid.UUID
-    event_name: str
-    venue: str | None
-    date: date
-    posts: list[FeedPostResponse]
-    # The level above this night, when there is one — the door to it.
-    series: SeriesBrief | None = None
-
-
 class SeriesEvent(BaseModel):
     id: uuid.UUID
     name: str
     date: date
     city: str | None
+
+    @classmethod
+    def of(cls, event) -> "SeriesEvent":
+        return cls(id=event.id, name=event.name, date=event.date, city=event.city)
+
+
+class EventFeedResponse(BaseModel):
+    """The one feed an event opens onto (#65).
+
+    When the event is part of a tour, ``series`` names it and ``posts`` come
+    from every date, each carrying its own; the night is a filter the screen
+    applies, never a second feed. ``events`` is the dates, oldest first — one
+    entry for an event outside any tour.
+    """
+
+    event_id: uuid.UUID
+    event_name: str
+    venue: str | None
+    date: date
+    posts: list[FeedPostResponse]
+    series: SeriesBrief | None = None
+    events: list[SeriesEvent] = []
+    # Posts a block (either way) kept out of this feed — a count, nothing
+    # more, so an empty feed can say why it is empty (#63).
+    hidden_by_block: int = 0
 
 
 class SeriesFeedResponse(BaseModel):
@@ -132,6 +146,7 @@ class SeriesFeedResponse(BaseModel):
     kind: str
     events: list[SeriesEvent]
     posts: list[FeedPostResponse]
+    hidden_by_block: int = 0
 
 
 class SeriesCreate(BaseModel):

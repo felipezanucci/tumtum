@@ -20,6 +20,7 @@ from app.schemas.event import (
     EventUpdateRequest,
     FixtureAttachRequest,
     FixtureBrief,
+    MatchWatchResponse,
     SetlistReplaceRequest,
     SetlistSong,
     SetlistStartRequest,
@@ -277,17 +278,69 @@ async def attach_fixture(
             detail=f"A timeline não foi montada — {exc.reason}",
         ) from exc
 
-    existing = await _timeline(db, event_id)
-    kickoff_at, second_half_at = football_service.anchors_from_timeline(
-        [{"timestamp": e.timestamp, "entry_type": e.entry_type} for e in existing]
+    await _lay_fixture(db, event, body.fixture_id, fixture, api_events)
+    return await _timeline(db, event_id)
+
+
+async def _lay_fixture(
+    db: AsyncSession,
+    event: Event,
+    fixture_id: int,
+    fixture: dict,
+    api_events: list[dict],
+) -> None:
+    """Replace this source's rows with the fixture laid on the best clock known."""
+    existing = await _timeline(db, event.id)
+    marks = [
+        {
+            "timestamp": e.timestamp,
+            "entry_type": e.entry_type,
+            "source": (e.metadata_ or {}).get("source"),
+        }
+        for e in existing
+    ]
+    kickoff_at, second_half_at = football_service.anchors_from_timeline(marks)
+    kickoff_source, second_half_source = football_service.anchor_sources_from_timeline(
+        marks
     )
     entries = football_service.parse_fixture_to_timeline(
-        fixture, api_events, kickoff_at=kickoff_at, second_half_at=second_half_at
+        fixture,
+        api_events,
+        kickoff_at=kickoff_at,
+        second_half_at=second_half_at,
+        kickoff_source=kickoff_source,
+        second_half_source=second_half_source,
     )
-    await _replace_source(db, existing, football_service.SOURCE, event_id, entries)
-    event.external_id = f"{football_service.SOURCE}:{body.fixture_id}"
+    await _replace_source(db, existing, football_service.SOURCE, event.id, entries)
+    event.external_id = f"{football_service.SOURCE}:{fixture_id}"
     await db.flush()
-    return await _timeline(db, event_id)
+
+
+async def rebuild_football_timeline(
+    db: AsyncSession, event_id: uuid.UUID, fixture_id: int
+) -> None:
+    """Lay a finished match's goals on the whistles the live watch measured."""
+    event = await _event_or_404(db, event_id)
+    fixture = await football_service.get_fixture(fixture_id)
+    if not fixture:
+        return
+    api_events = await football_service.get_fixture_events(fixture_id)
+    await _lay_fixture(db, event, fixture_id, fixture, api_events)
+
+
+@router.get("/{event_id}/watch", response_model=MatchWatchResponse)
+async def match_watch_status(
+    event_id: uuid.UUID,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """What the live watch is doing for this match — for the operator's screen."""
+    from app.services.match_watch import watcher
+
+    await _event_or_404(db, event_id)
+    if not settings.api_football_key:
+        return MatchWatchResponse(state="off")
+    return MatchWatchResponse(**watcher.status_for(event_id))
 
 
 async def _event_or_404(db: AsyncSession, event_id: uuid.UUID) -> Event:
@@ -392,6 +445,57 @@ def _merge_started(
     return [(i, title, kept.get(i)) for i, title in enumerate(songs, start=1)]
 
 
+def _timeline_changes(
+    entries: list[tuple[int, str]],
+    merged: list[tuple[int, str, datetime | None]],
+) -> tuple[dict[int, str], set[int]]:
+    """What a corrected list does to the timeline: (renames, drops).
+
+    The timeline entry is what names the moment on every fan's card, so a
+    correction that stops at the setlist table is a correction nobody sees —
+    Felipe fixed "Love Sensation" on 23/09 and the timeline kept the old
+    name (#54). An entry whose position still has a measured time takes the
+    new title; one whose position is gone, or no longer measured, goes.
+    """
+    now = {position: title for position, title, at in merged if at is not None}
+    renames = {
+        position: now[position]
+        for position, label in entries
+        if position in now and now[position] != label
+    }
+    drops = {position for position, _label in entries if position not in now}
+    return renames, drops
+
+
+async def _sync_timeline(
+    db: AsyncSession,
+    event_id: uuid.UUID,
+    merged: list[tuple[int, str, datetime | None]],
+) -> None:
+    """Carry a corrected setlist onto the timeline entries its taps wrote."""
+    result = await db.execute(
+        select(EventTimeline).where(
+            EventTimeline.event_id == event_id,
+            EventTimeline.entry_type == "song_start",
+        )
+    )
+    ours = [
+        entry
+        for entry in result.scalars().all()
+        if (entry.metadata_ or {}).get("source") == SETLIST_SOURCE
+        and isinstance((entry.metadata_ or {}).get("position"), int)
+    ]
+    renames, drops = _timeline_changes(
+        [(e.metadata_["position"], e.label) for e in ours], merged
+    )
+    for entry in ours:
+        position = entry.metadata_["position"]
+        if position in drops:
+            await db.delete(entry)
+        elif position in renames:
+            entry.label = renames[position]
+
+
 async def _setlist(db: AsyncSession, event_id: uuid.UUID) -> list[EventSetlist]:
     result = await db.execute(
         select(EventSetlist)
@@ -446,6 +550,7 @@ async def replace_setlist(
                 started_at=started_at,
             )
         )
+    await _sync_timeline(db, event_id, merged)
     await db.flush()
     return await _setlist(db, event_id)
 

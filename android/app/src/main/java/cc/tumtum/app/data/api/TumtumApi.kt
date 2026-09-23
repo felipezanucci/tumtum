@@ -179,9 +179,6 @@ class TumtumApi(private val prefs: UserPrefs) {
     suspend fun toggleSenti(base: String, postId: String): ServerPost =
         ServerPost.parse(request("POST", "$base/feed/$postId/senti", "", token = requireToken()))
 
-    /** The tour's feed (#33): every post shown to it, from every date. */
-    suspend fun seriesFeed(seriesId: String): ServerSeriesFeed =
-        ServerSeriesFeed.parse(request("GET", "/api/series/$seriesId/feed", null, token = requireToken()))
 
     /** Which tour, club or championship an event belongs to. Public, like the event. */
     suspend fun eventSeries(serverEventId: String): ServerSeries? =
