@@ -628,13 +628,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     branch build published `app-b162` as a prerelease on its own.
     Recorded in CLAUDE.md as standing: **never send an
     `actions/runs/.../artifacts/...` URL again.**
-58. **The Instagram sticker can no longer be moved — waiting on Felipe (#60).**
-    Since the card was burned into the video (22/09) it leaves as one MP4, and
-    Instagram treats it as footage, not a sticker. Proposal on the table: one
-    "Compartilhar" that, when a video is attached and Instagram is installed,
-    offers *"Story do Instagram (card móvel)"* beside *"Outros apps"*. Not built
-    until he chooses — #40 removed an Instagram-only button for privileging one
-    network, and this would bring one back.
+58. ~~**The Instagram sticker can no longer be moved (#60).**~~ Decided and
+    built 23/09: one button per network, each by its own best road — see the
+    entry of that day. Facebook Stories waits on a Facebook App ID.
 59. **The Play Console questionnaire is out of date.** Report and block exist
     since 22/09; the Data safety and content-rating answers still say they do
     not. Felipe's to update — the console is his.
@@ -650,6 +646,48 @@ the linked documents — this file is the index and the reasoning, not a diary.
     collective moment (card 04) cannot be judged until an event has four
     nights uploaded, which makes **one match with four straps** the cheapest
     experiment that answers whether any of this is worth anything.
+
+---
+
+## 2026-09-23 — one button per network, each by its own best road
+
+**#60, decided by Felipe after asking for precedent.** Since the card was
+burned into the video (22/09) it leaves as one MP4 through the system share
+sheet, and on Instagram it is footage — it can no longer be moved or
+resized. His two constraints pulled against each other: *no special
+treatment for Instagram*, and *the card editable, video and card sent
+separately*. The honest answer was that no universal road exists: "a video
+with a movable sticker" is something each network offers — or does not — on
+its own terms (Instagram and Facebook through Meta's Stories intent,
+Snapchat through its SDK, TikTok and WhatsApp not at all).
+
+He asked how Strava does it, and whether people are used to it. **They are.**
+Strava's share opens a row of destinations: *Instagram Stories* opens the
+editor with the stats as a movable sticker; *copy to clipboard* lets the
+sticker be pasted into any Story; *download* serves the other platforms.
+Spotify's share menu is the same shape — Instagram Stories, Facebook
+Stories, Snapchat, WhatsApp Status, TikTok — each taking the richest thing its
+app accepts. The neutral rule is not "one file for every network"; that was
+neutral only by giving every network the poorest road. It is **each network
+by its own best road**. His call: *"seguir esse caminho como no exemplo do
+Spotify."*
+
+Built (`export/ShareTargets.kt`): Compartilhar opens the destinations, only
+those on the phone.
+- **Instagram** — `ADD_TO_STORY`: the person's video (or photo) behind, the
+  card as a sticker cropped to its own block (`CardSticker`), because
+  Instagram draws a sticker smaller than the screen (measured 22/09) and a
+  1080×1920 sheet arrived as a small card in a large transparent box.
+- **WhatsApp** — the finished file, straight into WhatsApp.
+- **Copiar card / Salvar card** — the card alone, transparent, to paste or
+  pick in any editor (save needs Android 10; hidden below it).
+- **Mais apps** — the system list with the finished file, as before.
+
+Not offered until they can work: Facebook Stories (Meta requires a
+registered Facebook App ID there — `res/values/instagram.xml` is where it
+goes), TikTok and Snapchat (each needs its own SDK). **Unverified on a
+phone:** pasting the copied card into Instagram's Story editor on Android,
+and whether every editor keeps the card's transparency.
 
 ---
 

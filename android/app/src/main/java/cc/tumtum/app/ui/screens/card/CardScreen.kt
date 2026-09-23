@@ -42,6 +42,8 @@ import cc.tumtum.app.data.repo.PostResult
 import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
+import cc.tumtum.app.export.CardSticker
+import cc.tumtum.app.export.ShareTargets
 import cc.tumtum.app.export.VideoCard
 import cc.tumtum.app.export.VideoFrame
 import cc.tumtum.app.ui.Fmt
@@ -72,16 +74,20 @@ private sealed interface CardMedia {
     ) : CardMedia
 }
 
+/** Where a card goes (#60): one button per network, each by its own best road. */
+private enum class ShareTo { Instagram, WhatsApp, Copy, Save, More }
+
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
  * daqui sem o toque em Compartilhar. "Postar no feed" saiu em 19/09 (item 37):
  * postava num repositório falso deste celular e confirmava que a galera
  * podia sentir — ninguém podia. Volta quando o feed for o do servidor.
  *
- * Com um vídeo atrás (22/09), o card é **gravado dentro do arquivo** e sai
- * pelo share sheet do sistema — Instagram, X, TikTok, Snap, WhatsApp, galeria,
- * todos aceitam um MP4. O `ADD_TO_STORY` do Instagram fica como atalho, para
- * quem quer o card móvel dentro do editor de Story.
+ * Compartilhar abre os destinos, um botão por rede (#60, 23/09 — o modelo do
+ * Spotify e do Strava): Instagram recebe o vídeo de fundo e o card solto, que
+ * se arrasta; WhatsApp e "Mais apps" recebem o arquivo pronto, com o card
+ * gravado; "Copiar" e "Salvar" dão o card sozinho, transparente, para
+ * qualquer editor. Ver [ShareTargets].
  */
 @Composable
 fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
@@ -97,6 +103,13 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     // sent, nobody here knows, and the screen says only what is true.
     var cameBack by remember { mutableStateOf(false) }
     var failure by remember { mutableStateOf<Int?>(null) }
+    // What a copy or a save did — said where the eye is, since neither leaves
+    // the screen (a step the app takes is said, 21/09).
+    var notice by remember { mutableStateOf<Int?>(null) }
+    // The destinations are open (#60).
+    var choosing by remember { mutableStateOf(false) }
+    val hasInstagram = remember { ShareTargets.installed(context, ShareTargets.INSTAGRAM) }
+    val whatsapp = remember { ShareTargets.whatsapp(context) }
     val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { cameBack = true }
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
     var media by remember { mutableStateOf<CardMedia?>(null) }
@@ -149,6 +162,103 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         container.nights.publish(n.id, skin, photoPath)
     }
 
+    fun render(photo: Bitmap? = null, sticker: Boolean = false): Bitmap =
+        CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = photo, sticker = sticker)
+
+    /** The card alone: on black, a sticker cut to its own block; on the other skins, the whole card. */
+    fun cardAlone(): Bitmap = if (skin == Skin.BLACK) CardSticker.crop(render(sticker = true)) else render()
+
+    /** The finished file — the card burned into the video, or the card as a picture. */
+    suspend fun finished(chosen: CardMedia?): Pair<java.io.File, String>? =
+        if (chosen is CardMedia.Video) {
+            burning = 0
+            val sticker = withContext(Dispatchers.IO) { render(sticker = true) }
+            val file = VideoCard.burn(context, chosen.uri, sticker, n.id) { burning = it }
+            burning = null
+            file?.let { it to "video/mp4" }
+        } else {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val png = "tumtum-${n.id}-${skin.name.lowercase()}.png"
+                    CardRenderer.writePng(context, render(photo = chosen?.preview), png) to "image/png"
+                }.getOrNull()
+            }
+        }
+
+    /** Instagram's Story editor: the person's video or photo behind, the card on top and movable. */
+    suspend fun instagram(chosen: CardMedia?): android.content.Intent? = withContext(Dispatchers.IO) {
+        runCatching {
+            if (skin == Skin.BLACK && chosen != null) {
+                val sticker = CardRenderer.writePng(context, cardAlone(), "tumtum-${n.id}-sticker.png")
+                val (background, mime) = when (chosen) {
+                    is CardMedia.Video -> ShareTargets.copyVideo(context, chosen.uri, n.id)
+                        ?: return@runCatching null
+                    is CardMedia.Photo ->
+                        ShareTargets.writeJpeg(context, chosen.preview, "story-${n.id}.jpg") to "image/jpeg"
+                }
+                ShareTargets.instagramStory(context, background, mime, sticker)
+            } else {
+                val card = CardRenderer.writePng(context, render(), "tumtum-${n.id}-${skin.name.lowercase()}.png")
+                ShareTargets.instagramStory(context, card, "image/png", null)
+            }
+        }.getOrNull()
+    }
+
+    fun go(target: ShareTo) {
+        sharing = true
+        failure = null
+        notice = null
+        val chosen = media
+        scope.launch {
+            publish(chosen)
+            when (target) {
+                ShareTo.Instagram -> {
+                    val intent = instagram(chosen)
+                    if (intent == null) {
+                        failure = R.string.card_share_instagram_failed
+                    } else {
+                        runCatching { shareLauncher.launch(intent) }
+                            .onFailure { failure = R.string.card_share_instagram_failed }
+                    }
+                }
+                ShareTo.WhatsApp, ShareTo.More -> {
+                    val file = finished(chosen)
+                    if (file == null) {
+                        failure = if (chosen is CardMedia.Video) {
+                            R.string.card_share_video_failed
+                        } else {
+                            R.string.card_share_failed
+                        }
+                    } else {
+                        val (f, mime) = file
+                        val app = whatsapp?.takeIf { target == ShareTo.WhatsApp }
+                        val intent = app?.let { ShareTargets.toApp(context, it, f, mime) }
+                            ?: CardRenderer.shareFileIntent(context, f, mime)
+                        runCatching { shareLauncher.launch(intent) }
+                            .onFailure { failure = R.string.card_share_failed }
+                    }
+                }
+                ShareTo.Copy -> {
+                    val ok = withContext(Dispatchers.IO) {
+                        runCatching {
+                            ShareTargets.copy(context, CardRenderer.writePng(context, cardAlone(), "tumtum-${n.id}-card.png"))
+                        }.getOrDefault(false)
+                    }
+                    if (ok) notice = R.string.card_copied else failure = R.string.card_copy_failed
+                }
+                ShareTo.Save -> {
+                    val ok = withContext(Dispatchers.IO) {
+                        runCatching {
+                            ShareTargets.saveToGallery(context, cardAlone(), "tumtum-${n.id}-${System.currentTimeMillis()}.png")
+                        }.getOrDefault(false)
+                    }
+                    if (ok) notice = R.string.card_saved else failure = R.string.card_save_failed
+                }
+            }
+            sharing = false
+        }
+    }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -183,7 +293,9 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 photo = media?.preview?.asImageBitmap(),
             )
         }
-        if (skin == Skin.BLACK && !cameBack) {
+        // While the destinations are open the photo/video choice is made, and
+        // its buttons give the room to the destinations.
+        if (skin == Skin.BLACK && !cameBack && !choosing) {
             // A button in Toxic Yellow, not a line of small caps (b145). With
             // something already behind the card it splits in two, because going
             // from photo to video used to mean tirar-and-then-colocar — two
@@ -231,6 +343,10 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             Text(stringResource(it), style = TTType.BodySmall, color = TT.Rose, maxLines = 3)
             Spacer(Modifier.height(8.dp))
         }
+        notice?.let {
+            Text(stringResource(it), style = TTType.BodySmall, color = TT.Acid, maxLines = 3)
+            Spacer(Modifier.height(8.dp))
+        }
         if (cameBack) {
             // The loop ends on a TumTum screen, not on Android's share sheet
             // (§5.3 of the 19/09 research — peak–end). The card exists and the
@@ -254,55 +370,37 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 nightId = n.id,
                 night = n,
                 skin = skin,
-                onShareAgain = { cameBack = false },
+                onShareAgain = {
+                    cameBack = false
+                    choosing = true
+                },
             )
-        } else {
-            // Compartilhar é sempre ativo (§1). Sem vídeo, o card vira PNG
-            // 1080×1920 e sai pelo share sheet. Com vídeo, ele é gravado dentro
-            // do MP4 e sai pelo mesmo share sheet — que é o que faz ele chegar
-            // em qualquer rede sem uma integração por rede.
-            TTButton(
-                when {
+        } else if (choosing) {
+            ShareChoices(
+                hasInstagram = hasInstagram,
+                hasWhatsapp = whatsapp != null,
+                canSave = ShareTargets.canSaveToGallery,
+                busy = busy,
+                status = when {
                     burning != null -> stringResource(R.string.card_share_burning, burning ?: 0)
                     sharing -> stringResource(R.string.card_share_running)
-                    else -> stringResource(R.string.card_share)
+                    else -> null
                 },
+                onPick = { go(it) },
+                onBack = {
+                    choosing = false
+                    notice = null
+                },
+            )
+        } else {
+            // Compartilhar é sempre ativo (§1): abre os destinos (#60).
+            TTButton(
+                stringResource(R.string.card_share),
                 TTButtonStyle.Rose,
                 enabled = !busy,
                 onClick = {
-                    sharing = true
                     failure = null
-                    val chosen = media
-                    scope.launch {
-                        publish(chosen)
-                        val intent = if (chosen is CardMedia.Video) {
-                            burning = 0
-                            val sticker = withContext(Dispatchers.IO) {
-                                CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, sticker = true)
-                            }
-                            val file = VideoCard.burn(context, chosen.uri, sticker, n.id) { burning = it }
-                            burning = null
-                            file?.let { CardRenderer.shareFileIntent(context, it, "video/mp4") }
-                        } else {
-                            withContext(Dispatchers.IO) {
-                                runCatching {
-                                    val bitmap = CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = chosen?.preview)
-                                    CardRenderer.shareIntent(context, bitmap, "tumtum-${n.id}-${skin.name.lowercase()}.png")
-                                }.getOrNull()
-                            }
-                        }
-                        if (intent == null) {
-                            failure = if (chosen is CardMedia.Video) {
-                                R.string.card_share_video_failed
-                            } else {
-                                R.string.card_share_failed
-                            }
-                        } else {
-                            runCatching { shareLauncher.launch(intent) }
-                                .onFailure { failure = R.string.card_share_failed }
-                        }
-                        sharing = false
-                    }
+                    choosing = true
                 },
             )
         }
@@ -476,3 +574,83 @@ private fun DoneActions(
     )
 }
 
+/**
+ * The destinations (#60): the networks on this phone, each by its own best
+ * road, then the card alone to copy or save, then every other app. All
+ * outlined and equal — Spotify's row does not rank the networks either.
+ */
+@Composable
+private fun ShareChoices(
+    hasInstagram: Boolean,
+    hasWhatsapp: Boolean,
+    canSave: Boolean,
+    busy: Boolean,
+    status: String?,
+    onPick: (ShareTo) -> Unit,
+    onBack: () -> Unit,
+) {
+    Text(stringResource(R.string.card_share_to), style = TTType.MetaSmall, color = TT.Acid)
+    Spacer(Modifier.height(8.dp))
+    if (hasInstagram || hasWhatsapp) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (hasInstagram) {
+                TTButton(
+                    stringResource(R.string.card_share_instagram),
+                    TTButtonStyle.OutlineOnDark,
+                    enabled = !busy,
+                    onClick = { onPick(ShareTo.Instagram) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            if (hasWhatsapp) {
+                TTButton(
+                    stringResource(R.string.card_share_whatsapp),
+                    TTButtonStyle.OutlineOnDark,
+                    enabled = !busy,
+                    onClick = { onPick(ShareTo.WhatsApp) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        TTButton(
+            stringResource(R.string.card_share_copy),
+            TTButtonStyle.OutlineOnDark,
+            enabled = !busy,
+            onClick = { onPick(ShareTo.Copy) },
+            modifier = Modifier.weight(1f),
+        )
+        if (canSave) {
+            TTButton(
+                stringResource(R.string.card_share_save),
+                TTButtonStyle.OutlineOnDark,
+                enabled = !busy,
+                onClick = { onPick(ShareTo.Save) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+    Spacer(Modifier.height(8.dp))
+    TTButton(
+        stringResource(R.string.card_share_more),
+        TTButtonStyle.OutlineOnDark,
+        enabled = !busy,
+        onClick = { onPick(ShareTo.More) },
+    )
+    Spacer(Modifier.height(6.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            status ?: stringResource(R.string.card_share_back),
+            style = TTType.Button.copy(fontSize = 14.sp),
+            color = if (status != null) TT.Acid else TT.Paper,
+            modifier = Modifier
+                .clickable(enabled = !busy, onClick = onBack)
+                .padding(vertical = 10.dp),
+        )
+    }
+    if (hasInstagram && status == null) {
+        Text(stringResource(R.string.card_share_instagram_hint), style = TTType.Footnote, color = TT.Gray45)
+    }
+}
