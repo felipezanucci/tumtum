@@ -240,7 +240,9 @@ event_post_reactions: id, post_id (FK), user_id (FK), created_at   -- SENTI TB, 
 post_reports: id, post_id (FK), reporter_id (FK), reason (abuse|fake|other), created_at, resolution, resolved_at
 user_blocks: id, blocker_id (FK), blocked_id (FK), created_at     -- hides both ways
 
--- The level above one event (22/09): tour, club or championship
+-- The tour (22/09). Since 23/09 its dates share ONE feed, with the night as a
+-- filter; a post reaches the other dates only with its series_posts row.
+-- Football stays one feed per match for now (club/league kinds unused).
 event_series: id, name, kind (tour|club|league), created_at
 event_series_members: event_id (PK, FK), series_id (FK)
 series_posts: post_id (PK, FK), series_id (FK), created_at      -- the author's consent to the wider audience
