@@ -634,8 +634,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
 59. **The Play Console questionnaire is out of date.** Report and block exist
     since 22/09; the Data safety and content-rating answers still say they do
     not. Felipe's to update — the console is his.
-60. **Tests 6–10 of the 23/09 round are still to run on b173**: the session
-    surviving more than an hour closed (6), the honest refusal for an account
+60. **Tests 6–10 of the 23/09 round are still to run on b173**: ~~the session
+    surviving more than an hour closed (6)~~ — **passed 23/09**: the phone sat
+    two to three hours untouched and Felipe was still signed in, the refresh
+    token doing its work with no password asked (#34 measured in a hand), the honest refusal for an account
     with no night (7), marks tapped without a night (8), the reveal lock, never
     run (9). Test 10 — the show operator on a phone's browser — passed 23/09.
 56. **Nobody has ever seen the feed with more than one person in it.** The
