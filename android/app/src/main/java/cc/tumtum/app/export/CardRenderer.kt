@@ -267,10 +267,10 @@ object CardRenderer {
             ownRow -> {
                 val boxW = ownRowLines.maxOf { eventPaint.measureText(it) } + 2 * boxPadX
                 canvas.drawRect(PAD, y, PAD + boxW, y + ownRowBoxH, Paint().apply { color = boxColor })
-                val fm = eventPaint.fontMetrics
+                val efm = eventPaint.fontMetrics
                 ownRowLines.forEachIndexed { i, line ->
                     val center = y + boxH / 2f + i * eventLineStep
-                    canvas.drawText(line, PAD + boxPadX, center - (fm.ascent + fm.descent) / 2f, eventPaint)
+                    canvas.drawText(line, PAD + boxPadX, center - (efm.ascent + efm.descent) / 2f, eventPaint)
                 }
                 y += ownRowBoxH + rowGap
                 val fm = metaPaint.fontMetrics
