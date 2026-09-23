@@ -9,11 +9,11 @@ import {
   events,
   type EventDetail,
   type FixtureBrief,
+  type MatchWatch,
   type SetlistSong,
   type TimelineEntry,
   series,
   type SeriesBrief,
-  type SeriesKind,
 } from '@/lib/api'
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
 import { DateField, TimeField } from '@/components/events/EventForm'
@@ -157,7 +157,9 @@ export default function AdminEventPage() {
                 </div>
               )}
 
-              {operator && <SeriesSection event={event} />}
+              {/* Football stays one feed per match for now (Felipe, 23/09): a
+                  derby belongs to two clubs. Only shows join a tour. */}
+              {operator && event.event_type !== 'sports' && <SeriesSection event={event} />}
 
               <Timeline event={event} operator={operator} onChange={load} />
 
@@ -337,11 +339,13 @@ function FootballSource({ event, onChange }: { event: EventDetail; onChange: () 
         Jogo · API-Football
       </h2>
       <p className="mt-1 text-sm text-tumtum-muted">
-        Os gols e cartões do jogo entram na linha do tempo. Com os dois toques do
-        operador (apito inicial, 2º tempo) o minuto vira hora exata; sem eles, vira
-        um palpite marcado como estimado. Pode rodar de novo depois do jogo: só as
-        linhas deste jogo são trocadas.
+        Os gols e cartões do jogo entram na linha do tempo. No dia do jogo o
+        servidor acompanha a partida ao vivo e marca sozinho o apito inicial e o
+        do 2º tempo — é isso que transforma o minuto em hora exata. O toque do
+        operador continua valendo como reserva. Pode rodar de novo depois do
+        jogo: só as linhas deste jogo são trocadas.
       </p>
+      {attached && <LiveWatch eventId={event.id} />}
       {attached && (
         <p className="mt-2 text-sm text-tumtum-white">
           Jogo ligado: <span className="tabular-nums">#{attached}</span>{' '}
@@ -363,7 +367,6 @@ function FootballSource({ event, onChange }: { event: EventDetail; onChange: () 
           <input
             id="fixture-team"
             className={field}
-            placeholder="Corinthians, Palmeiras…"
             value={team}
             onChange={(e) => setTeam(e.target.value)}
           />
@@ -402,6 +405,80 @@ function FootballSource({ event, onChange }: { event: EventDetail; onChange: () 
       )}
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </section>
+  )
+}
+
+/**
+ * What the server's live watch of this match is doing (#52), in a sentence.
+ *
+ * The watch runs by itself; this line exists so the operator is never left
+ * wondering whether it is — the app stating its own state honestly. Asked
+ * again every 30 s while the page is open, which costs the API nothing: the
+ * answer comes from the server's memory, not from API-Football.
+ */
+function LiveWatch({ eventId }: { eventId: string }) {
+  const [watch, setWatch] = useState<MatchWatch | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    const ask = () =>
+      events
+        .getWatch(eventId)
+        .then((w) => {
+          if (!alive) return
+          setWatch(w)
+          setError(null)
+        })
+        .catch((err: unknown) => {
+          if (alive) setError(message(err, 'Não deu pra perguntar ao servidor.'))
+        })
+    void ask()
+    const timer = setInterval(ask, 30_000)
+    return () => {
+      alive = false
+      clearInterval(timer)
+    }
+  }, [eventId])
+
+  if (error) {
+    return <p className="mt-2 text-sm text-red-400">Acompanhamento ao vivo: {error}</p>
+  }
+  if (!watch) return null
+
+  const sentence = {
+    off: 'O acompanhamento ao vivo está desligado: falta a chave da API no servidor.',
+    idle: 'O acompanhamento ao vivo começa sozinho no dia do jogo.',
+    waiting: watch.scheduled
+      ? `Vou começar a olhar 10 minutos antes das ${clock(watch.scheduled)}.`
+      : 'Vou começar a olhar 10 minutos antes do jogo.',
+    watching: `Acompanhando ao vivo${watch.status ? ` — agora: ${watch.status}` : ''}.`,
+    done: 'Jogo acompanhado até o fim.',
+  }[watch.state]
+
+  return (
+    <div className="mt-3 rounded-lg border border-tumtum-border bg-tumtum-surface p-3 text-sm">
+      <p className="text-tumtum-white">{sentence}</p>
+      {(watch.kickoff_at || watch.second_half_at) && (
+        <p className="mt-1 text-tumtum-muted">
+          {watch.kickoff_at && <>Apito inicial medido às {clock(watch.kickoff_at)}. </>}
+          {watch.second_half_at && <>2º tempo medido às {clock(watch.second_half_at)}.</>}
+        </p>
+      )}
+      {watch.notes.map((note) => (
+        <p key={note} className="mt-1 text-tumtum-muted">
+          {note}
+        </p>
+      ))}
+      {watch.last_error && (
+        <p className="mt-1 text-red-400">Última tentativa falhou: {watch.last_error}</p>
+      )}
+      {watch.state !== 'off' && watch.state !== 'idle' && (
+        <p className="mt-1 text-xs text-tumtum-muted tabular-nums">
+          {watch.spent_today} de {watch.budget} consultas hoje
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -491,9 +568,12 @@ function ShowSetlist({ event, onChange }: { event: EventDetail; onChange: () => 
 
       {songs !== null && (songs.length === 0 || editing) && (
         <div className="mt-3">
+          <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="setlist-draft">
+            Uma música por linha, na ordem do show
+          </label>
           <textarea
+            id="setlist-draft"
             className={`${field} min-h-[180px] font-mono text-sm`}
-            placeholder={'Uma música por linha.\n\nYellow\nClocks\nFix You'}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
           />
@@ -638,19 +718,29 @@ function ManualEntry({ event, onChange }: { event: EventDetail; onChange: () => 
         celular, a música que abriu o show. Entra como exato e dá nome ao momento.
       </p>
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <input
-          className={field}
-          placeholder="O que foi (Gol do Yuri, Apito inicial…)"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-        />
-        <select className={field} value={type} onChange={(e) => setType(e.target.value)}>
+        <div>
+          <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="manual-label">
+            O que foi
+          </label>
+          <input
+            id="manual-label"
+            className={field}
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="manual-type">
+            Tipo
+          </label>
+          <select id="manual-type" className={field} value={type} onChange={(e) => setType(e.target.value)}>
           {entryTypes.map((t) => (
             <option key={t.value} value={t.value}>
               {t.label}
             </option>
           ))}
-        </select>
+          </select>
+        </div>
         <DateField id="manual-date" label="Data" value={date} onChange={setDate} />
         <TimeField id="manual" label="Hora (São Paulo)" value={time} onChange={setTime} />
       </div>
@@ -662,24 +752,19 @@ function ManualEntry({ event, onChange }: { event: EventDetail; onChange: () => 
   )
 }
 
-const seriesKindLabel: Record<SeriesKind, string> = {
-  tour: 'Turnê',
-  club: 'Clube',
-  league: 'Campeonato',
-}
-
 /**
- * Which tour, club or championship this event belongs to (#33, 22/09).
+ * Which tour this show belongs to (#33, 22/09; one feed since #65, 23/09).
  *
- * Above the rolê sits its series: somebody who went in São Paulo meets
- * somebody who went in Rio. Only posts whose author chose the series at the
- * moment of posting appear there — this only says which dates belong to it.
+ * Every date of a tour opens onto the same feed, starting on all dates, with
+ * the fan's own night as a filter. A post from one date reaches the others
+ * only if its author chose that when posting — this section only says which
+ * dates belong together. Clubs and championships stay in the data but are
+ * not offered: football is one feed per match for now.
  */
 function SeriesSection({ event }: { event: EventDetail }) {
   const [all, setAll] = useState<SeriesBrief[] | null>(null)
   const [current, setCurrent] = useState<SeriesBrief | null | undefined>(undefined)
   const [name, setName] = useState('')
-  const [kind, setKind] = useState<SeriesKind>(event.event_type === 'sports' ? 'club' : 'tour')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
@@ -691,7 +776,7 @@ function SeriesSection({ event }: { event: EventDetail }) {
       setAll(list)
       setCurrent(mine)
     } catch (err) {
-      // Not knowing the series is not the same as having none.
+      // Not knowing the tour is not the same as having none.
       setError(message(err, 'Não deu pra carregar as turnês.'))
     }
   }, [event.id])
@@ -724,7 +809,7 @@ function SeriesSection({ event }: { event: EventDetail }) {
     setBusy(true)
     setError(null)
     try {
-      const created = await series.create(name.trim(), kind)
+      const created = await series.create(name.trim(), 'tour')
       setName('')
       await assign(created.id)
     } catch (err) {
@@ -736,14 +821,16 @@ function SeriesSection({ event }: { event: EventDetail }) {
   const field =
     'w-full rounded-lg border border-tumtum-border bg-tumtum-surface px-3 py-2 text-tumtum-white focus:border-tumtum-pink focus:outline-none'
 
+  // Only tours are offered; one this event is already in stays listed
+  // whatever its kind, so the select never shows a value it does not have.
+  const choices = (all ?? []).filter((s) => s.kind === 'tour' || s.id === current?.id)
+
   return (
     <section className="mt-8">
-      <h2 className="text-sm font-medium uppercase tracking-wider text-tumtum-muted">
-        Turnê · clube · campeonato
-      </h2>
+      <h2 className="text-sm font-medium uppercase tracking-wider text-tumtum-muted">Turnê</h2>
       <p className="mt-1 text-sm text-tumtum-muted">
-        Acima do rolê: quem foi em qualquer data se encontra. Só entram os posts de quem
-        escolheu mostrar pra turnê na hora de postar.
+        As datas de uma turnê têm um feed só: quem foi em qualquer uma delas se
+        encontra ali. Show avulso não precisa de nada aqui.
       </p>
 
       {current === undefined && !error && <p className="mt-3 text-sm text-tumtum-muted">Carregando…</p>}
@@ -751,41 +838,47 @@ function SeriesSection({ event }: { event: EventDetail }) {
       {current !== undefined && (
         <p className="mt-3 text-sm text-tumtum-white">
           {current
-            ? `${seriesKindLabel[current.kind]}: ${current.name} · ${current.dates} ${current.dates === 1 ? 'data' : 'datas'}`
-            : 'Este evento não faz parte de nenhuma.'}
+            ? current.dates > 1
+              ? `Faz parte de ${current.name} · ${current.dates} datas`
+              : `Faz parte de ${current.name} · só esta data por enquanto`
+            : 'Este show não faz parte de nenhuma turnê.'}
         </p>
       )}
 
       {all !== null && (
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+        <div className="mt-3">
+          <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="series-pick">
+            Turnê deste show
+          </label>
           <select
+            id="series-pick"
             className={field}
             value={current?.id ?? ''}
             disabled={busy}
             onChange={(e) => assign(e.target.value || null)}
           >
-            <option value="">— nenhuma —</option>
-            {all.map((s) => (
+            <option value="">Nenhuma</option>
+            {choices.map((s) => (
               <option key={s.id} value={s.id}>
-                {seriesKindLabel[s.kind]}: {s.name}
+                {s.name}
               </option>
             ))}
           </select>
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
-        <input
-          className={field}
-          placeholder="Nova: The Eras Tour — Brasil, Corinthians 2026…"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <select className={field} value={kind} onChange={(e) => setKind(e.target.value as SeriesKind)}>
-          <option value="tour">Turnê</option>
-          <option value="club">Clube</option>
-          <option value="league">Campeonato</option>
-        </select>
+      <div className="mt-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_auto]">
+        <div>
+          <label className="mb-1 block text-sm text-tumtum-muted" htmlFor="series-new">
+            Ou crie uma turnê nova
+          </label>
+          <input
+            id="series-new"
+            className={field}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
         <Button type="button" onClick={createAndAssign} disabled={busy}>
           {busy ? 'Salvando…' : 'Criar e ligar'}
         </Button>

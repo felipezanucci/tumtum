@@ -359,6 +359,24 @@ export interface FixtureBrief {
 }
 
 /**
+ * The server's live watch of a match (#52): it polls the fixture every 15 s
+ * while the match is on and writes the two whistles as it sees them.
+ */
+export interface MatchWatch {
+  state: 'off' | 'idle' | 'waiting' | 'watching' | 'done'
+  status: string | null
+  scheduled: string | null
+  last_polled_at: string | null
+  kickoff_at: string | null
+  second_half_at: string | null
+  polls: number
+  notes: string[]
+  spent_today: number
+  budget: number
+  last_error: string | null
+}
+
+/**
  * One line of the operator's script for a show.
  *
  * A concert has no API that says which song was playing at 22h12, so a person
@@ -485,6 +503,9 @@ export const events = {
       method: 'POST',
       body: JSON.stringify({ fixture_id: fixtureId }),
     }),
+
+  /** What the live watch is doing for this match. */
+  getWatch: (eventId: string) => request<MatchWatch>(`/api/events/${eventId}/watch`),
 
   /** The operator's script for a show, and how far through it the show is. */
   getSetlist: (eventId: string) =>
