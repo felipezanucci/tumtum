@@ -67,7 +67,21 @@ async def lifespan(app: FastAPI):
         print("Database tables created successfully")
     except Exception as e:
         print(f"Database setup warning: {e}")
+
+    # The live watch of football matches (#52): one loop in this process,
+    # only when there is a key to watch with.
+    import asyncio
+
+    from app.services.match_watch import watcher
+
+    watch = (
+        asyncio.create_task(watcher.run_forever())
+        if settings.api_football_key and settings.environment != "test"
+        else None
+    )
     yield
+    if watch is not None:
+        watch.cancel()
 
 
 app = FastAPI(title="Tumtum API", version="0.1.0", lifespan=lifespan)

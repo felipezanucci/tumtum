@@ -252,3 +252,25 @@ class ExperienceResponse(BaseModel):
     peaks: list[PeakResponse]
     timeline: list[TimelineEntryResponse]
     hr_data: list[HRDataPointBrief] = []
+
+
+class MatchWatchResponse(BaseModel):
+    """The live watch of one match (#52), as the operator's screen shows it.
+
+    ``state`` is off (no API key), idle (not picked up — the event is not
+    today, or no match is attached), waiting (before the window), watching,
+    or done. ``notes`` are the watch's own sentences about what it chose not
+    to record and why.
+    """
+
+    state: str
+    status: str | None = None
+    scheduled: datetime | None = None
+    last_polled_at: datetime | None = None
+    kickoff_at: datetime | None = None
+    second_half_at: datetime | None = None
+    polls: int = 0
+    notes: list[str] = []
+    spent_today: int = 0
+    budget: int = 0
+    last_error: str | None = None
