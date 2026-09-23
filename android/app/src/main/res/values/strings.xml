@@ -492,4 +492,19 @@
     <!-- #62: o olhinho da senha. -->
     <string name="field_password_show">Mostrar a senha</string>
     <string name="field_password_hide">Esconder a senha</string>
+    <!-- #60 (23/09): um botão por rede, cada uma pelo melhor caminho que ela
+         oferece — o modelo do Spotify e do Strava. -->
+    <string name="card_share_to">COMPARTILHAR EM</string>
+    <string name="card_share_instagram">Instagram</string>
+    <string name="card_share_whatsapp">WhatsApp</string>
+    <string name="card_share_copy">Copiar card</string>
+    <string name="card_share_save">Salvar card</string>
+    <string name="card_share_more">Mais apps</string>
+    <string name="card_share_back">Voltar</string>
+    <string name="card_share_instagram_hint">No Instagram o card vem solto: arrasta e ajusta o tamanho.</string>
+    <string name="card_copied">Card copiado. No editor do Story, segura o dedo na tela e toca em colar.</string>
+    <string name="card_saved">Card salvo na galeria, com fundo transparente, em Imagens › TumTum.</string>
+    <string name="card_copy_failed">Não deu pra copiar o card. Tenta salvar na galeria.</string>
+    <string name="card_save_failed">Não deu pra salvar na galeria. Tenta de novo.</string>
+    <string name="card_share_instagram_failed">O Instagram não abriu o Story. Tenta pelo Mais apps.</string>
 </resources>
