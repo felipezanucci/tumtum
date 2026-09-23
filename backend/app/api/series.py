@@ -1,17 +1,21 @@
-"""The level above one night: a tour, a club, a championship (#33, 22/09).
+"""The tour above one night (#33, 22/09; one feed since #65, 23/09).
 
-Felipe's call, on the proposal that *"a unidade social de música é o fandom,
-não a sala"*: the feed of one event stays — intimate, the people who were in
-that room — and above it sits the series, where somebody who went in São
-Paulo meets somebody who went in Rio. Added, never put in the event's place.
+Felipe's call on 22/09, *"a unidade social de música é o fandom, não a
+sala"*, built the tour as a second feed above the event's. Tested on 23/09
+it read as confusing — two words (rolê, turnê), two screens, a door between
+them and a two-way consent for a choice nobody knew existed — and his call
+was one feed: an event in a tour opens onto the tour's feed, which starts on
+every date, with the night as a filter inside it. Football stays one feed
+per match for now (a derby belongs to two clubs); the kinds club and league
+remain in the data but the operator is offered only the tour.
 
 Two rules carry over from the event feed and neither is relaxed:
 
 - **The gate is evidence.** A measured night at *any* date of the series —
   not a claim of being a fan.
-- **Consent is per post and per audience.** A post reaches this feed only if
-  its author chose the series when posting (`series_posts`); everything
-  posted to the rolê stays in the rolê.
+- **Consent is per post and per audience.** A post reaches the other dates
+  only if its author chose the tour when posting (`series_posts`); one that
+  was not stays with the people of its own night.
 """
 
 import uuid
@@ -71,6 +75,17 @@ async def series_of(db: AsyncSession, event_id: uuid.UUID) -> SeriesBrief | None
         )
     ).scalar_one_or_none()
     return await _brief(db, series) if series is not None else None
+
+
+async def series_events(db: AsyncSession, series_id: uuid.UUID) -> list[Event]:
+    """The dates of a series, oldest first."""
+    rows = await db.execute(
+        select(Event)
+        .join(EventSeriesMember, EventSeriesMember.event_id == Event.id)
+        .where(EventSeriesMember.series_id == series_id)
+        .order_by(Event.date)
+    )
+    return list(rows.scalars().all())
 
 
 async def was_at_series(
@@ -137,20 +152,13 @@ async def series_feed(
     user: User = Depends(require_series_attendance),
     db: AsyncSession = Depends(get_db),
 ):
-    """Every post shown to the series, from every date, newest first."""
+    """Every post shown to the series, from every date, newest first.
+
+    Kept for app builds from before the feeds became one (#65); the current
+    app reads the tour through its event's feed.
+    """
     series = await _series_or_404(db, series_id)
-    events = list(
-        (
-            await db.execute(
-                select(Event)
-                .join(EventSeriesMember, EventSeriesMember.event_id == Event.id)
-                .where(EventSeriesMember.series_id == series_id)
-                .order_by(Event.date)
-            )
-        )
-        .scalars()
-        .all()
-    )
+    events = await series_events(db, series_id)
     rows = await db.execute(
         select(EventPost, User)
         .join(SeriesPost, SeriesPost.post_id == EventPost.id)
@@ -158,16 +166,16 @@ async def series_feed(
         .where(SeriesPost.series_id == series_id, EventPost.deleted_at.is_(None))
         .order_by(EventPost.created_at.desc())
     )
+    rendered = await render_posts(
+        db, list(rows.all()), user.id, events={e.id: e for e in events}
+    )
     return SeriesFeedResponse(
         series_id=series.id,
         name=series.name,
         kind=series.kind,
-        events=[
-            SeriesEvent(id=e.id, name=e.name, date=e.date, city=e.city) for e in events
-        ],
-        posts=await render_posts(
-            db, list(rows.all()), user.id, events={e.id: e for e in events}
-        ),
+        events=[SeriesEvent.of(e) for e in events],
+        posts=rendered.posts,
+        hidden_by_block=rendered.hidden_by_block,
     )
 
 

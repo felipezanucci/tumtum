@@ -12,7 +12,7 @@ measured.** Anything else must come back null rather than plausible.
 
 from datetime import UTC, datetime
 
-from app.api.events import _clean_songs, _merge_started
+from app.api.events import _clean_songs, _merge_started, _timeline_changes
 
 AT = datetime(2026, 11, 6, 22, 12, tzinfo=UTC)
 LATER = datetime(2026, 11, 6, 22, 41, tzinfo=UTC)
@@ -124,3 +124,25 @@ def test_a_title_that_opens_with_a_number_and_a_hyphen_survives():
 
 def test_numbering_tight_against_the_title_still_goes():
     assert _clean_songs(["1.Yellow", "2)Clocks"]) == ["Yellow", "Clocks"]
+
+
+# --- the correction reaching the card (#54) ---
+
+
+def test_a_corrected_name_reaches_the_timeline():
+    """Felipe, 23/09: he fixed "Love Sensatio" and the card kept the old name."""
+    merged = [(1, "Love Sensation", AT), (2, "Clocks", None)]
+    renames, drops = _timeline_changes([(1, "Love Sensatio")], merged)
+    assert renames == {1: "Love Sensation"}
+    assert drops == set()
+
+
+def test_an_unchanged_name_is_left_alone():
+    assert _timeline_changes([(1, "Yellow")], [(1, "Yellow", AT)]) == ({}, set())
+
+
+def test_a_song_dropped_from_the_list_leaves_the_timeline():
+    """A name for a slot that no longer exists would name a moment wrongly."""
+    merged = [(1, "Yellow", AT)]
+    renames, drops = _timeline_changes([(1, "Yellow"), (2, "Clocks")], merged)
+    assert renames == {} and drops == {2}

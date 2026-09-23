@@ -19,6 +19,7 @@ down — the undo without which the consent is not real.
 """
 
 import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -41,6 +42,7 @@ from app.schemas.feed import (
     FeedPostCreate,
     FeedPostResponse,
     ReportRequest,
+    SeriesEvent,
 )
 from app.services import moderation
 from app.services.crowd import collective_moments
@@ -84,7 +86,7 @@ async def require_attendance(
     if not await was_there(db, user.id, event_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Esse rolê é de quem estava lá. Sua noite não chegou aqui.",
+            detail="Esse feed é de quem estava lá. Sua noite não chegou aqui.",
         )
     return user
 
@@ -112,16 +114,76 @@ async def _open_report_counts(
     return dict(rows.all())
 
 
-async def _posts_with_reactions(
-    db: AsyncSession, event_id: uuid.UUID, viewer_id: uuid.UUID
-) -> list[FeedPostResponse]:
+async def attended_events(
+    db: AsyncSession, user_id: uuid.UUID, event_ids: list[uuid.UUID]
+) -> set[uuid.UUID]:
+    """Which of these events this account has a measured night at."""
+    if not event_ids:
+        return set()
     rows = await db.execute(
+        select(HRSession.event_id)
+        .where(HRSession.user_id == user_id, HRSession.event_id.in_(event_ids))
+        .distinct()
+    )
+    return set(rows.scalars().all())
+
+
+async def feed_events(db: AsyncSession, event: Event) -> tuple:
+    """The feed an event opens onto: (series or None, its events by date).
+
+    One feed per event (#65, Felipe 23/09): the tour's when the event is in
+    one, the event's own when it is not. The night becomes a filter inside
+    it, never a second screen.
+    """
+    from app.api.series import series_events, series_of
+
+    series = await series_of(db, event.id)
+    if series is None:
+        return None, [event]
+    return series, await series_events(db, series.id)
+
+
+async def feed_rows(
+    db: AsyncSession, viewer_id: uuid.UUID, series, events: list[Event]
+) -> list[tuple]:
+    """(post, author) rows this person may see in the feed, newest first.
+
+    One rule, whichever date a post is from: a post is seen by the people who
+    were at its own night, and by everybody at any date of the tour only if
+    its author said so when posting (`series_posts`). Posts made before the
+    feeds became one, "só pro rolê", keep exactly the audience they were
+    given — they are not silently widened.
+    """
+    ids = [e.id for e in events]
+    attended = await attended_events(db, viewer_id, ids)
+    query = (
         select(EventPost, User)
         .join(User, User.id == EventPost.user_id)
-        .where(EventPost.event_id == event_id, EventPost.deleted_at.is_(None))
+        .where(EventPost.event_id.in_(ids), EventPost.deleted_at.is_(None))
         .order_by(EventPost.created_at.desc())
     )
-    return await render_posts(db, list(rows.all()), viewer_id)
+    if series is not None:
+        query = query.outerjoin(
+            SeriesPost,
+            (SeriesPost.post_id == EventPost.id) & (SeriesPost.series_id == series.id),
+        ).where(
+            SeriesPost.post_id.is_not(None) | EventPost.event_id.in_(list(attended))
+        )
+    else:
+        query = query.where(EventPost.event_id.in_(list(attended)))
+    return list((await db.execute(query)).all())
+
+
+@dataclass
+class Rendered:
+    """The posts a feed shows, and how many a block kept out of it (#63).
+
+    The count is what lets an empty feed tell "nobody posted" apart from
+    "somebody did, and you blocked them" — an empty state is a claim.
+    """
+
+    posts: list[FeedPostResponse]
+    hidden_by_block: int
 
 
 async def render_posts(
@@ -129,12 +191,12 @@ async def render_posts(
     posts: list[tuple],
     viewer_id: uuid.UUID,
     events: dict | None = None,
-) -> list[FeedPostResponse]:
+) -> Rendered:
     """(post, author) rows as the feed shows them, moderation applied.
 
     Shared by the event feed and the series feed (#33), so a block or a
     report means the same thing on both. ``events`` maps an event id to the
-    event, for the series feed, where each post says which night it is from.
+    event, so each post says which night it is from.
     """
 
     # Moderation (#36): a block hides both people from each other, and a post
@@ -142,17 +204,20 @@ async def render_posts(
     # author, who is not told their post vanished by having it vanish.
     blocks = await _blocks_of(db, viewer_id)
     reported = await _open_report_counts(db, [p.id for p, _ in posts])
-    posts = [
+    unblocked = [
         (post, author)
         for post, author in posts
         if not moderation.blocked_either_way(viewer_id, post.user_id, blocks)
-        and (
-            post.user_id == viewer_id
-            or not moderation.hidden_by_reports(reported.get(post.id, 0))
-        )
+    ]
+    hidden_by_block = len(posts) - len(unblocked)
+    posts = [
+        (post, author)
+        for post, author in unblocked
+        if post.user_id == viewer_id
+        or not moderation.hidden_by_reports(reported.get(post.id, 0))
     ]
     if not posts:
-        return []
+        return Rendered(posts=[], hidden_by_block=hidden_by_block)
 
     ids = [p.id for p, _ in posts]
     counts = dict(
@@ -175,17 +240,20 @@ async def render_posts(
             )
         ).all()
     }
-    return [
-        FeedPostResponse.of(
-            post,
-            author=author,
-            reactions=counts.get(post.id, 0),
-            reacted_by_me=post.id in mine,
-            mine=post.user_id == viewer_id,
-            event=(events or {}).get(post.event_id),
-        )
-        for post, author in posts
-    ]
+    return Rendered(
+        posts=[
+            FeedPostResponse.of(
+                post,
+                author=author,
+                reactions=counts.get(post.id, 0),
+                reacted_by_me=post.id in mine,
+                mine=post.user_id == viewer_id,
+                event=(events or {}).get(post.event_id),
+            )
+            for post, author in posts
+        ],
+        hidden_by_block=hidden_by_block,
+    )
 
 
 @router.get("/{event_id}/feed", response_model=EventFeedResponse)
@@ -194,17 +262,24 @@ async def get_event_feed(
     user: User = Depends(require_attendance),
     db: AsyncSession = Depends(get_db),
 ):
-    """Everybody who was at this event and chose to show a moment."""
-    from app.api.series import series_of
-
+    """The one feed this event opens onto — its tour's, when it has one (#65)."""
     event = await _event_or_404(db, event_id)
+    series, events = await feed_events(db, event)
+    rendered = await render_posts(
+        db,
+        await feed_rows(db, user.id, series, events),
+        user.id,
+        events={e.id: e for e in events},
+    )
     return EventFeedResponse(
         event_id=event.id,
         event_name=event.name,
         venue=event.venue,
         date=event.date,
-        posts=await _posts_with_reactions(db, event_id, user.id),
-        series=await series_of(db, event_id),
+        posts=rendered.posts,
+        series=series,
+        events=[SeriesEvent.of(e) for e in events],
+        hidden_by_block=rendered.hidden_by_block,
     )
 
 
@@ -252,8 +327,8 @@ async def post_moment(
     db.add(post)
     await db.flush()
 
-    # The wider audience, only when asked for at this moment (#33). The row is
-    # the consent; an event outside any series simply has nowhere wider to go.
+    # The wider audience, only when asked for at this moment (#33, #65). The
+    # row is the consent; an event outside any tour has nowhere wider to go.
     if body.to_series:
         from app.api.series import series_of
 
@@ -262,8 +337,9 @@ async def post_moment(
             db.add(SeriesPost(post_id=post.id, series_id=series.id))
             await db.flush()
 
+    event = await _event_or_404(db, event_id)
     return FeedPostResponse.of(
-        post, author=user, reactions=0, reacted_by_me=False, mine=True
+        post, author=user, reactions=0, reacted_by_me=False, mine=True, event=event
     )
 
 
@@ -279,11 +355,14 @@ async def delete_post(
     Deliberately **not** behind [require_attendance]: somebody must be able to
     withdraw what they published even if their night was deleted first. The
     consent to publish health data is only real while the undo is.
+
+    The post is found by its id and its owner alone: in a tour's feed your
+    post from another date sits next to this one, and taking it down must not
+    depend on which date's door you came in through (#65).
     """
     result = await db.execute(
         select(EventPost).where(
             EventPost.id == post_id,
-            EventPost.event_id == event_id,
             EventPost.user_id == user.id,
         )
     )
@@ -306,7 +385,7 @@ async def toggle_reaction(
     db: AsyncSession = Depends(get_db),
 ):
     """SENTI TB — the only reaction there is, and it toggles."""
-    return await toggle(db, await _visible_post(db, event_id, post_id), user)
+    return await toggle(db, await _visible_post(db, event_id, post_id, user.id), user)
 
 
 async def toggle(db: AsyncSession, post: EventPost, user: User) -> FeedPostResponse:
@@ -332,12 +411,14 @@ async def toggle(db: AsyncSession, post: EventPost, user: User) -> FeedPostRespo
             select(func.count()).where(EventPostReaction.post_id == post.id)
         )
     ).scalar_one()
+    event = await _event_or_404(db, post.event_id)
     return FeedPostResponse.of(
         post,
         author=author,
         reactions=count,
         reacted_by_me=row is None,
         mine=post.user_id == user.id,
+        event=event,
     )
 
 
@@ -404,22 +485,23 @@ async def _peak_labels(
 
 
 async def _visible_post(
-    db: AsyncSession, event_id: uuid.UUID, post_id: uuid.UUID
+    db: AsyncSession, event_id: uuid.UUID, post_id: uuid.UUID, viewer_id: uuid.UUID
 ) -> EventPost:
-    post = (
-        await db.execute(
-            select(EventPost).where(
-                EventPost.id == post_id,
-                EventPost.event_id == event_id,
-                EventPost.deleted_at.is_(None),
-            )
-        )
-    ).scalar_one_or_none()
-    if post is None:
+    """A post in the feed this event opens onto that this person may see.
+
+    The same rule as [feed_rows], asked of one post: a tap on something you
+    cannot see is refused exactly as if it did not exist.
+    """
+    event = await _event_or_404(db, event_id)
+    series, events = await feed_events(db, event)
+    visible = [
+        p for p, _ in await feed_rows(db, viewer_id, series, events) if p.id == post_id
+    ]
+    if not visible:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post não encontrado"
         )
-    return post
+    return visible[0]
 
 
 @router.post(
@@ -438,7 +520,9 @@ async def report_post(
     report from the same person changes nothing and is not an error, because
     the person's intent was the same both times.
     """
-    await report(db, await _visible_post(db, event_id, post_id), user, body.reason)
+    await report(
+        db, await _visible_post(db, event_id, post_id, user.id), user, body.reason
+    )
 
 
 async def report(db: AsyncSession, post: EventPost, user: User, reason: str | None):
@@ -446,7 +530,7 @@ async def report(db: AsyncSession, post: EventPost, user: User, reason: str | No
     if post.user_id == user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Esse é seu. Pra tirar, é só tocar em “tirar do rolê”.",
+            detail="Esse é seu. Pra tirar, é só tocar em “tirar do feed”.",
         )
     already = (
         await db.execute(
@@ -474,7 +558,9 @@ async def _tell_operators(db: AsyncSession, post: EventPost) -> None:
         return
     event = await _event_or_404(db, post.event_id)
     link = f"{settings.site_url}/admin/denuncias"
-    text = f"Um post no rolê “{event.name}” foi denunciado.\n\nVeja e decida em {link}"
+    text = (
+        f"Um post no feed de “{event.name}” foi denunciado.\n\nVeja e decida em {link}"
+    )
     for to in settings.admins:
         try:
             await send_email(
@@ -501,7 +587,7 @@ async def block_author(
     Done from a post because nothing in the feed names a person any other
     way. Undone from the list in the app's settings.
     """
-    await block(db, await _visible_post(db, event_id, post_id), user)
+    await block(db, await _visible_post(db, event_id, post_id, user.id), user)
 
 
 async def block(db: AsyncSession, post: EventPost, user: User):

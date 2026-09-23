@@ -392,6 +392,57 @@ def _merge_started(
     return [(i, title, kept.get(i)) for i, title in enumerate(songs, start=1)]
 
 
+def _timeline_changes(
+    entries: list[tuple[int, str]],
+    merged: list[tuple[int, str, datetime | None]],
+) -> tuple[dict[int, str], set[int]]:
+    """What a corrected list does to the timeline: (renames, drops).
+
+    The timeline entry is what names the moment on every fan's card, so a
+    correction that stops at the setlist table is a correction nobody sees —
+    Felipe fixed "Love Sensation" on 23/09 and the timeline kept the old
+    name (#54). An entry whose position still has a measured time takes the
+    new title; one whose position is gone, or no longer measured, goes.
+    """
+    now = {position: title for position, title, at in merged if at is not None}
+    renames = {
+        position: now[position]
+        for position, label in entries
+        if position in now and now[position] != label
+    }
+    drops = {position for position, _label in entries if position not in now}
+    return renames, drops
+
+
+async def _sync_timeline(
+    db: AsyncSession,
+    event_id: uuid.UUID,
+    merged: list[tuple[int, str, datetime | None]],
+) -> None:
+    """Carry a corrected setlist onto the timeline entries its taps wrote."""
+    result = await db.execute(
+        select(EventTimeline).where(
+            EventTimeline.event_id == event_id,
+            EventTimeline.entry_type == "song_start",
+        )
+    )
+    ours = [
+        entry
+        for entry in result.scalars().all()
+        if (entry.metadata_ or {}).get("source") == SETLIST_SOURCE
+        and isinstance((entry.metadata_ or {}).get("position"), int)
+    ]
+    renames, drops = _timeline_changes(
+        [(e.metadata_["position"], e.label) for e in ours], merged
+    )
+    for entry in ours:
+        position = entry.metadata_["position"]
+        if position in drops:
+            await db.delete(entry)
+        elif position in renames:
+            entry.label = renames[position]
+
+
 async def _setlist(db: AsyncSession, event_id: uuid.UUID) -> list[EventSetlist]:
     result = await db.execute(
         select(EventSetlist)
@@ -446,6 +497,7 @@ async def replace_setlist(
                 started_at=started_at,
             )
         )
+    await _sync_timeline(db, event_id, merged)
     await db.flush()
     return await _setlist(db, event_id)
 
