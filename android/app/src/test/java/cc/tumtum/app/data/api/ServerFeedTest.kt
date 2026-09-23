@@ -175,27 +175,6 @@ class ServerFeedTest {
     }
 
     @Test
-    fun `a series feed says which night each post is from`() {
-        val json = """
-            {"series_id":"s1","name":"The Eras Tour — Brasil","kind":"tour",
-             "events":[{"id":"e1","name":"SP N1","date":"2026-11-14","city":"São Paulo"},
-                       {"id":"e2","name":"Rio","date":"2026-11-18","city":"Rio de Janeiro"}],
-             "posts":[{"id":"p1","author":{"name":"A","initials":"A"},"bpm":150,
-               "moment_at":"2026-11-19T01:10:00Z","label":null,"quote":null,"skin":"PINK",
-               "created_at":"2026-11-19T02:00:00Z","reactions":0,"reacted_by_me":false,"mine":false,
-               "event_id":"e2","event_name":"Rio","event_date":"2026-11-18","event_city":"Rio de Janeiro"}]}
-        """.trimIndent()
-
-        val feed = ServerSeriesFeed.parse(json)
-        val post = feed.posts.single()
-
-        assertEquals(2, feed.series.dates)
-        assertEquals("e2", post.eventId)
-        assertEquals("Rio de Janeiro", post.eventCity)
-        assertEquals(18, post.eventDate?.dayOfMonth)
-    }
-
-    @Test
     fun `a tour's feed carries its dates, each post its night, and what a block hid`() {
         // #65: one feed per event — the tour's — with the night as a filter;
         // #63: an empty feed must know when a block emptied it.
