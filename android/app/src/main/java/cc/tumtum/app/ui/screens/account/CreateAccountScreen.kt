@@ -176,7 +176,8 @@ fun CreateAccountScreen(nav: NavHostController) {
                             name.isBlank() -> R.string.form_missing_name
                             usernameClean.length < 3 -> R.string.form_short_username
                             usernameTaken -> R.string.form_username_taken
-                            !email.contains("@") -> R.string.form_missing_email
+                            email.isBlank() -> R.string.form_missing_email
+                            !email.contains("@") -> R.string.form_email_without_at
                             password.isEmpty() -> R.string.form_missing_password
                             else -> R.string.form_short_password
                         },

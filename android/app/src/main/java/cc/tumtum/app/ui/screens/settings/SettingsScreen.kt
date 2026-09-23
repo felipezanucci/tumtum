@@ -278,9 +278,11 @@ fun SettingsScreen(nav: NavHostController) {
                 onClick = { scope.launch { container.api.signOut() } },
             )
         } else {
+            // Pink (#55, 23/09): signed out, entering is the one thing this
+            // section is for, and a white outline read as secondary.
             TTButton(
                 stringResource(R.string.settings_sign_in),
-                TTButtonStyle.Outline,
+                TTButtonStyle.Rose,
                 onClick = { nav.navigate(Routes.Login) },
             )
             Spacer(Modifier.height(10.dp))

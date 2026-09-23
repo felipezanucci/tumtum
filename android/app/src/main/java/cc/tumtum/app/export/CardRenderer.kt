@@ -156,11 +156,19 @@ object CardRenderer {
         val boxH = 96f
         val boxPadX = 38f
         val ownRow = event != null && CardFoot.ownRow(event)
+        // On its own row a long name gets two lines before it is cut (#61).
+        val eventLineStep = 50f
+        val ownRowLines = if (ownRow) {
+            CardFoot.wrap(event!!, W - 2 * PAD - 2 * boxPadX) { eventPaint.measureText(it) }
+        } else {
+            emptyList()
+        }
+        val ownRowBoxH = boxH + eventLineStep * (ownRowLines.size - 1).coerceAtLeast(0)
         val rowGap = 24f
         val metaRowH = maxOf(60f, wordmarkH.toFloat())
         val footH = when {
             event == null -> metaRowH
-            ownRow -> boxH + rowGap + metaRowH
+            ownRow -> ownRowBoxH + rowGap + metaRowH
             else -> boxH
         }
 
@@ -221,6 +229,9 @@ object CardRenderer {
                 lineColor = ROSE,
                 markerColor = ACID,
                 gapColor = GRAY70,
+                // The dark edge exists for a bright frame behind the line; on
+                // a flat skin it only thickened it (#61).
+                outlined = (photo != null && skin == Skin.BLACK) || sticker,
             )
             y += curveH
         }
@@ -254,8 +265,14 @@ object CardRenderer {
             }
 
             ownRow -> {
-                drawBox(usable)
-                y += boxH + rowGap
+                val boxW = ownRowLines.maxOf { eventPaint.measureText(it) } + 2 * boxPadX
+                canvas.drawRect(PAD, y, PAD + boxW, y + ownRowBoxH, Paint().apply { color = boxColor })
+                val fm = eventPaint.fontMetrics
+                ownRowLines.forEachIndexed { i, line ->
+                    val center = y + boxH / 2f + i * eventLineStep
+                    canvas.drawText(line, PAD + boxPadX, center - (fm.ascent + fm.descent) / 2f, eventPaint)
+                }
+                y += ownRowBoxH + rowGap
                 val fm = metaPaint.fontMetrics
                 canvas.drawText(meta, PAD, y + metaRowH - fm.descent, metaPaint)
                 drawWordmark(y + metaRowH - wordmarkH / 2f)
@@ -286,6 +303,7 @@ object CardRenderer {
         lineColor: Int,
         markerColor: Int,
         gapColor: Int,
+        outlined: Boolean,
     ) {
         val sorted = samples.sortedBy { it.time }
         val lo = (sorted.minOf { it.bpm } - 6).coerceAtLeast(30)
@@ -299,45 +317,53 @@ object CardRenderer {
         fun x(t: Instant): Float =
             left + (Duration.between(windowStart, t).toMillis().toFloat() / totalMs) * width
 
-        fun y(bpm: Int): Float =
-            top + padTop + (1f - (bpm - lo).toFloat() / span) * (height - padTop - padBottom)
+        fun yOf(bpm: Float): Float =
+            top + padTop + (1f - (bpm - lo) / span) * (height - padTop - padBottom)
 
-        // Thicker than before (8 → 11 px) and outlined (A2, 22/09): over a
-        // bright photo or video frame the thin line disappeared, and the curve
-        // is the card's evidence — it has to survive the frame behind it.
+        fun y(bpm: Int): Float = yOf(bpm.toFloat())
+
+        // Finer and smoothed (#61, 23/09). A2 made it 11 px with a 17 px
+        // outline, drawn through every raw 1 Hz sample — Felipe: "a linha
+        // está muito grosseira". A stroke that heavy turns each beat-to-beat
+        // wobble into a jagged band. Now the line follows [CurvePath]'s
+        // averaged points (never across a gap, still through the true peak)
+        // with curves between them, at 7.5 px, and outlined only when a
+        // photo or a video sits behind it.
         val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
-            strokeWidth = 11f
+            strokeWidth = 7.5f
             strokeCap = Paint.Cap.ROUND
             strokeJoin = Paint.Join.ROUND
             color = lineColor
         }
         val outlinePaint = Paint(linePaint).apply {
-            strokeWidth = 17f
-            color = 0x96000000.toInt()
+            strokeWidth = 12.5f
+            color = 0x8C000000.toInt()
         }
 
-        var path: Path? = null
-        var prev: HrSample? = null
-        fun flush() {
-            path?.let {
-                canvas.drawPath(it, outlinePaint)
-                canvas.drawPath(it, linePaint)
+        CurvePath.segments(sorted, windowStart, windowEnd).forEach { points ->
+            val path = Path()
+            val first = points.first()
+            path.moveTo(x(first.time), yOf(first.bpm))
+            if (points.size == 1) {
+                path.lineTo(x(first.time) + 0.1f, yOf(first.bpm))
             }
-            path = null
-        }
-        for (s in sorted) {
-            val p = prev
-            if (p != null && Duration.between(p.time, s.time).seconds > NightAnalyzer.GAP_THRESHOLD_SEC) flush()
-            val cur = path
-            if (cur == null) {
-                path = Path().apply { moveTo(x(s.time), y(s.bpm)) }
-            } else {
-                cur.lineTo(x(s.time), y(s.bpm))
+            // Through each point's midpoint to the next: a smooth line that
+            // still passes every averaged value closely, and the peak exactly.
+            for (i in 1 until points.size) {
+                val p = points[i - 1]
+                val q = points[i]
+                if (i == points.size - 1) {
+                    path.quadTo(x(p.time), yOf(p.bpm), x(q.time), yOf(q.bpm))
+                } else {
+                    val mx = (x(p.time) + x(q.time)) / 2f
+                    val my = (yOf(p.bpm) + yOf(q.bpm)) / 2f
+                    path.quadTo(x(p.time), yOf(p.bpm), mx, my)
+                }
             }
-            prev = s
+            if (outlined) canvas.drawPath(path, outlinePaint)
+            canvas.drawPath(path, linePaint)
         }
-        flush()
 
         val gapPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE

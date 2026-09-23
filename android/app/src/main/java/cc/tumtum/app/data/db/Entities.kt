@@ -71,6 +71,12 @@ data class NightEntity(
     val momentsSource: String = "LOCAL",
     /** The photo behind the last shared black card (21/09), a file in filesDir. Null = none. */
     val photoPath: String? = null,
+    /**
+     * The account that uploaded this night (#58, 23/09) — the server's user
+     * id. A night belongs to the account that sent it, and only that account
+     * may post from it; null for nights uploaded before this was recorded.
+     */
+    val ownerUserId: String? = null,
 )
 
 /** Amostras cruas da noite — guardadas como lidas. Buraco é ausência de linha. */

@@ -160,7 +160,7 @@ class NightSync(
                     samples = samples,
                     serverEventId = serverEventId,
                 )
-                db.nightDao().setServerSessionId(nightId, serverId)
+                db.nightDao().setServerSessionId(nightId, serverId, session.userId)
                 db.nightDao().setUploadState(nightId, "SENT", null)
             }
 

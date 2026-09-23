@@ -64,26 +64,19 @@ import kotlinx.coroutines.launch
  * Those are three different sentences and collapsing them into one blank
  * list is the defect this project keeps counting.
  */
-@Composable
-fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? = null) =
-    FeedScreenFor(nav, FeedTarget.Event(eventId), eventName)
-
 /**
- * The tour, club or championship above the rolê (#33, 22/09): everybody who
- * went to any of its dates, and only the posts their authors chose to show
- * to all of it. The same screen as the rolê — same rules for SENTI, report,
- * block and take-down — in Pink instead of Toxic Yellow, so which room you
- * are in is never in doubt.
+ * **One feed per event** (#65, Felipe 23/09). Until that day a show in a
+ * tour had two — its own "rolê" and the tour's above it, behind a black door
+ * — and in his hands it read as confusing: two words, two screens, and a
+ * two-way consent for a choice nobody knew existed. Now an event in a tour
+ * opens onto the tour's feed, starting on every date, each post saying which
+ * night it is from, and "Só a minha noite" narrows it to the night this
+ * person was at. A show on its own is simply its own feed.
  */
 @Composable
-fun SeriesFeedScreen(nav: NavHostController, seriesId: String, seriesName: String? = null) =
-    FeedScreenFor(nav, FeedTarget.Series(seriesId), seriesName)
-
-@Composable
-private fun FeedScreenFor(nav: NavHostController, target: FeedTarget, title: String?) {
-    val eventId = target.id
-    val isSeries = target is FeedTarget.Series
-    val feed = target
+fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? = null) {
+    val title = eventName
+    val feed = FeedTarget(eventId)
     val container = appContainer()
     val scope = rememberCoroutineScope()
     var state by remember(eventId) { mutableStateOf<FeedState>(FeedState.Loading) }
@@ -110,18 +103,23 @@ private fun FeedScreenFor(nav: NavHostController, target: FeedTarget, title: Str
     var moderating by remember(eventId) { mutableStateOf<ServerPost?>(null) }
     var banner by remember(eventId) { mutableStateOf<String?>(null) }
 
+    // "Todas as datas" or "Só a minha noite" (#65). Opens on every date —
+    // the fuller feed — and remembers the choice for as long as the screen.
+    var onlyMine by remember(eventId) { mutableStateOf(false) }
+
     LaunchedEffect(eventId, tick) {
         // A reload that gets cancelled by a newer one now simply stops: the
         // repository no longer turns cancellation into Failed (#46), so the
         // screen keeps what it had instead of flashing an error.
-        state = if (isSeries) container.social.seriesFeed(eventId) else container.social.feed(eventId)
+        state = container.social.feed(eventId)
         (state as? FeedState.Ready)?.eventName?.takeIf { it.isNotBlank() }?.let { knownName = it }
-        // Card 04 is a crowd at one night; across a tour's dates the minutes
-        // do not line up, so the series feed has no crowd line at all.
-        if (!isSeries) crowd = container.social.crowd(eventId)
+        // Card 04 is a crowd at one night — this one, the night the person
+        // was at — whatever dates the feed below spans.
+        crowd = container.social.crowd(eventId)
     }
-    LaunchedEffect(eventId) {
-        if (!isSeries) myNight = container.nights.uploadedNightAt(eventId)
+    LaunchedEffect(eventId, user?.session?.userId) {
+        // Only the signed-in account's night is offered (#58).
+        myNight = container.nights.uploadedNightAt(eventId, user?.session?.userId)
     }
 
     fun replacePost(updated: ServerPost) {
@@ -185,7 +183,7 @@ private fun FeedScreenFor(nav: NavHostController, target: FeedTarget, title: Str
         Column(
             Modifier
                 .fillMaxWidth()
-                .background(if (isSeries) TT.Rose else TT.Acid)
+                .background(TT.Acid)
                 .statusBarsPadding()
                 .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 22.dp),
         ) {
@@ -210,31 +208,26 @@ private fun FeedScreenFor(nav: NavHostController, target: FeedTarget, title: Str
                     color = TT.Ink.copy(alpha = 0.65f),
                 )
             }
-            if (isSeries) {
-                ready?.series?.let {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        stringResource(R.string.series_dates, it.dates, kindWord(it.kind)),
-                        style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
-                        color = TT.Ink.copy(alpha = 0.7f),
-                    )
-                }
+            // The tour whose feed this is, only when it spans several dates —
+            // a tour of one date is just this show, and "1 datas" was a
+            // sentence the app should never have said (#66).
+            val tour = ready?.takeIf { it.spansDates }
+            val tourName = tour?.series?.name
+            if (tour != null && tourName != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(R.string.feed_tour_line, tourName, tour.dates.size),
+                    style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
+                    color = TT.Ink.copy(alpha = 0.7f),
+                )
             }
             Spacer(Modifier.height(16.dp))
             CrowdLine(crowd)
-            // The door upstairs (#33): this night belongs to something bigger.
-            if (!isSeries) {
-                ready?.series?.let { series ->
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        stringResource(R.string.series_door, kindWord(series.kind).uppercase(), series.name.uppercase(), series.dates),
-                        style = TTType.MetaSmall.copy(fontWeight = FontWeight.Bold),
-                        color = TT.Rose,
-                        modifier = Modifier
-                            .background(TT.Ink)
-                            .clickable { nav.navigate(Routes.seriesFeed(series.id, series.name)) }
-                            .padding(horizontal = 10.dp, vertical = 7.dp),
-                    )
+            if (ready?.spansDates == true) {
+                Spacer(Modifier.height(14.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NightChip(stringResource(R.string.feed_filter_all), selected = !onlyMine) { onlyMine = false }
+                    NightChip(stringResource(R.string.feed_filter_mine), selected = onlyMine) { onlyMine = true }
                 }
             }
         }
@@ -248,9 +241,7 @@ private fun FeedScreenFor(nav: NavHostController, target: FeedTarget, title: Str
 
                 // Not an empty list: the server said this account has no
                 // measured night here, and that is its own sentence.
-                is FeedState.NotThere -> Note(
-                    stringResource(if (isSeries) R.string.series_not_there else R.string.event_feed_not_there),
-                )
+                is FeedState.NotThere -> Note(stringResource(R.string.event_feed_not_there))
 
                 // #35, 22/09. Felipe read "Entra na sua conta" while the app still
                 // showed his name and avatar — two claims that contradicted each
@@ -286,15 +277,21 @@ private fun FeedScreenFor(nav: NavHostController, target: FeedTarget, title: Str
 
                 is FeedState.Ready -> {
                     banner?.let { Note(it) }
-                    if (s.isEmpty && isSeries) {
-                        Note(stringResource(R.string.series_empty))
-                    } else if (s.isEmpty) {
-                        EmptyFeed(myNight, nav)
+                    val shown = if (onlyMine && s.spansDates) s.posts.filter { it.eventId == eventId } else s.posts
+                    if (shown.isEmpty()) {
+                        when {
+                            // The filter emptied it, not the world: say so, and
+                            // the way back is the chip right above.
+                            s.posts.isNotEmpty() -> Note(stringResource(R.string.feed_filter_mine_empty))
+                            // A block emptied it (#63): somebody did post.
+                            s.hiddenByBlock > 0 -> Note(stringResource(R.string.event_feed_empty_blocked))
+                            else -> EmptyFeed(myNight, nav)
+                        }
                     } else {
-                        s.posts.forEach { post ->
+                        shown.forEach { post ->
                             val busy = post.id in inFlight
                             MomentCard(
-                                moment = post.asMoment(inSeries = isSeries),
+                                moment = post.asMoment(showNight = s.spansDates),
                                 onToggleSenti = {
                                     if (!busy) {
                                         inFlight = inFlight + post.id
@@ -372,6 +369,20 @@ private fun FeedScreenFor(nav: NavHostController, target: FeedTarget, title: Str
     }
 }
 
+/** One of the two night filters (#65): black when chosen, outlined when not. */
+@Composable
+private fun NightChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Text(
+        label,
+        style = TTType.MetaSmall.copy(fontWeight = FontWeight.Bold),
+        color = if (selected) TT.Acid else TT.Ink,
+        modifier = Modifier
+            .background(if (selected) TT.Ink else TT.Ink.copy(alpha = 0.08f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+    )
+}
+
 /** Card 04, as one line — or an honest account of why there is not one yet. */
 @Composable
 private fun CrowdLine(state: CrowdState) {
@@ -444,20 +455,19 @@ private fun EmptyFeed(night: NightEntity?, nav: NavHostController) {
 }
 
 /**
- * A post as the card draws it. **No event name** (#31): every post on this
- * screen is from the same event, whose name is the header right above, so the
- * line under the author said it again on every card. It says when instead.
+ * A post as the card draws it. **No event name** (#31): on a show's own feed
+ * every post is from the event named right above, so the line under the
+ * author says when instead. In a tour's feed, where several dates sit
+ * together, it says which night: "São Paulo 24/10".
  */
-private fun ServerPost.asMoment(inSeries: Boolean = false): FeedMoment {
+private fun ServerPost.asMoment(showNight: Boolean = false): FeedMoment {
     val skinValue = runCatching { Skin.valueOf(skin) }.getOrDefault(Skin.BLACK)
     return FeedMoment(
         id = id.hashCode().toLong(),
         postId = id,
         mine = mine,
         user = SocialUser(handle = "", displayName = authorName, initials = authorInitials, avatarSkin = skinValue),
-        // In a series feed the posts come from several nights, so each says
-        // which: "São Paulo 14/11 · 22h10". In the rolê the header says it.
-        eventName = if (inSeries) {
+        eventName = if (showNight) {
             listOfNotNull(
                 eventCity ?: eventName,
                 eventDate?.let { "%02d/%02d".format(it.dayOfMonth, it.monthValue) },
@@ -538,12 +548,3 @@ private fun ModerationDialog(
         },
     )
 }
-
-@Composable
-private fun kindWord(kind: String): String = stringResource(
-    when (kind) {
-        "club" -> R.string.series_kind_club
-        "league" -> R.string.series_kind_league
-        else -> R.string.series_kind_tour
-    },
-)

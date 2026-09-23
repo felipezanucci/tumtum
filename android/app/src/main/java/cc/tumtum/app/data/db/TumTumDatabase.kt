@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class, MarkEntity::class,
         BleSampleEntity::class, RrIntervalEntity::class, MotionEntity::class, ConnectionEventEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class TumTumDatabase : RoomDatabase() {
@@ -107,9 +107,20 @@ abstract class TumTumDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v7 → v8: a night knows which account uploaded it (#58, 23/09).
+         * Felipe signed in as another account and the app offered the other
+         * account's night as his; the server refused and the app hid why.
+         */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE nights ADD COLUMN ownerUserId TEXT")
+            }
+        }
+
         fun build(context: Context): TumTumDatabase =
             Room.databaseBuilder(context, TumTumDatabase::class.java, "tumtum.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 .build()
     }
 }

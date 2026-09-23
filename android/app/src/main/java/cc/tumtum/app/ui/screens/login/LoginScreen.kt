@@ -102,7 +102,12 @@ fun LoginScreen(nav: NavHostController) {
             onDeclined = {
                 if (!saving) {
                     error = context.getString(
-                        if (!email.contains("@")) R.string.form_missing_email else R.string.form_missing_password,
+                        when {
+                            email.isBlank() && password.isEmpty() -> R.string.form_missing_email_and_password
+                            email.isBlank() -> R.string.form_missing_email
+                            !email.contains("@") -> R.string.form_email_without_at
+                            else -> R.string.form_missing_password
+                        },
                     )
                 }
             },
@@ -125,11 +130,17 @@ fun LoginScreen(nav: NavHostController) {
                                 tribes = existing?.tribes ?: emptySet(),
                             ),
                         )
-                        // Signing back in (an expired session, from Configurações or
-                        // from the feed that asked) returns to where the person
-                        // was. Only a first sign-in goes on to the permissions.
-                        if (user?.onboarded == true && nav.previousBackStackEntry != null) {
-                            nav.popBackStack()
+                        // Signing back in goes straight to the feed (#57, 23/09) —
+                        // from Configurações it used to drop the person back on
+                        // Configurações, one more step from what they came for.
+                        // The back stack is cleared so "back" does not return
+                        // to the sign-in form. Only a first sign-in goes on to
+                        // the permissions.
+                        if (user?.onboarded == true) {
+                            nav.navigate(Routes.Feed) {
+                                popUpTo(nav.graph.id) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         } else {
                             nav.navigate(Routes.Permission)
                         }
