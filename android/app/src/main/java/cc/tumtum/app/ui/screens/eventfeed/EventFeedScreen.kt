@@ -369,7 +369,7 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
     }
 }
 
-/** One of the two night filters (#65): black when chosen, outlined when not. */
+/** One of the two night filters (#65): black when chosen, a light tint when not. */
 @Composable
 private fun NightChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Text(
