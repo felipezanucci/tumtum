@@ -323,21 +323,54 @@ object ShareTargets {
         true
     }.getOrDefault(false)
 
-    /** The card in the phone's gallery, under Pictures/TumTum. Android 10+ only. */
+    /**
+     * The card in the phone's **camera roll**, beside the photos the person
+     * took. Android 10+ only.
+     *
+     * b189 saved it to Pictures/TumTum, and on Felipe's phone it could be
+     * found in the Files app but not among his photos (24/09). The card is
+     * saved to be picked later, from the photo picker of a Story, and that
+     * picker opens on the camera roll. So it goes where the camera writes
+     * (DCIM/Camera), the one folder every gallery shows first, Google Photos
+     * included, which shows other folders only under Library. Two details
+     * make it appear at once and in the right place:
+     *
+     *  - **IS_PENDING** while the bytes are written, cleared afterwards, so the
+     *    gallery indexes a finished file, with its size and dimensions, and
+     *    never an empty one;
+     *  - **DATE_TAKEN** set to now, so it sorts as the newest photo and not
+     *    at 1970, where a gallery puts an image with no date.
+     *
+     * A write that fails removes its half-made entry, so no blank thumbnail
+     * is left in the roll.
+     */
     fun saveToGallery(context: Context, card: Bitmap, name: String): Boolean {
         if (!canSaveToGallery) return false
+        val resolver = context.contentResolver
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, name)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.RELATIVE_PATH, CAMERA_ROLL)
+            put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+            put(MediaStore.Images.Media.WIDTH, card.width)
+            put(MediaStore.Images.Media.HEIGHT, card.height)
+            put(MediaStore.Images.Media.IS_PENDING, 1)
+        }
+        val uri = runCatching { resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) }
+            .getOrNull() ?: return false
         return runCatching {
-            val values = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, name)
-                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/TumTum")
-            }
-            val resolver = context.contentResolver
-            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return false
-            resolver.openOutputStream(uri)?.use { card.compress(Bitmap.CompressFormat.PNG, 100, it) } ?: return false
+            val written = resolver.openOutputStream(uri)?.use { card.compress(Bitmap.CompressFormat.PNG, 100, it) } == true
+            check(written) { "the card was not written" }
+            resolver.update(uri, ContentValues().apply { put(MediaStore.Images.Media.IS_PENDING, 0) }, null, null)
             true
-        }.getOrDefault(false)
+        }.getOrElse {
+            runCatching { resolver.delete(uri, null, null) }
+            false
+        }
     }
+
+    /** Where the camera writes its photos: the camera roll every gallery opens on. */
+    const val CAMERA_ROLL = "DCIM/Camera"
 
     /**
      * The person's video, copied into our cache so a FileProvider URI of ours
