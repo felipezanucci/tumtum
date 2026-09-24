@@ -2,11 +2,21 @@
 <resources>
     <!--
         The Facebook App ID Meta's "Sharing to Stories" asks for as
-        `source_application` (export/ShareTargets.kt). Measured 22/09:
-        Instagram accepts the intent without one, so it stays empty until one
-        is registered at developers.facebook.com for cc.tumtum.app — which
-        Facebook Stories does require. Not a secret: it is public in every
-        app that shares to Stories.
+        `source_application` (export/ShareTargets.kt). Registered by Felipe
+        24/09 at developers.facebook.com as "TumTum", an app with no use case —
+        only the ID is needed. Facebook Stories requires it; Instagram accepted
+        the intent without one (22/09) and now gets it too, as Meta asks. Not a
+        secret: it is public in every app that shares to Stories.
     -->
-    <string name="facebook_app_id" translatable="false"></string>
+    <string name="facebook_app_id" translatable="false">1076995595141587</string>
+
+    <!--
+        Snapchat Creative Kit Lite (export/ShareTargets.kt), app "TumTum" at
+        developers.snap.com, registered by Felipe 24/09. Public OAuth 2.0
+        client IDs, not secrets. STAGING works only for the Demo Users listed
+        in the portal, and is what the app uses until Snap approves the app;
+        then this becomes the PRODUCTION one:
+        3cd9b16d-720c-4861-b3a8-9e90b9274061
+    -->
+    <string name="snap_client_id" translatable="false">31c6d366-a4c2-48a9-993c-899452724109</string>
 </resources>

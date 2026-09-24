@@ -634,8 +634,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
 59. **The Play Console questionnaire is out of date.** Report and block exist
     since 22/09; the Data safety and content-rating answers still say they do
     not. Felipe's to update — the console is his.
-60. **Tests 6–10 of the 23/09 round are still to run on b173**: the session
-    surviving more than an hour closed (6), the honest refusal for an account
+60. **Tests 6–10 of the 23/09 round are still to run on b173**: ~~the session
+    surviving more than an hour closed (6)~~ — **passed 23/09**: the phone sat
+    two to three hours untouched and Felipe was still signed in, the refresh
+    token doing its work with no password asked (#34 measured in a hand), the honest refusal for an account
     with no night (7), marks tapped without a night (8), the reveal lock, never
     run (9). Test 10 — the show operator on a phone's browser — passed 23/09.
 56. **Nobody has ever seen the feed with more than one person in it.** The
@@ -646,6 +648,42 @@ the linked documents — this file is the index and the reasoning, not a diary.
     collective moment (card 04) cannot be judged until an event has four
     nights uploaded, which makes **one match with four straps** the cheapest
     experiment that answers whether any of this is worth anything.
+
+---
+
+## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind
+
+Felipe registered TumTum with the three networks himself, screen by screen.
+What each one cost to learn, so the next time is quicker:
+
+- **Meta**: create the app as **"Crie um app sem um caso de uso"** — Stories
+  sharing needs only the App ID. The package name fails Meta's Play check
+  (the app is only on internal testing) and no Live switch appears for an app
+  with no use case; neither blocks sharing for the app's own admin.
+- **Snap**: organization → New Snap Kit App → Creative Kit on (Spotlight off,
+  attachment domain `https://tumtum.cc`) → Android App ID `cc.tumtum.app` for
+  **both** Staging and Production → Demo Users. The kit is Creative Kit
+  **Lite** now, no SDK.
+- **TikTok**: every URL must be a **verified property**. Verified by DNS — a
+  TXT record `tiktok-developers-site-verification=…` on the root (`@`, not
+  `tumtum.cc.tumtum.cc`, which the DNS panel offers to create). It then asks
+  for a **Terms of Service URL**, which did not exist.
+- The **1024×1024 icon** the portals ask for is in `shared/brand/`, rendered
+  from the official wordmark vector, nothing redrawn.
+
+**`/termos` and `/en/terms` written the same day**, in the privacy page's
+quiet voice and layout: entertainment not health, 18+, what may be posted in
+the feed, report/block/removal, other networks' rules, no affiliation with
+artists or clubs, Brazilian law and São Paulo courts (consumer law intact).
+A draft for Felipe to read — it names no company or CNPJ yet. Linked from the
+site footer.
+
+**The privacy page had fallen behind the product.** It said a card becomes
+public only when shared; since 22/09 a moment can also be shown in an event's
+feed, to the people with a measured night there (and a tour's, by choice).
+Two sentences added in both languages — what the feed shows and never shows,
+and that reports and blocks are kept. A promise page is only true while
+someone re-reads it after every feature that touches what is visible.
 
 ---
 
@@ -683,9 +721,25 @@ those on the phone.
   pick in any editor (save needs Android 10; hidden below it).
 - **Mais apps** — the system list with the finished file, as before.
 
-Not offered until they can work: Facebook Stories (Meta requires a
-registered Facebook App ID there — `res/values/instagram.xml` is where it
-goes), TikTok and Snapchat (each needs its own SDK). **Unverified on a
+Not offered until it can work: TikTok (its own SDK, and review).
+**Snapchat added 24/09**, by Creative Kit **Lite** — Snap's code-only path
+since 10/2024, no SDK: an intent to `snapchat://creativekit/preview` with the
+video or photo behind and the card as a movable sticker (PNG ≤ 1 MB, so it is
+scaled to fit). App "TumTum" at developers.snap.com, Creative Kit on,
+Android IDs for Staging and Production, the Staging client ID in the app —
+until Snap approves, only the portal's Demo Users can share; after approval
+the Production ID (in `res/values/instagram.xml`) replaces it. Submit for
+review only once it works in a hand: Snap asks for evidence of the flow.
+**Facebook Stories added 24/09**: Felipe registered the Meta app
+"TumTum" (ID 1076995595141587, public, in `res/values/instagram.xml`) as an
+app with no use case — only the ID is needed. Instagram now receives the ID
+too, as Meta asks. Two things in that registration are expected and not
+blocking: the package name fails Meta's Play Store check (the app is only on
+internal testing, so no public listing exists), and the app stays in
+Development mode — no Live switch appears for an app with no use case, and
+in Development its admin can share, which is enough to test. Before the
+pilot: Live mode, and a Terms page (`tumtum.cc/termos`), which TikTok will ask
+for too. **Unverified on a
 phone:** pasting the copied card into Instagram's Story editor on Android,
 and whether every editor keeps the card's transparency.
 
