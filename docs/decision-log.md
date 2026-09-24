@@ -683,6 +683,70 @@ Snapchat's demo on b180 found three faults in one screen. Felipe's words:
 Which of the two (shape or codec) froze the video is not known. Both are
 removed at once, and the next Snap demo recording is the test.
 
+**b182 in Felipe's hand, the same afternoon: half fixed.** The card arrived
+whole, with the title, the number, the curve, the event box and the wordmark
+all on screen. Two faults were left. The wash still read as a box, because it ended at its
+darkest, so the sticker's bottom edge was a hard line across the video. And the video
+still did not play. Now the feathered wash clears below the block as well as
+at the sides, over the full margin. Snapchat is also launched the way
+Snap's own sample does it (`FLAG_ACTIVITY_NEW_TASK | CLEAR_TOP`,
+`startActivity`), not for a result from inside our task. Our intent and
+Snap's sample differ in nothing else. **This is a guess, not a known cause.** If the
+video still freezes, the quick diagnostic is *Mais apps → Snapchat*, which
+hands Snapchat the same kind of re-encoded MP4 with no Creative Kit at all.
+If that plays, the fault is in the Creative Kit path. If it does not, the
+fault is in the file.
+
+**Then TikTok froze on the same clip, and three tests settled it.** Felipe
+ran the three tests. The Madonna clip plays in the gallery. The card's MP4 made from it plays
+in WhatsApp. A video he had just recorded on the phone plays in TikTok. So
+the pipeline works, and the fault is in **that source**: a clip from
+elsewhere that the lenient players accept and the Story editors of TikTok
+and Snapchat freeze on. Our re-encoding had already changed the codec and
+the size. What it still carried over from the source was the frame timing
+and the audio, which was copied as it was. Both are now normalised: at most
+30 frames a second, evenly spaced, and the audio re-encoded to AAC. This is
+still a guess about which one froze it. The Madonna clip on the next build
+is the test. **The demo videos for Snap and TikTok should be recorded with a
+video shot on the phone**, which is known to work.
+
+**Felipe found the real cause, and it was not the clip.** Every video he
+picked on the spot played in both TikTok and Snapchat. Every video on a card
+he reopened without touching it froze. The card screen kept only the video's
+**first frame** with the night (21/09, so the gallery and "Compartilhar de
+novo" would show the card that went out), and on the next visit it restored
+that frame **as a photo**. The card looked identical, and every network was
+handed a still. It is the project's usual bug, the app stating something false
+about its own state, and it cost an afternoon of reasoning about codecs, frame
+rates and launch flags before a person tapping the screen saw the pattern.
+None of the three earlier changes was wrong (9:16 for Snap, H.264, 30 fps and AAC,
+Snap's own launch flags), but none of them was the cause.
+
+- The picked video's permission is now **persisted**, and its address is
+  kept in a small file beside its first frame, which lives and is deleted with
+  it (no new column on the night). On reopening, a card made over a video comes back **as the
+  video**.
+- If the video is no longer readable (deleted, or a permission the phone
+  did not keep), the card comes back over the still and **says so**:
+  *"O vídeo desse card não está mais no celular…"*.
+- **The wash is gone from the movable sticker.** Even with faded edges it
+  read as *"a máscara, o filtro errado"* in Snapchat. The person moves a
+  sticker to where it reads, so it now carries only heavier shadows under the
+  type. The video the card is burned into (WhatsApp, TikTok, Mais apps) keeps
+  its wash, because there the card cannot be moved off a white t-shirt.
+
+**b186 in the hand: the video plays, the Snapchat card is still wrong.**
+TikTok played a card that had been reopened without touching it, which
+confirms the fix. On Snapchat the card, now with no wash, came out narrow
+and small next to the same card on TikTok ("não está na proporção
+correta"). That was the 300 dp box doing its job. The box comes from Snap's
+SDK documentation, but b180's sticker was drawn taller than 300 dp, so Creative Kit Lite
+does not enforce it. Snapchat's sticker is now the card at the **screen's
+full width with its margins** (cropped by rows only, `CardSticker.cropRows`),
+the same proportions as the burned video. Its foot sits at 76% of the
+screen height, above Snapchat's row of friends, as measured on Felipe's phone. It is narrowed only if
+it would climb above the top bar (`SnapStickerSizeTest`).
+
 ---
 
 ## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind

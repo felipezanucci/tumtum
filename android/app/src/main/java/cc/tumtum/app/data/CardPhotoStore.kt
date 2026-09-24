@@ -3,6 +3,7 @@ package cc.tumtum.app.data
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -36,13 +37,37 @@ object CardPhotoStore {
                 }
                 file.outputStream().use { out -> scaled.compress(Bitmap.CompressFormat.JPEG, 88, out) }
                 if (scaled !== photo) scaled.recycle()
-                previousPath?.let { File(it).delete() }
+                delete(previousPath)
                 file.absolutePath
             }.getOrNull()
         }
 
     fun delete(path: String?) {
-        path?.let { runCatching { File(it).delete() } }
+        path?.let {
+            runCatching { File(it).delete() }
+            runCatching { File(it + VIDEO_SUFFIX).delete() }
+        }
+    }
+
+    /*
+     * A video's address, kept beside its first frame (24/09). Until then a
+     * card made over a video came back, on the next visit, as a card over a
+     * photo of its first frame: it looked the same, and TikTok and Snapchat
+     * received a still — "o vídeo não toca", found by Felipe on the phone.
+     * Kept as a small file next to the frame so it lives and dies with it,
+     * with no new column on the night.
+     */
+    private const val VIDEO_SUFFIX = ".video"
+
+    fun saveVideo(photoPath: String, video: Uri) {
+        runCatching { File(photoPath + VIDEO_SUFFIX).writeText(video.toString()) }
+    }
+
+    /** The video the frame at [photoPath] came from, if it was a video. */
+    fun videoOf(photoPath: String?): Uri? = photoPath?.let { path ->
+        runCatching {
+            File(path + VIDEO_SUFFIX).takeIf { it.exists() }?.readText()?.trim()?.takeIf { it.isNotEmpty() }?.let(Uri::parse)
+        }.getOrNull()
     }
 
     /** Apagar conta apaga tudo (§7): the photos go with the nights. */

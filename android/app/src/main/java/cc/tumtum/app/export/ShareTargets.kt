@@ -136,12 +136,14 @@ object ShareTargets {
      * movable — Creative Kit Lite's "share to preview". [stickerAspect] is the
      * sticker's height over its width, so it is placed at its own shape.
      *
-     * Tested 24/09 on b180, the card arrived cut off at the bottom: it was
-     * asked for at 300 dp wide, and so ~350 dp tall, centred low on the
-     * screen, and ran under Snapchat's own row of friends and its buttons.
-     * Snap's SDK caps a sticker at 300 dp on **each** side, so the card now
-     * fits inside that box at its own shape, and sits high enough that its
-     * foot — the event and the wordmark — clears Snapchat's bottom bar.
+     * Sized the way the card sits everywhere else (24/09, third try). b180
+     * asked for 300 dp wide and ran off the bottom; b182–b186 fitted it in
+     * the 300 dp box Snap's SDK documents and it came out narrow, "fora de
+     * proporção" next to the same card on TikTok. Creative Kit Lite drew
+     * b180's sticker taller than 300 dp, so the box is not enforced here:
+     * the card now takes the screen's width, margins included, as it does
+     * in the video burned for TikTok, with its foot above Snapchat's row of
+     * friends.
      */
     fun snapchatPreview(
         context: Context,
@@ -173,39 +175,47 @@ object ShareTargets {
         sticker?.let {
             val stickerUri = uriFor(context, it)
             context.grantUriPermission(SNAPCHAT, stickerUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            val (widthDp, heightDp) = snapStickerSize(stickerAspect)
+            val screen = context.resources.configuration
+            val place = snapStickerPlacement(stickerAspect, screen.screenWidthDp, screen.screenHeightDp)
             val json = JSONObject()
                 .put("uri", stickerUri.toString())
                 .put("posX", 0.5)
-                .put("posY", SNAP_STICKER_Y)
+                .put("posY", place.posY)
                 .put("rotation", 0)
-                .put("widthDp", widthDp)
-                .put("heightDp", heightDp)
+                .put("widthDp", place.widthDp)
+                .put("heightDp", place.heightDp)
             intent.putExtra("sticker", json.toString())
         }
         val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
         return if (resolved != null) intent else null
     }
 
-    /** The largest sticker Snap takes, per side, in dp. */
-    const val SNAP_STICKER_MAX_DP = 300
+    /** Where Snapchat's sticker goes: its size in dp and its centre's height. */
+    data class SnapPlacement(val widthDp: Int, val heightDp: Int, val posY: Double)
 
-    // The sticker's centre, as a fraction of the screen's height. A card
-    // 300 dp tall centred here ends around 78% down, above the row of
-    // friends Snapchat lays over the bottom of its preview.
-    private const val SNAP_STICKER_Y = 0.56
+    // Fractions of the screen's height, measured on Felipe's phone (24/09):
+    // Snapchat's row of friends begins about 77% down, and its top bar ends
+    // about 12% down. The card lives between the two.
+    private const val SNAP_BOTTOM = 0.76
+    private const val SNAP_TOP = 0.12
 
     /**
-     * The sticker's size in dp for a card [aspect] (height over width) tall:
-     * as large as fits in Snap's 300 × 300 box, at the card's own shape.
+     * The card at the screen's full width and its own shape, its foot at
+     * [SNAP_BOTTOM]; narrowed only if it would otherwise climb above
+     * [SNAP_TOP]. Pure, so it is tested without a device.
      */
-    fun snapStickerSize(aspect: Float): Pair<Int, Int> {
+    fun snapStickerPlacement(aspect: Float, screenWidthDp: Int, screenHeightDp: Int): SnapPlacement {
         val a = if (aspect.isFinite() && aspect > 0f) aspect else 1f
-        return if (a >= 1f) {
-            (SNAP_STICKER_MAX_DP / a).toInt() to SNAP_STICKER_MAX_DP
-        } else {
-            SNAP_STICKER_MAX_DP to (SNAP_STICKER_MAX_DP * a).toInt()
+        val screenH = screenHeightDp.coerceAtLeast(1)
+        var width = screenWidthDp.coerceAtLeast(1)
+        var height = (width * a).toInt()
+        val room = (screenH * (SNAP_BOTTOM - SNAP_TOP)).toInt()
+        if (height > room) {
+            height = room
+            width = (room / a).toInt()
         }
+        val posY = SNAP_BOTTOM - height.toDouble() / screenH / 2
+        return SnapPlacement(width, height, posY)
     }
 
     /**
@@ -365,6 +375,20 @@ object CardSticker {
             }
         }
         return if (right < 0) null else intArrayOf(left, top, right + 1, bottom + 1)
+    }
+
+    /**
+     * Only the rows: the card's own block at the full width of its sheet,
+     * margins kept, so it sits as it does on the burned video (Snapchat,
+     * 24/09).
+     */
+    fun cropRows(bitmap: Bitmap): Bitmap {
+        val w = bitmap.width
+        val h = bitmap.height
+        val pixels = IntArray(w * h)
+        bitmap.getPixels(pixels, 0, w, 0, 0, w, h)
+        val b = opaqueBounds(pixels, w, h) ?: return bitmap
+        return Bitmap.createBitmap(bitmap, 0, b[1], w, b[3] - b[1])
     }
 
     fun crop(bitmap: Bitmap): Bitmap {

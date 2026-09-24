@@ -4,12 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.ComposeShader
 import android.graphics.DashPathEffect
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.PorterDuff
 import android.graphics.Typeface
 import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
@@ -55,11 +53,13 @@ object CardRenderer {
      *   through, and a gradient under the block of type instead of the flat
      *   wash the photo card uses — see the note where it is drawn. Black skin
      *   only, the one whose surface a photo or a video can take.
-     * @param feathered The sticker's gradient fades out at its left and right
-     *   edges too. For a sticker handed to an editor that draws it narrower
-     *   than the screen — Snapchat caps it at 300 dp (24/09) — where a full
-     *   width wash shows up as a dark box with hard sides. Not for the video
-     *   the card is burned into, which the wash already spans edge to edge.
+     * @param bare No wash at all, only the shadows under the type. For the
+     *   sticker handed to a Story editor, which the person moves wherever it
+     *   reads. Tested 24/09: Snapchat draws a sticker at most 300 dp on a
+     *   side, and there the wash showed as a dark box over the video however
+     *   its edges were faded ("a máscara, o filtro errado"). Not for the video
+     *   the card is burned into, where the card cannot be moved off a bright
+     *   frame.
      */
     fun render(
         context: Context,
@@ -70,7 +70,7 @@ object CardRenderer {
         chip: String?,
         photo: Bitmap? = null,
         sticker: Boolean = false,
-        feathered: Boolean = false,
+        bare: Boolean = false,
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -195,34 +195,27 @@ object CardRenderer {
         // bottom and measured just above, so this moves with it instead of
         // guessing at a fixed fraction of the height.
         if (sticker && skin == Skin.BLACK) {
-            val top = (y - GRADIENT_LEAD).coerceAtLeast(0f)
-            val down = LinearGradient(
-                0f, top, 0f, H.toFloat(),
-                intArrayOf(0x00000000, 0x70000000, 0xE6000000.toInt()),
-                floatArrayOf(0f, 0.35f, 1f),
-                Shader.TileMode.CLAMP,
-            )
-            val wash = Paint().apply {
-                shader = if (feathered) {
-                    // Opaque across the type, clear at the very edges: the
-                    // fade lives inside the margin, so no letter is touched.
-                    val edge = PAD * 0.8f / W
-                    val across = LinearGradient(
-                        0f, 0f, W.toFloat(), 0f,
-                        intArrayOf(0x00000000, 0xFF000000.toInt(), 0xFF000000.toInt(), 0x00000000),
-                        floatArrayOf(0f, edge, 1f - edge, 1f),
+            if (!bare) {
+                val top = (y - GRADIENT_LEAD).coerceAtLeast(0f)
+                val wash = Paint().apply {
+                    shader = LinearGradient(
+                        0f, top, 0f, H.toFloat(),
+                        intArrayOf(0x00000000, 0x70000000, 0xE6000000.toInt()),
+                        floatArrayOf(0f, 0.35f, 1f),
                         Shader.TileMode.CLAMP,
                     )
-                    ComposeShader(down, across, PorterDuff.Mode.DST_IN)
-                } else {
-                    down
                 }
+                canvas.drawRect(0f, top, W.toFloat(), H.toFloat(), wash)
             }
-            canvas.drawRect(0f, top, W.toFloat(), H.toFloat(), wash)
             // The second net, for the stretch where the gradient is still
-            // light: a shadow costs nothing and saves a bright frame.
+            // light: a shadow costs nothing and saves a bright frame. With no
+            // wash at all it is the only net, so it is drawn heavier.
             listOf(titlePaint, numPaint, metaPaint).forEach {
-                it.setShadowLayer(14f, 0f, 3f, 0xB3000000.toInt())
+                if (bare) {
+                    it.setShadowLayer(18f, 0f, 3f, 0xE6000000.toInt())
+                } else {
+                    it.setShadowLayer(14f, 0f, 3f, 0xB3000000.toInt())
+                }
             }
         }
 

@@ -9,6 +9,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
+import androidx.media3.effect.FrameDropEffect
 import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.Presentation
 import androidx.media3.effect.TextureOverlay
@@ -68,6 +69,7 @@ object VideoCard {
     /** How much of the video is kept, from its start. */
     const val MAX_MS = 30_000L
 
+    private const val FPS = 30f
     private const val W = 1080
     private const val H = 1920
 
@@ -130,6 +132,15 @@ object VideoCard {
                     // static overlay lands edge to edge, are the two things only
                     // a real device can answer.
                     listOf<Effect>(
+                        // At most 30 frames a second, spaced evenly. Tested
+                        // 24/09: a clip from elsewhere played in the gallery
+                        // and in WhatsApp but froze on its first frame in
+                        // TikTok's and Snapchat's editors, while a video
+                        // recorded on the phone played in both. Re-encoding
+                        // had already changed the codec and the size, so the
+                        // frame timing and the audio were what the file
+                        // still carried over from its source.
+                        FrameDropEffect.createDefaultFrameDropEffect(FPS),
                         Presentation.createForWidthAndHeight(
                             W, H, Presentation.LAYOUT_SCALE_TO_FIT_WITH_CROP,
                         ),
@@ -143,6 +154,9 @@ object VideoCard {
                 // H.264, whatever the phone recorded in: a Samsung's HEVC is
                 // a codec not every app that receives the file will play.
                 .setVideoMimeType(MimeTypes.VIDEO_H264)
+                // And the audio re-encoded to AAC rather than copied over
+                // from the source as it was (see the frame note above).
+                .setAudioMimeType(MimeTypes.AUDIO_AAC)
                 .addListener(
                     object : Transformer.Listener {
                         override fun onCompleted(composition: Composition, result: ExportResult) {
