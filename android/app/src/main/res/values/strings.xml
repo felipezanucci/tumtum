@@ -516,7 +516,7 @@
     <string name="card_share_back">Voltar</string>
     <string name="card_share_instagram_hint">No Instagram, Facebook e Snapchat o card vem solto: arrasta e ajusta o tamanho.</string>
     <string name="card_copied">Card copiado. No editor do Story, segura o dedo na tela e toca em colar.</string>
-    <string name="card_saved">Card salvo na galeria, com fundo transparente, em Imagens › TumTum.</string>
+    <string name="card_saved">Card salvo nas fotos da câmera, com fundo transparente. É só escolher ele quando for postar.</string>
     <string name="card_copy_failed">Não deu pra copiar o card. Tenta salvar na galeria.</string>
     <string name="card_save_failed">Não deu pra salvar na galeria. Tenta de novo.</string>
     <string name="card_share_instagram_failed">O Instagram não abriu o Story. Tenta pelo Mais apps.</string>
