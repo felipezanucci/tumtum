@@ -788,6 +788,18 @@ left is outside the app: Snap's and TikTok's reviews, and a test by someone
 who is not in Meta's app roles, to learn whether Development mode limits
 Facebook sharing.
 
+**Snap's review submitted the same evening, after a file problem.** Snap's portal
+refused the demo with *"Unknown upload error"* for two attempts. The
+recording carried three faults. Its name ended in `.mp4.mp4`, because Windows
+hides extensions. Its frame rate was variable (37.72 fps). Its size was
+392×850, because it had passed through WhatsApp, which recompresses. Re-encoded to
+H.264 main, 720×1562, a constant 30 fps and AAC stereo, with a plain name,
+it uploaded at the first try. For the next portal, record on the phone,
+move the file by cable or Drive rather than WhatsApp, and check the name
+with extensions visible. Snap and TikTok are both **in review**. The
+production Snap client ID (`3cd9b16d-…`, already in `instagram.xml` as a comment)
+replaces the staging one when Snap approves.
+
 ---
 
 ## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind
