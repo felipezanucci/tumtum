@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "tumtum_prefs")
@@ -30,6 +31,15 @@ data class Account(
                     else -> "${parts.first().first()}${parts.last().first()}".uppercase()
                 }
             }
+
+    /**
+     * Whether this profile on the phone is the one of the account signing in
+     * (24/09). The name, the @, the tribes and the photo live only on the
+     * phone, so they belong to whoever made them: a different account
+     * arriving starts from its own, never from the previous person's.
+     */
+    fun belongsTo(email: String): Boolean =
+        this.email.isNotBlank() && this.email.trim().equals(email.trim(), ignoreCase = true)
 }
 
 /**
@@ -187,6 +197,25 @@ class UserPrefs(private val context: Context) {
             p[Keys.email] = account.email
             p[Keys.tribes] = account.tribes
         }
+    }
+
+    /**
+     * Another person's account arrives on this phone (24/09): the profile is
+     * theirs from the first screen, and **the previous person's photo goes**.
+     * Test 7 showed Felipe's photo over the name *teste1* — the photo is
+     * kept only here, and nothing ever cleared it, so the app put one
+     * person's face on another person's account.
+     */
+    suspend fun replaceAccount(account: Account) {
+        val previousPhoto = state.first().avatarPath
+        context.dataStore.edit { p ->
+            p[Keys.name] = account.name
+            p[Keys.username] = account.username
+            p[Keys.email] = account.email
+            p[Keys.tribes] = account.tribes
+            p.remove(Keys.avatarPath)
+        }
+        previousPhoto?.let { runCatching { java.io.File(it).delete() } }
     }
 
     suspend fun setOnboarded() {

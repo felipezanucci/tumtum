@@ -762,6 +762,43 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-24 — 7b in a hand, a face on the wrong account, and the Story that showed nothing
+
+Felipe on b191 with the test account *teste1*:
+
+- **"Salvar card" reached the camera roll.** The #97 fix is confirmed in a hand.
+- **His photo sat on teste1's profile.** The profile photo is kept only on
+  the phone (`AvatarStore`), and nothing ever cleared it. *Criar outra conta*
+  wiped the nights and left the face. It is the log's usual class, and a bad
+  instance: one person's face on another person's account. *Entrar* had the
+  same fault one level down: it kept the previous profile's @ and tribes for
+  whatever account signed in. **Fixed in #98:** the local profile (name, @,
+  tribes, photo) carries over only when it belongs to the account signing in
+  (`Account.belongsTo`, the same address). A different account starts from
+  its own, and the previous photo is deleted (`UserPrefs.replaceAccount`).
+  One consequence Felipe will see: signing back into his own account after
+  teste1 starts with no photo and an @ taken from his address, because the
+  old ones were already replaced by teste1's.
+- **The Teste 7B feed said *"Esse feed é de quem estava lá"*.** That is the
+  7a sentence, and it is right for an account with no night at the event.
+  7b's check is a different screen (the card of the other account's night,
+  after *Entrar*), so 7b is still open. If teste1 did capture a night at
+  Teste 7B, this refusal would mean the night never reached the server. The
+  line under that night's curve says which.
+- **He asked whether a video recorded for a Story can carry the card on
+  top. It can, and the road was proved on b187:** in TumTum, *Foto ou vídeo
+  atrás*, pick the video, then Compartilhar → Instagram. Instagram opens with
+  the video behind and the card as a sticker that moves and resizes, with
+  sound. His attempt went the other way round: Instagram first, then the
+  saved card from the gallery as a photo sticker, and the picker showed
+  nothing. The likely cause is Android 14's partial photo access: when
+  Instagram was allowed only *selected photos*, a new image saved by another
+  app is not in its selection. Unconfirmed; the check is Instagram's photo
+  permission (*Permitir tudo*). Worth making that road visible in the app,
+  since he did not reach it on his own.
+
+---
+
 ## 2026-09-24 — an account needs its e-mail: a 6-digit code at sign-up
 
 **#64, Felipe's call:** *"vamos mandar o código de 6 dígitos logo na criação

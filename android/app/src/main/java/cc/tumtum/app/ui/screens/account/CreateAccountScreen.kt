@@ -170,13 +170,15 @@ fun CreateAccountScreen(nav: NavHostController) {
                         try {
                             container.api.signupConfirm(email = sentTo, code = code)
                             // Only now, with the account made, does the phone change.
+                            val account = Account(name = name.trim(), username = usernameClean, email = sentTo, tribes = tribes)
                             if (replacing != null) {
                                 container.nights.wipeAll()
                                 CardPhotoStore.deleteAll(context)
+                                // The previous person's photo goes with their nights.
+                                container.prefs.replaceAccount(account)
+                            } else {
+                                container.prefs.createAccount(account)
                             }
-                            container.prefs.createAccount(
-                                Account(name = name.trim(), username = usernameClean, email = sentTo, tribes = tribes),
-                            )
                             container.prefs.setParticipantId(participant)
                             nav.navigate(Routes.Permission)
                         } catch (e: Exception) {
