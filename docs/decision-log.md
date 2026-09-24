@@ -631,9 +631,18 @@ the linked documents — this file is the index and the reasoning, not a diary.
 58. ~~**The Instagram sticker can no longer be moved (#60).**~~ Decided and
     built 23/09: one button per network, each by its own best road — see the
     entry of that day. Facebook Stories waits on a Facebook App ID.
-59. **The Play Console questionnaire is out of date.** Report and block exist
-    since 22/09; the Data safety and content-rating answers still say they do
-    not. Felipe's to update — the console is his.
+59. ~~**The Play Console questionnaire is out of date.**~~ Updated by Felipe
+    24/09. **Content rating:** still *Todos os outros tipos*. Block **yes**,
+    report **yes**, chat moderation **no** (there is no chat).
+    Interactions limited to invited friends **no**, because a feed reaches everyone
+    measured at the event and there is no friend list. Digital purchases
+    **no**: the 18/09 form had it as *yes*, and there is no billing in the app.
+    **Data safety:** the 18/09 types plus *App activity → App interactions*
+    (reactions, reports, blocks: optional, not shared, app functionality).
+    Photos and videos are not declared, because they never reach the server. Nothing
+    was sent for review. *Enviar app para revisão* stays disabled while the
+    app is an internal-testing draft, and every change since 18/09 waits in
+    *Visão geral da publicação* until the first closed or production track.
 60. **Tests 6–10 of the 23/09 round are still to run on b173**: ~~the session
     surviving more than an hour closed (6)~~ — **passed 23/09**: the phone sat
     two to three hours untouched and Felipe was still signed in, the refresh
