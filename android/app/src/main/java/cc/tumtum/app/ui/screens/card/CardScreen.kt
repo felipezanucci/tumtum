@@ -99,6 +99,9 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     // The encoder's own figure while a video is being burned, or null. Never a
     // made-up percentage: a bar that moves on a timer is a lie about work.
     var burning by remember { mutableStateOf<Int?>(null) }
+    // What that figure is the progress of: the card burned into the video, or
+    // the video only re-encoded for Snapchat, which has no card in it.
+    var burnLabel by remember { mutableStateOf(R.string.card_share_burning) }
     // The share sheet came back. That is all it means: whether the card was
     // sent, nobody here knows, and the screen says only what is true.
     var cameBack by remember { mutableStateOf(false) }
@@ -165,15 +168,21 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         container.nights.publish(n.id, skin, photoPath)
     }
 
-    fun render(photo: Bitmap? = null, sticker: Boolean = false): Bitmap =
-        CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = photo, sticker = sticker)
+    fun render(photo: Bitmap? = null, sticker: Boolean = false, feathered: Boolean = false): Bitmap =
+        CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = photo, sticker = sticker, feathered = feathered)
 
-    /** The card alone: on black, a sticker cut to its own block; on the other skins, the whole card. */
-    fun cardAlone(): Bitmap = if (skin == Skin.BLACK) CardSticker.crop(render(sticker = true)) else render()
+    /**
+     * The card alone: on black, a sticker cut to its own block, its wash
+     * fading at the sides since editors draw it narrower than the screen; on
+     * the other skins, the whole card.
+     */
+    fun cardAlone(): Bitmap =
+        if (skin == Skin.BLACK) CardSticker.crop(render(sticker = true, feathered = true)) else render()
 
     /** The finished file — the card burned into the video, or the card as a picture. */
     suspend fun finished(chosen: CardMedia?): Pair<java.io.File, String>? =
         if (chosen is CardMedia.Video) {
+            burnLabel = R.string.card_share_burning
             burning = 0
             val sticker = withContext(Dispatchers.IO) { render(sticker = true) }
             val file = VideoCard.burn(context, chosen.uri, sticker, n.id) { burning = it }
@@ -207,11 +216,35 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 } else {
                     CardRenderer.writePng(context, alone, "tumtum-${n.id}-sticker.png")
                 }
-                val (background, mime) = when (chosen) {
-                    is CardMedia.Video -> ShareTargets.copyVideo(context, chosen.uri, n.id)
+                val (background, mime) = when {
+                    // Snapchat's preview wants a 9:16 background (Snap's own
+                    // note: any other shape breaks its canvas), and a phone's
+                    // recording may be another shape or a codec its preview
+                    // leaves frozen on the first frame — tested 24/09. So it
+                    // gets the video re-encoded the way the card's own video
+                    // is, only with nothing drawn on it.
+                    target == ShareTo.Snapchat && chosen is CardMedia.Video -> {
+                        withContext(Dispatchers.Main) {
+                            burnLabel = R.string.card_share_preparing_snapchat
+                            burning = 0
+                        }
+                        val file = VideoCard.burn(context, chosen.uri, null, n.id, "snap-${n.id}.mp4") {
+                            burning = it
+                        }
+                        withContext(Dispatchers.Main) {
+                            burning = null
+                            // Said as what it is, not as Snapchat refusing.
+                            if (file == null) failure = R.string.card_share_snapchat_video_failed
+                        }
+                        (file ?: return@runCatching null) to "video/mp4"
+                    }
+                    target == ShareTo.Snapchat && chosen is CardMedia.Photo ->
+                        ShareTargets.writeJpeg(context, ShareTargets.storyFrame(chosen.preview), "snap-${n.id}.jpg") to "image/jpeg"
+                    chosen is CardMedia.Video -> ShareTargets.copyVideo(context, chosen.uri, n.id)
                         ?: return@runCatching null
-                    is CardMedia.Photo ->
+                    chosen is CardMedia.Photo ->
                         ShareTargets.writeJpeg(context, chosen.preview, "story-${n.id}.jpg") to "image/jpeg"
+                    else -> return@runCatching null
                 }
                 editorFor(background, mime, sticker, aspect)
             } else {
@@ -237,7 +270,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                     }
                     val intent = story(chosen, target)
                     if (intent == null) {
-                        failure = refused
+                        if (failure == null) failure = refused
                     } else {
                         runCatching { shareLauncher.launch(intent) }
                             .onFailure { failure = refused }
@@ -412,7 +445,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 canSave = ShareTargets.canSaveToGallery,
                 busy = busy,
                 status = when {
-                    burning != null -> stringResource(R.string.card_share_burning, burning ?: 0)
+                    burning != null -> stringResource(burnLabel, burning ?: 0)
                     sharing -> stringResource(R.string.card_share_running)
                     else -> null
                 },
