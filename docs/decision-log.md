@@ -66,7 +66,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
     recording on both the Polar app and TumTum, and send the Polar CSV so the
     importer can be checked against a file the device actually wrote rather
     than one reproduced from its documented shape.
-11. ~~**Password reset does not exist.**~~ Built 2026-08-26 on Resend, via
+11. ~~**Password reset does not exist.**~~ **24/09: it has never sent a
+    mail in production** — Felipe's reset request produced nothing, because
+    `RESEND_API_KEY` was never set on Railway; the 6-digit sign-up code (#98)
+    cannot merge until it is. Built 2026-08-26 on Resend, via
     `mail.tumtum.cc`, which is the default in `config.py` — so **only
     `RESEND_API_KEY` needs setting on Railway**. Without it every send fails —
     loudly in the logs, silently to the person, since the reply is identical
@@ -863,6 +866,17 @@ is set on Railway. Every sign-up now depends on a mail leaving. Without the
 key the server answers 503 and **nobody can make an account**, which is
 honest, and total. The test costs nothing: *esqueci minha senha* on
 tumtum.cc with his own address. If the mail arrives, the key is there.
+
+**Checked the same evening: no mail came.** Felipe asked for a reset on
+tumtum.cc/esqueci-senha and nothing arrived. That matches the 26/08 handoff,
+whose configuration table says `RESEND_API_KEY` **Not set**. It was never
+set, so **password recovery has never sent a single mail in production**,
+while the page says, by design, *"o link acabou de sair"*. #98 waits for
+the key. The steps: in Resend, *API Keys → Create*, with sending access
+only and the domain `mail.tumtum.cc` (verified 26/08). In Railway, add
+`RESEND_API_KEY` to the backend's Variables and **apply the change**, since
+Railway stages a new variable until *Deploy*. Then repeat the reset. The key
+never goes through a chat.
 
 **What the merge does to phones already out there:** an app from before this
 build cannot create an account anymore. It gets the 410's sentence, wrapped
