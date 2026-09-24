@@ -683,6 +683,20 @@ Snapchat's demo on b180 found three faults in one screen. Felipe's words:
 Which of the two (shape or codec) froze the video is not known. Both are
 removed at once, and the next Snap demo recording is the test.
 
+**b182 in Felipe's hand, the same afternoon: half fixed.** The card arrived
+whole, with the title, the number, the curve, the event box and the wordmark
+all on screen. Two faults were left. The wash still read as a box, because it ended at its
+darkest, so the sticker's bottom edge was a hard line across the video. And the video
+still did not play. Now the feathered wash clears below the block as well as
+at the sides, over the full margin. Snapchat is also launched the way
+Snap's own sample does it (`FLAG_ACTIVITY_NEW_TASK | CLEAR_TOP`,
+`startActivity`), not for a result from inside our task. Our intent and
+Snap's sample differ in nothing else. **This is a guess, not a known cause.** If the
+video still freezes, the quick diagnostic is *Mais apps → Snapchat*, which
+hands Snapchat the same kind of re-encoded MP4 with no Creative Kit at all.
+If that plays, the fault is in the Creative Kit path. If it does not, the
+fault is in the file.
+
 ---
 
 ## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind

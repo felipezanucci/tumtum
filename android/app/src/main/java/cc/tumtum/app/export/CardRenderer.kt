@@ -196,17 +196,30 @@ object CardRenderer {
         // guessing at a fixed fraction of the height.
         if (sticker && skin == Skin.BLACK) {
             val top = (y - GRADIENT_LEAD).coerceAtLeast(0f)
-            val down = LinearGradient(
-                0f, top, 0f, H.toFloat(),
-                intArrayOf(0x00000000, 0x70000000, 0xE6000000.toInt()),
-                floatArrayOf(0f, 0.35f, 1f),
-                Shader.TileMode.CLAMP,
-            )
+            // Feathered, the wash also clears again below the block: tested
+            // 24/09 on b182, a wash that ends at its darkest drew the
+            // sticker's bottom edge as a hard line across the video.
+            val blockEnd = ((H - PAD - top) / (H - top)).coerceIn(0.4f, 1f)
+            val down = if (feathered) {
+                LinearGradient(
+                    0f, top, 0f, H.toFloat(),
+                    intArrayOf(0x00000000, 0x70000000, 0xD9000000.toInt(), 0x00000000),
+                    floatArrayOf(0f, 0.35f, blockEnd, 1f),
+                    Shader.TileMode.CLAMP,
+                )
+            } else {
+                LinearGradient(
+                    0f, top, 0f, H.toFloat(),
+                    intArrayOf(0x00000000, 0x70000000, 0xE6000000.toInt()),
+                    floatArrayOf(0f, 0.35f, 1f),
+                    Shader.TileMode.CLAMP,
+                )
+            }
             val wash = Paint().apply {
                 shader = if (feathered) {
                     // Opaque across the type, clear at the very edges: the
-                    // fade lives inside the margin, so no letter is touched.
-                    val edge = PAD * 0.8f / W
+                    // fade spans the whole margin, so no letter is touched.
+                    val edge = PAD / W
                     val across = LinearGradient(
                         0f, 0f, W.toFloat(), 0f,
                         intArrayOf(0x00000000, 0xFF000000.toInt(), 0xFF000000.toInt(), 0x00000000),

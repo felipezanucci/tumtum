@@ -271,6 +271,18 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                     val intent = story(chosen, target)
                     if (intent == null) {
                         if (failure == null) failure = refused
+                    } else if (target == ShareTo.Snapchat) {
+                        // Launched the way Snap's own Creative Kit Lite sample
+                        // does: a new task, not for a result. On b180 and b182
+                        // Snapchat showed the video's first frame and never
+                        // played it; this is the one difference left between
+                        // our intent and Snap's, so it is the next thing tried,
+                        // not a known cause (24/09). The screen still says only
+                        // that the person came back.
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        runCatching { context.startActivity(intent) }
+                            .onSuccess { cameBack = true }
+                            .onFailure { failure = refused }
                     } else {
                         runCatching { shareLauncher.launch(intent) }
                             .onFailure { failure = refused }
