@@ -638,8 +638,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
     measured at the event and there is no friend list. Digital purchases
     **no**: the 18/09 form had it as *yes*, and there is no billing in the app.
     **Data safety:** the 18/09 types plus *App activity → App interactions*
-    (reactions, reports, blocks: optional, not shared, app functionality).
-    Photos and videos are not declared, because they never reach the server. Nothing
+    (reactions, reports, blocks: optional, not shared, not ephemeral, for
+    app functionality and for safety, compliance and fraud prevention). Photos
+    and videos are not declared, because they never reach the server. Felipe's CSV
+    export turned up one error from 18/09: *User IDs* were declared
+    **ephemeral**. An account's ID is stored for as long as the account
+    exists, so the answer is now **no**, like name, e-mail and health. Nothing
     was sent for review. *Enviar app para revisão* stays disabled while the
     app is an internal-testing draft, and every change since 18/09 waits in
     *Visão geral da publicação* until the first closed or production track.
