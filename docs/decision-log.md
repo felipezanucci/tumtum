@@ -697,6 +697,19 @@ hands Snapchat the same kind of re-encoded MP4 with no Creative Kit at all.
 If that plays, the fault is in the Creative Kit path. If it does not, the
 fault is in the file.
 
+**Then TikTok froze on the same clip, and three tests settled it.** Felipe
+ran the three tests. The Madonna clip plays in the gallery. The card's MP4 made from it plays
+in WhatsApp. A video he had just recorded on the phone plays in TikTok. So
+the pipeline works, and the fault is in **that source**: a clip from
+elsewhere that the lenient players accept and the Story editors of TikTok
+and Snapchat freeze on. Our re-encoding had already changed the codec and
+the size. What it still carried over from the source was the frame timing
+and the audio, which was copied as it was. Both are now normalised: at most
+30 frames a second, evenly spaced, and the audio re-encoded to AAC. This is
+still a guess about which one froze it. The Madonna clip on the next build
+is the test. **The demo videos for Snap and TikTok should be recorded with a
+video shot on the phone**, which is known to work.
+
 ---
 
 ## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind
