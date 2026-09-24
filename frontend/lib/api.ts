@@ -126,7 +126,15 @@ async function request<T>(
     if (response.status === 401 && isGenericAuthFailure(body.detail)) {
       throw new ApiError(401, 'Sua sessão expirou. Entre na sua conta para continuar.')
     }
-    throw new ApiError(response.status, body.detail || 'Erro desconhecido')
+    // A 422 from Pydantic carries a list of field problems, not a sentence;
+    // passed through, it reached a screen as "[object Object]" or crashed it.
+    const detail =
+      typeof body.detail === 'string'
+        ? body.detail
+        : body.detail
+          ? 'O servidor não aceitou esses dados. Confere o que você digitou.'
+          : 'Erro desconhecido'
+    throw new ApiError(response.status, detail)
   }
 
   if (response.status === 204) return undefined as T
@@ -156,11 +164,30 @@ export interface UserResponse {
   is_admin: boolean
 }
 
+/** Where the sign-up code went, and the server's own windows (#64). */
+export interface SignupStarted {
+  email: string
+  expires_in_seconds: number
+  resend_after_seconds: number
+}
+
 export const auth = {
-  register: (email: string, name: string, password: string) =>
-    request<TokenResponse>('/api/auth/register', {
+  /**
+   * Step one of an account (#64, 24/09): the server mails a 6-digit code to
+   * the address and creates nothing. The account exists only after
+   * `signupConfirm`, so an address nobody reads never becomes one.
+   */
+  signupStart: (email: string, name: string, password: string) =>
+    request<SignupStarted>('/api/auth/register/start', {
       method: 'POST',
       body: JSON.stringify({ email, name, password }),
+    }),
+
+  /** Step two: the code came back, and the account is made and signed in. */
+  signupConfirm: (email: string, code: string) =>
+    request<TokenResponse>('/api/auth/register/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
     }),
 
   login: (email: string, password: string) =>

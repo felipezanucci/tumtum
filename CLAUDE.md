@@ -251,6 +251,11 @@ series_posts: post_id (PK, FK), series_id (FK), created_at      -- the author's 
 -- Sessions (22/09): access token 1 h; refresh token 90 days from last use, rotated
 refresh_tokens: id, user_id (FK), family_id, parent_id, token_hash, expires_at, revoked_at, revoke_reason, created_at
 
+-- Sign-up codes (24/09, #64): an account exists only once its e-mail is proved.
+-- What the account will be waits here until the 6-digit code comes back; the
+-- code is stored only as a keyed hash; unconfirmed rows are deleted after a day.
+signup_codes: id, email, email_key, name, hashed_password, code_hash, attempts, expires_at, used_at, created_at
+
 -- Public waitlist (landing page). Email and nothing else: the page promises
 -- "a gente só usa seu e-mail pra te avisar dos próximos eventos", and a column
 -- we do not have is a promise we cannot accidentally break.

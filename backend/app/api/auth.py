@@ -1,28 +1,32 @@
 import traceback
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.auth import create_access_token, get_current_user
 from app.core.database import get_db
 from app.models.password_reset_token import PasswordResetToken
+from app.models.signup_code import SignupCode
 from app.models.user import User
 from app.schemas.auth import (
     ForgotPasswordRequest,
     LoginRequest,
     MessageResponse,
     RefreshRequest,
-    RegisterRequest,
     ResetPasswordRequest,
+    SignupConfirmRequest,
+    SignupStarted,
+    SignupStartRequest,
     TokenResponse,
     UserResponse,
 )
 from app.services import refresh_tokens
+from app.services import signup_codes as codes
 from app.services.email import EmailNotConfigured, send_email
 from app.services.password_reset import (
     expiry_from,
@@ -50,21 +54,208 @@ def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
-@router.post(
-    "/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
+# The old one-step sign-up, retired by #64 (24/09). It answers every caller
+# — an app installed before the code existed, or anyone with curl — with a
+# sentence instead of an account, because left open it would be the way
+# around the code.
+SIGNUP_RETIRED = (
+    "Pra criar uma conta agora a gente manda um código pro seu e-mail. "
+    "Atualiza o app (ou crie pelo tumtum.cc) e tenta de novo."
 )
-async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == body.email))
-    if result.scalar_one_or_none():
+
+CODE_GONE = "Esse código não vale mais. Pede um novo."
+CODE_NOT_SENT = "Não deu pra mandar o código agora. Tenta de novo em alguns minutos."
+
+
+@router.post("/register", status_code=status.HTTP_410_GONE)
+async def register():
+    raise HTTPException(status_code=status.HTTP_410_GONE, detail=SIGNUP_RETIRED)
+
+
+async def _has_account(db: AsyncSession, key: str) -> bool:
+    # Addresses were stored as typed (open item 11), so an account made as
+    # "Felipe@" must still stop a second one as "felipe@".
+    found = await db.execute(select(User.id).where(func.lower(User.email) == key))
+    return found.first() is not None
+
+
+def _code_mail(code: str) -> tuple[str, str, str]:
+    """Subject, HTML and text of the code's e-mail.
+
+    No name in it, on purpose: the form takes any address, and whatever it
+    lets a stranger write would land, under our name, in somebody else's
+    inbox. The only thing that varies is six digits we chose.
+    """
+    minutes = int(codes.CODE_TTL.total_seconds() // 60)
+    subject = f"{code} é seu código da TumTum"
+    html = (
+        "<p>Seu código pra criar a conta na TumTum:</p>"
+        f'<p style="font-size:28px;font-weight:700;letter-spacing:6px">{code}</p>'
+        f"<p>Ele vale por {minutes} minutos.</p>"
+        "<p>Se não foi você que pediu, é só ignorar este e-mail — "
+        "nenhuma conta é criada sem o código.</p>"
+    )
+    text = (
+        f"Seu código pra criar a conta na TumTum: {code}\n\n"
+        f"Ele vale por {minutes} minutos.\n\n"
+        "Se não foi você que pediu, é só ignorar este e-mail — "
+        "nenhuma conta é criada sem o código."
+    )
+    return subject, html, text
+
+
+@router.post(
+    "/register/start",
+    response_model=SignupStarted,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(get_db)):
+    """Step one of an account (#64): send a code to the address, create nothing.
+
+    The account is created by `register/confirm`, and only when the code comes
+    back — so an address nobody reads never becomes an account.
+    """
+    now = datetime.now(UTC)
+    key = codes.email_key(body.email)
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Coloca seu nome."
+        )
+    if await _has_account(db, key):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Email já cadastrado"
+        )
+
+    # A sign-up nobody confirmed is somebody's address, name and password
+    # hash with no account attached. After a day, anyone's goes.
+    await db.execute(
+        delete(SignupCode).where(SignupCode.created_at < now - codes.KEEP_UNCONFIRMED)
+    )
+
+    recent = (
+        (
+            await db.execute(
+                select(SignupCode)
+                .where(
+                    SignupCode.email_key == key,
+                    SignupCode.created_at > now - timedelta(hours=1),
+                )
+                .order_by(SignupCode.created_at.desc())
+            )
+        )
+        .scalars()
+        .all()
+    )
+    wait = codes.seconds_until_resend(recent[0].created_at if recent else None, now)
+    if wait > 0:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"O código acabou de sair. Espera {wait} segundos pra pedir outro.",
+        )
+    if codes.over_hourly_cap([row.created_at for row in recent], now):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Já mandamos muitos códigos pra esse e-mail. Tenta de novo daqui a uma hora.",
+        )
+
+    code = codes.generate_code()
+    subject, html, text = _code_mail(code)
+    # The mail goes first. If it cannot leave, nothing is kept: no code that
+    # nobody received, and no wait imposed before trying again.
+    try:
+        await send_email(to=body.email.strip(), subject=subject, html=html, text=text)
+    except (EmailNotConfigured, httpx.HTTPError) as error:
+        traceback.print_exception(error)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=CODE_NOT_SENT
+        ) from None
+
+    # Only the newest code works: a mail that arrives late cannot revive one
+    # the person already asked to replace.
+    still_open = await db.execute(
+        select(SignupCode).where(
+            SignupCode.email_key == key, SignupCode.used_at.is_(None)
+        )
+    )
+    for older in still_open.scalars().all():
+        older.used_at = now
+
+    db.add(
+        SignupCode(
+            email=body.email.strip(),
+            email_key=key,
+            name=name,
+            hashed_password=hash_password(body.password),
+            code_hash=codes.hash_code(key, code, settings.secret_key),
+            expires_at=codes.expiry_from(now),
+            created_at=now,
+        )
+    )
+    await db.flush()
+
+    return SignupStarted(
+        email=body.email.strip(),
+        expires_in_seconds=int(codes.CODE_TTL.total_seconds()),
+        resend_after_seconds=int(codes.RESEND_AFTER.total_seconds()),
+    )
+
+
+@router.post(
+    "/register/confirm",
+    response_model=TokenResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def register_confirm(
+    body: SignupConfirmRequest, db: AsyncSession = Depends(get_db)
+):
+    """Step two: the code came back, so the address is real — make the account."""
+    now = datetime.now(UTC)
+    key = codes.email_key(body.email)
+    code = codes.clean_code(body.code)
+    if code is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="O código tem 6 números."
+        )
+
+    pending = (
+        await db.execute(
+            select(SignupCode)
+            .where(SignupCode.email_key == key, SignupCode.used_at.is_(None))
+            .order_by(SignupCode.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if pending is None or not codes.is_open(
+        pending.expires_at, pending.used_at, pending.attempts, now
+    ):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=CODE_GONE)
+
+    if not codes.matches(pending.code_hash, key, code, settings.secret_key):
+        pending.attempts += 1
+        if pending.attempts >= codes.MAX_ATTEMPTS:
+            pending.used_at = now
+        # Committed before it is raised, or the request's rollback would undo
+        # the count and the five guesses would be infinite.
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=codes.attempts_left_message(pending.attempts),
+        )
+
+    pending.used_at = now
+    if await _has_account(db, key):
+        # Two sign-ups raced, and the other one won.
+        await db.commit()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Email já cadastrado"
         )
 
     user = User(
-        email=body.email,
-        name=body.name,
+        email=pending.email,
+        name=pending.name,
         auth_provider="email",
-        hashed_password=hash_password(body.password),
+        hashed_password=pending.hashed_password,
     )
     db.add(user)
     await db.flush()

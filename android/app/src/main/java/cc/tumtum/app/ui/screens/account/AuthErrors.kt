@@ -17,6 +17,13 @@ object AuthErrors {
         is TumtumApi.ApiException -> when (error.code) {
             401 -> context.getString(R.string.auth_error_credentials)
             409 -> context.getString(R.string.auth_error_taken)
+            // The sign-up code's answers (#64) are sentences written for the
+            // person — a wrong code with the tries left, a code gone stale,
+            // a wait before another, a mail that could not leave. Shown as
+            // the server wrote them.
+            400, 410, 429, 503 -> error.detail
+            // Pydantic's refusal carries a list, not a sentence.
+            422 -> context.getString(R.string.auth_error_invalid)
             else -> context.getString(R.string.auth_error_server, "${error.code} · ${error.detail}")
         }
         is IOException -> context.getString(R.string.auth_error_offline)

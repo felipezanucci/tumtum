@@ -38,10 +38,21 @@ class TumtumApi(private val prefs: UserPrefs) {
 
     // --- Auth ---
 
-    /** Creates the account and signs in: the server answers with a token. */
-    suspend fun register(email: String, name: String, password: String): Session {
+    /**
+     * Step one of an account (#64, 24/09): the server mails a 6-digit code to
+     * [email] and creates nothing. The account exists only after
+     * [signupConfirm], so an address nobody reads never becomes one.
+     */
+    suspend fun signupStart(email: String, name: String, password: String): SignupStarted {
         val body = JSONObject().put("email", email).put("name", name).put("password", password)
-        val response = JSONObject(request("POST", "/api/auth/register", body.toString(), token = null))
+        val response = JSONObject(request("POST", "/api/auth/register/start", body.toString(), token = null))
+        return SignupStarted.from(response, asked = email)
+    }
+
+    /** Step two: the code came back, the account is created, and the server answers with a token. */
+    suspend fun signupConfirm(email: String, code: String): Session {
+        val body = JSONObject().put("email", email).put("code", code)
+        val response = JSONObject(request("POST", "/api/auth/register/confirm", body.toString(), token = null))
         return storeSession(response.getString("access_token"), response.optRefresh())
     }
 

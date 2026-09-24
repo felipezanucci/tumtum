@@ -118,18 +118,26 @@ fun LoginScreen(nav: NavHostController) {
                     try {
                         val cleanEmail = email.trim()
                         container.api.login(cleanEmail, password)
-                        // The name is the server's; the @ and the tribes are this phone's.
+                        // The name is the server's; the @, the tribes and the
+                        // photo are this phone's — and they are kept only when
+                        // this phone's profile is the account signing in. A
+                        // different account starts from its own (24/09: test 7
+                        // showed Felipe's photo and @ over another account).
                         val me = runCatching { container.api.me() }.getOrNull()
-                        val existing = user?.account
-                        container.prefs.createAccount(
-                            Account(
-                                name = me?.name?.ifBlank { null } ?: existing?.name ?: AuthErrors.handleFrom(cleanEmail)
-                                    .replaceFirstChar { it.uppercase() },
-                                username = existing?.username ?: AuthErrors.handleFrom(cleanEmail),
-                                email = me?.email ?: cleanEmail,
-                                tribes = existing?.tribes ?: emptySet(),
-                            ),
+                        val signedInEmail = me?.email ?: cleanEmail
+                        val existing = user?.account?.takeIf { it.belongsTo(signedInEmail) }
+                        val account = Account(
+                            name = me?.name?.ifBlank { null } ?: existing?.name ?: AuthErrors.handleFrom(cleanEmail)
+                                .replaceFirstChar { it.uppercase() },
+                            username = existing?.username ?: AuthErrors.handleFrom(signedInEmail),
+                            email = signedInEmail,
+                            tribes = existing?.tribes ?: emptySet(),
                         )
+                        if (existing != null) {
+                            container.prefs.createAccount(account)
+                        } else {
+                            container.prefs.replaceAccount(account)
+                        }
                         // Signing back in goes straight to the feed (#57, 23/09) —
                         // from Configurações it used to drop the person back on
                         // Configurações, one more step from what they came for.

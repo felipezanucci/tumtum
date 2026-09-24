@@ -35,6 +35,7 @@ export const PRIVACY_PT: PrivacyCopy = {
       paragraphs: ['Só o que a experiência precisa:'],
       items: [
         'Sua conta: e-mail e nome. Na lista de espera do site, só o e-mail.',
+        'Enquanto a conta é criada: o e-mail, o nome e a senha (guardada de um jeito que ninguém consegue ler) esperam o código de 6 números que mandamos pro seu e-mail. Se o código não voltar, isso é apagado em até um dia.',
         'Seus batimentos: as leituras de frequência cardíaca que você captura com o app durante um evento, ou que importa do seu relógio.',
         'O evento que você escolheu, os momentos que a TumTum encontrou e os cards que você criou.',
         'Quando você compartilha um card, em qual rede foi — para a gente entender o que as pessoas gostam de mostrar.',
@@ -114,6 +115,7 @@ export const PRIVACY_EN: PrivacyCopy = {
       paragraphs: ['Only what the experience needs:'],
       items: [
         'Your account: email and name. On the site waitlist, only the email.',
+        'While the account is being created: the email, the name and the password (stored so that nobody can read it) wait for the 6-digit code we send to your email. If the code never comes back, they are deleted within a day.',
         'Your heartbeats: the heart-rate readings you capture with the app during an event, or import from your watch.',
         'The event you picked, the moments TumTum found, and the cards you made.',
         'When you share a card, which network it went to — so we understand what people like to show.',

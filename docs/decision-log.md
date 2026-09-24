@@ -10,7 +10,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **24/09, evening — the share menu reworked (items 61–63, #96) and confirmed on b189.** The networks are TumTum Pink, two to a row, and never beside a hole; *Status do WhatsApp* opened Status on Felipe's phone, the post went up and was seen from another phone. **One finding: *Salvar card* went to a folder only the Files app shows**, not the camera roll; the fix (DCIM/Camera, pending write, date taken) is on its way to a hand. **Test 7a passed**; 7b and 7c could not run, because the steps sent for them were wrong and creating the test account wiped the phone's nights (entry "test 7 in a hand"). Tests 8–9 still to run. *(earlier 24/09:)* **24/09 — sharing proved on five networks (b187).** Instagram and Facebook Stories with a movable card over the person's video, Snapchat at full width with the video playing, TikTok and WhatsApp with the finished video. Snap and TikTok are **in review**; their production IDs replace the staging/sandbox ones on approval. The day's bug: a card over a video came back, on the next visit, as a photo of its first frame. Handoff: `docs/handoff-2026-09-24.md`. *(23/09:)* **23/09 — the 23/09 test round, built in one batch (b173).** Felipe tested b169 (PR #85) block by block, and his call on the tour — *"essa experiência muito confusa… o que é rolê? o que é turnê?"* — became **one feed per event**, the tour's when there is one, with the night as a filter. Also built: the server watches a match live and measures both whistles itself (API-Football's periods turned out to be null), posting keeps the server's own reason and nights belong to the account that sent them, the card's line is averaged and finer, the password field has an eye, sign-in goes to the feed, the admin has its own menu. **Still to run: tests 6–10** (session persistence, refusal with a nightless account, marks without a night, the reveal lock, and the show operator on a phone, which passed 23/09). *(22/09 evening:)* **22/09 evening — the night's test findings, all nineteen, built in five waves (b164–b168):** the app stops describing itself falsely (the button that faded, the error that was a cancellation, the SENTI that threw its answer away), a session lasts as long as the phone is used (refresh tokens, 90 days), the feed has colour, the card is A2, report and block exist, and the tour sits above the rolê. Waiting on Felipe's merge and hand. *(earlier 22/09:)* **b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | **24/09, evening — the share menu reworked (items 61–63, #96) and confirmed on b189.** The networks are TumTum Pink, two to a row, and never beside a hole; *Status do WhatsApp* opened Status on Felipe's phone, the post went up and was seen from another phone. **One finding: *Salvar card* went to a folder only the Files app shows**, not the camera roll; the fix (DCIM/Camera, pending write, date taken) is on its way to a hand. **An account now needs a 6-digit code sent to its e-mail (#64, Felipe's call)**, in the app, on the site and on the server, which refuses the old one-step sign-up; it waits on `RESEND_API_KEY` being set on Railway, without which nobody can sign up. **Test 7a passed**; 7b and 7c could not run, because the steps sent for them were wrong and creating the test account wiped the phone's nights (entry "test 7 in a hand"). Tests 8–9 still to run. *(earlier 24/09:)* **24/09 — sharing proved on five networks (b187).** Instagram and Facebook Stories with a movable card over the person's video, Snapchat at full width with the video playing, TikTok and WhatsApp with the finished video. Snap and TikTok are **in review**; their production IDs replace the staging/sandbox ones on approval. The day's bug: a card over a video came back, on the next visit, as a photo of its first frame. Handoff: `docs/handoff-2026-09-24.md`. *(23/09:)* **23/09 — the 23/09 test round, built in one batch (b173).** Felipe tested b169 (PR #85) block by block, and his call on the tour — *"essa experiência muito confusa… o que é rolê? o que é turnê?"* — became **one feed per event**, the tour's when there is one, with the night as a filter. Also built: the server watches a match live and measures both whistles itself (API-Football's periods turned out to be null), posting keeps the server's own reason and nights belong to the account that sent them, the card's line is averaged and finer, the password field has an eye, sign-in goes to the feed, the admin has its own menu. **Still to run: tests 6–10** (session persistence, refusal with a nightless account, marks without a night, the reveal lock, and the show operator on a phone, which passed 23/09). *(22/09 evening:)* **22/09 evening — the night's test findings, all nineteen, built in five waves (b164–b168):** the app stops describing itself falsely (the button that faded, the error that was a cancellation, the SENTI that threw its answer away), a session lasts as long as the phone is used (refresh tokens, 90 days), the feed has colour, the card is A2, report and block exist, and the tour sits above the rolê. Waiting on Felipe's merge and hand. *(earlier 22/09:)* **b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -66,7 +66,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
     recording on both the Polar app and TumTum, and send the Polar CSV so the
     importer can be checked against a file the device actually wrote rather
     than one reproduced from its documented shape.
-11. ~~**Password reset does not exist.**~~ Built 2026-08-26 on Resend, via
+11. ~~**Password reset does not exist.**~~ **24/09: it has never sent a
+    mail in production** — Felipe's reset request produced nothing, because
+    `RESEND_API_KEY` was never set on Railway; the 6-digit sign-up code (#98)
+    cannot merge until it is. Built 2026-08-26 on Resend, via
     `mail.tumtum.cc`, which is the default in `config.py` — so **only
     `RESEND_API_KEY` needs setting on Railway**. Without it every send fails —
     loudly in the logs, silently to the person, since the reply is identical
@@ -716,7 +719,11 @@ the linked documents — this file is the index and the reasoning, not a diary.
     break without notice. It needs a test on Felipe's phone and a
     fallback to the chat picker, said on screen, if the Status road is
     refused.
-64. **An e-mail that does not exist makes an account (Felipe, 24/09).**
+64. ~~**An e-mail that does not exist makes an account (Felipe, 24/09).**~~
+    **Built the same day, at sign-up** (Felipe: *"vamos mandar o código de 6
+    dígitos logo na criação da conta. assim evitamos a criação de contas
+    falsas"*). See the entry "an account needs its e-mail". On a phone: not
+    yet. *(Analysis, as written before the call:)*
     Test 7 made one with `teste@teste.com`. His ask: accept only e-mails
     that really exist. **A validator cannot do that**: the server already
     checks the form (`EmailStr` in `schemas/auth.py`, the app checks for an
@@ -755,6 +762,129 @@ the linked documents — this file is the index and the reasoning, not a diary.
     collective moment (card 04) cannot be judged until an event has four
     nights uploaded, which makes **one match with four straps** the cheapest
     experiment that answers whether any of this is worth anything.
+
+---
+
+## 2026-09-24 — 7b in a hand, a face on the wrong account, and the Story that showed nothing
+
+Felipe on b191 with the test account *teste1*:
+
+- **"Salvar card" reached the camera roll.** The #97 fix is confirmed in a hand.
+- **His photo sat on teste1's profile.** The profile photo is kept only on
+  the phone (`AvatarStore`), and nothing ever cleared it. *Criar outra conta*
+  wiped the nights and left the face. It is the log's usual class, and a bad
+  instance: one person's face on another person's account. *Entrar* had the
+  same fault one level down: it kept the previous profile's @ and tribes for
+  whatever account signed in. **Fixed in #98:** the local profile (name, @,
+  tribes, photo) carries over only when it belongs to the account signing in
+  (`Account.belongsTo`, the same address). A different account starts from
+  its own, and the previous photo is deleted (`UserPrefs.replaceAccount`).
+  One consequence Felipe will see: signing back into his own account after
+  teste1 starts with no photo and an @ taken from his address, because the
+  old ones were already replaced by teste1's.
+- **The Teste 7B feed said *"Esse feed é de quem estava lá"*.** That is the
+  7a sentence, and it is right for an account with no night at the event.
+  7b's check is a different screen (the card of the other account's night,
+  after *Entrar*), so 7b is still open. If teste1 did capture a night at
+  Teste 7B, this refusal would mean the night never reached the server. The
+  line under that night's curve says which.
+- **He asked whether a video recorded for a Story can carry the card on
+  top. It can, and the road was proved on b187:** in TumTum, *Foto ou vídeo
+  atrás*, pick the video, then Compartilhar → Instagram. Instagram opens with
+  the video behind and the card as a sticker that moves and resizes, with
+  sound. His attempt went the other way round: Instagram first, then the
+  saved card from the gallery as a photo sticker, and the picker showed
+  nothing. The likely cause is Android 14's partial photo access: when
+  Instagram was allowed only *selected photos*, a new image saved by another
+  app is not in its selection. Unconfirmed; the check is Instagram's photo
+  permission (*Permitir tudo*). Worth making that road visible in the app,
+  since he did not reach it on his own.
+
+---
+
+## 2026-09-24 — an account needs its e-mail: a 6-digit code at sign-up
+
+**#64, Felipe's call:** *"vamos mandar o código de 6 dígitos logo na criação
+da conta. assim evitamos a criação de contas falsas."* The analysis had
+offered two places to ask: before the account exists, or only before the
+first public act. He chose the first. An account is now born in two steps
+everywhere it can be born:
+
+- **Server.** `POST /api/auth/register/start` checks the form, refuses an
+  address that already has an account (case-insensitive, so `Felipe@` stops a
+  second `felipe@`), mails a 6-digit code, and **creates nothing**: the
+  address, name and password hash wait in `signup_codes`.
+  `POST /api/auth/register/confirm` takes the code back and only then creates
+  the user and signs them in. **The old `POST /api/auth/register` answers
+  410 with a sentence**, because left open it would be the way around the
+  code (any app installed before this, or anyone with curl).
+- **App.** *Criar conta* now ends in *Mandar o código*, with a line before
+  the tap saying the account is made only when the code is typed. The second
+  step says where the code went and how long it lives, takes six digits
+  (paste-tolerant), counts down the wait before *Mandar outro código*, and
+  has *Corrigir o e-mail*, which goes back with everything still typed.
+  **A second account's wipe of the phone now waits for the confirmed code**,
+  so a mistyped address never costs anybody their nights. The form also
+  checks that the address looks whole before asking the server.
+- **Site.** `/signup` follows the same two steps with the same sentences.
+  A 422 from the server used to reach the page as a list and crash it; any
+  non-sentence refusal now becomes one.
+
+**The rules, each with the reason it exists** (`services/signup_codes.py`,
+all tested):
+
+- The code lives **15 minutes**, which is enough to find it in the spam folder.
+- **5 wrong guesses kill it.** The count is committed before the refusal is
+  raised, or the request's rollback would make the guesses infinite. A wrong
+  code answers with the tries left, in words.
+- **Only the newest code works.** A late mail cannot revive a code the person
+  asked to replace.
+- **60 s between codes, 5 an hour per address.** The form takes any address,
+  and without a ceiling it would be a way to fill a stranger's inbox under our
+  name.
+- **The mail carries no text the form's user chose.** No name, only six
+  digits we picked. Otherwise anyone could put words in a stranger's inbox
+  from `mail.tumtum.cc`.
+- **The code is stored as a keyed hash** (HMAC with the server's secret).
+  A plain hash of six digits is reversed by trying a million.
+- **The mail goes first.** If it cannot leave, nothing is kept and the
+  screen says *"Não deu pra mandar o código agora"*. There is no code nobody
+  received, and no wait imposed before retrying.
+- **An unconfirmed sign-up is deleted after a day.** It holds an address, a
+  name and a password hash of somebody with no account. The privacy page now
+  says so, in both languages.
+- **A table, not a column.** The deployed server creates missing tables and
+  never alters old ones (item 16).
+
+**One limit left open on purpose:** the ceilings are per address, not per
+sender. Someone could still ask for codes to many different addresses, five
+an hour each. Closing that needs the caller's IP from Railway's proxy
+headers, and it is not worth doing before anybody tries.
+
+**Before the merge, one thing only Felipe can check:** that `RESEND_API_KEY`
+is set on Railway. Every sign-up now depends on a mail leaving. Without the
+key the server answers 503 and **nobody can make an account**, which is
+honest, and total. The test costs nothing: *esqueci minha senha* on
+tumtum.cc with his own address. If the mail arrives, the key is there.
+
+**Checked the same evening: no mail came.** Felipe asked for a reset on
+tumtum.cc/esqueci-senha and nothing arrived. That matches the 26/08 handoff,
+whose configuration table says `RESEND_API_KEY` **Not set**. It was never
+set, so **password recovery has never sent a single mail in production**,
+while the page says, by design, *"o link acabou de sair"*. #98 waits for
+the key. The steps: in Resend, *API Keys → Create*, with sending access
+only and the domain `mail.tumtum.cc` (verified 26/08). In Railway, add
+`RESEND_API_KEY` to the backend's Variables and **apply the change**, since
+Railway stages a new variable until *Deploy*. Then repeat the reset. The key
+never goes through a chat.
+
+**What the merge does to phones already out there:** an app from before this
+build cannot create an account anymore. It gets the 410's sentence, wrapped
+in the generic *"O servidor não respondeu direito"*. Signing in still works
+on every build. The Play internal track needs the new build uploaded.
+
+Backend 237 tests and ruff clean. Site: tsc, lint and 60 tests. The app:
+unit tests for the code field; the screen itself compiles only in CI.
 
 ---
 
