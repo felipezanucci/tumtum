@@ -45,6 +45,8 @@
         <package android:name="com.instagram.android" />
         <package android:name="com.facebook.katana" />
         <package android:name="com.snapchat.android" />
+        <package android:name="com.zhiliaoapp.musically" />
+        <package android:name="com.ss.android.ugc.trill" />
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
     </queries>
@@ -72,6 +74,17 @@
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
         </activity>
+
+        <!-- Where TikTok answers a share (#60, 24/09). It has to be an
+             exported activity TikTok can start by name; this one only closes,
+             so TikTok's answer lands back on the card screen instead of
+             opening a second copy of the app on top of it. -->
+        <activity
+            android:name=".export.TikTokShareResultActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <!-- §4 — a sessão vive aqui, não na Activity. -->
         <service

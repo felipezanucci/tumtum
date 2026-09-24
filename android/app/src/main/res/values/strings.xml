@@ -499,6 +499,8 @@
     <string name="card_share_whatsapp">WhatsApp</string>
     <string name="card_share_facebook">Facebook</string>
     <string name="card_share_snapchat">Snapchat</string>
+    <string name="card_share_tiktok">TikTok</string>
+    <string name="card_share_tiktok_failed">O TikTok não abriu. Tenta pelo Mais apps.</string>
     <string name="card_share_snapchat_failed">O Snapchat não abriu. Tenta pelo Mais apps.</string>
     <string name="card_share_facebook_failed">O Facebook não abriu o Story. Tenta pelo Mais apps.</string>
     <string name="card_share_copy">Copiar card</string>

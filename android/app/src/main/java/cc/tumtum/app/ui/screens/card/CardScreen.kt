@@ -75,7 +75,7 @@ private sealed interface CardMedia {
 }
 
 /** Where a card goes (#60): one button per network, each by its own best road. */
-private enum class ShareTo { Instagram, Facebook, Snapchat, WhatsApp, Copy, Save, More }
+private enum class ShareTo { Instagram, Facebook, Snapchat, TikTok, WhatsApp, Copy, Save, More }
 
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
@@ -111,6 +111,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val hasInstagram = remember { ShareTargets.installed(context, ShareTargets.INSTAGRAM) }
     val hasFacebook = remember { ShareTargets.installed(context, ShareTargets.FACEBOOK) }
     val hasSnapchat = remember { ShareTargets.installed(context, ShareTargets.SNAPCHAT) }
+    val tiktok = remember { ShareTargets.tiktok(context) }
     val whatsapp = remember { ShareTargets.whatsapp(context) }
     val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { cameBack = true }
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
@@ -242,7 +243,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                             .onFailure { failure = refused }
                     }
                 }
-                ShareTo.WhatsApp, ShareTo.More -> {
+                ShareTo.WhatsApp, ShareTo.More, ShareTo.TikTok -> {
                     val file = finished(chosen)
                     if (file == null) {
                         failure = if (chosen is CardMedia.Video) {
@@ -252,11 +253,16 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                         }
                     } else {
                         val (f, mime) = file
-                        val app = whatsapp?.takeIf { target == ShareTo.WhatsApp }
-                        val intent = app?.let { ShareTargets.toApp(context, it, f, mime) }
-                            ?: CardRenderer.shareFileIntent(context, f, mime)
+                        val intent = when (target) {
+                            // TikTok takes no sticker: the finished file goes
+                            // to its editor through Share Kit.
+                            ShareTo.TikTok -> tiktok?.let { ShareTargets.tiktokShare(context, it, f, mime) }
+                            ShareTo.WhatsApp -> whatsapp?.let { ShareTargets.toApp(context, it, f, mime) }
+                            else -> null
+                        } ?: CardRenderer.shareFileIntent(context, f, mime)
+                        val refused = if (target == ShareTo.TikTok) R.string.card_share_tiktok_failed else R.string.card_share_failed
                         runCatching { shareLauncher.launch(intent) }
-                            .onFailure { failure = R.string.card_share_failed }
+                            .onFailure { failure = refused }
                     }
                 }
                 ShareTo.Copy -> {
@@ -401,6 +407,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 hasInstagram = hasInstagram,
                 hasFacebook = hasFacebook,
                 hasSnapchat = hasSnapchat,
+                hasTiktok = tiktok != null,
                 hasWhatsapp = whatsapp != null,
                 canSave = ShareTargets.canSaveToGallery,
                 busy = busy,
@@ -607,6 +614,7 @@ private fun ShareChoices(
     hasInstagram: Boolean,
     hasFacebook: Boolean,
     hasSnapchat: Boolean,
+    hasTiktok: Boolean,
     hasWhatsapp: Boolean,
     canSave: Boolean,
     busy: Boolean,
@@ -622,6 +630,7 @@ private fun ShareChoices(
         if (hasInstagram) add(ShareTo.Instagram to R.string.card_share_instagram)
         if (hasFacebook) add(ShareTo.Facebook to R.string.card_share_facebook)
         if (hasSnapchat) add(ShareTo.Snapchat to R.string.card_share_snapchat)
+        if (hasTiktok) add(ShareTo.TikTok to R.string.card_share_tiktok)
         if (hasWhatsapp) add(ShareTo.WhatsApp to R.string.card_share_whatsapp)
     }
     networks.chunked(2).forEach { pair ->

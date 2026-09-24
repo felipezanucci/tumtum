@@ -19,4 +19,13 @@
         3cd9b16d-720c-4861-b3a8-9e90b9274061
     -->
     <string name="snap_client_id" translatable="false">31c6d366-a4c2-48a9-993c-899452724109</string>
+
+    <!--
+        TikTok Share Kit (export/ShareTargets.kt), app "TumTum" at
+        developers.tiktok.com. The SANDBOX client key, registered by Felipe
+        24/09: only the sandbox's target users can share until TikTok approves
+        the app, and then the production key replaces it. Public — the client
+        secret is never needed and never here.
+    -->
+    <string name="tiktok_client_key" translatable="false">sbaw2isz3ghuoghvfb</string>
 </resources>
