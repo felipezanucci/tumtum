@@ -631,9 +631,22 @@ the linked documents — this file is the index and the reasoning, not a diary.
 58. ~~**The Instagram sticker can no longer be moved (#60).**~~ Decided and
     built 23/09: one button per network, each by its own best road — see the
     entry of that day. Facebook Stories waits on a Facebook App ID.
-59. **The Play Console questionnaire is out of date.** Report and block exist
-    since 22/09; the Data safety and content-rating answers still say they do
-    not. Felipe's to update — the console is his.
+59. ~~**The Play Console questionnaire is out of date.**~~ Updated by Felipe
+    24/09. **Content rating:** still *Todos os outros tipos*. Block **yes**,
+    report **yes**, chat moderation **no** (there is no chat).
+    Interactions limited to invited friends **no**, because a feed reaches everyone
+    measured at the event and there is no friend list. Digital purchases
+    **no**: the 18/09 form had it as *yes*, and there is no billing in the app.
+    **Data safety:** the 18/09 types plus *App activity → App interactions*
+    (reactions, reports, blocks: optional, not shared, not ephemeral, for
+    app functionality and for safety, compliance and fraud prevention). Photos
+    and videos are not declared, because they never reach the server. Felipe's CSV
+    export turned up one error from 18/09: *User IDs* were declared
+    **ephemeral**. An account's ID is stored for as long as the account
+    exists, so the answer is now **no**, like name, e-mail and health. Nothing
+    was sent for review. *Enviar app para revisão* stays disabled while the
+    app is an internal-testing draft, and every change since 18/09 waits in
+    *Visão geral da publicação* until the first closed or production track.
 60. **Tests 6–10 of the 23/09 round are still to run on b173**: ~~the session
     surviving more than an hour closed (6)~~ — **passed 23/09**: the phone sat
     two to three hours untouched and Felipe was still signed in, the refresh
@@ -764,6 +777,16 @@ full width with its margins** (cropped by rows only, `CardSticker.cropRows`),
 the same proportions as the burned video. Its foot sits at 76% of the
 screen height, above Snapchat's row of friends, as measured on Felipe's phone. It is narrowed only if
 it would climb above the top bar (`SnapStickerSizeTest`).
+
+**b187, the end of the day: every network in a hand.** Snapchat showed the card
+at full width with the video playing, and Felipe went to re-record the demo for
+Snap's review. Facebook and Instagram Stories both open with the video
+behind and the card as a sticker the person can move and resize, with sound.
+TikTok plays the card's video, including one reopened without touching it. The two Play
+key hashes were added to Meta (the debug one was already there). What is
+left is outside the app: Snap's and TikTok's reviews, and a test by someone
+who is not in Meta's app roles, to learn whether Development mode limits
+Facebook sharing.
 
 ---
 
