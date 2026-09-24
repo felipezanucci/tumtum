@@ -33,6 +33,7 @@ The other durable documents:
 | `shared/brand/README.md` | Brand implementation details beyond this file |
 | `docs/handoff-2026-08-26.md` | Session handoff: state, config, traps, and what was still Felipe's to do two days before the festival |
 | `docs/handoff-2026-09-18.md` | **Session handoff, 18/09**: the day Etapas 0–4 closed and the app reached the Play internal testing track — the twelve PRs, the two bugs that mattered, every Play Console answer and why, and what is next |
+| `docs/handoff-2026-09-24.md` | **Session handoff, 24/09**: the 23/09 test round, sharing to five networks proved in a hand on b187, where each portal's review stands (Snap and TikTok in review, IDs to swap on approval), the Play Console answers, the traps, and what is pending |
 | `docs/health-connect-plan.md` | The next phase: reading the fans' own watches, its stages, its estimate, and the sampling risk that decides it |
 | `docs/wear-os-plan.md` | The Wear OS app costed honestly: what it actually buys (guaranteed 1 Hz, not "live"), and why it waits on a measurement |
 | `docs/one-app-plan.md` | **Two Android apps became one on 18/09**: `cc.tumtum.app` (the designed experience, branch `app`) absorbs the proven pipeline of `cc.tumtum.capture`, in five staged gates |
