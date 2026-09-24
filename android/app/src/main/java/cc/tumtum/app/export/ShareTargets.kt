@@ -41,15 +41,19 @@ import java.io.File
  * - **Mais apps** — Android's list, with the finished file: TikTok, X,
  *   Snapchat, Telegram, the gallery.
  *
- * Facebook Stories uses Meta's same channel but refuses without a registered
- * Facebook App ID; TikTok and Snapchat each need their own SDK. None of the
- * three is offered until it can work.
+ * - **Facebook Stories** — Meta's same channel, `com.facebook.stories.ADD_TO_STORY`,
+ *   which refuses without the sharing app's Facebook App ID (registered 24/09).
+ *
+ * TikTok and Snapchat each need their own SDK and are not offered until they
+ * can work.
  */
 object ShareTargets {
 
     const val INSTAGRAM = "com.instagram.android"
+    const val FACEBOOK = "com.facebook.katana"
     private val WHATSAPP = listOf("com.whatsapp", "com.whatsapp.w4b")
     private const val STORY_ACTION = "com.instagram.share.ADD_TO_STORY"
+    private const val FACEBOOK_STORY_ACTION = "com.facebook.stories.ADD_TO_STORY"
 
     /** Needs the `<queries>` entries in the manifest on Android 11+. */
     fun installed(context: Context, pkg: String): Boolean = runCatching {
@@ -86,6 +90,28 @@ object ShareTargets {
         }
         context.grantUriPermission(INSTAGRAM, backgroundUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         stickerUri?.let { context.grantUriPermission(INSTAGRAM, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+        val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        return if (resolved != null) intent else null
+    }
+
+    /**
+     * Facebook's Story editor, the same shape as Instagram's: [background]
+     * behind, [sticker] on top and movable. The App ID is required here, so
+     * with none there is no intent and no button.
+     */
+    fun facebookStory(context: Context, background: File, backgroundMime: String, sticker: File?): Intent? {
+        val appId = context.getString(R.string.facebook_app_id)
+        if (appId.isBlank()) return null
+        val backgroundUri = uriFor(context, background)
+        val stickerUri = sticker?.let { uriFor(context, it) }
+        val intent = Intent(FACEBOOK_STORY_ACTION).apply {
+            setDataAndType(backgroundUri, backgroundMime)
+            stickerUri?.let { putExtra("interactive_asset_uri", it) }
+            putExtra("com.facebook.platform.extra.APPLICATION_ID", appId)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.grantUriPermission(FACEBOOK, backgroundUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        stickerUri?.let { context.grantUriPermission(FACEBOOK, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
         val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
         return if (resolved != null) intent else null
     }

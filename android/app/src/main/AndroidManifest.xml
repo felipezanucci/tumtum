@@ -43,6 +43,7 @@
         <!-- #60 (23/09): one share button per network, shown only when the
              app is on the phone. Android 11+ hides other apps unless named. -->
         <package android:name="com.instagram.android" />
+        <package android:name="com.facebook.katana" />
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
     </queries>

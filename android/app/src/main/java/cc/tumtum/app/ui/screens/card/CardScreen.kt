@@ -75,7 +75,7 @@ private sealed interface CardMedia {
 }
 
 /** Where a card goes (#60): one button per network, each by its own best road. */
-private enum class ShareTo { Instagram, WhatsApp, Copy, Save, More }
+private enum class ShareTo { Instagram, Facebook, WhatsApp, Copy, Save, More }
 
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
@@ -109,6 +109,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     // The destinations are open (#60).
     var choosing by remember { mutableStateOf(false) }
     val hasInstagram = remember { ShareTargets.installed(context, ShareTargets.INSTAGRAM) }
+    val hasFacebook = remember { ShareTargets.installed(context, ShareTargets.FACEBOOK) }
     val whatsapp = remember { ShareTargets.whatsapp(context) }
     val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { cameBack = true }
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
@@ -185,8 +186,11 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             }
         }
 
-    /** Instagram's Story editor: the person's video or photo behind, the card on top and movable. */
-    suspend fun instagram(chosen: CardMedia?): android.content.Intent? = withContext(Dispatchers.IO) {
+    /**
+     * A Meta Story editor — Instagram's or Facebook's, one shape: the person's
+     * video or photo behind, the card on top and movable.
+     */
+    suspend fun story(chosen: CardMedia?, facebook: Boolean): android.content.Intent? = withContext(Dispatchers.IO) {
         runCatching {
             if (skin == Skin.BLACK && chosen != null) {
                 val sticker = CardRenderer.writePng(context, cardAlone(), "tumtum-${n.id}-sticker.png")
@@ -196,10 +200,18 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                     is CardMedia.Photo ->
                         ShareTargets.writeJpeg(context, chosen.preview, "story-${n.id}.jpg") to "image/jpeg"
                 }
-                ShareTargets.instagramStory(context, background, mime, sticker)
+                if (facebook) {
+                    ShareTargets.facebookStory(context, background, mime, sticker)
+                } else {
+                    ShareTargets.instagramStory(context, background, mime, sticker)
+                }
             } else {
                 val card = CardRenderer.writePng(context, render(), "tumtum-${n.id}-${skin.name.lowercase()}.png")
-                ShareTargets.instagramStory(context, card, "image/png", null)
+                if (facebook) {
+                    ShareTargets.facebookStory(context, card, "image/png", null)
+                } else {
+                    ShareTargets.instagramStory(context, card, "image/png", null)
+                }
             }
         }.getOrNull()
     }
@@ -212,13 +224,15 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         scope.launch {
             publish(chosen)
             when (target) {
-                ShareTo.Instagram -> {
-                    val intent = instagram(chosen)
+                ShareTo.Instagram, ShareTo.Facebook -> {
+                    val facebook = target == ShareTo.Facebook
+                    val refused = if (facebook) R.string.card_share_facebook_failed else R.string.card_share_instagram_failed
+                    val intent = story(chosen, facebook)
                     if (intent == null) {
-                        failure = R.string.card_share_instagram_failed
+                        failure = refused
                     } else {
                         runCatching { shareLauncher.launch(intent) }
-                            .onFailure { failure = R.string.card_share_instagram_failed }
+                            .onFailure { failure = refused }
                     }
                 }
                 ShareTo.WhatsApp, ShareTo.More -> {
@@ -378,6 +392,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         } else if (choosing) {
             ShareChoices(
                 hasInstagram = hasInstagram,
+                hasFacebook = hasFacebook,
                 hasWhatsapp = whatsapp != null,
                 canSave = ShareTargets.canSaveToGallery,
                 busy = busy,
@@ -582,6 +597,7 @@ private fun DoneActions(
 @Composable
 private fun ShareChoices(
     hasInstagram: Boolean,
+    hasFacebook: Boolean,
     hasWhatsapp: Boolean,
     canSave: Boolean,
     busy: Boolean,
@@ -591,26 +607,26 @@ private fun ShareChoices(
 ) {
     Text(stringResource(R.string.card_share_to), style = TTType.MetaSmall, color = TT.Acid)
     Spacer(Modifier.height(8.dp))
-    if (hasInstagram || hasWhatsapp) {
+    // The networks on this phone, two to a row: each is a word on a button,
+    // and three side by side would not fit "Instagram" on a small screen.
+    val networks = buildList {
+        if (hasInstagram) add(ShareTo.Instagram to R.string.card_share_instagram)
+        if (hasFacebook) add(ShareTo.Facebook to R.string.card_share_facebook)
+        if (hasWhatsapp) add(ShareTo.WhatsApp to R.string.card_share_whatsapp)
+    }
+    networks.chunked(2).forEach { pair ->
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (hasInstagram) {
+            pair.forEach { (target, label) ->
                 TTButton(
-                    stringResource(R.string.card_share_instagram),
+                    stringResource(label),
                     TTButtonStyle.OutlineOnDark,
                     enabled = !busy,
-                    onClick = { onPick(ShareTo.Instagram) },
+                    onClick = { onPick(target) },
                     modifier = Modifier.weight(1f),
                 )
             }
-            if (hasWhatsapp) {
-                TTButton(
-                    stringResource(R.string.card_share_whatsapp),
-                    TTButtonStyle.OutlineOnDark,
-                    enabled = !busy,
-                    onClick = { onPick(ShareTo.WhatsApp) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            // An odd one out keeps half the width, not the whole row.
+            if (pair.size == 1) Spacer(Modifier.weight(1f))
         }
         Spacer(Modifier.height(8.dp))
     }
@@ -650,7 +666,7 @@ private fun ShareChoices(
                 .padding(vertical = 10.dp),
         )
     }
-    if (hasInstagram && status == null) {
+    if ((hasInstagram || hasFacebook) && status == null) {
         Text(stringResource(R.string.card_share_instagram_hint), style = TTType.Footnote, color = TT.Gray45)
     }
 }

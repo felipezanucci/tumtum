@@ -685,9 +685,17 @@ those on the phone.
   pick in any editor (save needs Android 10; hidden below it).
 - **Mais apps** — the system list with the finished file, as before.
 
-Not offered until they can work: Facebook Stories (Meta requires a
-registered Facebook App ID there — `res/values/instagram.xml` is where it
-goes), TikTok and Snapchat (each needs its own SDK). **Unverified on a
+Not offered until they can work: TikTok and Snapchat (each needs its own
+SDK). **Facebook Stories added 24/09**: Felipe registered the Meta app
+"TumTum" (ID 1076995595141587, public, in `res/values/instagram.xml`) as an
+app with no use case — only the ID is needed. Instagram now receives the ID
+too, as Meta asks. Two things in that registration are expected and not
+blocking: the package name fails Meta's Play Store check (the app is only on
+internal testing, so no public listing exists), and the app stays in
+Development mode — no Live switch appears for an app with no use case, and
+in Development its admin can share, which is enough to test. Before the
+pilot: Live mode, and a Terms page (`tumtum.cc/termos`), which TikTok will ask
+for too. **Unverified on a
 phone:** pasting the copied card into Instagram's Story editor on Android,
 and whether every editor keeps the card's transparency.
 

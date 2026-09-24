@@ -497,11 +497,13 @@
     <string name="card_share_to">COMPARTILHAR EM</string>
     <string name="card_share_instagram">Instagram</string>
     <string name="card_share_whatsapp">WhatsApp</string>
+    <string name="card_share_facebook">Facebook</string>
+    <string name="card_share_facebook_failed">O Facebook não abriu o Story. Tenta pelo Mais apps.</string>
     <string name="card_share_copy">Copiar card</string>
     <string name="card_share_save">Salvar card</string>
     <string name="card_share_more">Mais apps</string>
     <string name="card_share_back">Voltar</string>
-    <string name="card_share_instagram_hint">No Instagram o card vem solto: arrasta e ajusta o tamanho.</string>
+    <string name="card_share_instagram_hint">No Instagram e no Facebook o card vem solto: arrasta e ajusta o tamanho.</string>
     <string name="card_copied">Card copiado. No editor do Story, segura o dedo na tela e toca em colar.</string>
     <string name="card_saved">Card salvo na galeria, com fundo transparente, em Imagens › TumTum.</string>
     <string name="card_copy_failed">Não deu pra copiar o card. Tenta salvar na galeria.</string>
