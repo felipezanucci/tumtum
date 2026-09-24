@@ -1,5 +1,7 @@
 package cc.tumtum.app.ui.screens.account
 
+import android.util.Patterns
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,8 +17,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +35,7 @@ import androidx.compose.ui.unit.em
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.CardPhotoStore
+import cc.tumtum.app.data.api.SignupCode
 import cc.tumtum.app.data.prefs.Account
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -41,6 +46,7 @@ import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Handles reservados no repositório fake — a "checagem de disponibilidade" local. */
@@ -56,6 +62,14 @@ private val TRIBES = listOf("SHOWS", "FUTEBOL", "FESTIVAIS")
  * phone, the e-mail, name and password become a real account with a token.
  * Without the server there is no account — the screen says so instead of
  * pretending.
+ *
+ * **Since 24/09 (#64) it takes two steps.** Test 7 made an account with
+ * `teste@teste.com`, and Felipe's rule is that only a real address makes one.
+ * No validator can know that, so the first step sends a 6-digit code to the
+ * address and creates nothing; the second takes the code back, and only then
+ * does the server create the account. Nothing on the phone changes before
+ * that: a second account's wipe waits for the confirmed code, so a typo in
+ * the address never costs anybody their nights.
  */
 @Composable
 fun CreateAccountScreen(nav: NavHostController) {
@@ -76,10 +90,47 @@ fun CreateAccountScreen(nav: NavHostController) {
     // the nights recorded here go with the old one. Said before the tap.
     val replacing = user?.account
 
+    // The second step (#64): the address the code went to, or null while the
+    // form is showing. What the server answered, not what was typed.
+    var codeSentTo by rememberSaveable { mutableStateOf<String?>(null) }
+    var codeMinutes by rememberSaveable { mutableStateOf(15) }
+    var code by rememberSaveable { mutableStateOf("") }
+    var resendAt by rememberSaveable { mutableStateOf(0L) }
+    var notice by remember { mutableStateOf<String?>(null) }
+
     val usernameClean = username.trim().lowercase()
     val usernameTaken = usernameClean in TAKEN
+    val emailLooksWhole = Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
     val valid = name.isNotBlank() && usernameClean.length >= 3 && !usernameTaken &&
-        email.contains("@") && password.length >= 8
+        emailLooksWhole && password.length >= 8
+
+    /** Ask the server to mail a code: the first time, and on "Mandar outro código". */
+    fun sendCode(again: Boolean) {
+        saving = true
+        error = null
+        notice = null
+        scope.launch {
+            try {
+                val started = container.api.signupStart(email = email.trim(), name = name.trim(), password = password)
+                codeSentTo = started.email
+                codeMinutes = started.expiresInMinutes
+                code = ""
+                resendAt = System.currentTimeMillis() + started.resendAfterSeconds * 1000L
+                if (again) notice = context.getString(R.string.account_code_resent, started.email)
+            } catch (e: Exception) {
+                error = AuthErrors.messageFor(e, context)
+            } finally {
+                saving = false
+            }
+        }
+    }
+
+    // Back from the code step returns to the form, with everything still typed.
+    BackHandler(enabled = codeSentTo != null && !saving) {
+        codeSentTo = null
+        error = null
+        notice = null
+    }
 
     Column(
         Modifier
@@ -93,123 +144,246 @@ fun CreateAccountScreen(nav: NavHostController) {
     ) {
         Wordmark(width = 92.dp)
         Spacer(Modifier.height(40.dp))
-        Text(stringResource(R.string.account_title), style = TTType.Title, color = TT.Ink)
-        Spacer(Modifier.height(6.dp))
-        Text(stringResource(R.string.account_subtitle), style = TTType.Body, color = TT.Gray45)
-        replacing?.let {
-            Spacer(Modifier.height(14.dp))
-            Text(
-                stringResource(R.string.account_replaces, it.username),
-                style = TTType.BodySmall,
-                color = TT.Ink,
-            )
-        }
-        Spacer(Modifier.height(30.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            TTField(stringResource(R.string.account_name_label), name, { name = it })
+        val sentTo = codeSentTo
+        if (sentTo != null) {
+            CodeStep(
+                sentTo = sentTo,
+                minutes = codeMinutes,
+                replacingHandle = replacing?.username,
+                code = code,
+                onCode = { code = SignupCode.digits(it) },
+                resendAt = resendAt,
+                saving = saving,
+                error = error,
+                notice = notice,
+                onDeclinedShort = { error = context.getString(R.string.account_code_short) },
+                onDeclinedResend = { seconds ->
+                    notice = null
+                    error = context.getString(R.string.account_code_resend_wait, seconds)
+                },
+                onConfirm = {
+                    saving = true
+                    error = null
+                    notice = null
+                    scope.launch {
+                        try {
+                            container.api.signupConfirm(email = sentTo, code = code)
+                            // Only now, with the account made, does the phone change.
+                            if (replacing != null) {
+                                container.nights.wipeAll()
+                                CardPhotoStore.deleteAll(context)
+                            }
+                            container.prefs.createAccount(
+                                Account(name = name.trim(), username = usernameClean, email = sentTo, tribes = tribes),
+                            )
+                            container.prefs.setParticipantId(participant)
+                            nav.navigate(Routes.Permission)
+                        } catch (e: Exception) {
+                            error = AuthErrors.messageFor(e, context)
+                        } finally {
+                            saving = false
+                        }
+                    }
+                },
+                onResend = { sendCode(again = true) },
+                onFixEmail = {
+                    codeSentTo = null
+                    error = null
+                    notice = null
+                },
+            )
+        } else {
+            Text(stringResource(R.string.account_title), style = TTType.Title, color = TT.Ink)
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.account_subtitle), style = TTType.Body, color = TT.Gray45)
+            replacing?.let {
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    stringResource(R.string.account_replaces, it.username),
+                    style = TTType.BodySmall,
+                    color = TT.Ink,
+                )
+            }
+            Spacer(Modifier.height(30.dp))
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                TTField(stringResource(R.string.account_name_label), name, { name = it })
+                TTField(
+                    stringResource(R.string.account_username_label),
+                    username,
+                    { username = it.filter { c -> c.isLetterOrDigit() || c == '_' } },
+                    trailing = {
+                        if (usernameClean.length >= 3) {
+                            Text(
+                                text = if (usernameTaken) {
+                                    stringResource(R.string.account_username_taken)
+                                } else {
+                                    stringResource(R.string.account_username_free)
+                                },
+                                style = TTType.MetaSmall,
+                                color = if (usernameTaken) TT.Gray45 else TT.Ink,
+                            )
+                        }
+                    },
+                )
+                TTField(
+                    stringResource(R.string.account_email_label),
+                    email,
+                    { email = it },
+                    placeholder = stringResource(R.string.account_email_hint),
+                    keyboardType = KeyboardType.Email,
+                )
+                TTField(stringResource(R.string.account_password_label), password, { password = it }, isPassword = true)
+            }
+
+            Spacer(Modifier.height(22.dp))
+            Row {
+                Text(stringResource(R.string.account_tribes_label), style = TTType.Meta, color = TT.Gray70)
+                Spacer(Modifier.padding(2.dp))
+                Text(stringResource(R.string.account_tribes_optional), style = TTType.Meta.copy(letterSpacing = 0.em), color = TT.Gray45)
+            }
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TRIBES.forEach { tribe ->
+                    TribeChip(
+                        tribe,
+                        selected = tribe in tribes,
+                        onToggle = { tribes = if (tribe in tribes) tribes - tribe else tribes + tribe },
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(22.dp))
+            // §9 — identificador do participante do experimento (P01…P18). Opcional fora dele.
             TTField(
-                stringResource(R.string.account_username_label),
-                username,
-                { username = it.filter { c -> c.isLetterOrDigit() || c == '_' } },
-                trailing = {
-                    if (usernameClean.length >= 3) {
-                        Text(
-                            text = if (usernameTaken) {
-                                stringResource(R.string.account_username_taken)
-                            } else {
-                                stringResource(R.string.account_username_free)
+                stringResource(R.string.participant_label),
+                participant,
+                { participant = it },
+                placeholder = "P01",
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.participant_hint), style = TTType.Footnote, color = TT.Gray45)
+
+            Spacer(Modifier.height(32.dp))
+            // The tap sends a code and creates nothing yet (#64): said before it.
+            Text(stringResource(R.string.account_code_explained), style = TTType.Footnote, color = TT.Gray45)
+            Spacer(Modifier.height(10.dp))
+            TTButton(
+                if (saving) stringResource(R.string.auth_working) else stringResource(R.string.account_cta),
+                TTButtonStyle.Rose,
+                enabled = valid && !saving,
+                onDeclined = {
+                    if (!saving) {
+                        error = context.getString(
+                            when {
+                                name.isBlank() -> R.string.form_missing_name
+                                usernameClean.length < 3 -> R.string.form_short_username
+                                usernameTaken -> R.string.form_username_taken
+                                email.isBlank() -> R.string.form_missing_email
+                                !email.contains("@") -> R.string.form_email_without_at
+                                !emailLooksWhole -> R.string.form_email_incomplete
+                                password.isEmpty() -> R.string.form_missing_password
+                                else -> R.string.form_short_password
                             },
-                            style = TTType.MetaSmall,
-                            color = if (usernameTaken) TT.Gray45 else TT.Ink,
                         )
                     }
                 },
+                onClick = { sendCode(again = false) },
             )
-            TTField(
-                stringResource(R.string.account_email_label),
-                email,
-                { email = it },
-                placeholder = stringResource(R.string.account_email_hint),
-                keyboardType = KeyboardType.Email,
-            )
-            TTField(stringResource(R.string.account_password_label), password, { password = it }, isPassword = true)
-        }
-
-        Spacer(Modifier.height(22.dp))
-        Row {
-            Text(stringResource(R.string.account_tribes_label), style = TTType.Meta, color = TT.Gray70)
-            Spacer(Modifier.padding(2.dp))
-            Text(stringResource(R.string.account_tribes_optional), style = TTType.Meta.copy(letterSpacing = 0.em), color = TT.Gray45)
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TRIBES.forEach { tribe ->
-                TribeChip(
-                    tribe,
-                    selected = tribe in tribes,
-                    onToggle = { tribes = if (tribe in tribes) tribes - tribe else tribes + tribe },
-                )
+            error?.let {
+                Spacer(Modifier.height(12.dp))
+                Text(it, style = TTType.Body, color = TT.Rose)
             }
         }
+    }
+}
 
-        Spacer(Modifier.height(22.dp))
-        // §9 — identificador do participante do experimento (P01…P18). Opcional fora dele.
-        TTField(
-            stringResource(R.string.participant_label),
-            participant,
-            { participant = it },
-            placeholder = "P01",
-        )
-        Spacer(Modifier.height(6.dp))
-        Text(stringResource(R.string.participant_hint), style = TTType.Footnote, color = TT.Gray45)
-
-        Spacer(Modifier.height(40.dp))
-        TTButton(
-            if (saving) stringResource(R.string.auth_working) else stringResource(R.string.account_cta),
-            TTButtonStyle.Rose,
-            enabled = valid && !saving,
-            onDeclined = {
-                if (!saving) {
-                    error = context.getString(
-                        when {
-                            name.isBlank() -> R.string.form_missing_name
-                            usernameClean.length < 3 -> R.string.form_short_username
-                            usernameTaken -> R.string.form_username_taken
-                            email.isBlank() -> R.string.form_missing_email
-                            !email.contains("@") -> R.string.form_email_without_at
-                            password.isEmpty() -> R.string.form_missing_password
-                            else -> R.string.form_short_password
-                        },
-                    )
-                }
-            },
-            onClick = {
-                saving = true
-                error = null
-                scope.launch {
-                    try {
-                        container.api.register(email = email.trim(), name = name.trim(), password = password)
-                        if (replacing != null) {
-                            container.nights.wipeAll()
-                            CardPhotoStore.deleteAll(context)
-                        }
-                        container.prefs.createAccount(
-                            Account(name = name.trim(), username = usernameClean, email = email.trim(), tribes = tribes),
-                        )
-                        container.prefs.setParticipantId(participant)
-                        nav.navigate(Routes.Permission)
-                    } catch (e: Exception) {
-                        error = AuthErrors.messageFor(e, context)
-                    } finally {
-                        saving = false
-                    }
-                }
-            },
-        )
-        error?.let {
-            Spacer(Modifier.height(12.dp))
-            Text(it, style = TTType.Body, color = TT.Rose)
+/**
+ * The second step (#64): the code from the e-mail. Quiet and careful, like
+ * every account screen — it says where the code went, how long it lives, what
+ * to do when it does not arrive, and how to fix the address, and it never
+ * leaves a declined tap unexplained.
+ */
+@Composable
+private fun CodeStep(
+    sentTo: String,
+    minutes: Int,
+    replacingHandle: String?,
+    code: String,
+    onCode: (String) -> Unit,
+    resendAt: Long,
+    saving: Boolean,
+    error: String?,
+    notice: String?,
+    onDeclinedShort: () -> Unit,
+    onDeclinedResend: (Int) -> Unit,
+    onConfirm: () -> Unit,
+    onResend: () -> Unit,
+    onFixEmail: () -> Unit,
+) {
+    // The wait before another code, counted down from the server's own number.
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(resendAt) {
+        now = System.currentTimeMillis()
+        while (now < resendAt) {
+            delay(1_000)
+            now = System.currentTimeMillis()
         }
     }
+    val waitSeconds = SignupCode.secondsUntil(resendAt, now)
+
+    Text(stringResource(R.string.account_code_title), style = TTType.Title, color = TT.Ink)
+    Spacer(Modifier.height(10.dp))
+    Text(stringResource(R.string.account_code_body, sentTo, minutes), style = TTType.Body, color = TT.Ink)
+    replacingHandle?.let {
+        Spacer(Modifier.height(14.dp))
+        Text(stringResource(R.string.account_replaces, it), style = TTType.BodySmall, color = TT.Ink)
+    }
+    Spacer(Modifier.height(26.dp))
+    TTField(
+        stringResource(R.string.account_code_label),
+        code,
+        onCode,
+        placeholder = "000000",
+        keyboardType = KeyboardType.NumberPassword,
+    )
+    Spacer(Modifier.height(8.dp))
+    Text(stringResource(R.string.account_code_spam), style = TTType.Footnote, color = TT.Gray45)
+
+    Spacer(Modifier.height(28.dp))
+    TTButton(
+        if (saving) stringResource(R.string.auth_working) else stringResource(R.string.account_code_cta),
+        TTButtonStyle.Rose,
+        enabled = SignupCode.isComplete(code) && !saving,
+        onDeclined = { if (!saving) onDeclinedShort() },
+        onClick = onConfirm,
+    )
+    error?.let {
+        Spacer(Modifier.height(12.dp))
+        Text(it, style = TTType.Body, color = TT.Rose)
+    }
+    notice?.let {
+        Spacer(Modifier.height(12.dp))
+        Text(it, style = TTType.Body, color = TT.Ink)
+    }
+    Spacer(Modifier.height(18.dp))
+    TTButton(
+        if (waitSeconds > 0) {
+            stringResource(R.string.account_code_resend_in, waitSeconds)
+        } else {
+            stringResource(R.string.account_code_resend)
+        },
+        TTButtonStyle.Outline,
+        enabled = waitSeconds == 0 && !saving,
+        onDeclined = { if (!saving && waitSeconds > 0) onDeclinedResend(waitSeconds) },
+        onClick = onResend,
+    )
+    Spacer(Modifier.height(10.dp))
+    TTButton(
+        stringResource(R.string.account_code_fix_email),
+        TTButtonStyle.Outline,
+        enabled = !saving,
+        onClick = onFixEmail,
+    )
 }

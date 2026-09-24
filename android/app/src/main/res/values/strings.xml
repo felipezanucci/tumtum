@@ -33,7 +33,21 @@
     <string name="account_password_label">SENHA</string>
     <string name="account_tribes_label">SUAS TRIBOS</string>
     <string name="account_tribes_optional">· opcional</string>
-    <string name="account_cta">Criar minha conta</string>
+    <string name="account_cta">Mandar o código</string>
+    <!-- #64 (24/09): an account exists only once its e-mail is proved. The
+         account screens stay quiet and careful, like every consent screen. -->
+    <string name="account_code_explained">A gente manda um código de 6 números pro seu e-mail. A conta só é criada quando você digitar ele aqui.</string>
+    <string name="account_code_title">Confere seu e-mail.</string>
+    <string name="account_code_body">Mandamos um código de 6 números pra %1$s. Ele vale por %2$d minutos.</string>
+    <string name="account_code_label">CÓDIGO</string>
+    <string name="account_code_spam">Não chegou? Olha no spam e em Promoções.</string>
+    <string name="account_code_cta">Confirmar e criar a conta</string>
+    <string name="account_code_short">O código tem 6 números.</string>
+    <string name="account_code_resend">Mandar outro código</string>
+    <string name="account_code_resend_in">Mandar outro em %1$d s</string>
+    <string name="account_code_resend_wait">Dá pra pedir outro código em %1$d segundos.</string>
+    <string name="account_code_resent">Código novo a caminho de %1$s. Só o mais novo vale.</string>
+    <string name="account_code_fix_email">Corrigir o e-mail</string>
     <string name="account_replaces">Este aparelho já tem a conta @%1$s. Criar outra troca o perfil e as noites gravadas aqui somem do celular — elas ficam com a conta antiga no servidor.</string>
 
     <!-- b3 · Permissão — a tela quieta -->
@@ -390,6 +404,7 @@
     <string name="auth_error_credentials">Email ou senha não batem.</string>
     <string name="auth_error_taken">Já existe uma conta com esse email. Entra com ela.</string>
     <string name="auth_error_offline">Sem internet agora. A conta precisa dela pra existir — tenta de novo quando voltar.</string>
+    <string name="auth_error_invalid">O servidor não aceitou esses dados. Confere o e-mail e a senha.</string>
     <string name="auth_error_server">O servidor não respondeu direito (%1$s). Tenta de novo em um minuto.</string>
     <string name="auth_working">Um segundo…</string>
     <!-- What a declined tap says (22/09): the button never fades, so the missing
@@ -402,6 +417,7 @@
     <string name="form_missing_email_and_password">Coloca seu e-mail e sua senha.</string>
     <string name="form_missing_email">Coloca seu e-mail.</string>
     <string name="form_email_without_at">Confere o e-mail: tá faltando o @.</string>
+    <string name="form_email_incomplete">Esse e-mail não parece completo. Confere.</string>
     <string name="form_missing_password">Coloca sua senha.</string>
     <string name="form_short_password">A senha precisa de 8 caracteres ou mais.</string>
     <string name="form_same_name">Esse já é o seu nome.</string>

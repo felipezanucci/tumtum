@@ -4,10 +4,30 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
 
-class RegisterRequest(BaseModel):
+class SignupStartRequest(BaseModel):
+    """Step one of an account (#64): everything but the proof of the e-mail."""
+
     email: EmailStr
-    name: str
-    password: str
+    name: str = Field(min_length=1, max_length=120)
+    # bcrypt reads at most 72 bytes; a longer password would be cut silently.
+    password: str = Field(min_length=6, max_length=64)
+
+
+class SignupStarted(BaseModel):
+    """Where the code went, and how long the screens should wait."""
+
+    email: str
+    expires_in_seconds: int
+    resend_after_seconds: int
+
+
+class SignupConfirmRequest(BaseModel):
+    """Step two: the code that came back from the mailbox."""
+
+    email: EmailStr
+    # Checked for six digits by the endpoint, which says so in words; a
+    # schema pattern would answer with a list nobody can show on a screen.
+    code: str = Field(max_length=20)
 
 
 class LoginRequest(BaseModel):
