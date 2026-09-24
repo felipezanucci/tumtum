@@ -640,6 +640,24 @@ the linked documents — this file is the index and the reasoning, not a diary.
     token doing its work with no password asked (#34 measured in a hand), the honest refusal for an account
     with no night (7), marks tapped without a night (8), the reveal lock, never
     run (9). Test 10 — the show operator on a phone's browser — passed 23/09.
+61. **The share menu's layout has a hole (Felipe, b187, 24/09).** The
+    networks sit two to a row, so an odd count leaves an empty cell. With
+    six apps installed, WhatsApp stands alone with a blank beside it. To
+    evaluate, not yet built: a grid that never leaves a hole, for example the
+    last odd button taking the full row, or rows that re-flow by count.
+62. **The share buttons in Pink, for emphasis (Felipe, 24/09).** Today they are
+    outlined and grey on black, and read as secondary. To evaluate a layout
+    with the network buttons in TumTum Pink (black text on Pink, per the
+    manual), with Copiar, Salvar and Mais apps kept quieter beneath them, so
+    the eye lands on "where does this go" first.
+63. **WhatsApp Status as its own destination (Felipe, 24/09).** Today
+    WhatsApp receives the finished file into its chat picker. To evaluate a
+    button that goes straight to **Status**. WhatsApp publishes no Status
+    share intent for other apps. The known road is an undocumented
+    extra (`jid` = `status@broadcast`) that works on many versions and can
+    break without notice. It needs a test on Felipe's phone and a
+    fallback to the chat picker, said on screen, if the Status road is
+    refused.
 56. **Nobody has ever seen the feed with more than one person in it.** The
     privacy floor in `services/crowd` is four measured nights, and a pilot
     with three to five straps sits exactly on it. So the two states most
