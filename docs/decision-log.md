@@ -735,6 +735,18 @@ Snap's own launch flags), but none of them was the cause.
   type. The video the card is burned into (WhatsApp, TikTok, Mais apps) keeps
   its wash, because there the card cannot be moved off a white t-shirt.
 
+**b186 in the hand: the video plays, the Snapchat card is still wrong.**
+TikTok played a card that had been reopened without touching it, which
+confirms the fix. On Snapchat the card, now with no wash, came out narrow
+and small next to the same card on TikTok ("não está na proporção
+correta"). That was the 300 dp box doing its job. The box comes from Snap's
+SDK documentation, but b180's sticker was drawn taller than 300 dp, so Creative Kit Lite
+does not enforce it. Snapchat's sticker is now the card at the **screen's
+full width with its margins** (cropped by rows only, `CardSticker.cropRows`),
+the same proportions as the burned video. Its foot sits at 76% of the
+screen height, above Snapchat's row of friends, as measured on Felipe's phone. It is narrowed only if
+it would climb above the top bar (`SnapStickerSizeTest`).
+
 ---
 
 ## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind

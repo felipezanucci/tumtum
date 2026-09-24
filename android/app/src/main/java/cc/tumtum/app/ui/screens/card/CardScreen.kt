@@ -232,7 +232,13 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 else -> ShareTargets.instagramStory(context, background, mime, sticker)
             }
             if (skin == Skin.BLACK && chosen != null) {
-                val alone = cardAlone()
+                // Snapchat takes the card at the screen's width, margins and
+                // all; the other editors take it cut to its block.
+                val alone = if (target == ShareTo.Snapchat) {
+                    CardSticker.cropRows(render(sticker = true, bare = true))
+                } else {
+                    cardAlone()
+                }
                 val aspect = alone.height.toFloat() / alone.width
                 val sticker = if (target == ShareTo.Snapchat) {
                     ShareTargets.snapSticker(context, alone, "tumtum-${n.id}-snap-sticker.png")

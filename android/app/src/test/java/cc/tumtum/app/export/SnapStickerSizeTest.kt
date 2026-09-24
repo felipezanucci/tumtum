@@ -5,34 +5,40 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Snap caps a sticker at 300 dp on each side (24/09): asked for 300 wide and
- * ~350 tall, the card ran off the bottom of the preview.
+ * Snapchat's sticker (24/09): the card at the screen's width, as on the
+ * burned video, with its foot above Snapchat's row of friends.
  */
 class SnapStickerSizeTest {
 
+    // Felipe's phone, roughly: 384 × 780 dp.
+    private val w = 384
+    private val h = 780
+
     @Test
-    fun `a card taller than wide is 300 dp tall and narrower`() {
-        val (w, h) = ShareTargets.snapStickerSize(1.16f)
-        assertEquals(300, h)
-        assertEquals(258, w)
+    fun `the card takes the screen's width at its own shape`() {
+        val p = ShareTargets.snapStickerPlacement(0.9f, w, h)
+        assertEquals(384, p.widthDp)
+        assertEquals(345, p.heightDp)
     }
 
     @Test
-    fun `a card wider than tall is 300 dp wide and shorter`() {
-        assertEquals(300 to 150, ShareTargets.snapStickerSize(0.5f))
+    fun `its foot sits above the row of friends`() {
+        val p = ShareTargets.snapStickerPlacement(0.9f, w, h)
+        val foot = p.posY + p.heightDp.toDouble() / h / 2
+        assertEquals(0.76, foot, 0.001)
     }
 
     @Test
-    fun `no side ever passes Snap's limit, whatever the shape`() {
-        listOf(0.1f, 0.9f, 1f, 1.16f, 1.78f, 3f).forEach { aspect ->
-            val (w, h) = ShareTargets.snapStickerSize(aspect)
-            assertTrue("$aspect → ${w}x$h", w <= 300 && h <= 300)
-        }
+    fun `a card too tall for the room is narrowed, never pushed under the bars`() {
+        val p = ShareTargets.snapStickerPlacement(2.5f, w, h)
+        val top = p.posY - p.heightDp.toDouble() / h / 2
+        assertTrue("top at $top", top >= 0.119)
+        assertTrue(p.widthDp < w)
     }
 
     @Test
     fun `a broken aspect falls back to a square`() {
-        assertEquals(300 to 300, ShareTargets.snapStickerSize(Float.NaN))
-        assertEquals(300 to 300, ShareTargets.snapStickerSize(0f))
+        val p = ShareTargets.snapStickerPlacement(Float.NaN, w, h)
+        assertEquals(p.widthDp, p.heightDp)
     }
 }
