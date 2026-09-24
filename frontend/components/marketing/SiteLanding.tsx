@@ -445,6 +445,10 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
             <Link href={copy.footer.privacyHref} className="text-[#8A8A8A] underline underline-offset-2 transition-colors hover:text-tumtum-pink motion-reduce:transition-none">
               {copy.footer.privacyLink}
             </Link>
+            {' · '}
+            <Link href={copy.footer.termsHref} className="text-[#8A8A8A] underline underline-offset-2 transition-colors hover:text-tumtum-pink motion-reduce:transition-none">
+              {copy.footer.termsLink}
+            </Link>
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 text-xs text-[#4A4A4A]">
             <span>{copy.footer.line}</span>

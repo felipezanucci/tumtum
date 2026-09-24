@@ -28,7 +28,7 @@ export const PRIVACY_PT: PrivacyCopy = {
   title: 'Privacidade',
   intro:
     'Seus dados de batimento são seus. Esta página diz, sem rodeio, o que a TumTum guarda, o que faz com isso e como você apaga tudo.',
-  updated: 'Atualizada em 17 de setembro de 2026.',
+  updated: 'Atualizada em 24 de setembro de 2026.',
   sections: [
     {
       heading: 'O que a TumTum guarda',
@@ -38,6 +38,7 @@ export const PRIVACY_PT: PrivacyCopy = {
         'Seus batimentos: as leituras de frequência cardíaca que você captura com o app durante um evento, ou que importa do seu relógio.',
         'O evento que você escolheu, os momentos que a TumTum encontrou e os cards que você criou.',
         'Quando você compartilha um card, em qual rede foi — para a gente entender o que as pessoas gostam de mostrar.',
+        'Se você mostrar um momento no feed de um evento: o post, quem sentiu junto, e as denúncias e bloqueios que você fizer ou receber.',
       ],
     },
     {
@@ -70,6 +71,7 @@ export const PRIVACY_PT: PrivacyCopy = {
       paragraphs: [
         'Você. Sua curva, seus momentos e seus cards ficam na sua conta.',
         'Um card só vira público quando você compartilha — e a página dele mostra exatamente o que a imagem mostra: o número, o momento, o evento. Não mostra sua curva inteira nem sua conta.',
+        'No feed de um evento, um momento só aparece quando você aperta "mostrar", e só para quem também tem uma noite medida naquele evento — numa turnê, para quem foi em qualquer data, se você escolher. Aparecem seu nome, o número, a hora e o nome do momento; nunca sua curva nem seu e-mail. Dá para tirar quando quiser.',
         'A equipe da TumTum acessa dados individuais só para resolver um problema que você reportou, ou para verificar um erro técnico.',
       ],
     },
@@ -105,7 +107,7 @@ export const PRIVACY_EN: PrivacyCopy = {
   title: 'Privacy',
   intro:
     'Your heartbeat data is yours. This page says plainly what TumTum keeps, what it does with it, and how you delete everything.',
-  updated: 'Updated 17 September 2026.',
+  updated: 'Updated 24 September 2026.',
   sections: [
     {
       heading: 'What TumTum keeps',
@@ -115,6 +117,7 @@ export const PRIVACY_EN: PrivacyCopy = {
         'Your heartbeats: the heart-rate readings you capture with the app during an event, or import from your watch.',
         'The event you picked, the moments TumTum found, and the cards you made.',
         'When you share a card, which network it went to — so we understand what people like to show.',
+        'If you show a moment in an event feed: the post, who felt it with you, and the reports and blocks you make or receive.',
       ],
     },
     {
@@ -147,6 +150,7 @@ export const PRIVACY_EN: PrivacyCopy = {
       paragraphs: [
         'You. Your curve, your moments and your cards stay in your account.',
         'A card becomes public only when you share it — and its page shows exactly what the image shows: the number, the moment, the event. Not your whole curve, not your account.',
+        'In an event feed, a moment appears only when you press "show", and only to people who also have a measured night at that event — on a tour, to anyone at any date, if you choose. It shows your name, the number, the time and the moment’s name; never your curve or your email. You can take it down whenever you like.',
         'The TumTum team looks at individual data only to solve a problem you reported, or to check a technical error.',
       ],
     },

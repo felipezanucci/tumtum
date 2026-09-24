@@ -651,6 +651,42 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind
+
+Felipe registered TumTum with the three networks himself, screen by screen.
+What each one cost to learn, so the next time is quicker:
+
+- **Meta**: create the app as **"Crie um app sem um caso de uso"** — Stories
+  sharing needs only the App ID. The package name fails Meta's Play check
+  (the app is only on internal testing) and no Live switch appears for an app
+  with no use case; neither blocks sharing for the app's own admin.
+- **Snap**: organization → New Snap Kit App → Creative Kit on (Spotlight off,
+  attachment domain `https://tumtum.cc`) → Android App ID `cc.tumtum.app` for
+  **both** Staging and Production → Demo Users. The kit is Creative Kit
+  **Lite** now, no SDK.
+- **TikTok**: every URL must be a **verified property**. Verified by DNS — a
+  TXT record `tiktok-developers-site-verification=…` on the root (`@`, not
+  `tumtum.cc.tumtum.cc`, which the DNS panel offers to create). It then asks
+  for a **Terms of Service URL**, which did not exist.
+- The **1024×1024 icon** the portals ask for is in `shared/brand/`, rendered
+  from the official wordmark vector, nothing redrawn.
+
+**`/termos` and `/en/terms` written the same day**, in the privacy page's
+quiet voice and layout: entertainment not health, 18+, what may be posted in
+the feed, report/block/removal, other networks' rules, no affiliation with
+artists or clubs, Brazilian law and São Paulo courts (consumer law intact).
+A draft for Felipe to read — it names no company or CNPJ yet. Linked from the
+site footer.
+
+**The privacy page had fallen behind the product.** It said a card becomes
+public only when shared; since 22/09 a moment can also be shown in an event's
+feed, to the people with a measured night there (and a tour's, by choice).
+Two sentences added in both languages — what the feed shows and never shows,
+and that reports and blocks are kept. A promise page is only true while
+someone re-reads it after every feature that touches what is visible.
+
+---
+
 ## 2026-09-23 — one button per network, each by its own best road
 
 **#60, decided by Felipe after asking for precedent.** Since the card was
