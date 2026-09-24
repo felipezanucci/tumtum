@@ -765,6 +765,16 @@ the same proportions as the burned video. Its foot sits at 76% of the
 screen height, above Snapchat's row of friends, as measured on Felipe's phone. It is narrowed only if
 it would climb above the top bar (`SnapStickerSizeTest`).
 
+**b187, the end of the day: every network in a hand.** Snapchat showed the card
+at full width with the video playing, and Felipe went to re-record the demo for
+Snap's review. Facebook and Instagram Stories both open with the video
+behind and the card as a sticker the person can move and resize, with sound.
+TikTok plays the card's video, including one reopened without touching it. The two Play
+key hashes were added to Meta (the debug one was already there). What is
+left is outside the app: Snap's and TikTok's reviews, and a test by someone
+who is not in Meta's app roles, to learn whether Development mode limits
+Facebook sharing.
+
 ---
 
 ## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind
