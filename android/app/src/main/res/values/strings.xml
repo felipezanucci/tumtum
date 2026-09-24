@@ -500,6 +500,10 @@
     <string name="card_share_to">COMPARTILHAR EM</string>
     <string name="card_share_instagram">Instagram</string>
     <string name="card_share_whatsapp">WhatsApp</string>
+    <!-- #63: Status by an undocumented road; the screen never claims it got there. -->
+    <string name="card_share_whatsapp_status">Status do WhatsApp</string>
+    <string name="card_share_whatsapp_status_hint">No Status do WhatsApp: se abrir a lista de conversas, toca em Meu status, lá no topo.</string>
+    <string name="card_share_whatsapp_status_fallback">O WhatsApp não abriu o Status direto, então foi pras conversas. Lá, toca em Meu status, no topo.</string>
     <string name="card_share_facebook">Facebook</string>
     <string name="card_share_snapchat">Snapchat</string>
     <string name="card_share_tiktok">TikTok</string>

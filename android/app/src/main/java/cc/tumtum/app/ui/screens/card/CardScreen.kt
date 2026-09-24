@@ -6,10 +6,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,9 +33,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +51,7 @@ import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
 import cc.tumtum.app.export.CardSticker
+import cc.tumtum.app.export.ShareGrid
 import cc.tumtum.app.export.ShareTargets
 import cc.tumtum.app.export.VideoCard
 import cc.tumtum.app.export.VideoFrame
@@ -75,7 +84,7 @@ private sealed interface CardMedia {
 }
 
 /** Where a card goes (#60): one button per network, each by its own best road. */
-private enum class ShareTo { Instagram, Facebook, Snapchat, TikTok, WhatsApp, Copy, Save, More }
+private enum class ShareTo { Instagram, Facebook, Snapchat, TikTok, WhatsApp, WhatsAppStatus, Copy, Save, More }
 
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
@@ -317,7 +326,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                             .onFailure { failure = refused }
                     }
                 }
-                ShareTo.WhatsApp, ShareTo.More, ShareTo.TikTok -> {
+                ShareTo.WhatsApp, ShareTo.WhatsAppStatus, ShareTo.More, ShareTo.TikTok -> {
                     val file = finished(chosen)
                     if (file == null) {
                         failure = if (chosen is CardMedia.Video) {
@@ -332,11 +341,26 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                             // to its editor through Share Kit.
                             ShareTo.TikTok -> tiktok?.let { ShareTargets.tiktokShare(context, it, f, mime) }
                             ShareTo.WhatsApp -> whatsapp?.let { ShareTargets.toApp(context, it, f, mime) }
+                            ShareTo.WhatsAppStatus -> whatsapp?.let { ShareTargets.whatsappStatus(context, it, f, mime) }
                             else -> null
                         } ?: CardRenderer.shareFileIntent(context, f, mime)
                         val refused = if (target == ShareTo.TikTok) R.string.card_share_tiktok_failed else R.string.card_share_failed
                         runCatching { shareLauncher.launch(intent) }
-                            .onFailure { failure = refused }
+                            .onFailure {
+                                // Status refused outright (#63): the chat picker,
+                                // where Meu status is the first row — and the
+                                // screen says the road changed.
+                                val chats = if (target == ShareTo.WhatsAppStatus) {
+                                    whatsapp?.let { ShareTargets.toApp(context, it, f, mime) }
+                                } else {
+                                    null
+                                }
+                                if (chats != null && runCatching { shareLauncher.launch(chats) }.isSuccess) {
+                                    notice = R.string.card_share_whatsapp_status_fallback
+                                } else {
+                                    failure = refused
+                                }
+                            }
                     }
                 }
                 ShareTo.Copy -> {
@@ -680,9 +704,15 @@ private fun DoneActions(
 
 /**
  * The destinations (#60): the networks on this phone, each by its own best
- * road, then the card alone to copy or save, then every other app. All
- * outlined and equal — Spotify's row does not rank the networks either.
+ * road, then the card alone to copy or save, then every other app.
+ *
+ * **Where does this go, first** (#62, Felipe 24/09). The networks are TumTum
+ * Pink with black type, and equal among themselves — Spotify's row does not
+ * rank them either. Copiar, Salvar and Mais apps sit beneath as small
+ * outlined chips: they are the way out for everything else, not the answer.
+ * The networks sit two to a row and never beside a hole ([ShareGrid], #61).
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ShareChoices(
     hasInstagram: Boolean,
@@ -698,56 +728,55 @@ private fun ShareChoices(
 ) {
     Text(stringResource(R.string.card_share_to), style = TTType.MetaSmall, color = TT.Acid)
     Spacer(Modifier.height(8.dp))
-    // The networks on this phone, two to a row: each is a word on a button,
-    // and three side by side would not fit "Instagram" on a small screen.
+    // The networks on this phone. Status comes right after WhatsApp (#63), so
+    // on most phones the two share a row.
     val networks = buildList {
-        if (hasInstagram) add(ShareTo.Instagram to R.string.card_share_instagram)
-        if (hasFacebook) add(ShareTo.Facebook to R.string.card_share_facebook)
-        if (hasSnapchat) add(ShareTo.Snapchat to R.string.card_share_snapchat)
-        if (hasTiktok) add(ShareTo.TikTok to R.string.card_share_tiktok)
-        if (hasWhatsapp) add(ShareTo.WhatsApp to R.string.card_share_whatsapp)
+        if (hasInstagram) add(ShareTo.Instagram to stringResource(R.string.card_share_instagram))
+        if (hasFacebook) add(ShareTo.Facebook to stringResource(R.string.card_share_facebook))
+        if (hasSnapchat) add(ShareTo.Snapchat to stringResource(R.string.card_share_snapchat))
+        if (hasTiktok) add(ShareTo.TikTok to stringResource(R.string.card_share_tiktok))
+        if (hasWhatsapp) {
+            add(ShareTo.WhatsApp to stringResource(R.string.card_share_whatsapp))
+            add(ShareTo.WhatsAppStatus to stringResource(R.string.card_share_whatsapp_status))
+        }
     }
-    networks.chunked(2).forEach { pair ->
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            pair.forEach { (target, label) ->
-                TTButton(
-                    stringResource(label),
-                    TTButtonStyle.OutlineOnDark,
-                    enabled = !busy,
-                    onClick = { onPick(target) },
-                    modifier = Modifier.weight(1f),
-                )
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        // Whether each label fits in half a row is measured, not guessed: a
+        // label that wrapped would sit on two lines inside a 56 dp button.
+        val measurer = rememberTextMeasurer()
+        val half = with(LocalDensity.current) { ((maxWidth - 8.dp) / 2 - 12.dp).toPx() }
+        val fits = networks.map { (_, label) -> measurer.measure(label, TTType.Button).size.width <= half }
+        Column {
+            ShareGrid.rows(fits).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { i ->
+                        val (target, label) = networks[i]
+                        TTButton(
+                            label,
+                            TTButtonStyle.Rose,
+                            enabled = !busy,
+                            onClick = { onPick(target) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
             }
-            // An odd one out keeps half the width, not the whole row.
-            if (pair.size == 1) Spacer(Modifier.weight(1f))
         }
-        Spacer(Modifier.height(8.dp))
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TTButton(
-            stringResource(R.string.card_share_copy),
-            TTButtonStyle.OutlineOnDark,
-            enabled = !busy,
-            onClick = { onPick(ShareTo.Copy) },
-            modifier = Modifier.weight(1f),
-        )
+    Spacer(Modifier.height(4.dp))
+    // The card alone, and every other app: quieter, and wrapping onto a second
+    // line on a narrow phone rather than squeezing a label onto two.
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        QuietChoice(stringResource(R.string.card_share_copy), enabled = !busy) { onPick(ShareTo.Copy) }
         if (canSave) {
-            TTButton(
-                stringResource(R.string.card_share_save),
-                TTButtonStyle.OutlineOnDark,
-                enabled = !busy,
-                onClick = { onPick(ShareTo.Save) },
-                modifier = Modifier.weight(1f),
-            )
+            QuietChoice(stringResource(R.string.card_share_save), enabled = !busy) { onPick(ShareTo.Save) }
         }
+        QuietChoice(stringResource(R.string.card_share_more), enabled = !busy) { onPick(ShareTo.More) }
     }
-    Spacer(Modifier.height(8.dp))
-    TTButton(
-        stringResource(R.string.card_share_more),
-        TTButtonStyle.OutlineOnDark,
-        enabled = !busy,
-        onClick = { onPick(ShareTo.More) },
-    )
     Spacer(Modifier.height(6.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -761,5 +790,32 @@ private fun ShareChoices(
     }
     if ((hasInstagram || hasFacebook || hasSnapchat) && status == null) {
         Text(stringResource(R.string.card_share_instagram_hint), style = TTType.Footnote, color = TT.Gray45)
+    }
+    // Nothing comes back to say whether WhatsApp opened Status or the chat
+    // list (#63), so both roads are said before the tap, never after it.
+    if (hasWhatsapp && status == null) {
+        Spacer(Modifier.height(4.dp))
+        Text(stringResource(R.string.card_share_whatsapp_status_hint), style = TTType.Footnote, color = TT.Gray45)
+    }
+}
+
+/**
+ * A secondary destination (#62): outlined, 44 dp, sized to its own label.
+ * Like [TTButton] it never fades; while a share is being prepared a tap is
+ * swallowed, and the status line under the choices already says why.
+ */
+@Composable
+private fun QuietChoice(text: String, enabled: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        Modifier
+            .height(44.dp)
+            .clip(shape)
+            .border(1.dp, TT.Ink600, shape)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text, style = TTType.Button.copy(fontSize = 14.sp), color = TT.Paper, maxLines = 1)
     }
 }
