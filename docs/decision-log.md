@@ -651,6 +651,40 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-24 — Snapchat, the first share in a hand: cut off, boxed, frozen
+
+TikTok went to review the same afternoon (Share Kit only, a demo video
+Felipe recorded, the sandbox key still in the app until approval). Recording
+Snapchat's demo on b180 found three faults in one screen. Felipe's words:
+*"a capa… não tá aparecendo inteira… o vídeo não toca… tá tudo truncado"*.
+
+- **The card ran off the bottom.** It was asked for at 300 dp wide and so
+  ~350 dp tall, centred at 72% of the screen, which put its foot (the event
+  box and the wordmark) under Snapchat's own row of friends and its buttons.
+  Snap's SDK caps a sticker at **300 dp on each side**, a limit the Lite docs
+  do not repeat. The card now fits inside 300 × 300 at its own shape and sits
+  at 56%, so its foot clears the bar. Tested by `SnapStickerSizeTest`.
+- **A dark box with hard sides.** The sticker's gradient spans its full
+  width, which looks right when the card fills the screen and becomes a
+  visible rectangle when an editor draws it at three-quarters width. The
+  sticker's wash now fades out at the left and right edges, inside the
+  margin, so no letter is touched. That applies to every sticker (Instagram,
+  Facebook, Snapchat, Copiar, Salvar), not to the video the card is burned
+  into, where the wash already runs edge to edge.
+- **The video stayed on its first frame.** Snap's own note for the preview
+  flow: the background should be **9:16**, *"or else there will be issues
+  with the editable canvas"*. A phone's recording may be another shape, or
+  HEVC. Snapchat now gets the video re-encoded the way the card's own video
+  is (9:16, H.264, the first 30 s), with nothing drawn on it, while the screen
+  says *"Preparando o vídeo pro Snapchat… N%"*. A photo is cropped to
+  1080 × 1920. The card's burned video is also forced to H.264 now, since a
+  Samsung's HEVC is not a codec every receiving app plays.
+
+Which of the two (shape or codec) froze the video is not known. Both are
+removed at once, and the next Snap demo recording is the test.
+
+---
+
 ## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind
 
 Felipe registered TumTum with the three networks himself, screen by screen.

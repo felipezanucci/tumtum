@@ -135,6 +135,13 @@ object ShareTargets {
      * Snapchat's editor with [background] full screen and [sticker] on top,
      * movable — Creative Kit Lite's "share to preview". [stickerAspect] is the
      * sticker's height over its width, so it is placed at its own shape.
+     *
+     * Tested 24/09 on b180, the card arrived cut off at the bottom: it was
+     * asked for at 300 dp wide, and so ~350 dp tall, centred low on the
+     * screen, and ran under Snapchat's own row of friends and its buttons.
+     * Snap's SDK caps a sticker at 300 dp on **each** side, so the card now
+     * fits inside that box at its own shape, and sits high enough that its
+     * foot — the event and the wordmark — clears Snapchat's bottom bar.
      */
     fun snapchatPreview(
         context: Context,
@@ -166,18 +173,54 @@ object ShareTargets {
         sticker?.let {
             val stickerUri = uriFor(context, it)
             context.grantUriPermission(SNAPCHAT, stickerUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            val widthDp = 300
+            val (widthDp, heightDp) = snapStickerSize(stickerAspect)
             val json = JSONObject()
                 .put("uri", stickerUri.toString())
                 .put("posX", 0.5)
-                .put("posY", 0.72)
+                .put("posY", SNAP_STICKER_Y)
                 .put("rotation", 0)
                 .put("widthDp", widthDp)
-                .put("heightDp", (widthDp * stickerAspect).toInt())
+                .put("heightDp", heightDp)
             intent.putExtra("sticker", json.toString())
         }
         val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
         return if (resolved != null) intent else null
+    }
+
+    /** The largest sticker Snap takes, per side, in dp. */
+    const val SNAP_STICKER_MAX_DP = 300
+
+    // The sticker's centre, as a fraction of the screen's height. A card
+    // 300 dp tall centred here ends around 78% down, above the row of
+    // friends Snapchat lays over the bottom of its preview.
+    private const val SNAP_STICKER_Y = 0.56
+
+    /**
+     * The sticker's size in dp for a card [aspect] (height over width) tall:
+     * as large as fits in Snap's 300 × 300 box, at the card's own shape.
+     */
+    fun snapStickerSize(aspect: Float): Pair<Int, Int> {
+        val a = if (aspect.isFinite() && aspect > 0f) aspect else 1f
+        return if (a >= 1f) {
+            (SNAP_STICKER_MAX_DP / a).toInt() to SNAP_STICKER_MAX_DP
+        } else {
+            SNAP_STICKER_MAX_DP to (SNAP_STICKER_MAX_DP * a).toInt()
+        }
+    }
+
+    /**
+     * [photo] cover-scaled and centre-cropped to 1080 × 1920. Snap asks for
+     * a 9:16 background in its preview, and warns that any other shape
+     * breaks its editable canvas.
+     */
+    fun storyFrame(photo: Bitmap): Bitmap {
+        val w = 1080
+        val h = 1920
+        val scale = maxOf(w.toFloat() / photo.width, h.toFloat() / photo.height)
+        val sw = (w / scale).toInt().coerceIn(1, photo.width)
+        val sh = (h / scale).toInt().coerceIn(1, photo.height)
+        val cropped = Bitmap.createBitmap(photo, (photo.width - sw) / 2, (photo.height - sh) / 2, sw, sh)
+        return Bitmap.createScaledBitmap(cropped, w, h, true)
     }
 
     /**

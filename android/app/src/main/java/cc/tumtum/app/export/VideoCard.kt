@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlayEffect
@@ -84,17 +86,23 @@ object VideoCard {
      * Writes [source] with [overlay] burned into it and returns the file, or
      * null if the export failed. [onProgress] is fed the encoder's own figure,
      * 0–100, never a made-up one — while it has none, it is not called.
+     *
+     * With no [overlay] it is the same 9:16 H.264 file with nothing drawn on
+     * it: what Snapchat gets behind its sticker (24/09), since its preview
+     * asks for 9:16 and a phone's own recording may be neither that shape
+     * nor a codec it plays.
      */
     @OptIn(UnstableApi::class)
     suspend fun burn(
         context: Context,
         source: Uri,
-        overlay: Bitmap,
+        overlay: Bitmap?,
         nightId: Long,
+        name: String = "tumtum-$nightId.mp4",
         onProgress: (Int) -> Unit = {},
     ): File? = withContext(Dispatchers.Main) {
         val dir = File(context.cacheDir, "cards").apply { mkdirs() }
-        val out = File(dir, "tumtum-$nightId.mp4")
+        val out = File(dir, name)
         out.delete()
 
         val item = MediaItem.Builder()
@@ -104,8 +112,13 @@ object VideoCard {
             )
             .build()
 
-        val overlays: ImmutableList<TextureOverlay> =
-            ImmutableList.of(BitmapOverlay.createStaticBitmapOverlay(overlay))
+        val overlays: List<OverlayEffect> = if (overlay == null) {
+            emptyList()
+        } else {
+            val one: ImmutableList<TextureOverlay> =
+                ImmutableList.of(BitmapOverlay.createStaticBitmapOverlay(overlay))
+            listOf(OverlayEffect(one))
+        }
 
         val edited = EditedMediaItem.Builder(item)
             .setEffects(
@@ -116,18 +129,20 @@ object VideoCard {
                     // the pipeline honours that order, and whether a full-frame
                     // static overlay lands edge to edge, are the two things only
                     // a real device can answer.
-                    listOf(
+                    listOf<Effect>(
                         Presentation.createForWidthAndHeight(
                             W, H, Presentation.LAYOUT_SCALE_TO_FIT_WITH_CROP,
                         ),
-                        OverlayEffect(overlays),
-                    ),
+                    ) + overlays,
                 ),
             )
             .build()
 
         suspendCancellableCoroutine { cont ->
             val transformer = Transformer.Builder(context)
+                // H.264, whatever the phone recorded in: a Samsung's HEVC is
+                // a codec not every app that receives the file will play.
+                .setVideoMimeType(MimeTypes.VIDEO_H264)
                 .addListener(
                     object : Transformer.Listener {
                         override fun onCompleted(composition: Composition, result: ExportResult) {
