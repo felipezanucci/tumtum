@@ -37,6 +37,8 @@ import java.io.File
  *   1080×1920 sheet that is mostly transparent.
  * - **WhatsApp** — the finished file (card burned into the video), straight
  *   into WhatsApp's own picker.
+ * - **Status do WhatsApp** — the same file, addressed to Status by an
+ *   undocumented extra ([whatsappStatus], 24/09).
  * - **Copiar card / Salvar card** — the card alone, transparent, for any
  *   editor that takes a pasted or picked image. Strava's "copy to clipboard"
  *   is the precedent for pasting into a Story.
@@ -297,6 +299,22 @@ object ShareTargets {
             .setPackage(pkg)
             .putExtra(Intent.EXTRA_STREAM, uriFor(context, file))
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+    /**
+     * [file] addressed to WhatsApp's **Status** rather than a chat (#63, 24/09).
+     *
+     * WhatsApp publishes no way for another app to post to Status. The road
+     * known to work is an undocumented extra: the chat id `status@broadcast`,
+     * which is the id WhatsApp itself gives Status. It works on many versions
+     * and can stop working without notice, and when WhatsApp ignores it the
+     * person lands in the ordinary chat picker instead — where *Meu status*
+     * is the first row. Nothing comes back to say which happened, so the
+     * screen says both roads before the tap, never that it reached Status.
+     */
+    fun whatsappStatus(context: Context, pkg: String, file: File, mime: String): Intent =
+        toApp(context, pkg, file, mime).putExtra("jid", WHATSAPP_STATUS_JID)
+
+    const val WHATSAPP_STATUS_JID = "status@broadcast"
 
     /** The card on the clipboard, as an image a Story editor can paste. */
     fun copy(context: Context, card: File): Boolean = runCatching {
