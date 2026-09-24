@@ -721,7 +721,15 @@ those on the phone.
   pick in any editor (save needs Android 10; hidden below it).
 - **Mais apps** — the system list with the finished file, as before.
 
-Not offered until it can work: TikTok (its own SDK, and review).
+**TikTok added 24/09** with the sandbox client key, by the exact intent
+its Share Kit SDK (2.3.1) sends — rebuilt from the SDK's own source rather
+than depending on it, because the SDK pulls in Google's advertising-ID
+library: the app would gain the AD_ID permission and its Play data-safety
+answers would change, for a share button. TikTok takes no sticker, so it
+receives the finished file. Its answer comes back to a transparent
+activity that only closes. Until TikTok approves (which needs a demo video
+of the flow, recorded in the sandbox), only the sandbox's target users can
+share; the production key then replaces the sandbox one.
 **Snapchat added 24/09**, by Creative Kit **Lite** — Snap's code-only path
 since 10/2024, no SDK: an intent to `snapchat://creativekit/preview` with the
 video or photo behind and the card as a movable sticker (PNG ≤ 1 MB, so it is

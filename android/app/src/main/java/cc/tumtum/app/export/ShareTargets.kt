@@ -52,13 +52,20 @@ import java.io.File
  *   from Snap's portal. Until Snap approves the app, only its Demo Users can
  *   share.
  *
- * TikTok needs its own SDK and is not offered until it can work.
+ * - **TikTok** — Share Kit, by the intent its Android SDK sends, built here
+ *   without the SDK: the SDK pulls in Google's advertising-ID library, which
+ *   would add the AD_ID permission and change the app's Play data-safety
+ *   answers for a share button. TikTok takes no sticker, so it receives the
+ *   finished file (the card burned into the video, or the card as a picture).
+ *   Until TikTok approves the app, only the sandbox's target users can share.
  */
 object ShareTargets {
 
     const val INSTAGRAM = "com.instagram.android"
     const val FACEBOOK = "com.facebook.katana"
     const val SNAPCHAT = "com.snapchat.android"
+    // TikTok ships under two package names, by region; either one takes it.
+    private val TIKTOK = listOf("com.zhiliaoapp.musically", "com.ss.android.ugc.trill")
     private val WHATSAPP = listOf("com.whatsapp", "com.whatsapp.w4b")
     private const val STORY_ACTION = "com.instagram.share.ADD_TO_STORY"
     private const val FACEBOOK_STORY_ACTION = "com.facebook.stories.ADD_TO_STORY"
@@ -190,6 +197,43 @@ object ShareTargets {
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             if (file.length() <= 1_000_000L || bitmap.width <= 240) return file
             bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width * 3 / 4, bitmap.height * 3 / 4, true)
+        }
+    }
+
+    /** The TikTok on this phone, or null. */
+    fun tiktok(context: Context): String? = TIKTOK.firstOrNull { installed(context, it) }
+
+    /**
+     * TikTok's editor with [file] — the same intent TikTok's Share Kit SDK
+     * (2.3.1) sends, key for key: its share activity by name, the request as
+     * extras, the media as a list of URI strings. Because the URI travels in
+     * an extra and not as the intent's data, TikTok is granted read on it
+     * explicitly.
+     */
+    fun tiktokShare(context: Context, pkg: String, file: File, mime: String): Intent? {
+        val clientKey = context.getString(R.string.tiktok_client_key)
+        if (clientKey.isBlank()) return null
+        val uri = uriFor(context, file)
+        context.grantUriPermission(pkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val video = mime.startsWith("video")
+        return Intent(Intent.ACTION_SEND).apply {
+            component = android.content.ComponentName(pkg, "com.ss.android.ugc.aweme.share.SystemShareActivity")
+            type = if (video) "video/*" else "image/*"
+            putExtra("_bytedance_params_type", 3) // a share request
+            putExtra("_aweme_params_caller_open_sdk_name", "TikTok-Open-Android-SDK-Share")
+            putExtra("_aweme_params_caller_open_sdk_version", "2.3.1")
+            putExtra("_aweme_open_sdk_params_client_key", clientKey)
+            putStringArrayListExtra(
+                if (video) "AWEME_EXTRA_VIDEO_MESSAGE_PATH" else "AWEME_EXTRA_IMAGE_MESSAGE_PATH",
+                arrayListOf(uri.toString()),
+            )
+            putExtra("_aweme_open_sdk_params_share_format", 0) // the ordinary editor, not green screen
+            putExtra("_aweme_open_sdk_params_caller_package", context.packageName)
+            putExtra(
+                "_aweme_open_sdk_params_caller_local_entry",
+                "${context.packageName}.export.TikTokShareResultActivity",
+            )
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
     }
 
