@@ -1,5 +1,6 @@
 package cc.tumtum.app.export
 
+import android.app.PendingIntent
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentValues
@@ -8,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
+import org.json.JSONObject
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
@@ -44,13 +46,19 @@ import java.io.File
  * - **Facebook Stories** — Meta's same channel, `com.facebook.stories.ADD_TO_STORY`,
  *   which refuses without the sharing app's Facebook App ID (registered 24/09).
  *
- * TikTok and Snapchat each need their own SDK and are not offered until they
- * can work.
+ * - **Snapchat** — Creative Kit Lite, Snap's code-only path since 10/2024 (no
+ *   SDK): an intent to `snapchat://creativekit/preview` with the video or
+ *   photo as the background and the card as a sticker, carrying the client ID
+ *   from Snap's portal. Until Snap approves the app, only its Demo Users can
+ *   share.
+ *
+ * TikTok needs its own SDK and is not offered until it can work.
  */
 object ShareTargets {
 
     const val INSTAGRAM = "com.instagram.android"
     const val FACEBOOK = "com.facebook.katana"
+    const val SNAPCHAT = "com.snapchat.android"
     private val WHATSAPP = listOf("com.whatsapp", "com.whatsapp.w4b")
     private const val STORY_ACTION = "com.instagram.share.ADD_TO_STORY"
     private const val FACEBOOK_STORY_ACTION = "com.facebook.stories.ADD_TO_STORY"
@@ -114,6 +122,75 @@ object ShareTargets {
         stickerUri?.let { context.grantUriPermission(FACEBOOK, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
         val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
         return if (resolved != null) intent else null
+    }
+
+    /**
+     * Snapchat's editor with [background] full screen and [sticker] on top,
+     * movable — Creative Kit Lite's "share to preview". [stickerAspect] is the
+     * sticker's height over its width, so it is placed at its own shape.
+     */
+    fun snapchatPreview(
+        context: Context,
+        background: File,
+        backgroundMime: String,
+        sticker: File?,
+        stickerAspect: Float,
+    ): Intent? {
+        val clientId = context.getString(R.string.snap_client_id)
+        if (clientId.isBlank()) return null
+        val backgroundUri = uriFor(context, background)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            setPackage(SNAPCHAT)
+            putExtra("CLIENT_ID", clientId)
+            setDataAndType(
+                Uri.parse("snapchat://creativekit/preview"),
+                if (backgroundMime.startsWith("video")) "video/*" else "image/*",
+            )
+            putExtra(Intent.EXTRA_STREAM, backgroundUri)
+            // Snap's sample passes an empty PendingIntent for Snapchat to
+            // answer to; the key and the request code are theirs.
+            putExtra(
+                "RESULT_INTENT",
+                PendingIntent.getActivity(context, 9834, Intent(), PendingIntent.FLAG_IMMUTABLE),
+            )
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.grantUriPermission(SNAPCHAT, backgroundUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        sticker?.let {
+            val stickerUri = uriFor(context, it)
+            context.grantUriPermission(SNAPCHAT, stickerUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val widthDp = 300
+            val json = JSONObject()
+                .put("uri", stickerUri.toString())
+                .put("posX", 0.5)
+                .put("posY", 0.72)
+                .put("rotation", 0)
+                .put("widthDp", widthDp)
+                .put("heightDp", (widthDp * stickerAspect).toInt())
+            intent.putExtra("sticker", json.toString())
+        }
+        val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        return if (resolved != null) intent else null
+    }
+
+    /**
+     * A sticker Snapchat accepts: PNG, at most 1 MB (Snap's limit). The card
+     * block is scaled down until it fits; at Story size on a phone nobody
+     * sees the difference between 1080 and 600 pixels wide.
+     */
+    fun snapSticker(context: Context, sticker: Bitmap, name: String): File {
+        var bitmap = if (sticker.width > 720) {
+            Bitmap.createScaledBitmap(sticker, 720, sticker.height * 720 / sticker.width, true)
+        } else {
+            sticker
+        }
+        val dir = File(context.cacheDir, "cards").apply { mkdirs() }
+        val file = File(dir, name)
+        while (true) {
+            file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            if (file.length() <= 1_000_000L || bitmap.width <= 240) return file
+            bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width * 3 / 4, bitmap.height * 3 / 4, true)
+        }
     }
 
     /** [file] handed straight to one app's own share screen. */

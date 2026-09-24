@@ -685,8 +685,16 @@ those on the phone.
   pick in any editor (save needs Android 10; hidden below it).
 - **Mais apps** — the system list with the finished file, as before.
 
-Not offered until they can work: TikTok and Snapchat (each needs its own
-SDK). **Facebook Stories added 24/09**: Felipe registered the Meta app
+Not offered until it can work: TikTok (its own SDK, and review).
+**Snapchat added 24/09**, by Creative Kit **Lite** — Snap's code-only path
+since 10/2024, no SDK: an intent to `snapchat://creativekit/preview` with the
+video or photo behind and the card as a movable sticker (PNG ≤ 1 MB, so it is
+scaled to fit). App "TumTum" at developers.snap.com, Creative Kit on,
+Android IDs for Staging and Production, the Staging client ID in the app —
+until Snap approves, only the portal's Demo Users can share; after approval
+the Production ID (in `res/values/instagram.xml`) replaces it. Submit for
+review only once it works in a hand: Snap asks for evidence of the flow.
+**Facebook Stories added 24/09**: Felipe registered the Meta app
 "TumTum" (ID 1076995595141587, public, in `res/values/instagram.xml`) as an
 app with no use case — only the ID is needed. Instagram now receives the ID
 too, as Meta asks. Two things in that registration are expected and not

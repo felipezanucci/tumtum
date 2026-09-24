@@ -75,7 +75,7 @@ private sealed interface CardMedia {
 }
 
 /** Where a card goes (#60): one button per network, each by its own best road. */
-private enum class ShareTo { Instagram, Facebook, WhatsApp, Copy, Save, More }
+private enum class ShareTo { Instagram, Facebook, Snapchat, WhatsApp, Copy, Save, More }
 
 /**
  * Seu card (UI kit do core loop). Compartilhar é sempre ativo: nada sai
@@ -110,6 +110,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     var choosing by remember { mutableStateOf(false) }
     val hasInstagram = remember { ShareTargets.installed(context, ShareTargets.INSTAGRAM) }
     val hasFacebook = remember { ShareTargets.installed(context, ShareTargets.FACEBOOK) }
+    val hasSnapchat = remember { ShareTargets.installed(context, ShareTargets.SNAPCHAT) }
     val whatsapp = remember { ShareTargets.whatsapp(context) }
     val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { cameBack = true }
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
@@ -187,31 +188,34 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         }
 
     /**
-     * A Meta Story editor — Instagram's or Facebook's, one shape: the person's
-     * video or photo behind, the card on top and movable.
+     * A story editor — Instagram's, Facebook's or Snapchat's, one shape: the
+     * person's video or photo behind, the card on top and movable.
      */
-    suspend fun story(chosen: CardMedia?, facebook: Boolean): android.content.Intent? = withContext(Dispatchers.IO) {
+    suspend fun story(chosen: CardMedia?, target: ShareTo): android.content.Intent? = withContext(Dispatchers.IO) {
         runCatching {
+            fun editorFor(background: java.io.File, mime: String, sticker: java.io.File?, aspect: Float) = when (target) {
+                ShareTo.Facebook -> ShareTargets.facebookStory(context, background, mime, sticker)
+                ShareTo.Snapchat -> ShareTargets.snapchatPreview(context, background, mime, sticker, aspect)
+                else -> ShareTargets.instagramStory(context, background, mime, sticker)
+            }
             if (skin == Skin.BLACK && chosen != null) {
-                val sticker = CardRenderer.writePng(context, cardAlone(), "tumtum-${n.id}-sticker.png")
+                val alone = cardAlone()
+                val aspect = alone.height.toFloat() / alone.width
+                val sticker = if (target == ShareTo.Snapchat) {
+                    ShareTargets.snapSticker(context, alone, "tumtum-${n.id}-snap-sticker.png")
+                } else {
+                    CardRenderer.writePng(context, alone, "tumtum-${n.id}-sticker.png")
+                }
                 val (background, mime) = when (chosen) {
                     is CardMedia.Video -> ShareTargets.copyVideo(context, chosen.uri, n.id)
                         ?: return@runCatching null
                     is CardMedia.Photo ->
                         ShareTargets.writeJpeg(context, chosen.preview, "story-${n.id}.jpg") to "image/jpeg"
                 }
-                if (facebook) {
-                    ShareTargets.facebookStory(context, background, mime, sticker)
-                } else {
-                    ShareTargets.instagramStory(context, background, mime, sticker)
-                }
+                editorFor(background, mime, sticker, aspect)
             } else {
                 val card = CardRenderer.writePng(context, render(), "tumtum-${n.id}-${skin.name.lowercase()}.png")
-                if (facebook) {
-                    ShareTargets.facebookStory(context, card, "image/png", null)
-                } else {
-                    ShareTargets.instagramStory(context, card, "image/png", null)
-                }
+                editorFor(card, "image/png", null, 1f)
             }
         }.getOrNull()
     }
@@ -224,10 +228,13 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         scope.launch {
             publish(chosen)
             when (target) {
-                ShareTo.Instagram, ShareTo.Facebook -> {
-                    val facebook = target == ShareTo.Facebook
-                    val refused = if (facebook) R.string.card_share_facebook_failed else R.string.card_share_instagram_failed
-                    val intent = story(chosen, facebook)
+                ShareTo.Instagram, ShareTo.Facebook, ShareTo.Snapchat -> {
+                    val refused = when (target) {
+                        ShareTo.Facebook -> R.string.card_share_facebook_failed
+                        ShareTo.Snapchat -> R.string.card_share_snapchat_failed
+                        else -> R.string.card_share_instagram_failed
+                    }
+                    val intent = story(chosen, target)
                     if (intent == null) {
                         failure = refused
                     } else {
@@ -393,6 +400,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             ShareChoices(
                 hasInstagram = hasInstagram,
                 hasFacebook = hasFacebook,
+                hasSnapchat = hasSnapchat,
                 hasWhatsapp = whatsapp != null,
                 canSave = ShareTargets.canSaveToGallery,
                 busy = busy,
@@ -598,6 +606,7 @@ private fun DoneActions(
 private fun ShareChoices(
     hasInstagram: Boolean,
     hasFacebook: Boolean,
+    hasSnapchat: Boolean,
     hasWhatsapp: Boolean,
     canSave: Boolean,
     busy: Boolean,
@@ -612,6 +621,7 @@ private fun ShareChoices(
     val networks = buildList {
         if (hasInstagram) add(ShareTo.Instagram to R.string.card_share_instagram)
         if (hasFacebook) add(ShareTo.Facebook to R.string.card_share_facebook)
+        if (hasSnapchat) add(ShareTo.Snapchat to R.string.card_share_snapchat)
         if (hasWhatsapp) add(ShareTo.WhatsApp to R.string.card_share_whatsapp)
     }
     networks.chunked(2).forEach { pair ->
@@ -666,7 +676,7 @@ private fun ShareChoices(
                 .padding(vertical = 10.dp),
         )
     }
-    if ((hasInstagram || hasFacebook) && status == null) {
+    if ((hasInstagram || hasFacebook || hasSnapchat) && status == null) {
         Text(stringResource(R.string.card_share_instagram_hint), style = TTType.Footnote, color = TT.Gray45)
     }
 }
