@@ -710,6 +710,31 @@ still a guess about which one froze it. The Madonna clip on the next build
 is the test. **The demo videos for Snap and TikTok should be recorded with a
 video shot on the phone**, which is known to work.
 
+**Felipe found the real cause, and it was not the clip.** Every video he
+picked on the spot played in both TikTok and Snapchat. Every video on a card
+he reopened without touching it froze. The card screen kept only the video's
+**first frame** with the night (21/09, so the gallery and "Compartilhar de
+novo" would show the card that went out), and on the next visit it restored
+that frame **as a photo**. The card looked identical, and every network was
+handed a still. It is the project's usual bug, the app stating something false
+about its own state, and it cost an afternoon of reasoning about codecs, frame
+rates and launch flags before a person tapping the screen saw the pattern.
+None of the three earlier changes was wrong (9:16 for Snap, H.264, 30 fps and AAC,
+Snap's own launch flags), but none of them was the cause.
+
+- The picked video's permission is now **persisted**, and its address is
+  kept in a small file beside its first frame, which lives and is deleted with
+  it (no new column on the night). On reopening, a card made over a video comes back **as the
+  video**.
+- If the video is no longer readable (deleted, or a permission the phone
+  did not keep), the card comes back over the still and **says so**:
+  *"O vídeo desse card não está mais no celular…"*.
+- **The wash is gone from the movable sticker.** Even with faded edges it
+  read as *"a máscara, o filtro errado"* in Snapchat. The person moves a
+  sticker to where it reads, so it now carries only heavier shadows under the
+  type. The video the card is burned into (WhatsApp, TikTok, Mais apps) keeps
+  its wash, because there the card cannot be moved off a white t-shirt.
+
 ---
 
 ## 2026-09-24 — the portals, a Terms page, and a privacy page that had fallen behind

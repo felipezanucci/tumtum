@@ -128,6 +128,11 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             media = withContext(Dispatchers.IO) {
                 val type = context.contentResolver.getType(uri).orEmpty()
                 if (type.startsWith("video/")) {
+                    // Kept past this visit, so the card can reopen the video
+                    // itself and not only its first frame (24/09).
+                    runCatching {
+                        context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
                     VideoFrame.first(context, uri)?.let {
                         CardMedia.Video(uri, it, VideoCard.durationMs(context, uri))
                     }
@@ -143,9 +148,25 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     // The photo behind the last shared black card comes back with the night
     // (21/09): "Compartilhar de novo" and the gallery show the card that went out.
     var photoRestored by remember { mutableStateOf(false) }
+    // A video comes back as the video (24/09), not as its first frame posing
+    // as one; and when the video is gone from the phone, the screen says the
+    // card will go out over a still, instead of letting it look the same.
     LaunchedEffect(n.photoPath) {
         if (!photoRestored && skin == Skin.BLACK && n.photoPath != null) {
-            media = withContext(Dispatchers.IO) { CardPhotoStore.load(n.photoPath) }?.let { CardMedia.Photo(it) }
+            val (restored, videoGone) = withContext<Pair<CardMedia?, Boolean>>(Dispatchers.IO) {
+                val still = CardPhotoStore.load(n.photoPath) ?: return@withContext null to false
+                val uri = CardPhotoStore.videoOf(n.photoPath) ?: return@withContext CardMedia.Photo(still) to false
+                val readable = runCatching {
+                    context.contentResolver.openFileDescriptor(uri, "r")?.use { true } ?: false
+                }.getOrDefault(false)
+                if (readable) {
+                    CardMedia.Video(uri, still, VideoCard.durationMs(context, uri)) to false
+                } else {
+                    CardMedia.Photo(still) to true
+                }
+            }
+            media = restored
+            if (videoGone) notice = R.string.card_video_gone
         }
         photoRestored = true
     }
@@ -157,10 +178,12 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val video = media as? CardMedia.Video
     val busy = sharing || loadingMedia
 
-    /** The night keeps what its last shared card looked like — a video leaves its first frame. */
+    /** The night keeps what its last shared card looked like: a photo, or a video's first frame and its address. */
     suspend fun publish(chosen: CardMedia?) {
         val photoPath = if (skin == Skin.BLACK && chosen != null) {
-            CardPhotoStore.save(context, n.id, chosen.preview, n.photoPath)
+            CardPhotoStore.save(context, n.id, chosen.preview, n.photoPath)?.also { path ->
+                if (chosen is CardMedia.Video) CardPhotoStore.saveVideo(path, chosen.uri)
+            }
         } else {
             CardPhotoStore.delete(n.photoPath)
             null
@@ -168,16 +191,16 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         container.nights.publish(n.id, skin, photoPath)
     }
 
-    fun render(photo: Bitmap? = null, sticker: Boolean = false, feathered: Boolean = false): Bitmap =
-        CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = photo, sticker = sticker, feathered = feathered)
+    fun render(photo: Bitmap? = null, sticker: Boolean = false, bare: Boolean = false): Bitmap =
+        CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = photo, sticker = sticker, bare = bare)
 
     /**
-     * The card alone: on black, a sticker cut to its own block, its wash
-     * fading at the sides since editors draw it narrower than the screen; on
-     * the other skins, the whole card.
+     * The card alone: on black, a sticker cut to its own block with no wash
+     * behind it, since the person moves it where it reads; on the other
+     * skins, the whole card.
      */
     fun cardAlone(): Bitmap =
-        if (skin == Skin.BLACK) CardSticker.crop(render(sticker = true, feathered = true)) else render()
+        if (skin == Skin.BLACK) CardSticker.crop(render(sticker = true, bare = true)) else render()
 
     /** The finished file — the card burned into the video, or the card as a picture. */
     suspend fun finished(chosen: CardMedia?): Pair<java.io.File, String>? =

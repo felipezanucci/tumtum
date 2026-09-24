@@ -150,6 +150,7 @@
     <string name="card_media_hint">O card vai por cima. Foto ou vídeo, você escolhe.</string>
     <string name="card_video_hint">O card fica gravado dentro do vídeo — dá pra postar em qualquer lugar. Aqui você vê o primeiro quadro.</string>
     <string name="card_video_trimmed">Vídeo maior que %1$ds: vai só o começo.</string>
+    <string name="card_video_gone">O vídeo desse card não está mais no celular. Ele vai com a imagem parada; toca em Trocar pra escolher de novo.</string>
     <string name="card_media_unreadable">Não deu pra abrir esse arquivo. Tenta outro.</string>
     <string name="card_share_burning">Gravando o card no vídeo… %1$d%%</string>
     <string name="card_share_preparing_snapchat">Preparando o vídeo pro Snapchat… %1$d%%</string>
