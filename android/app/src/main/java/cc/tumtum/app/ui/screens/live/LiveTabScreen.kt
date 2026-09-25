@@ -159,9 +159,16 @@ fun LiveTabScreen(nav: NavHostController) {
     // its owner the night had not arrived. Offline is fine — a live session
     // is one the phone can still renew; the night goes up when the signal does.
     val signedIn = state.session?.isLive(now.toEpochMilli()) == true
+    val hasSource = state.sensorPaired || state.watchConnected
+    // The start sheet (25/09, Felipe's call): a list row looked like a link,
+    // and a tap on it started recording. Now a row opens this sheet, which
+    // says what will record — or what is missing — where the tap was.
+    var startSheet by remember { mutableStateOf<StartRequest?>(null) }
     fun startCapture(request: StartRequest) {
         if (!signedIn) {
-            notice = context.getString(R.string.live_needs_account)
+            // Said at the tap, never below the fold (25/09: the refusal sat
+            // under the list, behind the tab bar, and read as "nothing").
+            startSheet = request
             return
         }
         val paired = state.sensorPaired
@@ -197,13 +204,21 @@ fun LiveTabScreen(nav: NavHostController) {
         askNotifications()
     }
 
-    /** The fan's one gesture: an event going on starts the capture, one still to come is marked. */
+    /**
+     * An explicit "Começar agora" starts at once when everything is in place;
+     * otherwise the sheet says what is missing.
+     */
+    fun requestStart(request: StartRequest) {
+        if (signedIn && hasSource) startCapture(request) else startSheet = request
+    }
+
+    /** The fan's one gesture: an event going on opens the start sheet, one still to come is marked. */
     fun activate(ev: ServerEvent) {
         notice = null
         val startAt = ev.startAt ?: return
         val up = UpcomingEvent(ev.name, ev.venue.orEmpty(), ev.eventType, startAt, ev.id)
         if (ev.isLiveAt(now)) {
-            startCapture(StartRequest(up, clearsMark = state.upcoming?.serverEventId == ev.id))
+            startSheet = StartRequest(up, clearsMark = state.upcoming?.serverEventId == ev.id)
         } else {
             markUpcoming(up)
         }
@@ -221,14 +236,7 @@ fun LiveTabScreen(nav: NavHostController) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Wordmark(width = 92.dp, modifier = Modifier.clickable { nav.navigate(Routes.Feed) { launchSingleTop = true } })
-            cc.tumtum.app.ui.components.UserAvatar(
-                state.account?.initials ?: "TT",
-                Skin.BLACK,
-                photoPath = state.avatarPath,
-                modifier = Modifier.clickable {
-                    state.account?.let { nav.navigate(Routes.profile(it.username)) }
-                },
-            )
+            cc.tumtum.app.ui.components.AccountCorner(state, nav, Skin.BLACK)
         }
 
         Column(
@@ -262,7 +270,9 @@ fun LiveTabScreen(nav: NavHostController) {
                 Spacer(Modifier.height(32.dp))
             }
             val up = state.upcoming
-            if (up == null) {
+            if (up == null && !signedIn) {
+                // Signed out: the sign-in block above is the whole message.
+            } else if (up == null) {
                 // a5 — Vazio: o coração de folga, e a lista logo abaixo.
                 Text(
                     stringResource(R.string.empty_title),
@@ -281,7 +291,7 @@ fun LiveTabScreen(nav: NavHostController) {
                     up = up,
                     now = now,
                     notificationsOk = notificationsOk,
-                    onStart = { startCapture(StartRequest(up, clearsMark = true)) },
+                    onStart = { requestStart(StartRequest(up, clearsMark = true)) },
                     onUnmark = {
                         scope.launch {
                             Reminders.cancelEvent(context)
@@ -293,29 +303,38 @@ fun LiveTabScreen(nav: NavHostController) {
                 Spacer(Modifier.height(24.dp))
             }
 
-            StatusRow(
-                ok = state.watchConnected,
-                text = stringResource(if (state.watchConnected) R.string.empty_watch_ok else R.string.empty_no_watch),
-            )
-            if (state.sensorPaired) {
-                Spacer(Modifier.height(10.dp))
-                StatusRow(ok = true, text = stringResource(R.string.empty_sensor_ok, state.bleName ?: ""))
-                Spacer(Modifier.height(10.dp))
-                StatusRow(
-                    ok = batteryExempt,
-                    text = stringResource(if (batteryExempt) R.string.battery_row_ok else R.string.battery_row_pending),
-                )
-            }
-            Spacer(Modifier.height(14.dp))
-            if (!state.watchConnected && !state.sensorPaired) {
-                TTButton(
-                    stringResource(R.string.empty_connect),
-                    TTButtonStyle.Rose,
-                    onClick = { nav.navigate(Routes.Permission) },
-                )
-                Spacer(Modifier.height(24.dp))
-            } else {
+            // One row for what will record the night (25/09): the sensor, or
+            // the watch, or nothing yet — never a grey row for the road not
+            // taken. "Nenhum relógio conectado" over a paired strap read as
+            // something missing when nothing was. Signed out, none of it:
+            // a device belongs to an account now.
+            if (signedIn) {
+                when {
+                    state.sensorPaired -> {
+                        StatusRow(ok = true, text = stringResource(R.string.empty_sensor_ok, state.bleName ?: ""))
+                        Spacer(Modifier.height(10.dp))
+                        StatusRow(
+                            ok = batteryExempt,
+                            text = stringResource(if (batteryExempt) R.string.battery_row_ok else R.string.battery_row_pending),
+                        )
+                    }
+                    state.watchConnected -> StatusRow(
+                        ok = true,
+                        text = stringResource(R.string.empty_watch_named, state.sourceLabel ?: ""),
+                    )
+                    else -> StatusRow(ok = false, text = stringResource(R.string.empty_nothing))
+                }
                 Spacer(Modifier.height(14.dp))
+                if (!hasSource) {
+                    TTButton(
+                        stringResource(R.string.empty_connect),
+                        TTButtonStyle.Rose,
+                        onClick = { nav.navigate(Routes.Permission) },
+                    )
+                    Spacer(Modifier.height(24.dp))
+                } else {
+                    Spacer(Modifier.height(14.dp))
+                }
             }
 
             // The events TumTum registered. An empty state is a claim: "none
@@ -395,6 +414,31 @@ fun LiveTabScreen(nav: NavHostController) {
             },
         )
     }
+    startSheet?.let { request ->
+        StartSheet(
+            request = request,
+            signedIn = signedIn,
+            expired = state.session != null,
+            source = when {
+                state.sensorPaired -> state.bleName
+                state.watchConnected -> state.sourceLabel
+                else -> null
+            },
+            onDismiss = { startSheet = null },
+            onSignIn = {
+                startSheet = null
+                nav.navigate(Routes.Login)
+            },
+            onConnect = {
+                startSheet = null
+                nav.navigate(Routes.Permission)
+            },
+            onStart = {
+                startSheet = null
+                startCapture(request)
+            },
+        )
+    }
     if (showBatteryGate) {
         BatteryExemptionSheet(
             onDismiss = {
@@ -412,6 +456,73 @@ fun LiveTabScreen(nav: NavHostController) {
 
 /** A capture about to start, and whether it is the marked event's own start. */
 private data class StartRequest(val event: UpcomingEvent, val clearsMark: Boolean)
+
+/**
+ * Before a night starts recording (25/09): the event, what will record it,
+ * and one Pink action — or, when something is missing, what it is and the
+ * way to it. Three states, never a blend:
+ * - signed out: the account first ("Entra na sua conta pra gravar a noite");
+ * - nothing connected: the watch first, with "Gravar assim mesmo" for a
+ *   watch that writes to Health Connect without having been chosen here;
+ * - ready: "Vai gravar com …", and Começar a gravar.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StartSheet(
+    request: StartRequest,
+    signedIn: Boolean,
+    expired: Boolean,
+    source: String?,
+    onDismiss: () -> Unit,
+    onSignIn: () -> Unit,
+    onConnect: () -> Unit,
+    onStart: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = TT.Paper,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, bottom = 40.dp)) {
+            Text(stringResource(R.string.start_live_now), style = TTType.MetaWide, color = TT.Gray70)
+            Spacer(Modifier.height(6.dp))
+            Text(request.event.name, style = TTType.TitleSmall, color = TT.Ink)
+            Spacer(Modifier.height(12.dp))
+            when {
+                !signedIn -> {
+                    Text(stringResource(R.string.live_needs_account), style = TTType.Body, color = TT.Ink)
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        stringResource(if (expired) R.string.live_needs_account_expired else R.string.live_needs_account_body),
+                        style = TTType.BodySmall,
+                        color = TT.Gray45,
+                    )
+                    Spacer(Modifier.height(22.dp))
+                    TTButton(stringResource(R.string.settings_sign_in), TTButtonStyle.Rose, onClick = onSignIn)
+                }
+                source == null -> {
+                    Text(stringResource(R.string.start_needs_watch), style = TTType.Body, color = TT.Ink)
+                    Spacer(Modifier.height(22.dp))
+                    TTButton(stringResource(R.string.empty_connect), TTButtonStyle.Rose, onClick = onConnect)
+                    Spacer(Modifier.height(10.dp))
+                    TTButton(stringResource(R.string.start_anyway), TTButtonStyle.Outline, onClick = onStart)
+                }
+                else -> {
+                    Text(stringResource(R.string.start_with, source), style = TTType.Body, color = TT.Ink)
+                    Spacer(Modifier.height(22.dp))
+                    TTButton(stringResource(R.string.start_cta), TTButtonStyle.Rose, onClick = onStart)
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                stringResource(R.string.start_not_now),
+                style = TTType.Button.copy(fontSize = 14.sp),
+                color = TT.Gray45,
+                modifier = Modifier.clickable(onClick = onDismiss).padding(vertical = 10.dp),
+            )
+        }
+    }
+}
 
 /** One line of state with a dot: acid when the thing is in place, grey when it is not. */
 @Composable

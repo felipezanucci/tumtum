@@ -25,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -449,10 +450,11 @@ private fun crowdText(crowd: ServerCrowd): String? {
     // Below the server's floor no collective figure exists, because over a
     // small crowd it is a fact about each person in it. Say how few, never a
     // zero — an empty state is a claim.
+    // Plurals (25/09): "1 NOITES" was on the first feed with one night in it.
     if (!crowd.enough) {
-        return stringResource(R.string.crowd_too_few, crowd.measuredNights)
+        return pluralStringResource(R.plurals.crowd_too_few, crowd.measuredNights, crowd.measuredNights)
     }
-    val top = crowd.top ?: return stringResource(R.string.crowd_nights, crowd.measuredNights)
+    val top = crowd.top ?: return pluralStringResource(R.plurals.crowd_nights, crowd.measuredNights, crowd.measuredNights)
     return stringResource(R.string.crowd_top, top.people, Fmt.hour(top.at))
 }
 

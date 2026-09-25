@@ -14,6 +14,20 @@ data class HrMeasurement(
 )
 
 /**
+ * Whether a reading is a beat (25/09). A Polar H10 lying on a table kept
+ * sending heart rates, and the app drew "Pronto, conexão feita" with a number
+ * nobody had. The sensor says in every packet whether it feels skin; a
+ * reading it marks as **no contact** is not a beat — not on the setup
+ * screen, not on the capture, not in the night. The raw row is still stored
+ * (the export shows everything the sensor said); only the reading of it
+ * changes, so a strap taken off mid-show leaves a gap, drawn as a gap.
+ * Sensors that cannot tell (0/1) are believed.
+ */
+object SkinContact {
+    fun counts(status: Int?): Boolean = status != HrMeasurementParser.CONTACT_NOT_DETECTED
+}
+
+/**
  * Parser completo do Heart Rate Measurement (spec GATT 0x2A37):
  *  - bit 0: formato do valor (0 = UINT8, 1 = UINT16 little-endian)
  *  - bits 1–2: status do contato com a pele

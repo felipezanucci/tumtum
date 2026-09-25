@@ -122,8 +122,9 @@ fun SensorScanSheet(onDismiss: () -> Unit, onPick: (BleDevice) -> Unit) {
     }
     // Bluetooth off closes the scan at once; the sheet used to say "ele
     // aparece aqui" over a search that was not running (25/09).
-    val bluetoothOn = remember(permitted) { BleScanner(context).isBluetoothOn() }
-    LaunchedEffect(permitted) {
+    var attempt by remember { mutableStateOf(0) }
+    val bluetoothOn = remember(permitted, attempt) { BleScanner(context).isBluetoothOn() }
+    LaunchedEffect(permitted, attempt) {
         if (permitted && bluetoothOn) {
             runCatching { BleScanner(context).scan().collect { device -> found[device.address] = device } }
         }
@@ -162,6 +163,10 @@ fun SensorScanSheet(onDismiss: () -> Unit, onPick: (BleDevice) -> Unit) {
                     TTButtonStyle.Ink,
                     onClick = { launcher.launch(BlePermissions.withNotifications()) },
                 )
+            } else if (!bluetoothOn) {
+                // "Liga ele e procura de novo" needs a way to do the second half here (25/09).
+                Spacer(Modifier.height(8.dp))
+                TTButton(stringResource(R.string.setup_search_again), TTButtonStyle.Ink, onClick = { attempt++ })
             }
         }
     }

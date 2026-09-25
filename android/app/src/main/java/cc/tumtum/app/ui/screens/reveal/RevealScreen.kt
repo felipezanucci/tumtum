@@ -163,7 +163,9 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
         }
         Spacer(Modifier.height(22.dp))
         Text(
-            stringResource(R.string.reveal_default_title),
+            // A night with no moment gets its own line (25/09): "Aí veio isso"
+            // over a flat minute pointed at nothing.
+            stringResource(if (n.moments.isEmpty()) R.string.reveal_calm_title else R.string.reveal_default_title),
             style = TTType.ShoutSmall.copy(fontSize = 23.sp, lineHeight = 24.5.sp),
             color = TT.Paper,
         )
@@ -323,6 +325,8 @@ private fun SyncStatus(n: cc.tumtum.app.domain.Night, sync: NightSync) {
             val failed = n.uploadError != null && n.uploadError != NightSync.ERR_NO_SESSION
             Text(
                 when {
+                    // "Momentos encontrados" over an empty list claimed what did not happen (25/09).
+                    analysed && n.moments.isEmpty() -> stringResource(R.string.sync_server_none)
                     analysed -> stringResource(R.string.sync_server_moments)
                     n.uploadError == NightSync.ERR_NO_SESSION -> stringResource(R.string.sync_no_account)
                     n.uploadError == NightSync.ERR_EXPIRED -> stringResource(R.string.sync_failed_expired)

@@ -544,3 +544,14 @@ designed against them. The values live in `detect_peaks()` in
   shows the signed-in account's nights. Another account's are **hidden,
   never deleted**, and come back when that account signs in; creating an
   account wipes nothing, and deleting one takes only its own nights.
+- **Signed out, the phone is nobody's.** (25/09) After *Sair*, no name,
+  photo, @, profile or night of the last account is shown anywhere: the
+  corner of every tab reads ENTRAR. *"Tudo dá a entender de que eu ainda
+  estou na minha conta"* — and nothing may.
+- **The fan's device is a watch.** (25/09) *"Praticamente todo mundo vai
+  usar só relógio."* Setup leads with the watch (Health Connect); a chest
+  strap is the quiet second road, for the pilot's operator-set phones.
+- **A reading without skin contact is not a beat.** (25/09) The sensor says
+  in every packet whether it feels skin; a strap on a table sent numbers.
+  Such a reading never becomes a number on screen, a point on the curve or
+  a beat on the server — the night keeps a gap there.

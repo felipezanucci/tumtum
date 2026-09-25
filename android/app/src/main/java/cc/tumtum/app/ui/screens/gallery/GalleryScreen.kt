@@ -82,14 +82,7 @@ fun GalleryScreen(nav: NavHostController) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Wordmark(width = 92.dp, modifier = Modifier.clickable { nav.navigate(Routes.Feed) { launchSingleTop = true } })
-                    cc.tumtum.app.ui.components.UserAvatar(
-                        user?.account?.initials ?: "TT",
-                        Skin.BLACK,
-                        photoPath = user?.avatarPath,
-                        modifier = Modifier.clickable {
-                            user?.account?.let { nav.navigate(Routes.profile(it.username)) }
-                        },
-                    )
+                    cc.tumtum.app.ui.components.AccountCorner(user, nav, Skin.BLACK)
                 }
                 Spacer(Modifier.height(24.dp))
                 Text(stringResource(R.string.gallery_title), style = TTType.Title, color = TT.Ink)
@@ -109,6 +102,16 @@ fun GalleryScreen(nav: NavHostController) {
                     )
                 }
                 Spacer(Modifier.height(4.dp))
+                if (user != null && user?.signedIn != true) {
+                    // Signed out, nobody's gallery (25/09).
+                    Spacer(Modifier.height(28.dp))
+                    cc.tumtum.app.ui.components.SignInPrompt(
+                        title = stringResource(R.string.you_signed_out),
+                        body = stringResource(R.string.you_signed_out_body),
+                        onSignIn = { nav.navigate(Routes.Login) },
+                    )
+                    return@Column
+                }
                 if (since != null) {
                     Text(
                         stringResource(R.string.gallery_subtitle, Fmt.monthName(since)),

@@ -37,7 +37,7 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.api.ServerEvent
 import cc.tumtum.app.domain.Skin
-import cc.tumtum.app.ui.components.UserAvatar
+import cc.tumtum.app.ui.components.AccountCorner
 import cc.tumtum.app.ui.components.Wordmark
 import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
@@ -87,15 +87,8 @@ fun FeedScreen(nav: NavHostController) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Wordmark(width = 92.dp, onDark = true)
-            UserAvatar(
-                user?.account?.initials ?: "TT",
-                // A black avatar on the black canvas would vanish.
-                Skin.PINK,
-                photoPath = user?.avatarPath,
-                modifier = Modifier.clickable {
-                    user?.account?.let { nav.navigate(Routes.profile(it.username)) }
-                },
-            )
+            // A black avatar on the black canvas would vanish.
+            AccountCorner(user, nav, Skin.PINK)
         }
 
         LazyColumn(

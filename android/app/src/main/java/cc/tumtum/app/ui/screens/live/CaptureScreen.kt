@@ -58,6 +58,7 @@ import java.time.Duration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import cc.tumtum.app.data.repo.NightSync
+import cc.tumtum.app.data.ble.SkinContact
 
 /**
  * a2 — Captura ao vivo. Fundo #0A0A0A, estado calmo, quase sem UI.
@@ -118,14 +119,25 @@ fun CaptureScreen(nav: NavHostController) {
                 Spacer(Modifier.weight(1f))
                 if (bleActive) {
                     val connLabel = when (bus.connection) {
-                        is BleConnectionState.Connected -> "${(bus.deviceName ?: "SENSOR").uppercase()} · OK"
+                        is BleConnectionState.Connected ->
+                            // Connected is not on the skin (25/09): the strap on a table
+                            // is connected and measures nothing.
+                            if (SkinContact.counts(bus.contactStatus)) {
+                                "${(bus.deviceName ?: "SENSOR").uppercase()} · OK"
+                            } else {
+                                "${(bus.deviceName ?: "SENSOR").uppercase()} · ${stringResource(R.string.capture_no_contact)}"
+                            }
                         is BleConnectionState.Reconnecting -> stringResource(R.string.capture_reconnecting).uppercase()
                         else -> stringResource(R.string.capture_disconnected).uppercase()
                     }
                     Text(
                         connLabel,
                         style = TTType.MetaSmall.copy(letterSpacing = 0.06.em),
-                        color = if (bus.connection is BleConnectionState.Connected) TT.Gray55 else TT.Rose,
+                        color = if (bus.connection is BleConnectionState.Connected && SkinContact.counts(bus.contactStatus)) {
+                            TT.Gray55
+                        } else {
+                            TT.Rose
+                        },
                     )
                 } else {
                     snapshot?.bestSourceLabel?.let { label ->
@@ -214,7 +226,11 @@ fun CaptureScreen(nav: NavHostController) {
                 // O número fica na tela (decisão de Felipe, 18/09, depois de dois
                 // ensaios pedindo por ele). A regra §10 — ver o número muda o número —
                 // fica registrada no log; a captura não muda por ele estar visível.
-                val bpmNow = if (bleActive) bus.lastBpm else snapshot?.currentBpm
+                val bpmNow = if (bleActive) {
+                    bus.lastBpm?.takeIf { SkinContact.counts(bus.contactStatus) }
+                } else {
+                    snapshot?.currentBpm
+                }
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(bpmNow?.toString() ?: "—", style = heroStyle, color = TT.Rose)
                     Spacer(Modifier.size(14.dp))

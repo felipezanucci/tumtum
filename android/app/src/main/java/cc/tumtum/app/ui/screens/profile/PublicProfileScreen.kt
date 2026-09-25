@@ -70,7 +70,9 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
     val ownNights by container.nights.galleryNights().collectAsStateWithLifecycle(initialValue = emptyList())
     val allNights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
 
-    val isMe = user?.account?.username == handle
+    // Your own profile exists only while you are signed in (25/09): signed
+    // out, it said "Felipe Zanucci, Editar perfil" to whoever held the phone.
+    val isMe = user?.signedIn == true && user?.account?.username == handle
     var showEdit by remember { mutableStateOf(false) }
     val profile: PublicProfile? = if (isMe) {
         user?.account?.let { acc ->
@@ -96,6 +98,24 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
         // and the invented profiles that used to answer here went with
         // FakeSocialRepository.
         null
+    }
+    if (user != null && user?.signedIn != true) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .background(TT.Paper)
+                .statusBarsPadding()
+                .padding(start = 28.dp, end = 28.dp, top = 22.dp),
+        ) {
+            BackArrow(onClick = { nav.popBackStack() })
+            Spacer(Modifier.height(40.dp))
+            cc.tumtum.app.ui.components.SignInPrompt(
+                title = stringResource(R.string.profile_signed_out),
+                body = null,
+                onSignIn = { nav.navigate(Routes.Login) },
+            )
+        }
+        return
     }
     val p = profile ?: return
 
