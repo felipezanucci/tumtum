@@ -44,6 +44,8 @@ object Routes {
     const val Login = "login"
     const val Permission = "permission"
     const val SourcesSetup = "sources_setup"
+    /** The same setup screen, opened on the strap search — Configurações' way in (25/09). */
+    const val SensorSearch = "sources_setup/search"
     const val Feed = "feed"
     const val Live = "live"
     const val You = "you"
@@ -131,6 +133,7 @@ fun TumTumRoot(
             composable(Routes.Login) { LoginScreen(nav) }
             composable(Routes.Permission) { PermissionScreen(nav) }
             composable(Routes.SourcesSetup) { SetupScreen(nav) }
+            composable(Routes.SensorSearch) { SetupScreen(nav, startSearching = true) }
 
             // Abas
             composable(Routes.Feed) { FeedScreen(nav) }

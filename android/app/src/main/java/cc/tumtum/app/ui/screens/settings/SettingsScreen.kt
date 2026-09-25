@@ -200,7 +200,11 @@ fun SettingsScreen(nav: NavHostController) {
 
         Spacer(Modifier.height(40.dp))
         // §10 — sensor BLE: parear/trocar/remover também depois do onboarding.
-        SensorSection(prefs = container.prefs, bleName = user?.bleName)
+        SensorSection(
+            prefs = container.prefs,
+            bleName = user?.bleName,
+            onSearch = { nav.navigate(Routes.SensorSearch) },
+        )
 
         Spacer(Modifier.height(40.dp))
         // Operador atrás de uma porta (§5.13 da pesquisa de 19/09): o fã não
