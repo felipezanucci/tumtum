@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
-import cc.tumtum.app.data.CardPhotoStore
+import cc.tumtum.app.data.repo.afterSignIn
 import cc.tumtum.app.data.api.SignupCode
 import cc.tumtum.app.data.prefs.Account
 import cc.tumtum.app.ui.components.TTButton
@@ -68,8 +68,13 @@ private val TRIBES = listOf("SHOWS", "FUTEBOL", "FESTIVAIS")
  * No validator can know that, so the first step sends a 6-digit code to the
  * address and creates nothing; the second takes the code back, and only then
  * does the server create the account. Nothing on the phone changes before
- * that: a second account's wipe waits for the confirmed code, so a typo in
- * the address never costs anybody their nights.
+ * that: a second account's profile takes over only with the confirmed code.
+ *
+ * **Since 25/09 a second account deletes nothing.** Each night belongs to
+ * the account that recorded it; the previous person's are hidden while
+ * another account is here and come back when theirs signs in. Creating an
+ * account used to wipe every night on the phone — test 9's sealed nights
+ * went that way, and their reveal alarms fired anyway.
  */
 @Composable
 fun CreateAccountScreen(nav: NavHostController) {
@@ -87,7 +92,7 @@ fun CreateAccountScreen(nav: NavHostController) {
     var error by remember { mutableStateOf<String?>(null) }
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     // A second account on the same phone (18/09): the profile is replaced and
-    // the nights recorded here go with the old one. Said before the tap.
+    // the previous person's nights are hidden (25/09). Said before the tap.
     val replacing = user?.account
 
     // The second step (#64): the address the code went to, or null while the
@@ -172,14 +177,17 @@ fun CreateAccountScreen(nav: NavHostController) {
                             // Only now, with the account made, does the phone change.
                             val account = Account(name = name.trim(), username = usernameClean, email = sentTo, tribes = tribes)
                             if (replacing != null) {
-                                container.nights.wipeAll()
-                                CardPhotoStore.deleteAll(context)
-                                // The previous person's photo goes with their nights.
+                                // The previous person's profile, photo and sensor go;
+                                // their nights stay on the phone, hidden, and come
+                                // back when that account signs in (25/09). Until
+                                // then a second account wiped every night here.
                                 container.prefs.replaceAccount(account)
                             } else {
                                 container.prefs.createAccount(account)
                             }
                             container.prefs.setParticipantId(participant)
+                            runCatching { container.api.me() }
+                            container.afterSignIn()
                             nav.navigate(Routes.Permission)
                         } catch (e: Exception) {
                             error = AuthErrors.messageFor(e, context)

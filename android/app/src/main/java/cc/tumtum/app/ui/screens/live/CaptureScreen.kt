@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,6 +56,8 @@ import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import java.time.Duration
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import cc.tumtum.app.data.repo.NightSync
 
 /**
  * a2 — Captura ao vivo. Fundo #0A0A0A, estado calmo, quase sem UI.
@@ -149,13 +153,38 @@ fun CaptureScreen(nav: NavHostController) {
             // nobody read it. It belongs here, where the operator stays for the
             // next two hours — and it clears itself the moment the event
             // registers, because the row it reads is the live one.
+            //
+            // Since 25/09 it says why, and offers the one thing to do: on 25/09
+            // it read "o servidor não aceitou" when the phone had in fact been
+            // signed out, and nobody could tell which.
             if (e.serverEventId == null) {
+                var why by remember(e.id) { mutableStateOf<String?>(null) }
+                var trying by remember(e.id) { mutableStateOf(false) }
+                val scope = rememberCoroutineScope()
+                val signedIn = user?.session?.isLive(System.currentTimeMillis()) == true
+                val reason = when {
+                    !signedIn || why == NightSync.ERR_NO_SESSION -> stringResource(R.string.live_event_local_signed_out)
+                    user?.isOperator != true || why == NightSync.ERR_NOT_OPERATOR ->
+                        stringResource(R.string.live_event_local_not_operator)
+                    why == null -> stringResource(R.string.live_event_local_unsent)
+                    why == NightSync.ERR_OFFLINE -> stringResource(R.string.live_event_local_offline)
+                    else -> stringResource(R.string.live_event_local_refused, why.orEmpty())
+                }
                 Spacer(Modifier.height(6.dp))
+                Text(reason, style = TTType.BodySmall, color = TT.Acid, maxLines = 2)
                 Text(
-                    stringResource(R.string.live_event_local_only),
-                    style = TTType.BodySmall,
-                    color = TT.Acid,
-                    maxLines = 2,
+                    stringResource(if (trying) R.string.live_event_local_trying else R.string.live_event_local_retry),
+                    style = TTType.MetaSmall,
+                    color = TT.Paper,
+                    modifier = Modifier
+                        .clickable(enabled = !trying) {
+                            trying = true
+                            scope.launch {
+                                why = container.sync.registerEventNow(e.id)
+                                trying = false
+                            }
+                        }
+                        .padding(vertical = 4.dp),
                 )
             }
 
@@ -232,7 +261,7 @@ fun CaptureScreen(nav: NavHostController) {
             // mark stored, acid for one already there), the phone buzzes (one
             // pattern each), and a line says what happened. On 21/09 a repeat
             // inside ten seconds changed only the line, and read as nothing.
-            if (user?.operatorMarks == true) {
+            if (user?.marksOn == true) {
                 val marks by container.nights.marksCount(e.id).collectAsStateWithLifecycle(initialValue = 0)
                 val fb = lastMark
                 var litTick by remember { mutableLongStateOf(-1L) }

@@ -33,8 +33,8 @@ class TumtumApi(private val prefs: UserPrefs) {
     /** The server refused or could not do what was asked; [detail] is its own sentence. */
     class ApiException(val code: Int, val detail: String) : IOException(detail)
 
-    /** Who the token says we are, as the server describes it. */
-    data class Me(val id: String, val email: String, val name: String)
+    /** Who the token says we are, as the server describes it — including whether it operates the platform. */
+    data class Me(val id: String, val email: String, val name: String, val isAdmin: Boolean = false)
 
     // --- Auth ---
 
@@ -62,9 +62,21 @@ class TumtumApi(private val prefs: UserPrefs) {
         return storeSession(response.getString("access_token"), response.optRefresh())
     }
 
+    /**
+     * Who the token says we are. Also records the server's word on the
+     * operator role (item 52, 25/09): the operator tools follow `is_admin`,
+     * never a switch on the phone alone.
+     */
     suspend fun me(): Me {
         val json = JSONObject(request("GET", "/api/auth/me", null, token = requireToken()))
-        return Me(id = json.getString("id"), email = json.getString("email"), name = json.getString("name"))
+        val me = Me(
+            id = json.getString("id"),
+            email = json.getString("email"),
+            name = json.getString("name"),
+            isAdmin = json.optBoolean("is_admin", false),
+        )
+        prefs.setOperatorUserId(if (me.isAdmin) me.id else null)
+        return me
     }
 
     /**
@@ -291,7 +303,7 @@ class TumtumApi(private val prefs: UserPrefs) {
             // The server refused the chain: expired, revoked, or reused. Drop
             // it so every screen now says "expired", which is finally true.
             // Anything else (offline) propagates and the token is kept.
-            if (e.code == 401) prefs.setSession(session.copy(refreshToken = null))
+            if (e.code == 401) prefs.markRenewalRefused()
             return@withLock null
         }
         storeSession(response.getString("access_token"), response.optRefresh() ?: refresh).token

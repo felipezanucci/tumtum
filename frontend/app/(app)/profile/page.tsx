@@ -128,11 +128,12 @@ export default function ProfilePage() {
               <Card>
                 <p className="text-sm text-tumtum-muted">
                   Nenhum dispositivo conectado.{' '}
+                  {/* The site cannot connect a watch (25/09): the app records the night. */}
                   <button
                     onClick={() => router.push('/onboarding')}
                     className="text-tumtum-pink hover:underline"
                   >
-                    Conectar agora
+                    Como gravar uma noite
                   </button>
                 </p>
               </Card>

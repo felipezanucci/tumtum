@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
+import cc.tumtum.app.data.repo.NightLookup
 import cc.tumtum.app.data.repo.NightSync
 import cc.tumtum.app.domain.UploadState
 import cc.tumtum.app.domain.RevealLock
@@ -69,7 +70,16 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var exporting by remember { mutableStateOf(false) }
-    val night by container.nights.night(nightId).collectAsStateWithLifecycle(initialValue = null)
+    val lookup by container.nights.lookup(nightId).collectAsStateWithLifecycle(initialValue = null)
+    val night = (lookup as? NightLookup.Found)?.night
+    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
+    val showsExport = user?.showsExport == true
+    val home = {
+        nav.navigate(Routes.Feed) {
+            popUpTo(nav.graph.id) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
 
     val progress = remember { Animatable(0f) }
     val peaksAlpha = remember { Animatable(0f) }
@@ -84,6 +94,20 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
         }
     }
 
+    // A night that is not here, or not this account's, is said — never a
+    // blank screen (25/09: a "Sua noite abriu." for a deleted night opened one).
+    when (lookup) {
+        null -> return
+        NightLookup.Missing -> {
+            NightNotHere(R.string.reveal_missing_title, R.string.reveal_missing_body, onHome = home)
+            return
+        }
+        NightLookup.OtherAccount -> {
+            NightNotHere(R.string.reveal_other_title, R.string.reveal_other_body, onHome = home)
+            return
+        }
+        is NightLookup.Found -> Unit
+    }
     val n = night ?: return
 
     // A trava da revela: antes das 10h a curva não existe para quem olha (protocolo).
@@ -102,7 +126,8 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             night = n,
             exporting = exporting,
             onBack = { nav.popBackStack() },
-            onExport = {
+            onHome = home,
+            onExport = if (!showsExport) null else fun() {
                 exporting = true
                 scope.launch {
                     runCatching {
@@ -233,23 +258,27 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             // pelo mockup, e um número inventado na mão de um fã é uma mentira.
         }
 
-        Spacer(Modifier.height(18.dp))
         // §9 — extração manual, à prova de 2h da manhã: ZIP → share sheet, sem rede.
-        TTButton(
-            if (exporting) stringResource(R.string.export_running) else stringResource(R.string.export_session),
-            TTButtonStyle.OutlineOnDark,
-            enabled = !exporting,
-            onClick = {
-                exporting = true
-                scope.launch {
-                    runCatching {
-                        val zip = container.exporter.exportNight(n.id)
-                        context.startActivity(container.exporter.shareIntent(zip))
+        // Only on the operator's account or a protocol phone (25/09): a fan
+        // never needed a button for raw data.
+        if (showsExport) {
+            Spacer(Modifier.height(18.dp))
+            TTButton(
+                if (exporting) stringResource(R.string.export_running) else stringResource(R.string.export_session),
+                TTButtonStyle.OutlineOnDark,
+                enabled = !exporting,
+                onClick = {
+                    exporting = true
+                    scope.launch {
+                        runCatching {
+                            val zip = container.exporter.exportNight(n.id)
+                            context.startActivity(container.exporter.shareIntent(zip))
+                        }
+                        exporting = false
                     }
-                    exporting = false
-                }
-            },
-        )
+                },
+            )
+        }
       }
         Spacer(Modifier.height(14.dp))
         TTButton(
@@ -360,16 +389,50 @@ private fun DividerDark() {
 }
 
 /**
+ * The night is not on this phone, or belongs to another account (25/09).
+ * Said plainly, with the way home — never the blank screen a notification
+ * for a deleted night used to open.
+ */
+@Composable
+private fun NightNotHere(title: Int, body: Int, onHome: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(TT.Night)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 26.dp),
+    ) {
+        Text(stringResource(R.string.reveal_label), style = TTType.MetaWide, color = TT.Acid)
+        Spacer(Modifier.weight(1f))
+        Text(
+            stringResource(title),
+            style = TTType.ShoutSmall.copy(fontSize = 27.sp, lineHeight = 29.sp),
+            color = TT.Paper,
+        )
+        Spacer(Modifier.height(14.dp))
+        Text(stringResource(body), style = TTType.Body, color = TT.Gray45)
+        Spacer(Modifier.weight(1f))
+        TTButton(stringResource(R.string.reveal_home), TTButtonStyle.Rose, onClick = onHome)
+    }
+}
+
+/**
  * A noite lacrada: nada de curva, nada de número. A memória da pessoa é colhida
- * no papel antes de qualquer dado; a revela abre sozinha às 10h. O único botão
- * além de voltar é a exportação — função de operador, dado cru, sem espetáculo.
+ * no papel antes de qualquer dado; a revela abre sozinha às 10h.
+ *
+ * Its one clear action is **Voltar pro início**, in Pink (Felipe, 25/09): the
+ * only way out used to be the small arrow, and the only button an export a
+ * fan had no use for. The export is still here for the operator and on a
+ * protocol phone, quiet, under the way home.
  */
 @Composable
 private fun LockedNightView(
     night: cc.tumtum.app.domain.Night,
     exporting: Boolean,
     onBack: () -> Unit,
-    onExport: () -> Unit,
+    onHome: () -> Unit,
+    onExport: (() -> Unit)?,
 ) {
     Column(
         Modifier
@@ -405,11 +468,15 @@ private fun LockedNightView(
             color = TT.Gray45,
         )
         Spacer(Modifier.weight(1f))
-        TTButton(
-            if (exporting) stringResource(R.string.export_running) else stringResource(R.string.locked_export),
-            TTButtonStyle.OutlineOnDark,
-            enabled = !exporting,
-            onClick = onExport,
-        )
+        TTButton(stringResource(R.string.reveal_home), TTButtonStyle.Rose, onClick = onHome)
+        if (onExport != null) {
+            Spacer(Modifier.height(10.dp))
+            TTButton(
+                if (exporting) stringResource(R.string.export_running) else stringResource(R.string.locked_export),
+                TTButtonStyle.OutlineOnDark,
+                enabled = !exporting,
+                onClick = onExport,
+            )
+        }
     }
 }

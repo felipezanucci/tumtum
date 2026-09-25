@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -51,6 +52,9 @@ import java.time.Duration
 fun YouScreen(nav: NavHostController) {
     val container = appContainer()
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
+    // Another account's nights are hidden, and said (25/09): "Nenhum show
+    // ainda" over nights sitting on the phone would be a claim, not a fact.
+    val hidden by container.nights.hiddenCount().collectAsStateWithLifecycle(initialValue = 0)
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     val account = user?.account
 
@@ -101,6 +105,10 @@ fun YouScreen(nav: NavHostController) {
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(stringResource(R.string.empty_subtitle), style = TTType.Body.copy(fontSize = 19.sp), color = TT.Gray45)
+                if (hidden > 0) {
+                    Spacer(Modifier.height(18.dp))
+                    Text(pluralStringResource(R.plurals.nights_hidden, hidden, hidden), style = TTType.BodySmall, color = TT.Gray70)
+                }
             }
         } else {
             LazyColumn(
@@ -110,6 +118,11 @@ fun YouScreen(nav: NavHostController) {
             ) {
                 items(nights, key = { it.id }) { night ->
                     NightCard(night) { nav.navigate(Routes.reveal(night.id)) }
+                }
+                if (hidden > 0) {
+                    item(key = "hidden") {
+                        Text(pluralStringResource(R.plurals.nights_hidden, hidden, hidden), style = TTType.Footnote, color = TT.Gray45)
+                    }
                 }
             }
         }

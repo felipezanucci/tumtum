@@ -32,6 +32,7 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.prefs.Account
+import cc.tumtum.app.data.repo.afterSignIn
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.components.TTField
@@ -138,6 +139,7 @@ fun LoginScreen(nav: NavHostController) {
                         } else {
                             container.prefs.replaceAccount(account)
                         }
+                        container.afterSignIn()
                         // Signing back in goes straight to the feed (#57, 23/09) —
                         // from Configurações it used to drop the person back on
                         // Configurações, one more step from what they came for.

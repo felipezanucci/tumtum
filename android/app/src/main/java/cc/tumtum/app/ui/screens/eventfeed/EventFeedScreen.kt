@@ -52,6 +52,7 @@ import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import kotlinx.coroutines.launch
+import cc.tumtum.app.data.repo.NightSync
 
 /**
  * b6 — o feed do evento: quem estava lá, e só.
@@ -98,6 +99,12 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
     // feed offers it instead of inviting an act it gives no way to do (#48).
     var myNight by remember(eventId) { mutableStateOf<NightEntity?>(null) }
 
+    // This account's night at the event that is still on the phone, unsent
+    // (25/09): the feed said "Sua noite não chegou aqui" about a night that
+    // was right here, waiting for the next app start.
+    var unsent by remember(eventId) { mutableStateOf<NightEntity?>(null) }
+    var sending by remember(eventId) { mutableStateOf(false) }
+
     // Report and block (#36): which post's menu is open, and the sentence a
     // block leaves at the top of the feed once its author's posts are gone.
     var moderating by remember(eventId) { mutableStateOf<ServerPost?>(null) }
@@ -117,9 +124,10 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
         // was at — whatever dates the feed below spans.
         crowd = container.social.crowd(eventId)
     }
-    LaunchedEffect(eventId, user?.session?.userId) {
+    LaunchedEffect(eventId, user?.session?.userId, tick) {
         // Only the signed-in account's night is offered (#58).
         myNight = container.nights.uploadedNightAt(eventId, user?.session?.userId)
+        unsent = container.nights.unsentNightAt(eventId)
     }
 
     fun replacePost(updated: ServerPost) {
@@ -241,7 +249,43 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
 
                 // Not an empty list: the server said this account has no
                 // measured night here, and that is its own sentence.
-                is FeedState.NotThere -> Note(stringResource(R.string.event_feed_not_there))
+                is FeedState.NotThere -> {
+                    val waiting = unsent
+                    if (waiting == null) {
+                        Note(stringResource(R.string.event_feed_not_there))
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Note(stringResource(R.string.event_feed_not_sent))
+                            TTButton(
+                                stringResource(if (sending) R.string.event_feed_sending else R.string.event_feed_send_now),
+                                TTButtonStyle.Rose,
+                                enabled = !sending,
+                                onClick = {
+                                    sending = true
+                                    scope.launch {
+                                        container.sync.upload(waiting.id)
+                                        sending = false
+                                        tick++
+                                    }
+                                },
+                            )
+                            // What the last attempt came to, in the night's own words.
+                            waiting.uploadError?.let { err ->
+                                if (!sending && err != NightSync.ERR_NO_SESSION) {
+                                    Note(
+                                        stringResource(
+                                            when (err) {
+                                                NightSync.ERR_EXPIRED -> R.string.sync_failed_expired
+                                                NightSync.ERR_OFFLINE -> R.string.sync_failed_offline
+                                                else -> R.string.event_feed_send_failed
+                                            },
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // #35, 22/09. Felipe read "Entra na sua conta" while the app still
                 // showed his name and avatar — two claims that contradicted each

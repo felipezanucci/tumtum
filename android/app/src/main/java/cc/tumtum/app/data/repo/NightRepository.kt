@@ -24,7 +24,11 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 /** Medição de fontes na janela de um evento (b4). */
@@ -35,6 +39,17 @@ data class SourceMeasurement(
     val sources: List<WatchSource>,
 )
 
+/**
+ * What opening a night by its id found (25/09). A notification for a night
+ * that had been deleted opened a blank white screen: "not here" and "another
+ * account's" are things to say, not a screen to leave empty.
+ */
+sealed class NightLookup {
+    data class Found(val night: Night) : NightLookup()
+    data object Missing : NightLookup()
+    data object OtherAccount : NightLookup()
+}
+
 /** Snapshot da captura ao vivo — sempre resultado de leitura em lote, nunca sensor. */
 data class LiveSnapshot(
     val currentBpm: Int?,
@@ -44,9 +59,17 @@ data class LiveSnapshot(
     val coveragePct: Int,
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class NightRepository(
     private val db: TumTumDatabase,
     private val health: HealthConnectSource,
+    /**
+     * The account whose nights the phone shows (25/09): the last one signed
+     * in here. Felipe, signed into his own account, opened a night another
+     * account had recorded and made its card. A night belongs to whoever
+     * recorded it; every list below follows this.
+     */
+    private val viewer: Flow<String?>,
 ) {
     private val capture get() = db.captureDao()
 
@@ -202,6 +225,7 @@ class NightRepository(
         measurement: SourceMeasurement,
         sourcePackage: String,
         revealAt: Instant? = null,
+        ownerUserId: String? = null,
     ): Long? {
         val samples = measurement.bySource[sourcePackage].orEmpty()
         if (samples.isEmpty()) return null
@@ -224,6 +248,8 @@ class NightRepository(
                 clockOffsetStartMs = eventRow?.clockOffsetStartMs,
                 clockOffsetEndMs = eventRow?.clockOffsetEndMs,
                 revealAt = revealAt?.toEpochMilli(),
+                // Owned from the moment it exists (25/09), not from its upload.
+                ownerUserId = ownerUserId,
             ),
         )
         db.nightDao().insertSamples(samples.map { SampleEntity(nightId = nightId, time = it.time.toEpochMilli(), bpm = it.bpm) })
@@ -233,12 +259,31 @@ class NightRepository(
         return nightId
     }
 
-    fun nights(): Flow<List<Night>> = db.nightDao().nightsWithData().map { list -> list.map { it.toDomain() } }
+    fun nights(): Flow<List<Night>> =
+        viewer.flatMapLatest { v -> db.nightDao().nightsWithData(v) }.map { list -> list.map { it.toDomain() } }
 
-    fun night(id: Long): Flow<Night?> = db.nightDao().nightWithData(id).map { it?.toDomain() }
+    /** A night by id, only when it is the viewer's; null otherwise (see [lookup] for which). */
+    fun night(id: Long): Flow<Night?> = lookup(id).map { (it as? NightLookup.Found)?.night }
+
+    fun lookup(id: Long): Flow<NightLookup> =
+        combine(db.nightDao().nightWithData(id), viewer) { row, v ->
+            when {
+                row == null -> NightLookup.Missing
+                row.night.ownerUserId != null && row.night.ownerUserId != v -> NightLookup.OtherAccount
+                else -> NightLookup.Found(row.toDomain())
+            }
+        }
+
+    /** How many of this phone's nights belong to another account, hidden from these lists. */
+    fun hiddenCount(): Flow<Int> = viewer.flatMapLatest { v -> db.nightDao().hiddenCount(v) }
+
+    /** The viewer's night at [serverEventId] that has not reached the server yet, if any. */
+    suspend fun unsentNightAt(serverEventId: String): NightEntity? =
+        db.nightDao().unsentNightAt(serverEventId, viewer.first())
 
     /** The nights whose card was shared (the skin is saved on Compartilhar): what a public profile shows. */
-    fun galleryNights(): Flow<List<GalleryNight>> = db.nightDao().published().map { list -> list.map { it.toGallery() } }
+    fun galleryNights(): Flow<List<GalleryNight>> =
+        viewer.flatMapLatest { v -> db.nightDao().published(v) }.map { list -> list.map { it.toGallery() } }
 
     /**
      * Every night, card or not: what the person's own gallery shows. Until
@@ -246,7 +291,8 @@ class NightRepository(
      * captured was nowhere until a card was chosen — the list was making a
      * claim ("2 noites") that the phone's own data contradicted.
      */
-    fun allGalleryNights(): Flow<List<GalleryNight>> = db.nightDao().allNights().map { list -> list.map { it.toGallery() } }
+    fun allGalleryNights(): Flow<List<GalleryNight>> =
+        viewer.flatMapLatest { v -> db.nightDao().allNights(v) }.map { list -> list.map { it.toGallery() } }
 
     private fun NightEntity.toGallery() = GalleryNight(
         nightId = id,
@@ -263,17 +309,28 @@ class NightRepository(
         db.nightDao().publish(nightId, skin.name, photoPath)
     }
 
-    /** Apagar conta apaga noites, momentos e reações — irreversível (§7). */
-    suspend fun wipeAll() {
-        db.nightDao().deleteAllMoments()
-        db.nightDao().deleteAllSamples()
-        db.nightDao().deleteAll()
-        db.eventDao().deleteAll()
-        db.markDao().deleteAll()
-        capture.deleteAllSamples()
-        capture.deleteAllRr()
-        capture.deleteAllMotion()
-        capture.deleteAllConnectionEvents()
+    /**
+     * Apagar conta (§7) takes **that account's** nights from the phone — its
+     * own and the ownerless ones it was shown — with their readings, moments,
+     * events and raw capture. Irreversible. Until 25/09 this wiped every
+     * night on the phone, whoever had recorded it. Returns what went, so the
+     * caller can take the card photos and reveal alarms with them.
+     */
+    suspend fun deleteNightsOf(viewerId: String?): List<NightEntity> {
+        val gone = db.nightDao().nightsOf(viewerId)
+        if (gone.isEmpty()) return gone
+        val ids = gone.map { it.id }
+        val eventIds = gone.map { it.eventId }.distinct()
+        db.nightDao().deleteMomentsOfNights(ids)
+        db.nightDao().deleteSamplesOfNights(ids)
+        db.nightDao().deleteNights(ids)
+        db.eventDao().deleteOrphans(eventIds)
+        db.markDao().deleteOrphans(eventIds)
+        capture.deleteSamplesOf(eventIds)
+        capture.deleteRrOf(eventIds)
+        capture.deleteMotionOf(eventIds)
+        capture.deleteConnectionEventsOf(eventIds)
+        return gone
     }
 
     private fun NightWithData.toDomain(): Night {

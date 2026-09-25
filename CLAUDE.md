@@ -534,3 +534,13 @@ designed against them. The values live in `detect_peaks()` in
   the app derived names nothing; only a measured one does. Note the
   distinction this rests on: *no user action* is not *no TumTum action* —
   the fan is the user, and staff are an operating cost the rule permits.
+- **A night is recorded only with an account.** (25/09) *"O usuário só
+  consegue fazer a leitura se ele tiver logado."* Every capture start — the
+  fan's *Começar agora*, the operator's *Começa agora* — needs a live
+  session; without one the app says *"Entra na sua conta pra gravar a
+  noite"* with the way in. Offline is fine: a live session is one the phone
+  can still renew, and the night goes up when the signal does.
+- **A night belongs to the account that recorded it.** (25/09) The phone
+  shows the signed-in account's nights. Another account's are **hidden,
+  never deleted**, and come back when that account signs in; creating an
+  account wipes nothing, and deleting one takes only its own nights.

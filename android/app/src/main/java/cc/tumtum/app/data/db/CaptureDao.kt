@@ -50,4 +50,17 @@ interface CaptureDao {
 
     @Query("DELETE FROM connection_events")
     suspend fun deleteAllConnectionEvents()
+
+    // A deleted account's raw capture (25/09): only for events that no longer exist.
+    @Query("DELETE FROM ble_samples WHERE eventId IN (:eventIds) AND eventId NOT IN (SELECT id FROM events)")
+    suspend fun deleteSamplesOf(eventIds: List<Long>)
+
+    @Query("DELETE FROM rr_intervals WHERE eventId IN (:eventIds) AND eventId NOT IN (SELECT id FROM events)")
+    suspend fun deleteRrOf(eventIds: List<Long>)
+
+    @Query("DELETE FROM motion WHERE eventId IN (:eventIds) AND eventId NOT IN (SELECT id FROM events)")
+    suspend fun deleteMotionOf(eventIds: List<Long>)
+
+    @Query("DELETE FROM connection_events WHERE eventId IN (:eventIds) AND eventId NOT IN (SELECT id FROM events)")
+    suspend fun deleteConnectionEventsOf(eventIds: List<Long>)
 }

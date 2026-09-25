@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -31,11 +30,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
-import cc.tumtum.app.data.repo.SourceMeasurement
 import cc.tumtum.app.data.repo.saveEndedNight
 import cc.tumtum.app.domain.WatchSource
 import cc.tumtum.app.ui.components.Badge
@@ -45,30 +42,23 @@ import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
-import java.time.Duration
-import java.time.Instant
 import kotlinx.coroutines.launch
 
 /**
- * b4 — Trazer do meu relógio. Densidade real por fonte na janela (§7):
- * a decisão aparece, nunca é tomada escondida. Fonte sem dado fica cinza.
+ * b4 — Trazer do meu relógio, at the end of a night. Densidade real por fonte
+ * na janela (§7): a decisão aparece, nunca é tomada escondida. Fonte sem dado
+ * fica cinza. Usa a medição da janela real feita ao encerrar (EndNightCache).
  *
- * setupMode: mede as últimas 24h (ainda não há evento).
- * fim de noite: usa a medição da janela real feita ao encerrar (EndNightCache).
+ * Until 25/09 this screen was also the setup step, run on the last 24 hours,
+ * and it said after-a-night things where there was no night. Setup is
+ * [SetupScreen] now.
  */
 @Composable
-fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
+fun WatchSourcesScreen(nav: NavHostController) {
     val container = appContainer()
     val scope = rememberCoroutineScope()
 
-    val measurement by produceState<SourceMeasurement?>(initialValue = if (setupMode) null else container.endNight.measurement) {
-        if (setupMode) {
-            val end = Instant.now()
-            val start = end.minus(Duration.ofHours(24))
-            val bySource = container.health.readWindowBySource(start, end)
-            value = SourceMeasurement(start, end, bySource, container.health.sourceDensities(bySource, start, end))
-        }
-    }
+    val measurement = container.endNight.measurement
 
     var selected by remember { mutableStateOf<String?>(null) }
     var noData by remember { mutableStateOf(false) }
@@ -89,7 +79,7 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
     ) {
         BackArrow(onClick = { nav.popBackStack() })
         Spacer(Modifier.height(34.dp))
-        val nothingRecorded = !setupMode && m != null && sources.none { it.hasData }
+        val nothingRecorded = m != null && sources.none { it.hasData }
         if (nothingRecorded) {
             // Fim de noite sem uma batida em fonte nenhuma: dizer isso, não
             // oferecer uma escolha entre fontes vazias.
@@ -112,13 +102,6 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
         Text(stringResource(R.string.sources_subtitle), style = TTType.Body, color = TT.Gray45)
         Spacer(Modifier.height(26.dp))
 
-        if (setupMode) {
-            // §10 — sensor BLE ao vivo: parear aqui, lembrar o endereço, reconectar sozinho.
-            val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
-            SensorSection(prefs = container.prefs, bleName = user?.bleName)
-            Spacer(Modifier.height(26.dp))
-        }
-
         if (m != null && sources.none { it.hasData }) {
             // Erro honesto — sem piada, sem "ops".
             Text(stringResource(R.string.sources_empty), style = TTType.Body, color = TT.Ink)
@@ -129,7 +112,7 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                 SourceCard(
                     source = source,
                     selected = source.packageName == selectedPkg,
-                    setupMode = setupMode,
+                    setupMode = false,
                     onClick = { if (source.hasData) selected = source.packageName },
                 )
             }
@@ -143,8 +126,6 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
         }
 
         Spacer(Modifier.height(30.dp))
-        // No setup, um botão morto confunde: o CTA só aparece quando há fonte utilizável.
-        if (!setupMode || selectedSource?.hasData == true) {
         TTButton(
             text = selectedSource?.let { stringResource(R.string.sources_use, it.label) }
                 ?: stringResource(R.string.sources_title),
@@ -155,19 +136,14 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
                 val src = selectedSource ?: return@TTButton
                 scope.launch {
                     container.prefs.setSource(src.packageName, src.label)
-                    if (setupMode) {
-                        container.prefs.setOnboarded()
-                        nav.navigate(Routes.Feed) { popUpTo(0) { inclusive = true } }
+                    val event = container.endNight.event ?: return@launch
+                    val meas = container.endNight.measurement ?: return@launch
+                    val nightId = container.saveEndedNight(event, meas, src.packageName)
+                    if (nightId == null) {
+                        noData = true
                     } else {
-                        val event = container.endNight.event ?: return@launch
-                        val meas = container.endNight.measurement ?: return@launch
-                        val nightId = container.saveEndedNight(event, meas, src.packageName)
-                        if (nightId == null) {
-                            noData = true
-                        } else {
-                            nav.navigate(Routes.reveal(nightId)) {
-                                popUpTo(Routes.Feed)
-                            }
+                        nav.navigate(Routes.reveal(nightId)) {
+                            popUpTo(Routes.Feed)
                         }
                     }
                 }
@@ -177,27 +153,11 @@ fun WatchSourcesScreen(nav: NavHostController, setupMode: Boolean) {
             Spacer(Modifier.height(10.dp))
             Text(stringResource(R.string.sources_pick_one), style = TTType.BodySmall, color = TT.Rose)
         }
-        }
-        if (setupMode) {
-            Spacer(Modifier.height(10.dp))
-            // Sempre dá para seguir e resolver depois — sensor pareado conta, e o
-            // caminho de volta mora em Configurações e no vazio (a5).
-            TTButton(
-                stringResource(R.string.sources_skip),
-                TTButtonStyle.Outline,
-                onClick = {
-                    scope.launch {
-                        container.prefs.setOnboarded()
-                        nav.navigate(Routes.Feed) { popUpTo(0) { inclusive = true } }
-                    }
-                },
-            )
-        }
     }
 }
 
 @Composable
-private fun SourceCard(source: WatchSource, selected: Boolean, setupMode: Boolean, onClick: () -> Unit) {
+internal fun SourceCard(source: WatchSource, selected: Boolean, setupMode: Boolean, onClick: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     val borderMod = if (selected && source.hasData) {
         Modifier.border(2.dp, TT.Ink, shape)

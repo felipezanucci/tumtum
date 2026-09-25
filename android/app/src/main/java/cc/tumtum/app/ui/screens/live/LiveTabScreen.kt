@@ -152,7 +152,18 @@ fun LiveTabScreen(nav: NavHostController) {
     // Starting a capture on an event — the fan's "Começar agora" and the
     // operator's "Começa agora" take the same path: battery gate, then the
     // service. Only the marked event's own start clears the mark.
+    //
+    // **Only with an account** (Felipe's rule, 25/09): "o usuário só consegue
+    // fazer a leitura se ele tiver logado". A night recorded signed out
+    // belonged to nobody, sat on the phone unsent, and the event's feed told
+    // its owner the night had not arrived. Offline is fine — a live session
+    // is one the phone can still renew; the night goes up when the signal does.
+    val signedIn = state.session?.isLive(now.toEpochMilli()) == true
     fun startCapture(request: StartRequest) {
+        if (!signedIn) {
+            notice = context.getString(R.string.live_needs_account)
+            return
+        }
         val paired = state.sensorPaired
         val address = state.bleAddress
         if (paired && !BatteryExemption.isExempt(context)) {
@@ -227,6 +238,29 @@ fun LiveTabScreen(nav: NavHostController) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 32.dp, vertical = 24.dp),
         ) {
+            if (!signedIn) {
+                // Said before any tap, where the eye lands on the tab.
+                Text(
+                    stringResource(R.string.live_needs_account),
+                    style = TTType.TitleSmall,
+                    color = TT.Ink,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(
+                        if (state.session == null) R.string.live_needs_account_body else R.string.live_needs_account_expired,
+                    ),
+                    style = TTType.Body,
+                    color = TT.Gray45,
+                )
+                Spacer(Modifier.height(16.dp))
+                TTButton(
+                    stringResource(R.string.settings_sign_in),
+                    TTButtonStyle.Rose,
+                    onClick = { nav.navigate(Routes.Login) },
+                )
+                Spacer(Modifier.height(32.dp))
+            }
             val up = state.upcoming
             if (up == null) {
                 // a5 — Vazio: o coração de folga, e a lista logo abaixo.
@@ -321,7 +355,7 @@ fun LiveTabScreen(nav: NavHostController) {
             }
 
             // The operator's door, open only on the operator's phone.
-            if (state.operatorEvents) {
+            if (state.eventsOn) {
                 Spacer(Modifier.height(32.dp))
                 Text(stringResource(R.string.settings_operator_section), style = TTType.Meta, color = TT.Gray70)
                 Spacer(Modifier.height(4.dp))

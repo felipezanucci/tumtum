@@ -1,141 +1,47 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useHRStore } from '@/lib/stores/useHRStore'
-import { Button, Card } from '@/components/ui'
+import { Wordmark } from '@/components/brand'
+import { Button } from '@/components/ui'
 
-type Step = 'welcome' | 'wearable' | 'ready'
-
-const wearableOptions = [
-  { id: 'apple_health', name: 'Apple Watch', icon: '⌚', description: 'Via Apple HealthKit' },
-  { id: 'google_fit', name: 'Wear OS / Android', icon: '📱', description: 'Via Google Health Connect' },
-  { id: 'garmin', name: 'Garmin', icon: '🏃', description: 'Em breve' },
-  { id: 'fitbit', name: 'Fitbit', icon: '💪', description: 'Em breve' },
-]
-
+/**
+ * The first screen after a new account on the site (25/09, rebuilt).
+ *
+ * It used to open on a ❤️, ask to "conectar seu wearable" from a list with
+ * fitness emojis, and "connect" a watch by saving a row with the token
+ * `placeholder-token` — a Phase-0 simulation never removed. When that failed it
+ * went on to "Tudo pronto!" anyway. The site cannot read a watch at all: the
+ * night is recorded by the app, on the phone. So this says that, and nothing
+ * the account cannot do.
+ *
+ * The brand manual's NEVER list forbids heartbeat imagery as decoration and the
+ * wearable/healthtech vocabulary; the wordmark is the official asset.
+ */
 export default function OnboardingPage() {
   const router = useRouter()
-  const { connectWearable } = useHRStore()
-  const [step, setStep] = useState<Step>('welcome')
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null)
-  const [connecting, setConnecting] = useState(false)
-
-  async function handleConnect() {
-    if (!selectedProvider) return
-    setConnecting(true)
-    try {
-      // In Phase 0, we simulate the OAuth flow
-      // Real implementation will redirect to provider's OAuth page
-      await connectWearable(selectedProvider, 'placeholder-token')
-      setStep('ready')
-    } catch {
-      // If connection fails, still allow user to proceed
-      setStep('ready')
-    } finally {
-      setConnecting(false)
-    }
-  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-tumtum-black px-4">
       <div className="w-full max-w-md">
-        {/* Step: Welcome */}
-        {step === 'welcome' && (
-          <div className="text-center">
-            <div className="mb-6 text-6xl">❤️</div>
-            <h1 className="text-3xl font-bold text-tumtum-white">
-              Bem-vindo ao TumTum
-            </h1>
-            <p className="mt-3 text-tumtum-muted">
-              Descubra como seu coração reage nos momentos mais emocionantes.
-              Conecte seu wearable, vá a um evento e veja sua experiência.
-            </p>
-            <Button onClick={() => setStep('wearable')} className="mt-8 w-full" size="lg">
-              Começar
-            </Button>
-          </div>
-        )}
+        <Wordmark className="h-8 w-auto text-tumtum-white" />
 
-        {/* Step: Connect Wearable */}
-        {step === 'wearable' && (
-          <div>
-            <h2 className="mb-2 text-2xl font-bold text-tumtum-white">
-              Conecte seu dispositivo
-            </h2>
-            <p className="mb-6 text-sm text-tumtum-muted">
-              Escolha o relógio ou a cinta que você já usa.
-            </p>
+        <h1 className="mt-10 text-3xl font-bold text-tumtum-white">Sua conta está pronta.</h1>
 
-            <div className="space-y-3">
-              {wearableOptions.map((option) => {
-                const isDisabled = option.id === 'garmin' || option.id === 'fitbit'
-                const isSelected = selectedProvider === option.id
+        <p className="mt-4 text-tumtum-white">
+          Quem grava a noite é o app da TumTum, no seu celular — com um sensor no peito ou com o
+          relógio que você já usa.
+        </p>
+        <p className="mt-3 text-tumtum-muted">
+          Aqui no site você vê os eventos e, depois do show, as suas noites. Entra no app com
+          esta mesma conta.
+        </p>
+        <p className="mt-3 text-sm text-tumtum-muted">
+          O app está em teste fechado, só pra Android por enquanto.
+        </p>
 
-                return (
-                  <button
-                    key={option.id}
-                    disabled={isDisabled}
-                    onClick={() => setSelectedProvider(option.id)}
-                    className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors ${
-                      isSelected
-                        ? 'border-tumtum-pink bg-tumtum-pink/10'
-                        : isDisabled
-                        ? 'border-tumtum-border opacity-40 cursor-not-allowed'
-                        : 'border-tumtum-border hover:border-tumtum-muted'
-                    }`}
-                  >
-                    <span className="text-2xl">{option.icon}</span>
-                    <div>
-                      <p className="font-medium text-tumtum-white">{option.name}</p>
-                      <p className="text-xs text-tumtum-muted">{option.description}</p>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <Button variant="ghost" onClick={() => setStep('ready')} className="flex-1">
-                Pular
-              </Button>
-              <Button
-                onClick={handleConnect}
-                disabled={!selectedProvider}
-                loading={connecting}
-                className="flex-1"
-              >
-                Conectar
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Step: Ready */}
-        {step === 'ready' && (
-          <div className="text-center">
-            <div className="mb-6 text-6xl">🎉</div>
-            <h2 className="text-2xl font-bold text-tumtum-white">Tudo pronto!</h2>
-            <p className="mt-3 text-tumtum-muted">
-              Agora é só ir a um evento e depois voltar aqui para ver como seu coração reagiu.
-            </p>
-            <Button onClick={() => router.push('/events')} className="mt-8 w-full" size="lg">
-              Explorar eventos
-            </Button>
-          </div>
-        )}
-
-        {/* Progress dots */}
-        <div className="mt-8 flex justify-center gap-2">
-          {(['welcome', 'wearable', 'ready'] as Step[]).map((s) => (
-            <div
-              key={s}
-              className={`h-2 w-2 rounded-full transition-colors ${
-                step === s ? 'bg-tumtum-pink' : 'bg-tumtum-border'
-              }`}
-            />
-          ))}
-        </div>
+        <Button onClick={() => router.push('/events')} className="mt-10 w-full" size="lg">
+          Ver os eventos
+        </Button>
       </div>
     </main>
   )

@@ -88,6 +88,30 @@ class NightSync(
         scope.launch { retryPending() }
     }
 
+    /**
+     * The capture screen's "Tentar de novo" for an event the server did not
+     * take (25/09): registers it now and answers why not when it cannot —
+     * null on success, or [ERR_NO_SESSION], [ERR_NOT_OPERATOR], [ERR_OFFLINE]
+     * or the server's own sentence.
+     */
+    suspend fun registerEventNow(localEventId: Long): String? {
+        val session = prefs.state.first().session
+        if (session == null || !session.isLive(System.currentTimeMillis())) return ERR_NO_SESSION
+        return try {
+            ensureServerEvent(localEventId)
+            pushMarks(localEventId, db.eventDao().byId(localEventId)?.serverEventId ?: return null)
+            null
+        } catch (e: TumtumApi.ApiException) {
+            when (e.code) {
+                401 -> ERR_NO_SESSION
+                403 -> ERR_NOT_OPERATOR
+                else -> e.detail
+            }
+        } catch (e: IOException) {
+            ERR_OFFLINE
+        }
+    }
+
     suspend fun retryPending() {
         db.nightDao().pendingUpload().forEach { upload(it.id) }
         // Marks no night will ever carry — see pushMarksLater.
@@ -118,6 +142,10 @@ class NightSync(
         phases.update { it + (nightId to SyncPhase.SENDING) }
         try {
             val session = prefs.state.first().session
+            val night = db.nightDao().nightRow(nightId) ?: return
+            // Another account's night waits for that account (25/09): sent
+            // under this one, it would become this person's on the server.
+            if (night.ownerUserId != null && session?.userId != null && night.ownerUserId != session.userId) return
             if (session == null) {
                 db.nightDao().setUploadState(nightId, "PENDING", ERR_NO_SESSION)
                 return
@@ -126,7 +154,6 @@ class NightSync(
                 db.nightDao().setUploadState(nightId, "FAILED", ERR_EXPIRED)
                 return
             }
-            val night = db.nightDao().nightRow(nightId) ?: return
 
             // Etapa 3: the event exists on the server before the night does,
             // and every mark tapped during the capture becomes a timeline
@@ -227,5 +254,6 @@ class NightSync(
         const val ERR_NO_SESSION = "no_session"
         const val ERR_EXPIRED = "expired"
         const val ERR_OFFLINE = "offline"
+        const val ERR_NOT_OPERATOR = "not_operator"
     }
 }

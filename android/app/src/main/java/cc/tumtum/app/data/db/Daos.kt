@@ -40,6 +40,10 @@ interface EventDao {
     @Query("DELETE FROM events")
     suspend fun deleteAll()
 
+    /** The events of deleted nights — only those no remaining night still points to. */
+    @Query("DELETE FROM events WHERE id IN (:ids) AND id NOT IN (SELECT eventId FROM nights)")
+    suspend fun deleteOrphans(ids: List<Long>)
+
     @Query("UPDATE events SET serverEventId = :serverEventId WHERE id = :id")
     suspend fun setServerEventId(id: Long, serverEventId: String)
 }
@@ -75,6 +79,9 @@ interface MarkDao {
 
     @Query("DELETE FROM marks")
     suspend fun deleteAll()
+
+    @Query("DELETE FROM marks WHERE eventId IN (:eventIds) AND eventId NOT IN (SELECT id FROM events)")
+    suspend fun deleteOrphans(eventIds: List<Long>)
 }
 
 @Dao
@@ -88,19 +95,48 @@ interface NightDao {
     @Insert
     suspend fun insertMoments(moments: List<MomentEntity>)
 
+    // A night belongs to the account that recorded it (25/09). Every list the
+    // person sees is filtered by [viewer], the account whose nights this phone
+    // shows; a night with no owner predates the rule and is shown to whoever
+    // is here. Another account's nights are hidden, never deleted.
+
     @Transaction
-    @Query("SELECT * FROM nights ORDER BY startAt DESC")
-    fun nightsWithData(): Flow<List<NightWithData>>
+    @Query("SELECT * FROM nights WHERE ownerUserId IS NULL OR ownerUserId = :viewer ORDER BY startAt DESC")
+    fun nightsWithData(viewer: String?): Flow<List<NightWithData>>
 
     @Transaction
     @Query("SELECT * FROM nights WHERE id = :id")
     fun nightWithData(id: Long): Flow<NightWithData?>
 
-    @Query("SELECT * FROM nights WHERE published = 1 ORDER BY startAt DESC")
-    fun published(): Flow<List<NightEntity>>
+    @Query(
+        "SELECT * FROM nights WHERE published = 1 AND (ownerUserId IS NULL OR ownerUserId = :viewer) " +
+            "ORDER BY startAt DESC",
+    )
+    fun published(viewer: String?): Flow<List<NightEntity>>
 
-    @Query("SELECT * FROM nights ORDER BY startAt DESC")
-    fun allNights(): Flow<List<NightEntity>>
+    @Query("SELECT * FROM nights WHERE ownerUserId IS NULL OR ownerUserId = :viewer ORDER BY startAt DESC")
+    fun allNights(viewer: String?): Flow<List<NightEntity>>
+
+    /** Nights on this phone that belong to another account — said, so an empty list is not a lie. */
+    @Query("SELECT COUNT(*) FROM nights WHERE ownerUserId IS NOT NULL AND (:viewer IS NULL OR ownerUserId != :viewer)")
+    fun hiddenCount(viewer: String?): Flow<Int>
+
+    /** The nights an account deletion takes from this phone: the account's own, and the ownerless ones it was shown. */
+    @Query("SELECT * FROM nights WHERE ownerUserId IS NULL OR ownerUserId = :viewer")
+    suspend fun nightsOf(viewer: String?): List<NightEntity>
+
+    /**
+     * This phone's night at a server event that **never reached the server**
+     * (25/09), for the feed that would otherwise say "your night did not
+     * arrive" about a night sitting right here.
+     */
+    @Query(
+        "SELECT nights.* FROM nights JOIN events ON events.id = nights.eventId " +
+            "WHERE events.serverEventId = :serverEventId AND nights.serverSessionId IS NULL " +
+            "AND (nights.ownerUserId IS NULL OR nights.ownerUserId = :viewer) " +
+            "ORDER BY nights.startAt DESC LIMIT 1",
+    )
+    suspend fun unsentNightAt(serverEventId: String, viewer: String?): NightEntity?
 
     /** The card went out: the night keeps its skin and, on the black one, the photo behind it. */
     @Query("UPDATE nights SET skin = :skin, published = 1, photoPath = :photoPath WHERE id = :id")
@@ -161,6 +197,15 @@ interface NightDao {
 
     @Query("DELETE FROM nights")
     suspend fun deleteAll()
+
+    @Query("DELETE FROM nights WHERE id IN (:ids)")
+    suspend fun deleteNights(ids: List<Long>)
+
+    @Query("DELETE FROM samples WHERE nightId IN (:ids)")
+    suspend fun deleteSamplesOfNights(ids: List<Long>)
+
+    @Query("DELETE FROM moments WHERE nightId IN (:ids)")
+    suspend fun deleteMomentsOfNights(ids: List<Long>)
 
     @Query("DELETE FROM samples")
     suspend fun deleteAllSamples()

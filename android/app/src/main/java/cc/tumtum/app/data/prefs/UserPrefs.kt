@@ -101,9 +101,58 @@ data class UserState(
     val operatorEvents: Boolean = false,
     /** The next marked event, if any — one at a time, by design. */
     val upcoming: UpcomingEvent? = null,
+    /**
+     * The account whose nights this phone shows (25/09) — the last one that
+     * signed in here, kept after Sair so the person who signed out still
+     * finds their nights. A different account signing in changes it, and the
+     * previous person's nights are hidden, never deleted.
+     */
+    val viewerId: String? = null,
+    /**
+     * The account the server confirmed as an operator (item 52, 25/09), from
+     * `is_admin` on /api/auth/me. The operator tools show only while it is the
+     * signed-in account: a local switch alone let a fan's phone "register"
+     * events the server then refused.
+     */
+    val operatorUserId: String? = null,
+    /** How the last session ended, and when — so the next "why am I out?" answers itself (25/09). */
+    val sessionEnded: SessionEnd? = null,
 ) {
     val watchConnected: Boolean get() = sourcePackage != null
     val sensorPaired: Boolean get() = bleAddress != null
+
+    /** True only while the signed-in account is the one the server called an operator. */
+    val isOperator: Boolean
+        get() = operatorUserId != null && operatorUserId == session?.userId
+
+    /** The GOL · MÚSICA · MOMENTO taps: switched on here, and granted by the server. */
+    val marksOn: Boolean get() = operatorMarks && isOperator
+
+    /** The event-registration shortcuts on AO VIVO: switched on here, and granted by the server. */
+    val eventsOn: Boolean get() = operatorEvents && isOperator
+
+    /**
+     * The raw-session export (§9, the protocol's manual extraction): on the
+     * operator's account, or on a phone set up for the protocol with a
+     * participant id. A fan never sees it (25/09: "não tem que aparecer essa
+     * opção de exportar").
+     */
+    val showsExport: Boolean get() = isOperator || !participantId.isNullOrBlank()
+}
+
+/**
+ * Why the phone is out of the account (25/09). Felipe picked the phone up one
+ * morning signed out and nobody could say whether he had tapped Sair or the
+ * server had refused to renew: the line that would have told was overwritten
+ * the moment he signed in again. The reason is kept until the next sign-in.
+ */
+data class SessionEnd(val reason: String, val at: java.time.Instant) {
+    companion object {
+        /** The person tapped Sair. */
+        const val SIGNED_OUT = "signed_out"
+        /** The server refused to renew the session: expired, revoked, or reused. */
+        const val REFUSED = "refused"
+    }
 }
 
 class UserPrefs(private val context: Context) {
@@ -132,6 +181,10 @@ class UserPrefs(private val context: Context) {
         val accessToken = stringPreferencesKey("access_token")
         val userId = stringPreferencesKey("user_id")
         val refreshToken = stringPreferencesKey("refresh_token")
+        val viewerId = stringPreferencesKey("viewer_user_id")
+        val operatorUserId = stringPreferencesKey("operator_user_id")
+        val sessionEndedReason = stringPreferencesKey("session_ended_reason")
+        val sessionEndedAt = longPreferencesKey("session_ended_at")
     }
 
     val state: Flow<UserState> = context.dataStore.data.map { p ->
@@ -170,6 +223,12 @@ class UserPrefs(private val context: Context) {
             session = p[Keys.accessToken]?.let {
                 Session(token = it, userId = p[Keys.userId], refreshToken = p[Keys.refreshToken])
             },
+            // Phones from before 25/09 have no viewer yet: the signed-in account is it.
+            viewerId = p[Keys.viewerId] ?: p[Keys.userId],
+            operatorUserId = p[Keys.operatorUserId],
+            sessionEnded = p[Keys.sessionEndedReason]?.let { reason ->
+                p[Keys.sessionEndedAt]?.let { SessionEnd(reason, java.time.Instant.ofEpochMilli(it)) }
+            },
         )
     }
 
@@ -178,15 +237,43 @@ class UserPrefs(private val context: Context) {
             p[Keys.accessToken] = session.token
             session.userId?.let { p[Keys.userId] = it } ?: p.remove(Keys.userId)
             session.refreshToken?.let { p[Keys.refreshToken] = it } ?: p.remove(Keys.refreshToken)
+            // Whoever signs in is whose nights the phone shows from now on.
+            session.userId?.let { p[Keys.viewerId] = it }
+            p.remove(Keys.sessionEndedReason)
+            p.remove(Keys.sessionEndedAt)
         }
     }
 
-    /** Sign-out: the token goes, the local profile and the nights stay. */
-    suspend fun clearSession() {
+    /**
+     * Sign-out: the token goes, the local profile and the nights stay — and
+     * the phone remembers that this was a Sair, and when.
+     */
+    suspend fun clearSession(reason: String = SessionEnd.SIGNED_OUT) {
         context.dataStore.edit { p ->
             p.remove(Keys.accessToken)
             p.remove(Keys.userId)
             p.remove(Keys.refreshToken)
+            p[Keys.sessionEndedReason] = reason
+            p[Keys.sessionEndedAt] = System.currentTimeMillis()
+        }
+    }
+
+    /**
+     * The server refused to renew (#34): the refresh token goes, so every
+     * screen now reads the session as expired, and the phone keeps why.
+     */
+    suspend fun markRenewalRefused() {
+        context.dataStore.edit { p ->
+            p.remove(Keys.refreshToken)
+            p[Keys.sessionEndedReason] = SessionEnd.REFUSED
+            p[Keys.sessionEndedAt] = System.currentTimeMillis()
+        }
+    }
+
+    /** What the server said about this account's operator role: [userId] when it is one, null when not. */
+    suspend fun setOperatorUserId(userId: String?) {
+        context.dataStore.edit { p ->
+            if (userId == null) p.remove(Keys.operatorUserId) else p[Keys.operatorUserId] = userId
         }
     }
 
@@ -205,6 +292,11 @@ class UserPrefs(private val context: Context) {
      * Test 7 showed Felipe's photo over the name *teste1* — the photo is
      * kept only here, and nothing ever cleared it, so the app put one
      * person's face on another person's account.
+     *
+     * Since 25/09 the previous person's **sensor, watch, participant id and
+     * marked event** go too. A new account on the phone opened setup with
+     * Felipe's Polar H10 already "paired", and no way to search for one's
+     * own: the same leak as the photo, one screen later.
      */
     suspend fun replaceAccount(account: Account) {
         val previousPhoto = state.first().avatarPath
@@ -214,6 +306,13 @@ class UserPrefs(private val context: Context) {
             p[Keys.email] = account.email
             p[Keys.tribes] = account.tribes
             p.remove(Keys.avatarPath)
+            p.remove(Keys.bleAddress)
+            p.remove(Keys.bleName)
+            p.remove(Keys.sourcePackage)
+            p.remove(Keys.sourceLabel)
+            p.remove(Keys.participantId)
+            p.remove(Keys.upcomingName); p.remove(Keys.upcomingVenue); p.remove(Keys.upcomingType)
+            p.remove(Keys.upcomingStartAt); p.remove(Keys.upcomingServerEventId)
         }
         previousPhoto?.let { runCatching { java.io.File(it).delete() } }
     }

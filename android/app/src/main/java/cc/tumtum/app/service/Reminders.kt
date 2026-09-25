@@ -45,20 +45,37 @@ object Reminders {
         alarmManager(context).cancel(pending(context, REQUEST_EVENT, Intent(context, ReminderReceiver::class.java)))
     }
 
-    /** After a reboot or an update: every reminder still in the future is set again from what the phone knows. */
+    fun cancelReveal(context: Context, nightId: Long) {
+        alarmManager(context).cancel(
+            pending(context, REQUEST_REVEAL_BASE + (nightId % 1000).toInt(), Intent(context, ReminderReceiver::class.java)),
+        )
+    }
+
+    /**
+     * After a reboot, an update or an account change: every reminder still in
+     * the future is set again from what the phone knows — **for the viewing
+     * account only** (25/09). Four "Sua noite abriu." arrived at 10h01, two of
+     * them for nights deleted an hour before; a sealed night of another
+     * account is not this person's to be told about either.
+     */
     suspend fun rescheduleAll(context: Context, container: AppContainer) {
         val now = Instant.now()
         val state = container.prefs.state.first()
-        state.upcoming?.let { up ->
-            if (eventReminderAt(up.startAt).isAfter(now)) {
-                scheduleEvent(
-                    context, up.startAt,
-                    context.getString(cc.tumtum.app.R.string.remind_event_title, up.name),
-                    context.getString(cc.tumtum.app.R.string.remind_event_text),
-                )
-            }
+        val up = state.upcoming
+        if (up != null && eventReminderAt(up.startAt).isAfter(now)) {
+            scheduleEvent(
+                context, up.startAt,
+                context.getString(cc.tumtum.app.R.string.remind_event_title, up.name),
+                context.getString(cc.tumtum.app.R.string.remind_event_text),
+            )
+        } else {
+            cancelEvent(context)
         }
         container.db.nightDao().lockedAfter(now.toEpochMilli()).forEach { night ->
+            if (night.ownerUserId != null && night.ownerUserId != state.viewerId) {
+                cancelReveal(context, night.id)
+                return@forEach
+            }
             scheduleReveal(
                 context, night.id, Instant.ofEpochMilli(night.revealAt ?: return@forEach),
                 context.getString(cc.tumtum.app.R.string.remind_reveal_title),
