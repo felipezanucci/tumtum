@@ -766,6 +766,28 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-24 — #98 merged, and a commit landed a minute behind it: the merge rule, a sixth time
+
+**#98 is in production since 24/09 16:56 (São Paulo).** From then on, every
+account on the server, the site and the app is born from a 6-digit code
+mailed to its address. The old one-step sign-up answers 410. Resend is live on
+Railway, so password recovery works too.
+
+**The rule broke again, in a new shape.** The PR's state was read from GitHub
+(`open`, head `36245ba`) as the rule says. Then came about a minute of work:
+trim the name in the reset mail, test, write the log. The commit was pushed
+at 16:57, one minute after Felipe merged at 16:56. It landed on the branch of
+a merged PR, and its description was edited to say "unblocked" after the
+fact. Nothing wrong reached `main`. What reached nowhere was that commit, and
+it was moved to a new PR the next morning.
+
+The lesson is narrower than the rule's text, and it is the part that failed:
+**a PR's state is read immediately before the push, as the last step, not
+before starting the edit.** Felipe merges within minutes of a link, so any
+work between the read and the push is a window.
+
+---
+
 ## 2026-09-24 — 7b in a hand, a face on the wrong account, and the Story that showed nothing
 
 Felipe on b191 with the test account *teste1*:

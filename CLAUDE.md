@@ -51,7 +51,10 @@ its description so it does not get merged early. The fifth time (18/09) was
 the assistant pushing to a branch whose PR Felipe had already merged and
 sending that PR's link as "the merge": **before sending a merge link, read
 the PR's state from GitHub — `merged: false`, head SHA equal to the
-branch's — and never from memory.**
+branch's — and never from memory.** The sixth time (24/09) the state was read
+and was `open`; a minute of work later the push landed one minute after
+Felipe's merge. **Read it again as the last step before every push to a PR's
+branch** — he merges within minutes of a link.
 
 **Always end a piece of work by giving Felipe the merge link, and the APK as
 a direct download.** Standing instruction from 2026-09-01, extended 22/09.
