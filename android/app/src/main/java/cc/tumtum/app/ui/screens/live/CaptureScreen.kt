@@ -233,7 +233,9 @@ fun CaptureScreen(nav: NavHostController) {
                     snapshot?.currentBpm
                 }
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text(bpmNow?.toString() ?: "—", style = heroStyle, color = TT.Rose)
+                    // No number is not a Pink number: in b201 the dash stood
+                    // there as a big Pink bar, the header already saying why.
+                    Text(bpmNow?.toString() ?: "—", style = heroStyle, color = if (bpmNow != null) TT.Rose else TT.Ink600)
                     Spacer(Modifier.size(14.dp))
                     Text(
                         stringResource(R.string.live_bpm_now),

@@ -367,7 +367,9 @@ time, never an ECG trace; TumTum Pink for the main emphasis on dark surfaces and
 Toxic Yellow for highlight points and labels; no heart zones, risk colours,
 "normal ranges" or recovery scores. The chart answers *"when did this happen?"*,
 never *"what does this mean clinically?"*. **A gap in a capture is drawn as a
-gap** — the line breaks rather than crossing minutes nobody measured.
+gap** — the line breaks rather than crossing minutes nobody measured. What a
+gap is follows the source (25/09): ten seconds of silence from a 1 Hz strap,
+a minute from a watch that reads once a minute (`NightAnalyzer.gapThresholdSec`).
 
 ### Share cards — five narratives for one moment
 

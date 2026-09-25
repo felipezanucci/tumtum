@@ -170,6 +170,10 @@ class NightRepository(
         return BeatFilter.beats(raw).map { HrSample(Instant.ofEpochMilli(it.timeMs), it.bpm) }
     }
 
+    /** The beats a capture has kept so far, for a service picking a session back up. */
+    suspend fun beatCount(eventId: Long): Long =
+        bleSamplesIn(eventId, Instant.EPOCH, Instant.ofEpochMilli(Long.MAX_VALUE)).size.toLong()
+
     /** Snapshot ao vivo: sensor BLE quando presente; senão, lote retroativo do Health Connect. */
     suspend fun liveSnapshot(event: EventSession): LiveSnapshot {
         val start = event.startAt.minus(margin)
