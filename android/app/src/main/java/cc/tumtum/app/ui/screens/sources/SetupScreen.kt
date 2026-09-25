@@ -78,10 +78,11 @@ import kotlinx.coroutines.launch
  *   "Pronto, conexão feita"; a strap on the table is said to be one.
  *
  * On black since the b198 round (Felipe: *"deixa essa tela um pouco mais
- * colorida"*): the brand's digital default, where Pink and Toxic Yellow both
- * read — yellow on white is 1.11:1. Pink is the one thing to do on each state,
- * yellow marks the strap road. The permission screen before it stays white
- * and quiet: consent is where the brand chooses trust over fun.
+ * colorida"*): the brand's digital default. Pink is the one thing to do on
+ * each state and nothing else is coloured — b201 marked the strap road in
+ * Toxic Yellow, and in a hand Felipe sent it back to white (*"deixa só o
+ * botão em rosa"*). The permission screen before it stays white and quiet:
+ * consent is where the brand chooses trust over fun.
  */
 @Composable
 fun SetupScreen(nav: NavHostController) {
@@ -163,9 +164,9 @@ fun SetupScreen(nav: NavHostController) {
                 Spacer(Modifier.height(10.dp))
                 TTButton(stringResource(R.string.sources_skip), TTButtonStyle.OutlineOnDark, onClick = { goHome() })
                 Spacer(Modifier.height(40.dp))
-                Text(stringResource(R.string.setup_strap_section), style = TTType.Meta, color = TT.Acid)
+                Text(stringResource(R.string.setup_strap_section), style = TTType.Meta, color = TT.Paper)
                 Spacer(Modifier.height(10.dp))
-                TTButton(stringResource(R.string.setup_strap_search), TTButtonStyle.OutlineAcid, onClick = { searching = true })
+                TTButton(stringResource(R.string.setup_strap_search), TTButtonStyle.OutlineOnDark, onClick = { searching = true })
             }
         }
     }
