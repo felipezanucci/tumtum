@@ -29,6 +29,7 @@ import cc.tumtum.app.data.db.ConnectionEventEntity
 import cc.tumtum.app.data.db.MotionEntity
 import cc.tumtum.app.data.db.RrIntervalEntity
 import cc.tumtum.app.domain.MotionAggregator
+import cc.tumtum.app.domain.OnSkinTracker
 import java.util.concurrent.Executors
 import kotlin.math.sqrt
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +66,9 @@ class CaptureService : Service() {
 
     private var eventId: Long = -1
     private var sampleCount: Long = 0
+
+    /** Whether the sensor is on a person; fed from [persistDispatcher], replaced per session. */
+    @Volatile private var onSkin = OnSkinTracker()
     private var attached = false
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -125,6 +129,7 @@ class CaptureService : Service() {
         recordConnection(if (restartReason != null) restartReason else "SESSION_START", "serviço em primeiro plano ativo")
 
         sampleCount = container.db.captureDao().sampleCount(id)
+        onSkin = OnSkinTracker()
         CaptureBus.status.value = CaptureStatus(
             active = true,
             eventId = id,
@@ -181,10 +186,11 @@ class CaptureService : Service() {
                         )
                     }
                     sampleCount += 1
+                    val beat = onSkin.accept(m.bpm, m.contactStatus, m.rrIntervalsMs.isNotEmpty())
                     CaptureBus.status.value = CaptureBus.status.value.copy(
                         samplesWritten = sampleCount,
                         lastBpm = m.bpm,
-                        contactStatus = m.contactStatus,
+                        onSkin = beat,
                     )
                 }
                 is BleEvent.Battery -> {

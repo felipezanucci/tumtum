@@ -14,14 +14,11 @@ data class HrMeasurement(
 )
 
 /**
- * Whether a reading is a beat (25/09). A Polar H10 lying on a table kept
- * sending heart rates, and the app drew "Pronto, conexão feita" with a number
- * nobody had. The sensor says in every packet whether it feels skin; a
- * reading it marks as **no contact** is not a beat — not on the setup
- * screen, not on the capture, not in the night. The raw row is still stored
- * (the export shows everything the sensor said); only the reading of it
- * changes, so a strap taken off mid-show leaves a gap, drawn as a gap.
- * Sensors that cannot tell (0/1) are believed.
+ * The skin-contact flag, for the sensors that set it (25/09). A reading a
+ * sensor marks as **no contact** is not a beat. It is not enough on its own:
+ * the Polar H10 reports "not supported" in every packet, worn or not (night
+ * 18, b198), so the flag is one of the checks in
+ * [cc.tumtum.app.domain.BeatFilter], which also reads the R-R.
  */
 object SkinContact {
     fun counts(status: Int?): Boolean = status != HrMeasurementParser.CONTACT_NOT_DETECTED

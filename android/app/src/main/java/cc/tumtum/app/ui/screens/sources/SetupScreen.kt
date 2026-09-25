@@ -41,8 +41,8 @@ import cc.tumtum.app.data.ble.BleEvent
 import cc.tumtum.app.data.ble.BleHrSource
 import cc.tumtum.app.data.ble.BlePermissions
 import cc.tumtum.app.data.ble.BleScanner
-import cc.tumtum.app.data.ble.SkinContact
 import cc.tumtum.app.data.repo.SourceMeasurement
+import cc.tumtum.app.domain.OnSkinTracker
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -252,12 +252,17 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
     // the sensor answers, not a capture. Nothing is stored.
     DisposableEffect(address) {
         if (!BlePermissions.granted(context)) return@DisposableEffect onDispose { }
+        // "Pronto" needs proof of a person (25/09, night 18): a Polar off the
+        // skin repeats its last number, then sends 0. A beat with an R-R is the
+        // proof; a number alone is not.
+        val tracker = OnSkinTracker()
         val source = BleHrSource(context.applicationContext) { event ->
             if (event is BleEvent.Sample) {
                 val m = event.measurement
-                if (!SkinContact.counts(m.contactStatus)) {
+                val isBeat = tracker.accept(m.bpm, m.contactStatus, m.rrIntervalsMs.isNotEmpty())
+                if (!isBeat) {
                     offSkin.value = System.currentTimeMillis()
-                } else if (m.bpm > 0) {
+                } else if (tracker.proven) {
                     beat.value = m.bpm to System.currentTimeMillis()
                 }
             }

@@ -1,6 +1,5 @@
 package cc.tumtum.app.data.repo
 
-import cc.tumtum.app.data.ble.SkinContact
 import cc.tumtum.app.data.db.EventEntity
 import cc.tumtum.app.data.db.MarkEntity
 import cc.tumtum.app.data.db.MomentEntity
@@ -9,6 +8,7 @@ import cc.tumtum.app.data.db.NightWithData
 import cc.tumtum.app.data.db.SampleEntity
 import cc.tumtum.app.data.db.TumTumDatabase
 import cc.tumtum.app.data.health.HealthConnectSource
+import cc.tumtum.app.domain.BeatFilter
 import cc.tumtum.app.domain.EventSession
 import cc.tumtum.app.domain.Gap
 import cc.tumtum.app.domain.GalleryNight
@@ -19,6 +19,7 @@ import cc.tumtum.app.domain.MomentsSource
 import cc.tumtum.app.domain.UploadState
 import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.NightAnalyzer
+import cc.tumtum.app.domain.RawReading
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.domain.WatchSource
 import java.time.Duration
@@ -158,12 +159,16 @@ class NightRepository(
     }
 
     /** Amostras da fonte BLE ao vivo dentro da janela, no formato comum do pipeline (§2). */
-    private suspend fun bleSamplesIn(eventId: Long, start: Instant, end: Instant): List<HrSample> =
-        capture.samplesBetween(eventId, start.toEpochMilli(), end.toEpochMilli())
-            // A reading without skin contact is not a beat (25/09): the night
-            // gets a gap where the strap was off, never a number nobody had.
-            .filter { SkinContact.counts(it.contactStatus) }
-            .map { HrSample(Instant.ofEpochMilli(it.wallClockMs), it.bpm) }
+    private suspend fun bleSamplesIn(eventId: Long, start: Instant, end: Instant): List<HrSample> {
+        val from = start.toEpochMilli()
+        val to = end.toEpochMilli()
+        val withRr = capture.rrTimesBetween(eventId, from, to).toHashSet()
+        val raw = capture.samplesBetween(eventId, from, to)
+            .map { RawReading(it.wallClockMs, it.bpm, it.contactStatus, it.wallClockMs in withRr) }
+        // A reading off the skin is not a beat (25/09, measured on night 18):
+        // the night gets a gap where the strap was off, never a number nobody had.
+        return BeatFilter.beats(raw).map { HrSample(Instant.ofEpochMilli(it.timeMs), it.bpm) }
+    }
 
     /** Snapshot ao vivo: sensor BLE quando presente; senão, lote retroativo do Health Connect. */
     suspend fun liveSnapshot(event: EventSession): LiveSnapshot {
