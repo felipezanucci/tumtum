@@ -42,6 +42,9 @@ import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.AvatarStore
 import cc.tumtum.app.data.CardPhotoStore
+import cc.tumtum.app.data.prefs.SessionEnd
+import cc.tumtum.app.service.Reminders
+import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.components.OutlineBadge
 import cc.tumtum.app.ui.components.UserAvatar
@@ -211,25 +214,38 @@ fun SettingsScreen(nav: NavHostController) {
         )
         if (operatorOpen) {
             Spacer(Modifier.height(4.dp))
-            // Modo operador: os toques GOL · MÚSICA · MOMENTO só aparecem no celular
-            // de quem opera o teste. O fã nunca é convidado a fazer isso.
-            val marksOn = user?.operatorMarks == true
-            ToggleRow(
-                title = stringResource(R.string.settings_operator_marks),
-                hint = stringResource(R.string.settings_operator_marks_hint),
-                on = marksOn,
-                onToggle = { scope.launch { container.prefs.setOperatorMarks(!marksOn) } },
-            )
-            // Cadastro de evento pelo celular (21/09): o evento é da TumTum e o fã
-            // só escolhe da lista. Quem cadastra é o operador, pelos atalhos que
-            // esta chave acende na aba AO VIVO.
-            val eventsOn = user?.operatorEvents == true
-            ToggleRow(
-                title = stringResource(R.string.settings_operator_events),
-                hint = stringResource(R.string.settings_operator_events_hint),
-                on = eventsOn,
-                onToggle = { scope.launch { container.prefs.setOperatorEvents(!eventsOn) } },
-            )
+            // The two switches that write to the event are the server's to grant
+            // (item 52, 25/09): only an account the server calls an operator sees
+            // them. A phone with them on under a fan's account "registered" an
+            // event the server refused, and the capture said only "só neste celular".
+            if (user?.isOperator == true) {
+                // Modo operador: os toques GOL · MÚSICA · MOMENTO só aparecem no celular
+                // de quem opera o teste. O fã nunca é convidado a fazer isso.
+                val marksOn = user?.operatorMarks == true
+                ToggleRow(
+                    title = stringResource(R.string.settings_operator_marks),
+                    hint = stringResource(R.string.settings_operator_marks_hint),
+                    on = marksOn,
+                    onToggle = { scope.launch { container.prefs.setOperatorMarks(!marksOn) } },
+                )
+                // Cadastro de evento pelo celular (21/09): o evento é da TumTum e o fã
+                // só escolhe da lista. Quem cadastra é o operador, pelos atalhos que
+                // esta chave acende na aba AO VIVO.
+                val eventsOn = user?.operatorEvents == true
+                ToggleRow(
+                    title = stringResource(R.string.settings_operator_events),
+                    hint = stringResource(R.string.settings_operator_events_hint),
+                    on = eventsOn,
+                    onToggle = { scope.launch { container.prefs.setOperatorEvents(!eventsOn) } },
+                )
+            } else {
+                Text(
+                    stringResource(R.string.settings_operator_only),
+                    style = TTType.Footnote,
+                    color = TT.Gray45,
+                    modifier = Modifier.padding(vertical = 10.dp),
+                )
+            }
             // Trava da revela: com ela ligada, noites novas só abrem às 10h da manhã
             // seguinte — o cartão cego colhe a memória antes de qualquer dado.
             val lockOn = user?.revealLockEnabled == true
@@ -261,10 +277,18 @@ fun SettingsScreen(nav: NavHostController) {
         // died — the last one caught here rather than at the end of a night.
         val session = user?.session
         val sessionLive = session?.isLive(System.currentTimeMillis()) == true
+        // How it ended, when the phone knows (25/09): a Sair and a renewal the
+        // server refused read the same from outside, and the difference is
+        // whether something is broken.
+        val ended = user?.sessionEnded
+        val endedAt = ended?.let { "${Fmt.date(it.at)} às ${Fmt.hour(it.at)}" }
         Text(
             when {
-                session == null -> stringResource(R.string.settings_session_none)
                 sessionLive -> stringResource(R.string.settings_session_live, user?.account?.email.orEmpty())
+                ended?.reason == SessionEnd.REFUSED -> stringResource(R.string.settings_session_refused_at, endedAt.orEmpty())
+                session == null && ended?.reason == SessionEnd.SIGNED_OUT ->
+                    stringResource(R.string.settings_session_signed_out_at, endedAt.orEmpty())
+                session == null -> stringResource(R.string.settings_session_none)
                 else -> stringResource(R.string.settings_session_expired)
             },
             style = TTType.Footnote,
@@ -334,6 +358,7 @@ fun SettingsScreen(nav: NavHostController) {
                 val offlineText = stringResource(R.string.settings_delete_failed_offline)
                 val expiredText = stringResource(R.string.settings_delete_failed_expired)
                 val serverText = stringResource(R.string.settings_delete_failed_server)
+                val signInFirstText = stringResource(R.string.settings_delete_needs_sign_in)
                 Text(
                     stringResource(if (deleting) R.string.settings_delete_running else R.string.settings_delete_confirm),
                     style = TTType.Button.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
@@ -343,8 +368,15 @@ fun SettingsScreen(nav: NavHostController) {
                             deleting = true
                             deleteError = null
                             scope.launch {
-                                val session = container.prefs.state.first().session
-                                val serverDone = if (session == null) {
+                                val before = container.prefs.state.first()
+                                val session = before.session
+                                val serverDone = if (session == null && before.viewerId != null) {
+                                    // Signed out, but an account was here (25/09): the
+                                    // server was never asked, so nothing is deleted and
+                                    // the screen does not say it was.
+                                    deleteError = signInFirstText
+                                    false
+                                } else if (session == null) {
                                     true // never signed in: nothing on the server to delete
                                 } else {
                                     runCatching { container.api.deleteAccount() }.fold(
@@ -362,8 +394,12 @@ fun SettingsScreen(nav: NavHostController) {
                                 deleting = false
                                 if (serverDone) {
                                     confirmDelete = false
-                                    container.nights.wipeAll()
-                                    CardPhotoStore.deleteAll(context)
+                                    // This account's nights, with their photos and
+                                    // reveal alarms — not another account's (25/09).
+                                    container.nights.deleteNightsOf(before.viewerId).forEach { gone ->
+                                        CardPhotoStore.delete(gone.photoPath)
+                                        Reminders.cancelReveal(context, gone.id)
+                                    }
                                     container.prefs.wipe()
                                     nav.navigate(Routes.Onboarding) { popUpTo(0) { inclusive = true } }
                                 }

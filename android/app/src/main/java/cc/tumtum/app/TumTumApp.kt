@@ -7,7 +7,9 @@ import cc.tumtum.app.service.CaptureService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import cc.tumtum.app.data.api.TumtumApi
 import cc.tumtum.app.data.health.HealthConnectSource
@@ -41,7 +43,7 @@ class AppContainer(app: Application) {
     val api = TumtumApi(prefs)
     val health = HealthConnectSource(app)
     val db = TumTumDatabase.build(app)
-    val nights = NightRepository(db, health)
+    val nights = NightRepository(db, health, prefs.state.map { it.viewerId }.distinctUntilChanged())
     val sync = NightSync(db, api, prefs)
     val social: SocialRepository = SocialRepository(api)
     val endNight = EndNightCache()
@@ -59,6 +61,12 @@ class TumTumApp : Application() {
         resumeCaptureIfNeeded()
         // Etapa 2: a night that never reached the server tries again on every start.
         container.sync.retryPendingLater()
+        // The operator role is the server's word (item 52): asked again on
+        // every start, so a role granted or taken away reaches the phone.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            val session = container.prefs.state.first().session
+            if (session?.isLive(System.currentTimeMillis()) == true) runCatching { container.api.me() }
+        }
         // Reminders do not survive an update; set again from what the phone knows.
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
             runCatching { cc.tumtum.app.service.Reminders.rescheduleAll(this@TumTumApp, container) }

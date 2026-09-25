@@ -48,7 +48,7 @@
     <string name="account_code_resend_wait">Dá pra pedir outro código em %1$d segundos.</string>
     <string name="account_code_resent">Código novo a caminho de %1$s. Só o mais novo vale.</string>
     <string name="account_code_fix_email">Corrigir o e-mail</string>
-    <string name="account_replaces">Este aparelho já tem a conta @%1$s. Criar outra troca o perfil e as noites gravadas aqui somem do celular — elas ficam com a conta antiga no servidor.</string>
+    <string name="account_replaces">Este aparelho já tem a conta @%1$s. Criar outra troca o perfil. As noites de @%1$s ficam guardadas aqui, escondidas, e voltam quando essa conta entrar de novo.</string>
 
     <!-- b3 · Permissão — a tela quieta -->
     <string name="perm_title">Seus batimentos,\nsuas regras.</string>
@@ -127,7 +127,16 @@
     <!-- 22/09: jogo1 e show1 não chegaram ao servidor e o operador não teve
          como saber — o aviso existia, mas na aba AO VIVO, que o "Começa agora"
          abandona no mesmo instante. Quem fica com o operador é esta tela. -->
-    <string name="live_event_local_only">Só neste celular: o servidor não aceitou o cadastro. Nenhum fã entra neste evento.</string>
+    <string name="live_event_local_signed_out">Só neste celular: sem conta, o evento não foi pro servidor. Nenhum fã entra nele.</string>
+    <string name="live_event_local_not_operator">Só neste celular: só a conta de operador cadastra eventos. Nenhum fã entra neste.</string>
+    <string name="live_event_local_unsent">Só neste celular: o cadastro não chegou no servidor. Nenhum fã entra nele ainda.</string>
+    <string name="live_event_local_offline">Só neste celular: sem internet agora. Nenhum fã entra nele ainda.</string>
+    <string name="live_event_local_refused">Só neste celular: o servidor recusou (%1$s). Nenhum fã entra nele ainda.</string>
+    <string name="live_event_local_retry">TENTAR DE NOVO</string>
+    <string name="live_event_local_trying">TENTANDO…</string>
+    <string name="live_needs_account">Entra na sua conta pra gravar a noite.</string>
+    <string name="live_needs_account_body">Cada noite fica guardada na conta de quem gravou.</string>
+    <string name="live_needs_account_expired">Sua sessão expirou. Entra de novo antes do show começar.</string>
     <string name="live_playing_for">TOCANDO HÁ</string>
     <!-- A match is not "tocando" and nobody there is at a "show" (22/09): the
          words only became visible once a jogo got its own capture screen. -->
@@ -202,6 +211,10 @@
     <string name="event_feed_loading">Carregando…</string>
     <string name="event_feed_empty">Ninguém mostrou nada ainda. Pode ser você.</string>
     <string name="event_feed_not_there">Esse feed é de quem estava lá. Sua noite não chegou aqui.</string>
+    <string name="event_feed_not_sent">Sua noite desse evento está neste celular, mas ainda não subiu. Quando subir, você entra no feed.</string>
+    <string name="event_feed_send_now">Mandar minha noite agora</string>
+    <string name="event_feed_sending">Mandando…</string>
+    <string name="event_feed_send_failed">Não subiu dessa vez. A noite fica guardada aqui — tenta de novo daqui a pouco.</string>
     <string name="event_feed_signed_out">Entra na sua conta pra ver a galera.</string>
     <string name="event_feed_session_expired">Sua sessão venceu — de tempos em tempos a gente pede a senha de novo. Suas noites continuam aqui.</string>
     <string name="event_feed_sign_in_again">Entrar de novo</string>
@@ -392,6 +405,30 @@
 
     <!-- b4 no setup -->
     <string name="sources_skip">Fazer isso depois</string>
+    <!-- Setup: bring the sensor (25/09) -->
+    <string name="setup_title">Conecta seu sensor.</string>
+    <string name="setup_body">Liga o sensor e procura ele aqui. É ele que grava sua noite, batida a batida.</string>
+    <string name="setup_search">Procurar dispositivo</string>
+    <string name="setup_searching_title">Procurando…</string>
+    <string name="setup_searching_body">Liga o sensor e deixa perto do celular. Ele aparece aqui.</string>
+    <string name="setup_searching_none">Nada apareceu ainda. Confere se o sensor está ligado e perto do celular — a Polar H10 só acorda vestida.</string>
+    <string name="setup_bluetooth_off">O Bluetooth do celular está desligado. Liga ele e procura de novo.</string>
+    <string name="setup_tap">Toca no seu pra conectar.</string>
+    <string name="setup_search_again">Procurar de novo</string>
+    <string name="setup_stop">Parar de procurar</string>
+    <string name="setup_sensor_fallback">Seu sensor</string>
+    <string name="setup_ready_title">Pronto, conexão feita.</string>
+    <string name="setup_ready_body">%1$s está mandando batida pro app.</string>
+    <string name="setup_beating_now">bpm agora</string>
+    <string name="setup_beat_paused">sem batida nos últimos segundos</string>
+    <string name="setup_paired_title">Sensor pareado.</string>
+    <string name="setup_paired_waiting">Esperando a primeira batida de %1$s…</string>
+    <string name="setup_paired_no_beat">%1$s ainda não mandou batida. Veste o sensor: ele só manda no corpo. Dá pra seguir — na hora do show ele conecta sozinho.</string>
+    <string name="setup_home">Ir pro início</string>
+    <string name="setup_change">Trocar sensor</string>
+    <string name="setup_watch_section">OU O SEU RELÓGIO</string>
+    <string name="setup_watch_none">Nenhum relógio mandou batida pro Health Connect nas últimas 24h.</string>
+    <string name="setup_watch_no_permission">Sem a permissão do Health Connect, o app não vê seu relógio.</string>
 
     <!-- Entrar (quem já tem conta) -->
     <string name="login_title">Entrar</string>
@@ -426,6 +463,10 @@
     <!-- Settings: the server's side of the account -->
     <string name="settings_session_live">Conectada como %1$s</string>
     <string name="settings_session_expired">Sessão expirada — entra de novo antes da próxima noite.</string>
+    <string name="settings_session_signed_out_at">Você saiu da conta em %1$s. Entra de novo, ou cria outra conta.</string>
+    <string name="settings_session_refused_at">O servidor encerrou sua sessão em %1$s. Entra de novo antes da próxima noite.</string>
+    <string name="settings_delete_needs_sign_in">Entra na conta primeiro: sem ela, o servidor não apaga nada.</string>
+    <string name="settings_operator_only">Cadastrar eventos e marcar momentos é só pra conta de operador da TumTum.</string>
     <string name="settings_session_none">Sem sessão no servidor neste aparelho. Entre de novo, ou crie outra conta.</string>
     <string name="settings_create_other">Criar outra conta neste aparelho</string>
     <string name="settings_sign_in">Entrar</string>
@@ -508,6 +549,15 @@
     <string name="locked_badge">LACRADA</string>
     <string name="locked_row_hint">Abre às 10h. Sem espiar — é parte da mágica.</string>
     <string name="locked_export">Exportar sessão — operador</string>
+    <string name="reveal_home">Voltar pro início</string>
+    <string name="reveal_missing_title">Essa noite não\nestá mais aqui.</string>
+    <string name="reveal_missing_body">Ela foi apagada deste celular. Se chegou a subir, continua na conta que gravou.</string>
+    <string name="reveal_other_title">Essa noite é de\noutra conta.</string>
+    <string name="reveal_other_body">Ela fica guardada neste celular e abre quando a conta que gravou entrar de novo.</string>
+    <plurals name="nights_hidden">
+        <item quantity="one">%1$d noite deste celular é de outra conta. Ela aparece quando essa conta entrar.</item>
+        <item quantity="other">%1$d noites deste celular são de outra conta. Elas aparecem quando essa conta entrar.</item>
+    </plurals>
     <!-- #62: o olhinho da senha. -->
     <string name="field_password_show">Mostrar a senha</string>
     <string name="field_password_hide">Esconder a senha</string>

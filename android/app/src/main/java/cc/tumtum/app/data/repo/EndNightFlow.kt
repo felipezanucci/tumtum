@@ -17,8 +17,12 @@ import cc.tumtum.app.service.Reminders
 suspend fun AppContainer.saveEndedNight(event: EventSession, measurement: SourceMeasurement, sourcePackage: String): Long? {
     // Trava da revela (protocolo): com o modo ligado, a noite só abre às 10h
     // da manhã seguinte — o cartão cego vem antes.
-    val revealAt = if (prefs.state.first().revealLockEnabled) RevealLock.revealAt(measurement.windowEnd) else null
-    val nightId = nights.saveNight(event, measurement, sourcePackage, revealAt) ?: return null
+    val state = prefs.state.first()
+    val revealAt = if (state.revealLockEnabled) RevealLock.revealAt(measurement.windowEnd) else null
+    // The night is the recording account's from the first second (25/09) —
+    // the one signed in, or the last one that was if the session died mid-show.
+    val owner = state.session?.userId ?: state.viewerId
+    val nightId = nights.saveNight(event, measurement, sourcePackage, revealAt, ownerUserId = owner) ?: return null
     // "A gente te avisa" is only said when this exists (§5.4).
     if (revealAt != null) {
         Reminders.scheduleReveal(

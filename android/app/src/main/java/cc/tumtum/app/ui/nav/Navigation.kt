@@ -33,6 +33,7 @@ import cc.tumtum.app.ui.screens.permission.PermissionScreen
 import cc.tumtum.app.ui.screens.profile.PublicProfileScreen
 import cc.tumtum.app.ui.screens.reveal.RevealScreen
 import cc.tumtum.app.ui.screens.settings.SettingsScreen
+import cc.tumtum.app.ui.screens.sources.SetupScreen
 import cc.tumtum.app.ui.screens.sources.WatchSourcesScreen
 import cc.tumtum.app.ui.screens.you.YouScreen
 import androidx.compose.runtime.LaunchedEffect
@@ -129,7 +130,7 @@ fun TumTumRoot(
             composable(Routes.Account) { CreateAccountScreen(nav) }
             composable(Routes.Login) { LoginScreen(nav) }
             composable(Routes.Permission) { PermissionScreen(nav) }
-            composable(Routes.SourcesSetup) { WatchSourcesScreen(nav, setupMode = true) }
+            composable(Routes.SourcesSetup) { SetupScreen(nav) }
 
             // Abas
             composable(Routes.Feed) { FeedScreen(nav) }
@@ -139,7 +140,7 @@ fun TumTumRoot(
 
             // Núcleo da noite
             composable(Routes.Capture) { CaptureScreen(nav) }
-            composable(Routes.EndNight) { WatchSourcesScreen(nav, setupMode = false) }
+            composable(Routes.EndNight) { WatchSourcesScreen(nav) }
             composable(
                 Routes.Reveal,
                 arguments = listOf(navArgument("nightId") { type = NavType.LongType }),

@@ -120,9 +120,12 @@ fun SensorScanSheet(onDismiss: () -> Unit, onPick: (BleDevice) -> Unit) {
     LaunchedEffect(Unit) {
         if (!permitted) launcher.launch(BlePermissions.withNotifications())
     }
+    // Bluetooth off closes the scan at once; the sheet used to say "ele
+    // aparece aqui" over a search that was not running (25/09).
+    val bluetoothOn = remember(permitted) { BleScanner(context).isBluetoothOn() }
     LaunchedEffect(permitted) {
-        if (permitted) {
-            BleScanner(context).scan().collect { device -> found[device.address] = device }
+        if (permitted && bluetoothOn) {
+            runCatching { BleScanner(context).scan().collect { device -> found[device.address] = device } }
         }
     }
 
@@ -138,6 +141,7 @@ fun SensorScanSheet(onDismiss: () -> Unit, onPick: (BleDevice) -> Unit) {
                 stringResource(
                     when {
                         !permitted -> R.string.sensor_scan_needs_permission
+                        !bluetoothOn -> R.string.setup_bluetooth_off
                         found.isEmpty() -> R.string.sensor_scan_searching
                         else -> R.string.sensor_scan_tap
                     },
@@ -148,22 +152,7 @@ fun SensorScanSheet(onDismiss: () -> Unit, onPick: (BleDevice) -> Unit) {
             Spacer(Modifier.height(20.dp))
             val devices = found.values.sortedByDescending { it.rssi }
             devices.forEach { device ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .border(1.dp, TT.Gray10, RoundedCornerShape(12.dp))
-                        .clickable { onPick(device) }
-                        .padding(horizontal = 16.dp, vertical = 15.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column {
-                        Text(device.name, style = TTType.ItemTitle.copy(fontSize = 16.sp), color = TT.Ink)
-                        Text(device.address, style = TTType.Footnote, color = TT.Gray45)
-                    }
-                    Badge("${device.rssi} dBm", hPad = 8.dp, vPad = 4.dp)
-                }
+                SensorDeviceRow(device, onPick)
                 Spacer(Modifier.height(10.dp))
             }
             if (!permitted) {
@@ -175,5 +164,26 @@ fun SensorScanSheet(onDismiss: () -> Unit, onPick: (BleDevice) -> Unit) {
                 )
             }
         }
+    }
+}
+
+/** One sensor found by a search: name, address and signal; a tap picks it. */
+@Composable
+internal fun SensorDeviceRow(device: BleDevice, onPick: (BleDevice) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, TT.Gray10, RoundedCornerShape(12.dp))
+            .clickable { onPick(device) }
+            .padding(horizontal = 16.dp, vertical = 15.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column {
+            Text(device.name, style = TTType.ItemTitle.copy(fontSize = 16.sp), color = TT.Ink)
+            Text(device.address, style = TTType.Footnote, color = TT.Gray45)
+        }
+        Badge("${device.rssi} dBm", hPad = 8.dp, vPad = 4.dp)
     }
 }

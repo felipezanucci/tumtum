@@ -20,7 +20,8 @@ export const metadata: Metadata = {
   // path and every shared link arrives with no preview at all.
   metadataBase: new URL(SITE_URL),
   title: 'TumTum — Sinta o evento',
-  description: 'Descubra como seu coração reage nos momentos mais emocionantes. Conecte seu wearable, vá a um evento e compartilhe a emoção.',
+  // No "wearable" (25/09): the brand manual keeps healthtech vocabulary out.
+  description: 'Descubra como seu coração reagiu nos momentos que mais mexeram com você, e compartilhe.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
