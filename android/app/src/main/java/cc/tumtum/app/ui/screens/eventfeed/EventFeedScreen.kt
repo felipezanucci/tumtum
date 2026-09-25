@@ -54,6 +54,7 @@ import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import kotlinx.coroutines.launch
 import cc.tumtum.app.data.repo.NightSync
+import cc.tumtum.app.ui.components.revealWhen
 
 /**
  * b6 — o feed do evento: quem estava lá, e só.
@@ -490,7 +491,7 @@ private fun EmptyFeed(night: NightEntity?, nav: NavHostController) {
         night != null -> Note(
             stringResource(
                 R.string.event_feed_empty_locked,
-                Fmt.hour(java.time.Instant.ofEpochMilli(night.revealAt ?: now)),
+                revealWhen(java.time.Instant.ofEpochMilli(night.revealAt ?: now)),
             ),
         )
 

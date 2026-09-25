@@ -52,7 +52,7 @@
 
     <!-- b3 · Permissão — a tela quieta -->
     <string name="perm_title">Seus batimentos,\nsuas regras.</string>
-    <string name="perm_body">Para contar a história da sua noite, o TumTum precisa ler a frequência cardíaca que o seu relógio já registra.</string>
+    <string name="perm_body">Pra contar a história da sua noite, a TumTum precisa ler a batida que o seu relógio já grava.</string>
     <string name="perm_do_1">Lemos batimentos só nas janelas dos seus eventos</string>
     <string name="perm_do_2">Você escolhe o que compartilha, sempre</string>
     <string name="perm_dont_1">Não fazemos leitura de saúde, diagnóstico ou alerta</string>
@@ -223,7 +223,7 @@
     <string name="event_feed_take_down">tirar do feed</string>
     <string name="event_feed_taking_down">tirando…</string>
     <string name="event_feed_show_mine">Mostrar a minha</string>
-    <string name="event_feed_empty_locked">Ninguém mostrou nada ainda. Sua noite abre às %1$s — aí dá pra mostrar.</string>
+    <string name="event_feed_empty_locked">Ninguém mostrou nada ainda. Sua noite abre %1$s — aí dá pra mostrar.</string>
     <string name="event_feed_empty_elsewhere">Ninguém mostrou nada ainda.</string>
     <string name="event_feed_senti_refused">Esse SENTI TB não entrou: o servidor diz que sua noite não é desse evento.</string>
     <string name="event_feed_senti_offline">Sem conexão — seu SENTI TB não chegou. Toca de novo quando voltar.</string>
@@ -375,7 +375,7 @@
 
     <!-- Isenção de otimização de bateria (§6). Tela de permissão: a marca fica quieta e explica. -->
     <string name="battery_title">Uma permissão\nantes de começar.</string>
-    <string name="battery_body">Para gravar a noite inteira com a tela apagada, o Android precisa deixar o TumTum funcionar sem otimização de bateria. É só isso — nenhum outro dado do celular.</string>
+    <string name="battery_body">Para gravar a noite inteira com a tela apagada, o Android precisa deixar a TumTum funcionar sem otimização de bateria. É só isso — nenhum outro dado do celular.</string>
     <string name="battery_steps_label">O QUE FAZER</string>
     <string name="battery_step_1">Toque no botão rosa abaixo, Tirar da otimização.</string>
     <string name="battery_step_2">O Android vai perguntar \"Parar a otimização do uso da bateria?\". Toque em OK.</string>
@@ -533,7 +533,7 @@
     <string name="remind_event_text">Bota o relógio. A gente só olha depois.</string>
     <string name="remind_reveal_title">Sua noite abriu.</string>
     <string name="remind_reveal_text">%1$s — a curva está pronta.</string>
-    <string name="locked_body_notify">A curva abre aqui às %1$s. A gente te avisa — vale a espera.</string>
+    <string name="locked_body_notify">A curva abre aqui %1$s. A gente te avisa — vale a espera.</string>
 
     <!-- Trava da revela (protocolo do teste) -->
     <string name="settings_reveal_lock">Trava da revela</string>
@@ -545,9 +545,13 @@
     <string name="settings_toggle_on">LIGADA</string>
     <string name="settings_toggle_off">DESLIGADA</string>
     <string name="locked_title">Sua noite está sendo\nrevelada.</string>
-    <string name="locked_body">A curva abre aqui às %1$s. Vale a espera.</string>
+    <string name="locked_body">A curva abre aqui %1$s. Vale a espera.</string>
     <string name="locked_badge">LACRADA</string>
-    <string name="locked_row_hint">Abre às 10h. Sem espiar — é parte da mágica.</string>
+    <string name="locked_row_hint">Abre %1$s. Sem espiar — é parte da mágica.</string>
+    <!-- The day is always said (25/09): "às 10h00" read at 14h20 is a morning already gone. -->
+    <string name="reveal_when_today">hoje às %1$s</string>
+    <string name="reveal_when_tomorrow">amanhã às %1$s</string>
+    <string name="reveal_when_day">dia %1$s às %2$s</string>
     <string name="locked_export">Exportar sessão — operador</string>
     <string name="reveal_home">Voltar pro início</string>
     <string name="reveal_missing_title">Essa noite não\nestá mais aqui.</string>
@@ -555,8 +559,8 @@
     <string name="reveal_other_title">Essa noite é de\noutra conta.</string>
     <string name="reveal_other_body">Ela fica guardada neste celular e abre quando a conta que gravou entrar de novo.</string>
     <plurals name="nights_hidden">
-        <item quantity="one">%1$d noite deste celular é de outra conta. Ela aparece quando essa conta entrar.</item>
-        <item quantity="other">%1$d noites deste celular são de outra conta. Elas aparecem quando essa conta entrar.</item>
+        <item quantity="one">%1$d noite deste celular foi gravada em outra conta. Ela volta quando a conta que gravou entrar.</item>
+        <item quantity="other">%1$d noites deste celular foram gravadas em outras contas. Cada uma volta quando a conta que gravou entrar.</item>
     </plurals>
     <!-- #62: o olhinho da senha. -->
     <string name="field_password_show">Mostrar a senha</string>

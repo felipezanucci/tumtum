@@ -73,9 +73,15 @@ import kotlinx.coroutines.launch
  *   peito?" and the sensor search;
  * - **watch chosen**: "Pronto, relógio conectado", the way home, and Trocar;
  * - **searching** a sensor: what was found, or why nothing is there yet;
- * - **sensor paired**: the app connects and waits for a beat *with skin
- *   contact*. Only that earns "Pronto, conexão feita"; a strap on the table
- *   is said to be one.
+ * - **sensor paired**: the app connects and waits for a beat that proves a
+ *   person — one with an R-R interval ([OnSkinTracker]). Only that earns
+ *   "Pronto, conexão feita"; a strap on the table is said to be one.
+ *
+ * On black since the b198 round (Felipe: *"deixa essa tela um pouco mais
+ * colorida"*): the brand's digital default, where Pink and Toxic Yellow both
+ * read — yellow on white is 1.11:1. Pink is the one thing to do on each state,
+ * yellow marks the strap road. The permission screen before it stays white
+ * and quiet: consent is where the brand chooses trust over fun.
  */
 @Composable
 fun SetupScreen(nav: NavHostController) {
@@ -98,13 +104,13 @@ fun SetupScreen(nav: NavHostController) {
     Column(
         Modifier
             .fillMaxSize()
-            .background(TT.Paper)
+            .background(TT.Ink)
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(start = 28.dp, end = 28.dp, top = 22.dp, bottom = 30.dp),
     ) {
-        BackArrow(onClick = { nav.popBackStack() })
+        BackArrow(onClick = { nav.popBackStack() }, onDark = true)
         Spacer(Modifier.height(34.dp))
 
         when {
@@ -129,7 +135,7 @@ fun SetupScreen(nav: NavHostController) {
             )
 
             state.sourcePackage != null -> {
-                Text(stringResource(R.string.setup_watch_ready_title), style = TTType.TitleSmall, color = TT.Ink)
+                Text(stringResource(R.string.setup_watch_ready_title), style = TTType.TitleSmall, color = TT.Rose)
                 Spacer(Modifier.height(10.dp))
                 Text(
                     stringResource(R.string.setup_watch_ready_body, state.sourceLabel.orEmpty()),
@@ -141,13 +147,13 @@ fun SetupScreen(nav: NavHostController) {
                 Spacer(Modifier.height(10.dp))
                 TTButton(
                     stringResource(R.string.setup_watch_change),
-                    TTButtonStyle.Outline,
+                    TTButtonStyle.OutlineOnDark,
                     onClick = { scope.launch { container.prefs.clearSource() } },
                 )
             }
 
             else -> {
-                Text(stringResource(R.string.setup_title), style = TTType.TitleSmall, color = TT.Ink)
+                Text(stringResource(R.string.setup_title), style = TTType.TitleSmall, color = TT.Paper)
                 Spacer(Modifier.height(10.dp))
                 Text(stringResource(R.string.setup_body), style = TTType.Body, color = TT.Gray45)
                 Spacer(Modifier.height(24.dp))
@@ -155,11 +161,11 @@ fun SetupScreen(nav: NavHostController) {
                     onUse = { pkg, label -> scope.launch { container.prefs.setSource(pkg, label) } },
                 )
                 Spacer(Modifier.height(10.dp))
-                TTButton(stringResource(R.string.sources_skip), TTButtonStyle.Outline, onClick = { goHome() })
+                TTButton(stringResource(R.string.sources_skip), TTButtonStyle.OutlineOnDark, onClick = { goHome() })
                 Spacer(Modifier.height(40.dp))
-                Text(stringResource(R.string.setup_strap_section), style = TTType.Meta, color = TT.Gray70)
+                Text(stringResource(R.string.setup_strap_section), style = TTType.Meta, color = TT.Acid)
                 Spacer(Modifier.height(10.dp))
-                TTButton(stringResource(R.string.setup_strap_search), TTButtonStyle.Outline, onClick = { searching = true })
+                TTButton(stringResource(R.string.setup_strap_search), TTButtonStyle.OutlineAcid, onClick = { searching = true })
             }
         }
     }
@@ -197,7 +203,7 @@ private fun SearchingStep(onPick: (BleDevice) -> Unit, onStop: () -> Unit) {
     }
     val quietFor = Duration.ofMillis(now - startedAt)
 
-    Text(stringResource(R.string.setup_searching_title), style = TTType.TitleSmall, color = TT.Ink)
+    Text(stringResource(R.string.setup_searching_title), style = TTType.TitleSmall, color = TT.Paper)
     Spacer(Modifier.height(10.dp))
     Text(
         stringResource(
@@ -214,7 +220,7 @@ private fun SearchingStep(onPick: (BleDevice) -> Unit, onStop: () -> Unit) {
     )
     Spacer(Modifier.height(22.dp))
     found.values.sortedByDescending { it.rssi }.forEach { device ->
-        SensorDeviceRow(device, onPick)
+        SensorDeviceRow(device, onPick, onDark = true)
         Spacer(Modifier.height(10.dp))
     }
     Spacer(Modifier.height(12.dp))
@@ -228,7 +234,7 @@ private fun SearchingStep(onPick: (BleDevice) -> Unit, onStop: () -> Unit) {
         else -> Unit
     }
     Spacer(Modifier.height(10.dp))
-    TTButton(stringResource(R.string.setup_stop), TTButtonStyle.Outline, onClick = onStop)
+    TTButton(stringResource(R.string.setup_stop), TTButtonStyle.OutlineOnDark, onClick = onStop)
 }
 
 /**
@@ -285,16 +291,16 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
     val fresh = current != null && now - current.second <= FRESH_MS
     val noSkin = offSkinAt?.let { off -> current == null || off > current.second } == true
     if (noSkin) {
-        Text(stringResource(R.string.setup_paired_title), style = TTType.TitleSmall, color = TT.Ink)
+        Text(stringResource(R.string.setup_paired_title), style = TTType.TitleSmall, color = TT.Paper)
         Spacer(Modifier.height(10.dp))
         Text(stringResource(R.string.setup_no_contact, name), style = TTType.Body, color = TT.Gray45)
     } else if (current != null) {
-        Text(stringResource(R.string.setup_ready_title), style = TTType.TitleSmall, color = TT.Ink)
+        Text(stringResource(R.string.setup_ready_title), style = TTType.TitleSmall, color = TT.Rose)
         Spacer(Modifier.height(10.dp))
         Text(stringResource(R.string.setup_ready_body, name), style = TTType.Body, color = TT.Gray45)
         Spacer(Modifier.height(22.dp))
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(if (fresh) "${current.first}" else "--", style = TTType.HeroSmall, color = TT.Ink)
+            Text(if (fresh) "${current.first}" else "--", style = TTType.HeroSmall, color = TT.Paper)
             Spacer(Modifier.width(8.dp))
             Text(
                 stringResource(if (fresh) R.string.setup_beating_now else R.string.setup_beat_paused),
@@ -304,7 +310,7 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
             )
         }
     } else {
-        Text(stringResource(R.string.setup_paired_title), style = TTType.TitleSmall, color = TT.Ink)
+        Text(stringResource(R.string.setup_paired_title), style = TTType.TitleSmall, color = TT.Paper)
         Spacer(Modifier.height(10.dp))
         Text(
             stringResource(
@@ -318,7 +324,7 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
     Spacer(Modifier.height(30.dp))
     TTButton(stringResource(R.string.setup_home), TTButtonStyle.Rose, onClick = onHome)
     Spacer(Modifier.height(10.dp))
-    TTButton(stringResource(R.string.setup_change), TTButtonStyle.Outline, onClick = onChange)
+    TTButton(stringResource(R.string.setup_change), TTButtonStyle.OutlineOnDark, onClick = onChange)
 }
 
 /**
@@ -349,18 +355,19 @@ private fun WatchChoices(onUse: (String, String) -> Unit) {
     }
     val withData = r.second?.sources.orEmpty().filter { it.hasData }
     when {
-        !r.first -> Text(stringResource(R.string.setup_watch_no_permission), style = TTType.Body, color = TT.Ink)
+        !r.first -> Text(stringResource(R.string.setup_watch_no_permission), style = TTType.Body, color = TT.Paper)
         withData.isEmpty() -> {
-            Text(stringResource(R.string.setup_watch_none), style = TTType.Body, color = TT.Ink)
+            Text(stringResource(R.string.setup_watch_none), style = TTType.Body, color = TT.Paper)
             Spacer(Modifier.height(14.dp))
-            TTButton(stringResource(R.string.setup_search_again), TTButtonStyle.Outline, onClick = { tick++ })
+            // No watch yet: looking again is the one thing to do, so it is the Pink one.
+            TTButton(stringResource(R.string.setup_search_again), TTButtonStyle.Rose, onClick = { tick++ })
         }
         else -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             withData.forEachIndexed { i, source ->
-                SourceCard(source = source, selected = false, setupMode = true, onClick = {})
+                SourceCard(source = source, selected = false, setupMode = true, onClick = {}, onDark = true)
                 TTButton(
                     stringResource(R.string.sources_use, source.label),
-                    if (i == 0) TTButtonStyle.Rose else TTButtonStyle.Outline,
+                    if (i == 0) TTButtonStyle.Rose else TTButtonStyle.OutlineOnDark,
                     onClick = { onUse(source.packageName, source.label) },
                 )
             }

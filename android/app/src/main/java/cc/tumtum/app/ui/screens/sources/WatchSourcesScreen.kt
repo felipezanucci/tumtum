@@ -157,12 +157,18 @@ fun WatchSourcesScreen(nav: NavHostController) {
 }
 
 @Composable
-internal fun SourceCard(source: WatchSource, selected: Boolean, setupMode: Boolean, onClick: () -> Unit) {
+internal fun SourceCard(
+    source: WatchSource,
+    selected: Boolean,
+    setupMode: Boolean,
+    onClick: () -> Unit,
+    onDark: Boolean = false,
+) {
     val shape = RoundedCornerShape(12.dp)
     val borderMod = if (selected && source.hasData) {
-        Modifier.border(2.dp, TT.Ink, shape)
+        Modifier.border(2.dp, if (onDark) TT.Paper else TT.Ink, shape)
     } else {
-        Modifier.border(1.dp, TT.Gray10, shape)
+        Modifier.border(1.dp, if (onDark) TT.Ink600 else TT.Gray10, shape)
     }
     Column(
         Modifier
@@ -181,7 +187,7 @@ internal fun SourceCard(source: WatchSource, selected: Boolean, setupMode: Boole
             Text(
                 source.label,
                 style = TTType.ItemTitle.copy(fontSize = 16.sp),
-                color = if (source.hasData) TT.Ink else TT.Gray25,
+                color = if (!source.hasData) TT.Gray25 else if (onDark) TT.Paper else TT.Ink,
             )
             if (source.isBest && source.hasData) {
                 Badge(stringResource(R.string.sources_best))
@@ -196,13 +202,20 @@ internal fun SourceCard(source: WatchSource, selected: Boolean, setupMode: Boole
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(TT.Gray10),
+                    .background(if (onDark) TT.Ink700 else TT.Gray10),
             ) {
                 Box(
                     Modifier
                         .fillMaxWidth(source.coveragePct / 100f)
                         .height(8.dp)
-                        .background(if (source.isBest) TT.Ink else TT.Gray45),
+                        // On black the line is Pink, as in every chart on a dark surface.
+                        .background(
+                            when {
+                                !source.isBest -> TT.Gray45
+                                onDark -> TT.DataLineOnDark
+                                else -> TT.Ink
+                            },
+                        ),
                 )
             }
             val interval = if (source.medianIntervalSec >= 60) {
@@ -217,7 +230,7 @@ internal fun SourceCard(source: WatchSource, selected: Boolean, setupMode: Boole
                     interval,
                 ),
                 style = TTType.Footnote,
-                color = TT.Gray70,
+                color = if (onDark) TT.Gray45 else TT.Gray70,
             )
         }
     }
