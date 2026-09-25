@@ -5,12 +5,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-09-24
+## Where things stand — 2026-09-25
 
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **24/09, evening — the share menu reworked (items 61–63, #96) and confirmed on b189.** The networks are TumTum Pink, two to a row, and never beside a hole; *Status do WhatsApp* opened Status on Felipe's phone, the post went up and was seen from another phone. **One finding: *Salvar card* went to a folder only the Files app shows**, not the camera roll; the fix (DCIM/Camera, pending write, date taken) is on its way to a hand. **An account now needs a 6-digit code sent to its e-mail (#64, Felipe's call)**, in the app, on the site and on the server, which refuses the old one-step sign-up; `RESEND_API_KEY` was missing from Railway since 26/08 (password recovery had never sent a mail); Felipe set it the same evening and the first reset mail arrived. **Test 7a passed**; 7b and 7c could not run, because the steps sent for them were wrong and creating the test account wiped the phone's nights (entry "test 7 in a hand"). Tests 8–9 still to run. *(earlier 24/09:)* **24/09 — sharing proved on five networks (b187).** Instagram and Facebook Stories with a movable card over the person's video, Snapchat at full width with the video playing, TikTok and WhatsApp with the finished video. Snap and TikTok are **in review**; their production IDs replace the staging/sandbox ones on approval. The day's bug: a card over a video came back, on the next visit, as a photo of its first frame. Handoff: `docs/handoff-2026-09-24.md`. *(23/09:)* **23/09 — the 23/09 test round, built in one batch (b173).** Felipe tested b169 (PR #85) block by block, and his call on the tour — *"essa experiência muito confusa… o que é rolê? o que é turnê?"* — became **one feed per event**, the tour's when there is one, with the night as a filter. Also built: the server watches a match live and measures both whistles itself (API-Football's periods turned out to be null), posting keeps the server's own reason and nights belong to the account that sent them, the card's line is averaged and finer, the password field has an eye, sign-in goes to the feed, the admin has its own menu. **Still to run: tests 6–10** (session persistence, refusal with a nightless account, marks without a night, the reveal lock, and the show operator on a phone, which passed 23/09). *(22/09 evening:)* **22/09 evening — the night's test findings, all nineteen, built in five waves (b164–b168):** the app stops describing itself falsely (the button that faded, the error that was a cancellation, the SENTI that threw its answer away), a session lasts as long as the phone is used (refresh tokens, 90 days), the feed has colour, the card is A2, report and block exist, and the tour sits above the rolê. Waiting on Felipe's merge and hand. *(earlier 22/09:)* **b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | **25/09 — the test round on b195, and one batch for everything it found.** Tests 1 (the sign-up code, phone and site), 8 (marks without a night) and 9 (the reveal lock, notification included) passed in a hand; Instagram took the saved card and the copied one. The round found another account's night fully open on the phone, reveal notifications for deleted nights opening a blank screen, a night recorded signed out, a setup screen that showed the previous person's sensor, and a site welcome that faked a watch connection. **Built together:** nights belong to the account that recorded them (hidden, never deleted), capture needs an account, the operator tools follow the server's `is_admin` (item 52), the phone remembers how a session ended, setup rebuilt around a real search and a real beat, the sealed night's way home, the site's welcome made true — **b196**, green on the first build. Waiting on Felipe's hand. *(24/09:)* **24/09, evening — the share menu reworked (items 61–63, #96) and confirmed on b189.** The networks are TumTum Pink, two to a row, and never beside a hole; *Status do WhatsApp* opened Status on Felipe's phone, the post went up and was seen from another phone. **One finding: *Salvar card* went to a folder only the Files app shows**, not the camera roll; the fix (DCIM/Camera, pending write, date taken) is on its way to a hand. **An account now needs a 6-digit code sent to its e-mail (#64, Felipe's call)**, in the app, on the site and on the server, which refuses the old one-step sign-up; `RESEND_API_KEY` was missing from Railway since 26/08 (password recovery had never sent a mail); Felipe set it the same evening and the first reset mail arrived. **Test 7a passed**; 7b and 7c could not run, because the steps sent for them were wrong and creating the test account wiped the phone's nights (entry "test 7 in a hand"). Tests 8–9 still to run. *(earlier 24/09:)* **24/09 — sharing proved on five networks (b187).** Instagram and Facebook Stories with a movable card over the person's video, Snapchat at full width with the video playing, TikTok and WhatsApp with the finished video. Snap and TikTok are **in review**; their production IDs replace the staging/sandbox ones on approval. The day's bug: a card over a video came back, on the next visit, as a photo of its first frame. Handoff: `docs/handoff-2026-09-24.md`. *(23/09:)* **23/09 — the 23/09 test round, built in one batch (b173).** Felipe tested b169 (PR #85) block by block, and his call on the tour — *"essa experiência muito confusa… o que é rolê? o que é turnê?"* — became **one feed per event**, the tour's when there is one, with the night as a filter. Also built: the server watches a match live and measures both whistles itself (API-Football's periods turned out to be null), posting keeps the server's own reason and nights belong to the account that sent them, the card's line is averaged and finer, the password field has an eye, sign-in goes to the feed, the admin has its own menu. **Still to run: tests 6–10** (session persistence, refusal with a nightless account, marks without a night, the reveal lock, and the show operator on a phone, which passed 23/09). *(22/09 evening:)* **22/09 evening — the night's test findings, all nineteen, built in five waves (b164–b168):** the app stops describing itself falsely (the button that faded, the error that was a cancellation, the SENTI that threw its answer away), a session lasts as long as the phone is used (refresh tokens, 90 days), the feed has colour, the card is A2, report and block exist, and the tour sits above the rolê. Waiting on Felipe's merge and hand. *(earlier 22/09:)* **b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -547,7 +547,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
     now survives a **refusal** and nothing else: swallowing every failure
     would let a network blip upload a night linked to no event *for good*,
     since `serverSessionId` is stored and never recreated.
-52. **The OPERADOR toggle is a UI gate, not a permission.** Noticed 22/09
+52. ~~**The OPERADOR toggle is a UI gate, not a permission.**~~ **Closed
+    25/09:** the app stores `is_admin` from `/api/auth/me` against the
+    account, and the marks and event shortcuts need the switch *and* the
+    server's word (entry of 25/09). *(Original:)* Noticed 22/09
     closing item 47. The capture screen's mark buttons are behind
     `user.operatorMarks`, which is a **local DataStore flag** anyone can turn
     on in Configurações — the app never asks the server who it is talking to,
@@ -651,7 +654,10 @@ the linked documents — this file is the index and the reasoning, not a diary.
     was sent for review. *Enviar app para revisão* stays disabled while the
     app is an internal-testing draft, and every change since 18/09 waits in
     *Visão geral da publicação* until the first closed or production track.
-60. **Tests 6–10 of the 23/09 round are still to run on b173**: ~~the session
+60. ~~**Tests 6–10 of the 23/09 round are still to run on b173**~~ **All run
+    by 25/09.** 8 and 9 passed in full on b195; 7b's question (another
+    account's night on this phone) became Felipe's rule that such a night is
+    hidden, built the same day. *(History:)* ~~the session
     surviving more than an hour closed (6)~~ — **passed 23/09**: the phone sat
     two to three hours untouched and Felipe was still signed in, the refresh
     token doing its work with no password asked (#34 measured in a hand), the honest refusal for an account
@@ -723,8 +729,8 @@ the linked documents — this file is the index and the reasoning, not a diary.
 64. ~~**An e-mail that does not exist makes an account (Felipe, 24/09).**~~
     **Built the same day, at sign-up** (Felipe: *"vamos mandar o código de 6
     dígitos logo na criação da conta. assim evitamos a criação de contas
-    falsas"*). See the entry "an account needs its e-mail". On a phone: not
-    yet. *(Analysis, as written before the call:)*
+    falsas"*). See the entry "an account needs its e-mail". **Proved in a
+    hand 25/09**, on the phone and on the site, codes arriving both times. *(Analysis, as written before the call:)*
     Test 7 made one with `teste@teste.com`. His ask: accept only e-mails
     that really exist. **A validator cannot do that**: the server already
     checks the form (`EmailStr` in `schemas/auth.py`, the app checks for an
@@ -742,8 +748,11 @@ the linked documents — this file is the index and the reasoning, not a diary.
     in **a new table**, never a new column on `users`, which would silently
     not exist in production. Existing accounts: confirmed at their next
     sign-in, or grandfathered. Costed at about one session.
-65. **A night never comes back from the server, and a second account wipes
-    the phone.** Known since 18/09 ("nothing downloads a night yet"), and it
+65. **A night never comes back from the server** ~~, and a second account
+    wipes the phone~~. **The wipe is gone (25/09):** each night belongs to
+    the account that recorded it, another account's are hidden and come back
+    with it, and creating an account deletes nothing. What remains is the
+    download, below. *(Original:)* Known since 18/09 ("nothing downloads a night yet"), and it
     cost Felipe every night on his phone on 24/09 (test 7). The nights are
     safe on the server, under the account that uploaded each one; the app
     has no road to bring them back, so a reinstall, a new phone or *Criar
@@ -755,6 +764,14 @@ the linked documents — this file is the index and the reasoning, not a diary.
     stop wiping and show each account its own nights, and bring an
     account's nights down from the server on sign-in. The second is what a
     fan with a new phone needs.
+66. **Fake wearable connections in the database.** Until 25/09 the site's
+    welcome "connected" a watch by saving a `wearable_connections` row with
+    the token `placeholder-token`, and the site profile lists those rows as
+    *"Dispositivos conectados"*. The page is fixed; the rows are still
+    there. Count them and delete them, then decide whether the profile
+    section should exist at all while the site cannot connect anything.
+67. **The share menu's card preview shrinks to a sliver** with six networks
+    installed (Felipe's screenshot, 25/09), as the #96 entry predicted. Low.
 56. **Nobody has ever seen the feed with more than one person in it.** The
     privacy floor in `services/crowd` is four measured nights, and a pilot
     with three to five straps sits exactly on it. So the two states most
@@ -763,6 +780,149 @@ the linked documents — this file is the index and the reasoning, not a diary.
     collective moment (card 04) cannot be judged until an event has four
     nights uploaded, which makes **one match with four straps** the cheapest
     experiment that answers whether any of this is worth anything.
+
+---
+
+## 2026-09-25 — the test round on b195, and everything it found, built in one batch
+
+Felipe ran the rest of the 24/09 list on b195 the morning of 25/09 and asked
+for the findings to be collected and fixed together (*"anote essas correções
+que eu vou fazer os outros testes. Aí você arruma tudo de uma vez"*). The raw
+notes, eighteen of them, were kept in the session; this is what they came to.
+
+### What passed in a hand
+
+- **Test 9, the reveal lock, completely.** A sealed night, *"Sua noite está
+  sendo revelada"*, LACRADA in Você, the curve opening by itself at 10h, and
+  *"Sua noite abriu."* in the notification shade at 10h01. The alarm is
+  inexact and was one minute late, which is fine.
+- **Test 8, marks without a night.** On the operator account at
+  `/admin/eventos`: APITO recorded as the kick-off and a second APITO refused,
+  GOL twice, and a mark tapped in airplane mode reaching the server with the
+  next tap. Marks arrived during the capture, not at its end.
+- **Test 1, the 6-digit code (#64), on the phone and on the site.** Wrong
+  code (*"faltam 4 tentativas"*), the resend countdown, *"Só o mais novo
+  vale"*, and the right code creating the account. The codes arrived by
+  e-mail both times.
+- **Instagram:** the card saved to the camera roll went into a Story as a
+  sticker, and *Copiar card* pasted into the Story editor. Both roads work.
+
+### What it found
+
+1. **Another account's night was fully open.** Signed into his own account,
+   Felipe opened *Teste 7B-2* — recorded by the test account — and saw the
+   curve, made the card and could share it. The phone showed every night it
+   held, whoever had recorded it. His read: another account's night must not
+   be visible at all. **Decided: hidden, never deleted** (*"vamos seguir com
+   a sua recomendação e manter escondida"*).
+2. **Four "Sua noite abriu." for two nights that no longer existed.**
+   Creating the test account at 09:38 wiped the phone's nights (open item 65)
+   and left their reveal alarms set. At 10h01 the phone announced curves it
+   had deleted, and tapping one opened a **blank white screen**
+   (`RevealScreen` returned early on a null night). Felipe asked whether
+   Gmail's `+teste` addresses caused it. They do not: `name+teste@gmail.com`
+   and `name@gmail.com` are two accounts to the server and to the app. Gmail
+   only delivers both to one inbox.
+3. **A night was recorded signed out.** The phone had been signed out
+   overnight, and the capture started anyway. The night sat PENDING with no
+   account, did not go up when he signed in (only the next app start retries
+   it), and meanwhile the event's feed told him *"Sua noite não chegou
+   aqui"* about a night sitting on the same phone. Felipe's rule: **a night
+   is recorded only with an account.**
+4. **Nobody could tell why he was signed out.** He did not remember tapping
+   Sair. The one line that would have told a Sair from a refused renewal was
+   overwritten the moment he signed back in.
+5. **"Só neste celular: o servidor não aceitou o cadastro"** was the whole
+   explanation for an event that never reached the server. The likely cause
+   was the signed-out phone, not a refusal, and the line could not say
+   which. Under it, open item 52: the operator switches were a local flag
+   any account could turn on.
+6. **Setup on a new account** opened with Felipe's Polar H10 already
+   "paired" (the pairing lives in the phone's prefs and nothing cleared it,
+   the same leak as the photo on 24/09), with no way to search for a device,
+   the after-a-night line *"Não achamos batida nessa janela"* where there was
+   no window, no word that anything was done, and *"Fazer isso depois"* in
+   grey. His ask: *"tem que aparecer um campo de procurar o dispositivo…
+   depois de conectado, pronto, conexão feita, e um botão pra ir pra home."*
+7. **The sealed night** offered *"Exportar sessão — operador"* to every fan,
+   and its only way out was the small arrow.
+8. **The site's welcome** (`/onboarding`) opened on a ❤️, asked to
+   *"conectar seu wearable"* from a list with fitness emojis, and "connected"
+   a watch by saving a row with the token `placeholder-token`, a Phase-0
+   simulation that was never removed. When that failed it went on to *"Tudo
+   pronto!"* anyway. The site cannot read a watch at all.
+9. **Low:** with six networks, the card preview in the share menu shrinks to
+   a sliver. This was predicted in the #96 entry. Not built.
+
+### What was built — b196
+
+- **Nights have an owner from the moment they exist.** `saveNight` records
+  the recording account, not the upload. The phone keeps a *viewer*: the
+  last account signed in, which survives Sair so the person who signed out
+  still finds their nights. Every list (Você, the gallery, the public
+  profile) shows the viewer's nights plus ownerless ones from before this
+  rule. Another account's nights are hidden, and Você says how many are
+  there instead of claiming *"Nenhum show ainda"*. Creating an account
+  wipes nothing. **Deleting an account takes only that account's nights**,
+  with their photos, events, raw capture and alarms. The sync never uploads
+  another account's night under this one. A night opened by id that is gone
+  or belongs to another account says so, with *Voltar pro início*.
+- **Reveal alarms follow the account.** They are rescheduled on every
+  sign-in. The receiver checks that the night still exists and is the
+  viewer's before posting.
+- **Capture needs a live session.** AO VIVO says *"Entra na sua conta pra
+  gravar a noite"* with a Pink *Entrar* before any tap, and a declined tap
+  says it again. Signing in (either door) sends any waiting night at once.
+  The event feed, when this phone holds an unsent night of that event, says
+  so and offers *"Mandar minha noite agora"*.
+- **Item 52 is closed.** `/api/auth/me`'s `is_admin` is stored against the
+  account (asked on sign-in and on every app start). The mark buttons and
+  the event shortcuts need both the switch and the server's word. A fan
+  sees *"Cadastrar eventos e marcar momentos é só pra conta de operador"*.
+  The capture's local-only line says which of four things happened (no
+  account, not an operator, offline, or the server's own sentence) and has
+  *TENTAR DE NOVO*.
+- **The phone remembers how the session ended.** *"Você saiu da conta em
+  25.09.26 às 08h12"* or *"O servidor encerrou sua sessão em…"*, kept until
+  the next sign-in.
+- **Setup rebuilt** (`SetupScreen`), in three states. With nothing paired:
+  a Pink *Procurar dispositivo* and a quiet *Fazer isso depois*. Searching:
+  what was found, or an honest line (Bluetooth off, no permission, or
+  nothing after 15 s). Paired: the app connects and waits for a beat.
+  **Only a real beat earns "Pronto, conexão feita"**, with the live number
+  as proof; until then the sensor is *"pareado"*, which is all the phone
+  knows. A watch in Health Connect stays as the second, quieter road. A
+  different account arriving now clears the sensor, the watch, the
+  participant id and the marked event, like the photo.
+- **The sealed night** has a Pink *Voltar pro início*. The raw export shows
+  only on the operator's account or on a phone set up with a participant id,
+  on the sealed screen and the open one alike.
+- **The site's welcome tells the truth.** The wordmark, *"Sua conta está
+  pronta"*, the night is recorded by the app on the phone, the app is in
+  closed testing and Android only, and *Ver os eventos*. No emoji, no
+  "wearable", no fake connection. The site's meta description lost
+  "wearable" too.
+
+### Found while building
+
+**"Apagar conta" while signed out deleted the phone's data and claimed the
+account was gone.** The code read a missing session as "never signed in,
+nothing on the server to delete", but signed out is not never signed in. It
+now asks to sign in first and deletes nothing. This is the log's usual class,
+in the one place the privacy page makes a promise.
+
+### Left open
+
+- **The rows `placeholder-token` wrote to `wearable_connections`** are still
+  in the database. The site profile lists them under *"Dispositivos
+  conectados"*. They should be counted and deleted.
+- **Bringing a night down from the server** is still the second half of
+  item 65: what a new phone or a reinstall needs.
+- **The *Trava da revela* switch is still on** on Felipe's phone from
+  test 9. Every new night will be sealed until 10h until it is turned off.
+- **The share-menu card preview** (finding 9).
+- **Operator tools after the update need one online app start or sign-in**
+  to learn the role. On a fresh install at the venue, sign in before going.
 
 ---
 
