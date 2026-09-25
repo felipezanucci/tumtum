@@ -57,6 +57,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import cc.tumtum.app.data.repo.SyncPhase
+import cc.tumtum.app.ui.components.revealWhen
 import androidx.core.app.NotificationManagerCompat
 
 /**
@@ -466,7 +467,7 @@ private fun LockedNightView(
             stringResource(
                 // The promise is made only when Android will let it be kept.
                 if (NotificationManagerCompat.from(LocalContext.current).areNotificationsEnabled()) R.string.locked_body_notify else R.string.locked_body,
-                night.revealAt?.let { Fmt.hour(it) } ?: "10:00",
+                night.revealAt?.let { revealWhen(it) }.orEmpty(),
             ),
             style = TTType.Body,
             color = TT.Gray45,

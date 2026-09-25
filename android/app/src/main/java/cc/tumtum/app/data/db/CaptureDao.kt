@@ -33,6 +33,10 @@ interface CaptureDao {
     @Query("SELECT * FROM rr_intervals WHERE eventId = :eventId ORDER BY wallClockMs")
     suspend fun rrForEvent(eventId: Long): List<RrIntervalEntity>
 
+    /** The instants of the readings that carried an R-R (they share the sample's wallClockMs). */
+    @Query("SELECT DISTINCT wallClockMs FROM rr_intervals WHERE eventId = :eventId AND wallClockMs BETWEEN :fromMs AND :toMs")
+    suspend fun rrTimesBetween(eventId: Long, fromMs: Long, toMs: Long): List<Long>
+
     @Query("SELECT * FROM motion WHERE eventId = :eventId ORDER BY wallClockMs")
     suspend fun motionForEvent(eventId: Long): List<MotionEntity>
 

@@ -42,6 +42,7 @@ import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
+import cc.tumtum.app.ui.components.revealWhen
 import java.time.Duration
 
 /**
@@ -174,7 +175,7 @@ private fun NightCard(night: Night, onClick: () -> Unit) {
         }
         if (locked) {
             Text(
-                stringResource(R.string.locked_row_hint),
+                stringResource(R.string.locked_row_hint, night.revealAt?.let { revealWhen(it) }.orEmpty()),
                 style = TTType.Footnote,
                 color = TT.Gray45,
             )

@@ -551,7 +551,13 @@ designed against them. The values live in `detect_peaks()` in
 - **The fan's device is a watch.** (25/09) *"Praticamente todo mundo vai
   usar só relógio."* Setup leads with the watch (Health Connect); a chest
   strap is the quiet second road, for the pilot's operator-set phones.
-- **A reading without skin contact is not a beat.** (25/09) The sensor says
-  in every packet whether it feels skin; a strap on a table sent numbers.
-  Such a reading never becomes a number on screen, a point on the curve or
-  a beat on the server — the night keeps a gap there.
+- **A reading off the skin is not a beat.** (25/09, measured on night 18)
+  The skin-contact flag is not enough: a Polar H10 reports "not supported"
+  in every packet, worn or not. Taken off, it repeats its last value for
+  about nine seconds with no R-R, then sends 0, then disconnects. So a
+  reading is a beat only if it is within 30–250 bpm, not flagged "no
+  contact", and — from a sensor that sends R-R — not inside a run of three
+  or more readings without one (`domain/BeatFilter.kt`). Anything else
+  never becomes a number on screen, a point on the curve or a beat on the
+  server — the night keeps a gap there. **Read a sensor's export before
+  writing a rule about what it sends.**

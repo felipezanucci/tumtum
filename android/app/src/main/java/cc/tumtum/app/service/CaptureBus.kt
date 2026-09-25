@@ -13,7 +13,12 @@ data class CaptureStatus(
     val connection: BleConnectionState = BleConnectionState.Idle,
     val samplesWritten: Long = 0,
     val lastBpm: Int? = null,
-    val contactStatus: Int? = null,
+    /**
+     * Whether the last reading was a beat ([cc.tumtum.app.domain.OnSkinTracker]);
+     * null before the first. A strap off the skin stays connected and keeps
+     * talking (25/09), so connected alone says nothing about a heart.
+     */
+    val onSkin: Boolean? = null,
     val sensorBatteryPct: Int? = null,
     val deviceName: String? = null,
 )

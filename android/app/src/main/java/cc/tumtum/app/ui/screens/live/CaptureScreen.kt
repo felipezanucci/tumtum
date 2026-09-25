@@ -58,7 +58,6 @@ import java.time.Duration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import cc.tumtum.app.data.repo.NightSync
-import cc.tumtum.app.data.ble.SkinContact
 
 /**
  * a2 — Captura ao vivo. Fundo #0A0A0A, estado calmo, quase sem UI.
@@ -118,22 +117,22 @@ fun CaptureScreen(nav: NavHostController) {
                 Text(stringResource(R.string.live_label), style = TTType.MetaWide, color = TT.Acid)
                 Spacer(Modifier.weight(1f))
                 if (bleActive) {
+                    val sensor = (bus.deviceName ?: "SENSOR").uppercase()
                     val connLabel = when (bus.connection) {
-                        is BleConnectionState.Connected ->
-                            // Connected is not on the skin (25/09): the strap on a table
-                            // is connected and measures nothing.
-                            if (SkinContact.counts(bus.contactStatus)) {
-                                "${(bus.deviceName ?: "SENSOR").uppercase()} · OK"
-                            } else {
-                                "${(bus.deviceName ?: "SENSOR").uppercase()} · ${stringResource(R.string.capture_no_contact)}"
-                            }
+                        // Connected is not on the skin (25/09): a strap taken off
+                        // stays connected and keeps sending its last number, then 0.
+                        is BleConnectionState.Connected -> when (bus.onSkin) {
+                            true -> "$sensor · OK"
+                            false -> "$sensor · ${stringResource(R.string.capture_no_contact)}"
+                            null -> sensor
+                        }
                         is BleConnectionState.Reconnecting -> stringResource(R.string.capture_reconnecting).uppercase()
                         else -> stringResource(R.string.capture_disconnected).uppercase()
                     }
                     Text(
                         connLabel,
                         style = TTType.MetaSmall.copy(letterSpacing = 0.06.em),
-                        color = if (bus.connection is BleConnectionState.Connected && SkinContact.counts(bus.contactStatus)) {
+                        color = if (bus.connection is BleConnectionState.Connected && bus.onSkin != false) {
                             TT.Gray55
                         } else {
                             TT.Rose
@@ -227,7 +226,9 @@ fun CaptureScreen(nav: NavHostController) {
                 // ensaios pedindo por ele). A regra §10 — ver o número muda o número —
                 // fica registrada no log; a captura não muda por ele estar visível.
                 val bpmNow = if (bleActive) {
-                    bus.lastBpm?.takeIf { SkinContact.counts(bus.contactStatus) }
+                    // Only a beat, and only while the sensor is there: a number
+                    // left over from before a drop is not "agora".
+                    bus.lastBpm?.takeIf { bus.onSkin == true && bus.connection is BleConnectionState.Connected }
                 } else {
                     snapshot?.currentBpm
                 }

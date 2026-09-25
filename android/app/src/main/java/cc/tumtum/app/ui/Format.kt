@@ -4,6 +4,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 /** Formatação da casa: número é número; hora é "23h47"; data é "22.03.26". */
 object Fmt {
@@ -11,8 +12,15 @@ object Fmt {
     private val hour = DateTimeFormatter.ofPattern("HH'h'mm")
     private val date = DateTimeFormatter.ofPattern("dd.MM.yy")
 
+    private val dayMonth = DateTimeFormatter.ofPattern("dd.MM")
+
     fun hour(t: Instant): String = hour.format(t.atZone(zone))
     fun date(t: Instant): String = date.format(t.atZone(zone))
+    fun dayMonth(t: Instant): String = dayMonth.format(t.atZone(zone))
+
+    /** Calendar days from [now] to [t] on this phone's clock: 0 today, 1 tomorrow. */
+    fun daysFrom(now: Instant, t: Instant): Long =
+        ChronoUnit.DAYS.between(now.atZone(zone).toLocalDate(), t.atZone(zone).toLocalDate())
 
     /** "6H38" — duração da noite. */
     fun durationChip(d: Duration): String = "%dH%02d".format(d.toHours(), d.toMinutesPart())

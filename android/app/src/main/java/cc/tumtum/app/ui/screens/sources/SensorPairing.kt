@@ -174,19 +174,19 @@ fun SensorScanSheet(onDismiss: () -> Unit, onPick: (BleDevice) -> Unit) {
 
 /** One sensor found by a search: name, address and signal; a tap picks it. */
 @Composable
-internal fun SensorDeviceRow(device: BleDevice, onPick: (BleDevice) -> Unit) {
+internal fun SensorDeviceRow(device: BleDevice, onPick: (BleDevice) -> Unit, onDark: Boolean = false) {
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .border(1.dp, TT.Gray10, RoundedCornerShape(12.dp))
+            .border(1.dp, if (onDark) TT.Ink600 else TT.Gray10, RoundedCornerShape(12.dp))
             .clickable { onPick(device) }
             .padding(horizontal = 16.dp, vertical = 15.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column {
-            Text(device.name, style = TTType.ItemTitle.copy(fontSize = 16.sp), color = TT.Ink)
+            Text(device.name, style = TTType.ItemTitle.copy(fontSize = 16.sp), color = if (onDark) TT.Paper else TT.Ink)
             Text(device.address, style = TTType.Footnote, color = TT.Gray45)
         }
         Badge("${device.rssi} dBm", hPad = 8.dp, vPad = 4.dp)
