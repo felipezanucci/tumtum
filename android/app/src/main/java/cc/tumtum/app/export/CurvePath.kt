@@ -34,7 +34,7 @@ object CurvePath {
         samples: List<HrSample>,
         windowStart: Instant,
         windowEnd: Instant,
-        gapSec: Long = NightAnalyzer.GAP_THRESHOLD_SEC,
+        gapSec: Long = NightAnalyzer.gapThresholdSec(samples),
     ): List<List<Point>> {
         if (samples.isEmpty()) return emptyList()
         val sorted = samples.sortedBy { it.time }

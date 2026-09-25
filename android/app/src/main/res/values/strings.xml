@@ -610,7 +610,8 @@
     <string name="setup_watch_change">Trocar relógio</string>
     <string name="setup_strap_section">TEM UMA CINTA DE PEITO?</string>
     <string name="setup_strap_search">Procurar sensor</string>
-    <string name="setup_no_contact">%1$s está ligado, mas sem contato com a pele. Veste ele pra ver a batida.</string>
+    <!-- True whether the strap is still awake or has switched itself off on the table (25/09). -->
+    <string name="setup_no_contact">%1$s está sem contato com a pele. Veste ele pra ver a batida.</string>
     <string name="reveal_calm_title">UMA NOITE\nTRANQUILA.</string>
     <string name="sync_server_none">O servidor não achou nenhum momento nessa noite.</string>
 </resources>

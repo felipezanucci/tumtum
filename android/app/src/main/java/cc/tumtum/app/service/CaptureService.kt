@@ -128,7 +128,9 @@ class CaptureService : Service() {
         container.db.eventDao().setClockOffsetStart(id, wall - mono)
         recordConnection(if (restartReason != null) restartReason else "SESSION_START", "serviço em primeiro plano ativo")
 
-        sampleCount = container.db.captureDao().sampleCount(id)
+        // The counter on the capture screen counts beats, not packets (25/09):
+        // a strap on the table kept it climbing for twenty seconds.
+        sampleCount = container.nights.beatCount(id)
         onSkin = OnSkinTracker()
         CaptureBus.status.value = CaptureStatus(
             active = true,
@@ -185,8 +187,8 @@ class CaptureService : Service() {
                             },
                         )
                     }
-                    sampleCount += 1
                     val beat = onSkin.accept(m.bpm, m.contactStatus, m.rrIntervalsMs.isNotEmpty())
+                    if (beat) sampleCount += 1
                     CaptureBus.status.value = CaptureBus.status.value.copy(
                         samplesWritten = sampleCount,
                         lastBpm = m.bpm,

@@ -25,6 +25,23 @@ class NightAnalyzerTest {
     }
 
     @Test
+    fun `uma cinta a 1 Hz tirada por 50 s deixa um buraco`() {
+        // b201, 25/09: the strap off for fifty seconds was drawn as a straight line.
+        val a = samples(1, 40, { 75 })
+        val b = samples(1, 40, { 70 }, start = t0.plusSeconds(90))
+        val gaps = NightAnalyzer.gaps(a + b, t0, b.last().time)
+        assertEquals(listOf(Gap(a.last().time, b.first().time)), gaps)
+        assertEquals(NightAnalyzer.DENSE_GAP_SEC, NightAnalyzer.gapThresholdSec(a + b))
+    }
+
+    @Test
+    fun `um relogio a 1 por minuto nao vira buraco a cada leitura`() {
+        val watch = samples(60, 30, { 80 })
+        assertEquals(emptyList<Gap>(), NightAnalyzer.gaps(watch, t0, watch.last().time))
+        assertEquals(NightAnalyzer.GAP_THRESHOLD_SEC, NightAnalyzer.gapThresholdSec(watch))
+    }
+
+    @Test
     fun `sem amostra nenhuma, a janela inteira e buraco`() {
         val end = t0.plusSeconds(3600)
         val gaps = NightAnalyzer.gaps(emptyList(), t0, end)

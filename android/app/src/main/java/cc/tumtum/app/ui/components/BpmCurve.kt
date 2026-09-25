@@ -2,6 +2,7 @@ package cc.tumtum.app.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -43,6 +44,9 @@ fun BpmCurve(
     progress: Float = 1f,
     showMarker: Boolean = true,
 ) {
+    // Once per list, not per frame: the reveal animates this canvas.
+    val gapSec = remember(samples) { NightAnalyzer.gapThresholdSec(samples) }
+    val secondaryGapSec = remember(secondarySamples) { secondarySamples?.let { NightAnalyzer.gapThresholdSec(it) } }
     Canvas(modifier) {
         val all = if (secondarySamples.isNullOrEmpty()) samples else samples + secondarySamples
         if (all.isEmpty()) return@Canvas
@@ -59,14 +63,14 @@ fun BpmCurve(
         fun y(bpm: Int): Float =
             padTop + (1f - (bpm - lo).toFloat() / span) * (size.height - padTop - padBottom)
 
-        fun segments(list: List<HrSample>): List<List<Offset>> {
+        fun segments(list: List<HrSample>, thresholdSec: Long): List<List<Offset>> {
             val sorted = list.sortedBy { it.time }
             val segs = mutableListOf<MutableList<Offset>>()
             var cur = mutableListOf<Offset>()
             var prev: HrSample? = null
             for (s in sorted) {
                 val p = prev
-                if (p != null && Duration.between(p.time, s.time).seconds > NightAnalyzer.GAP_THRESHOLD_SEC) {
+                if (p != null && Duration.between(p.time, s.time).seconds > thresholdSec) {
                     if (cur.size >= 1) segs += cur
                     cur = mutableListOf()
                 }
@@ -94,14 +98,14 @@ fun BpmCurve(
         val clipRight = size.width * progress.coerceIn(0f, 1f)
         clipRect(right = clipRight) {
             secondarySamples?.takeIf { it.isNotEmpty() }?.let {
-                drawSeries(segments(it), secondaryColor, strokeWidth.toPx() * 0.9f)
+                drawSeries(segments(it, secondaryGapSec ?: gapSec), secondaryColor, strokeWidth.toPx() * 0.9f)
             }
-            drawSeries(segments(samples), lineColor, strokeWidth.toPx())
+            drawSeries(segments(samples, gapSec), lineColor, strokeWidth.toPx())
 
             // Buracos: traço pontilhado na base, nunca linha inventada.
             if (gapColor.isSpecified && samples.isNotEmpty()) {
                 val gapY = size.height - 2f
-                NightAnalyzer.gaps(samples, windowStart, windowEnd).forEach { g ->
+                NightAnalyzer.gaps(samples, windowStart, windowEnd, gapSec).forEach { g ->
                     drawLine(
                         gapColor,
                         Offset(x(g.start), gapY),

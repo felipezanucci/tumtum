@@ -34,6 +34,15 @@ class CurvePathTest {
     }
 
     @Test
+    fun `a strap taken off for fifty seconds is a gap on the card too`() {
+        val before = night(0 until 40) { 75 }
+        val after = night(90 until 130) { 70 }
+        val segments = CurvePath.segments(before + after, start, start.plusSeconds(130))
+
+        assertEquals(2, segments.size)
+    }
+
+    @Test
     fun `the peak survives the averaging, at its own time`() {
         val samples = night(0 until 3600) { if (it == 1800) 187 else 120 }
         val points = CurvePath.segments(samples, start, start.plusSeconds(3600)).flatten()
