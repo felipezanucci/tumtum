@@ -205,7 +205,11 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                     color = TT.Gray70,
                 )
             }
-            Text(Fmt.hour(n.peakAt).uppercase(), style = TTType.MetaSmall.copy(fontSize = 10.sp), color = TT.Acid)
+            // The axis ends where the night ended (25/09): the peak's time sat
+            // here in yellow, at the far right, under a dot at the far left —
+            // "15H19 … 15H19" read as a night that began and ended at once.
+            // The peak's time is already said next to its number.
+            Text(Fmt.hour(n.endAt).uppercase(), style = TTType.MetaSmall.copy(fontSize = 10.sp), color = TT.Gray55)
         }
         Spacer(Modifier.height(14.dp))
         // Where the night stands with the server — the first thing under the

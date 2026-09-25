@@ -85,11 +85,13 @@ import kotlinx.coroutines.launch
  * consent is where the brand chooses trust over fun.
  */
 @Composable
-fun SetupScreen(nav: NavHostController) {
+fun SetupScreen(nav: NavHostController, startSearching: Boolean = false) {
     val container = appContainer()
     val scope = rememberCoroutineScope()
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
-    var searching by remember { mutableStateOf(false) }
+    // Configurações opens this screen already searching (Routes.SensorSearch):
+    // one road to a strap, whichever door it starts from.
+    var searching by remember { mutableStateOf(startSearching) }
 
     fun goHome() {
         scope.launch {
@@ -120,7 +122,8 @@ fun SetupScreen(nav: NavHostController) {
                     searching = false
                     scope.launch { container.prefs.setSensor(device.address, device.name) }
                 },
-                onStop = { searching = false },
+                // From Configurações, stopping goes back where the person came from.
+                onStop = { if (startSearching) nav.popBackStack() else searching = false },
             )
 
             address != null -> PairedStep(
