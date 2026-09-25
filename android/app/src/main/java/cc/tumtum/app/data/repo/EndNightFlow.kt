@@ -21,7 +21,7 @@ suspend fun AppContainer.saveEndedNight(event: EventSession, measurement: Source
     val revealAt = if (state.revealLockEnabled) RevealLock.revealAt(measurement.windowEnd) else null
     // The night is the recording account's from the first second (25/09) —
     // the one signed in, or the last one that was if the session died mid-show.
-    val owner = state.session?.userId ?: state.viewerId
+    val owner = state.session?.userId ?: state.lastUserId
     val nightId = nights.saveNight(event, measurement, sourcePackage, revealAt, ownerUserId = owner) ?: return null
     // "A gente te avisa" is only said when this exists (§5.4).
     if (revealAt != null) {

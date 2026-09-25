@@ -81,8 +81,6 @@
     <!-- a5 · Vazio — primeiro uso -->
     <string name="empty_title">Nenhum show\nainda.</string>
     <string name="empty_subtitle">Seu coração tá de folga.</string>
-    <string name="empty_no_watch">Nenhum relógio conectado</string>
-    <string name="empty_watch_ok">Relógio conectado</string>
     <string name="empty_connect">Conectar meu relógio</string>
 
     <!-- Criar evento (sheet mínima — a janela §7 precisa de início/fim) -->
@@ -262,8 +260,14 @@
     <string name="feed_post_at">às %1$s</string>
     <!-- Abaixo do piso do servidor não existe número coletivo: ele seria um
          fato sobre cada pessoa do grupo. Diz quantas são, nunca zero. -->
-    <string name="crowd_too_few">AINDA SOMOS POUCOS · %1$d NOITES</string>
-    <string name="crowd_nights">%1$d NOITES MEDIDAS</string>
+    <plurals name="crowd_too_few">
+        <item quantity="one">AINDA SOMOS POUCOS · %1$d NOITE</item>
+        <item quantity="other">AINDA SOMOS POUCOS · %1$d NOITES</item>
+    </plurals>
+    <plurals name="crowd_nights">
+        <item quantity="one">%1$d NOITE MEDIDA</item>
+        <item quantity="other">%1$d NOITES MEDIDAS</item>
+    </plurals>
     <string name="crowd_top">%1$d JUNTOS ÀS %2$s</string>
 
     <!-- Postar no feed é publicar dado de saúde: a pergunta é no momento,
@@ -381,8 +385,6 @@
     <string name="battery_not_yet">Ainda não está liberado. Toque no botão rosa e, na janela do Android, em OK.</string>
 
     <!-- Participante do experimento (§9) -->
-    <string name="participant_label">CÓDIGO NO EXPERIMENTO · opcional</string>
-    <string name="participant_hint">Só se você recebeu um código (P01, P02…). Não é o nome do evento. Vai junto na exportação.</string>
     <string name="settings_operator_section">OPERADOR</string>
     <string name="settings_operator_show">MOSTRAR</string>
     <string name="settings_operator_hide">OCULTAR</string>
@@ -406,12 +408,11 @@
     <!-- b4 no setup -->
     <string name="sources_skip">Fazer isso depois</string>
     <!-- Setup: bring the sensor (25/09) -->
-    <string name="setup_title">Conecta seu sensor.</string>
-    <string name="setup_body">Liga o sensor e procura ele aqui. É ele que grava sua noite, batida a batida.</string>
-    <string name="setup_search">Procurar dispositivo</string>
+    <string name="setup_title">Conecta seu relógio.</string>
+    <string name="setup_body">A TumTum lê a batida que o seu relógio já grava, pelo Health Connect.</string>
     <string name="setup_searching_title">Procurando…</string>
     <string name="setup_searching_body">Liga o sensor e deixa perto do celular. Ele aparece aqui.</string>
-    <string name="setup_searching_none">Nada apareceu ainda. Confere se o sensor está ligado e perto do celular — a Polar H10 só acorda vestida.</string>
+    <string name="setup_searching_none">Nada apareceu ainda. Confere se o sensor está ligado e perto do celular.</string>
     <string name="setup_bluetooth_off">O Bluetooth do celular está desligado. Liga ele e procura de novo.</string>
     <string name="setup_tap">Toca no seu pra conectar.</string>
     <string name="setup_search_again">Procurar de novo</string>
@@ -426,8 +427,7 @@
     <string name="setup_paired_no_beat">%1$s ainda não mandou batida. Veste o sensor: ele só manda no corpo. Dá pra seguir — na hora do show ele conecta sozinho.</string>
     <string name="setup_home">Ir pro início</string>
     <string name="setup_change">Trocar sensor</string>
-    <string name="setup_watch_section">OU O SEU RELÓGIO</string>
-    <string name="setup_watch_none">Nenhum relógio mandou batida pro Health Connect nas últimas 24h.</string>
+    <string name="setup_watch_none">Nenhum relógio mandou batida pro Health Connect nas últimas 24h. No Galaxy Watch, confere no app Samsung Health se ele está sincronizando com o Health Connect.</string>
     <string name="setup_watch_no_permission">Sem a permissão do Health Connect, o app não vê seu relógio.</string>
 
     <!-- Entrar (quem já tem conta) -->
@@ -586,4 +586,27 @@
     <string name="card_copy_failed">Não deu pra copiar o card. Tenta salvar na galeria.</string>
     <string name="card_save_failed">Não deu pra salvar na galeria. Tenta de novo.</string>
     <string name="card_share_instagram_failed">O Instagram não abriu o Story. Tenta pelo Mais apps.</string>
+    <!-- 25/09, b196 round -->
+    <string name="corner_sign_in">ENTRAR</string>
+    <string name="you_signed_out">Entra na sua conta pra ver suas noites.</string>
+    <string name="you_signed_out_body">Suas noites ficam guardadas na conta de quem gravou e voltam quando você entrar.</string>
+    <string name="profile_signed_out">Entra na sua conta pra ver seu perfil.</string>
+    <string name="start_live_now">ROLANDO AGORA</string>
+    <string name="start_needs_watch">Nenhum relógio conectado ainda. Conecta o seu pra gravar a noite.</string>
+    <string name="start_anyway">Gravar assim mesmo</string>
+    <string name="start_with">Vai gravar com %1$s.</string>
+    <string name="start_cta">Começar a gravar</string>
+    <string name="start_not_now">Agora não</string>
+    <string name="empty_watch_named">%1$s conectado</string>
+    <string name="empty_nothing">Nada conectado ainda</string>
+    <string name="capture_no_contact">SEM CONTATO</string>
+    <string name="setup_watch_looking">Procurando relógios no Health Connect…</string>
+    <string name="setup_watch_ready_title">Pronto, relógio conectado.</string>
+    <string name="setup_watch_ready_body">%1$s manda a batida pro app pelo Health Connect.</string>
+    <string name="setup_watch_change">Trocar relógio</string>
+    <string name="setup_strap_section">TEM UMA CINTA DE PEITO?</string>
+    <string name="setup_strap_search">Procurar sensor</string>
+    <string name="setup_no_contact">%1$s está ligado, mas sem contato com a pele. Veste ele pra ver a batida.</string>
+    <string name="reveal_calm_title">UMA NOITE\nTRANQUILA.</string>
+    <string name="sync_server_none">O servidor não achou nenhum momento nessa noite.</string>
 </resources>

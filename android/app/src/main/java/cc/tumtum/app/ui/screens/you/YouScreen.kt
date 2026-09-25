@@ -65,14 +65,7 @@ fun YouScreen(nav: NavHostController) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Wordmark(width = 92.dp, modifier = Modifier.clickable { nav.navigate(Routes.Feed) { launchSingleTop = true } })
-            cc.tumtum.app.ui.components.UserAvatar(
-                account?.initials ?: "TT",
-                Skin.BLACK,
-                photoPath = user?.avatarPath,
-                modifier = Modifier.clickable {
-                    account?.let { nav.navigate(Routes.profile(it.username)) }
-                },
-            )
+            cc.tumtum.app.ui.components.AccountCorner(user, nav, Skin.BLACK)
         }
         Text(
             stringResource(R.string.nights_title),
@@ -84,11 +77,13 @@ fun YouScreen(nav: NavHostController) {
             Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlineBadge(
-                stringResource(R.string.you_gallery).uppercase(),
-                contentColor = TT.Gray70,
-                modifier = Modifier.clickable { nav.navigate(Routes.Gallery) },
-            )
+            if (user?.signedIn == true) {
+                OutlineBadge(
+                    stringResource(R.string.you_gallery).uppercase(),
+                    contentColor = TT.Gray70,
+                    modifier = Modifier.clickable { nav.navigate(Routes.Gallery) },
+                )
+            }
             OutlineBadge(
                 stringResource(R.string.you_settings).uppercase(),
                 contentColor = TT.Gray70,
@@ -96,7 +91,17 @@ fun YouScreen(nav: NavHostController) {
             )
         }
 
-        if (nights.isEmpty()) {
+        if (user != null && user?.signedIn != true) {
+            // Signed out, the phone is nobody's (25/09): no list, no count of
+            // somebody's nights — the way in, and the promise that they return.
+            Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 32.dp), verticalArrangement = Arrangement.Center) {
+                cc.tumtum.app.ui.components.SignInPrompt(
+                    title = stringResource(R.string.you_signed_out),
+                    body = stringResource(R.string.you_signed_out_body),
+                    onSignIn = { nav.navigate(Routes.Login) },
+                )
+            }
+        } else if (nights.isEmpty()) {
             Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 32.dp), verticalArrangement = Arrangement.Center) {
                 Text(
                     stringResource(R.string.empty_title),

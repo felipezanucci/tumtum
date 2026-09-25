@@ -58,7 +58,7 @@ private val TRIBES = listOf("SHOWS", "FUTEBOL", "FESTIVAIS")
  * b2 — Criar conta. Leva menos que uma música.
  *
  * Since 2026-09-18 (Etapa 1) the account is created on the server first and
- * kept locally second: the @, the tribes and the participant id stay on the
+ * kept locally second: the @ and the tribes stay on the
  * phone, the e-mail, name and password become a real account with a token.
  * Without the server there is no account — the screen says so instead of
  * pretending.
@@ -87,7 +87,6 @@ fun CreateAccountScreen(nav: NavHostController) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var tribes by rememberSaveable { mutableStateOf(setOf<String>()) }
-    var participant by rememberSaveable { mutableStateOf("") }
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
@@ -185,7 +184,6 @@ fun CreateAccountScreen(nav: NavHostController) {
                             } else {
                                 container.prefs.createAccount(account)
                             }
-                            container.prefs.setParticipantId(participant)
                             runCatching { container.api.me() }
                             container.afterSignIn()
                             nav.navigate(Routes.Permission)
@@ -264,16 +262,6 @@ fun CreateAccountScreen(nav: NavHostController) {
                 }
             }
 
-            Spacer(Modifier.height(22.dp))
-            // §9 — identificador do participante do experimento (P01…P18). Opcional fora dele.
-            TTField(
-                stringResource(R.string.participant_label),
-                participant,
-                { participant = it },
-                placeholder = "P01",
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(stringResource(R.string.participant_hint), style = TTType.Footnote, color = TT.Gray45)
 
             Spacer(Modifier.height(32.dp))
             // The tap sends a code and creates nothing yet (#64): said before it.

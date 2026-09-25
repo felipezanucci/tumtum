@@ -22,14 +22,15 @@ export default function OnboardingPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-tumtum-black px-4">
-      <div className="w-full max-w-md">
-        <Wordmark className="h-8 w-auto text-tumtum-white" />
+      {/* Centred, like the sign-up it follows (Felipe, 25/09). */}
+      <div className="w-full max-w-md text-center">
+        <Wordmark className="mx-auto block h-8 w-auto text-tumtum-white" />
 
         <h1 className="mt-10 text-3xl font-bold text-tumtum-white">Sua conta está pronta.</h1>
 
+        {/* The watch first: the fan's device is a watch (Felipe, 25/09). */}
         <p className="mt-4 text-tumtum-white">
-          Quem grava a noite é o app da TumTum, no seu celular — com um sensor no peito ou com o
-          relógio que você já usa.
+          Quem grava a noite é o app da TumTum, no seu celular, com o relógio que você já usa.
         </p>
         <p className="mt-3 text-tumtum-muted">
           Aqui no site você vê os eventos e, depois do show, as suas noites. Entra no app com

@@ -102,12 +102,20 @@ data class UserState(
     /** The next marked event, if any — one at a time, by design. */
     val upcoming: UpcomingEvent? = null,
     /**
-     * The account whose nights this phone shows (25/09) — the last one that
-     * signed in here, kept after Sair so the person who signed out still
-     * finds their nights. A different account signing in changes it, and the
-     * previous person's nights are hidden, never deleted.
+     * The account whose nights this phone shows: **the signed-in one, and
+     * nobody when signed out** (25/09, b196 round). b196 kept the last
+     * account after Sair "so the person who signed out still finds their
+     * nights", and Felipe, signed out, saw his FZ, his name and his nights
+     * everywhere: *"tudo dá a entender de que eu ainda estou na minha conta"*.
+     * Signed out, the phone is nobody's. A different account signing in sees
+     * only its own; the others' nights are hidden, never deleted.
      */
     val viewerId: String? = null,
+    /**
+     * The last account signed in here, kept after Sair — only to own a night
+     * whose session ended in the middle of the capture. Never shown.
+     */
+    val lastUserId: String? = null,
     /**
      * The account the server confirmed as an operator (item 52, 25/09), from
      * `is_admin` on /api/auth/me. The operator tools show only while it is the
@@ -121,6 +129,9 @@ data class UserState(
     val watchConnected: Boolean get() = sourcePackage != null
     val sensorPaired: Boolean get() = bleAddress != null
 
+    /** An account is on this phone — live or expired, but not signed out. */
+    val signedIn: Boolean get() = session != null
+
     /** True only while the signed-in account is the one the server called an operator. */
     val isOperator: Boolean
         get() = operatorUserId != null && operatorUserId == session?.userId
@@ -133,11 +144,11 @@ data class UserState(
 
     /**
      * The raw-session export (§9, the protocol's manual extraction): on the
-     * operator's account, or on a phone set up for the protocol with a
-     * participant id. A fan never sees it (25/09: "não tem que aparecer essa
-     * opção de exportar").
+     * operator's account only. A fan never sees it (25/09: "não tem que
+     * aparecer essa opção de exportar"). The participant code that also
+     * opened it went away at Felipe's word the same day.
      */
-    val showsExport: Boolean get() = isOperator || !participantId.isNullOrBlank()
+    val showsExport: Boolean get() = isOperator
 }
 
 /**
@@ -223,8 +234,8 @@ class UserPrefs(private val context: Context) {
             session = p[Keys.accessToken]?.let {
                 Session(token = it, userId = p[Keys.userId], refreshToken = p[Keys.refreshToken])
             },
-            // Phones from before 25/09 have no viewer yet: the signed-in account is it.
-            viewerId = p[Keys.viewerId] ?: p[Keys.userId],
+            viewerId = p[Keys.userId],
+            lastUserId = p[Keys.viewerId] ?: p[Keys.userId],
             operatorUserId = p[Keys.operatorUserId],
             sessionEnded = p[Keys.sessionEndedReason]?.let { reason ->
                 p[Keys.sessionEndedAt]?.let { SessionEnd(reason, java.time.Instant.ofEpochMilli(it)) }
@@ -237,7 +248,7 @@ class UserPrefs(private val context: Context) {
             p[Keys.accessToken] = session.token
             session.userId?.let { p[Keys.userId] = it } ?: p.remove(Keys.userId)
             session.refreshToken?.let { p[Keys.refreshToken] = it } ?: p.remove(Keys.refreshToken)
-            // Whoever signs in is whose nights the phone shows from now on.
+            // Remembered past Sair only to own a night cut by it (lastUserId).
             session.userId?.let { p[Keys.viewerId] = it }
             p.remove(Keys.sessionEndedReason)
             p.remove(Keys.sessionEndedAt)
@@ -325,6 +336,14 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { p ->
             p[Keys.sourcePackage] = packageName
             p[Keys.sourceLabel] = label
+        }
+    }
+
+    /** "Trocar relógio" on setup (25/09): the chosen watch is forgotten, nothing else. */
+    suspend fun clearSource() {
+        context.dataStore.edit { p ->
+            p.remove(Keys.sourcePackage)
+            p.remove(Keys.sourceLabel)
         }
     }
 

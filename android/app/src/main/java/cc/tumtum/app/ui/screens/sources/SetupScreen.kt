@@ -41,6 +41,7 @@ import cc.tumtum.app.data.ble.BleEvent
 import cc.tumtum.app.data.ble.BleHrSource
 import cc.tumtum.app.data.ble.BlePermissions
 import cc.tumtum.app.data.ble.BleScanner
+import cc.tumtum.app.data.ble.SkinContact
 import cc.tumtum.app.data.repo.SourceMeasurement
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.ui.components.TTButton
@@ -56,26 +57,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * The setup step after permissions: bring the sensor (25/09, rebuilt from
- * Felipe's test on a new account).
+ * The setup step after permissions: **the watch first** (25/09, b196 round).
  *
- * The old step was the end-of-night source picker run on the last 24 hours.
- * On a new account it opened with the previous person's Polar H10 already
- * "paired", no way to search for one's own, the after-a-night line "Não
- * achamos batida nessa janela" where there was no window, no word that the
- * step was done, and a way out ("Fazer isso depois") that claimed something
- * was left undone when it was not. Felipe: "tem que aparecer um campo de
- * procurar o dispositivo… depois de conectado, pronto, conexão feita, e um
- * botão pra ir pra home."
+ * b196 rebuilt this step around a sensor search, from Felipe's 25/09 test on
+ * a new account (the previous person's Polar pre-paired, no search, no word
+ * that anything was done). The same day he set the order: *"o usuário final
+ * mesmo, praticamente todo mundo vai usar só relógio. Dificilmente alguém vai
+ * usar um sensor como o Polar."* So the watch leads and the strap is the
+ * quiet second road; the pilot's strap phones are set up by the operator.
  *
- * Three states, each saying only what is true:
- * - **nothing paired**: Pink "Procurar dispositivo", quiet "Fazer isso depois";
- *   a watch in Health Connect stays a second, quieter road;
- * - **searching**: what was found, and an honest line when nothing is —
- *   Bluetooth off, no permission, or simply nothing yet;
- * - **paired**: the app connects and waits for a beat. Only a beat earns
- *   "Pronto, conexão feita", with the live number as the proof; until then
- *   the sensor is "pareado", which is all the phone knows.
+ * States, each saying only what is true:
+ * - **nothing chosen**: the watches that wrote heart rate to Health Connect in
+ *   the last 24 hours, the first one in Pink; when there is none, what makes
+ *   a watch show up, and a way to look again. Under it, "Tem uma cinta de
+ *   peito?" and the sensor search;
+ * - **watch chosen**: "Pronto, relógio conectado", the way home, and Trocar;
+ * - **searching** a sensor: what was found, or why nothing is there yet;
+ * - **sensor paired**: the app connects and waits for a beat *with skin
+ *   contact*. Only that earns "Pronto, conexão feita"; a strap on the table
+ *   is said to be one.
  */
 @Composable
 fun SetupScreen(nav: NavHostController) {
@@ -128,23 +128,38 @@ fun SetupScreen(nav: NavHostController) {
                 },
             )
 
+            state.sourcePackage != null -> {
+                Text(stringResource(R.string.setup_watch_ready_title), style = TTType.TitleSmall, color = TT.Ink)
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    stringResource(R.string.setup_watch_ready_body, state.sourceLabel.orEmpty()),
+                    style = TTType.Body,
+                    color = TT.Gray45,
+                )
+                Spacer(Modifier.height(30.dp))
+                TTButton(stringResource(R.string.setup_home), TTButtonStyle.Rose, onClick = { goHome() })
+                Spacer(Modifier.height(10.dp))
+                TTButton(
+                    stringResource(R.string.setup_watch_change),
+                    TTButtonStyle.Outline,
+                    onClick = { scope.launch { container.prefs.clearSource() } },
+                )
+            }
+
             else -> {
                 Text(stringResource(R.string.setup_title), style = TTType.TitleSmall, color = TT.Ink)
                 Spacer(Modifier.height(10.dp))
                 Text(stringResource(R.string.setup_body), style = TTType.Body, color = TT.Gray45)
-                Spacer(Modifier.height(28.dp))
-                TTButton(stringResource(R.string.setup_search), TTButtonStyle.Rose, onClick = { searching = true })
+                Spacer(Modifier.height(24.dp))
+                WatchChoices(
+                    onUse = { pkg, label -> scope.launch { container.prefs.setSource(pkg, label) } },
+                )
                 Spacer(Modifier.height(10.dp))
                 TTButton(stringResource(R.string.sources_skip), TTButtonStyle.Outline, onClick = { goHome() })
                 Spacer(Modifier.height(40.dp))
-                WatchRoad(
-                    onUse = { pkg, label ->
-                        scope.launch {
-                            container.prefs.setSource(pkg, label)
-                            goHome()
-                        }
-                    },
-                )
+                Text(stringResource(R.string.setup_strap_section), style = TTType.Meta, color = TT.Gray70)
+                Spacer(Modifier.height(10.dp))
+                TTButton(stringResource(R.string.setup_strap_search), TTButtonStyle.Outline, onClick = { searching = true })
             }
         }
     }
@@ -226,6 +241,10 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
     val scope = rememberCoroutineScope()
     val beat = remember(address) { MutableStateFlow<Pair<Int, Long>?>(null) }
     val last by beat.collectAsStateWithLifecycle()
+    // When the sensor last said it feels no skin (25/09: a Polar on the table
+    // sent numbers, and this screen called them a beat).
+    val offSkin = remember(address) { MutableStateFlow<Long?>(null) }
+    val offSkinAt by offSkin.collectAsStateWithLifecycle()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     val since = remember(address) { System.currentTimeMillis() }
 
@@ -234,8 +253,13 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
     DisposableEffect(address) {
         if (!BlePermissions.granted(context)) return@DisposableEffect onDispose { }
         val source = BleHrSource(context.applicationContext) { event ->
-            if (event is BleEvent.Sample && event.measurement.bpm > 0) {
-                beat.value = event.measurement.bpm to System.currentTimeMillis()
+            if (event is BleEvent.Sample) {
+                val m = event.measurement
+                if (!SkinContact.counts(m.contactStatus)) {
+                    offSkin.value = System.currentTimeMillis()
+                } else if (m.bpm > 0) {
+                    beat.value = m.bpm to System.currentTimeMillis()
+                }
             }
         }
         source.address = address
@@ -254,7 +278,12 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
 
     val current = last
     val fresh = current != null && now - current.second <= FRESH_MS
-    if (current != null) {
+    val noSkin = offSkinAt?.let { off -> current == null || off > current.second } == true
+    if (noSkin) {
+        Text(stringResource(R.string.setup_paired_title), style = TTType.TitleSmall, color = TT.Ink)
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.setup_no_contact, name), style = TTType.Body, color = TT.Gray45)
+    } else if (current != null) {
         Text(stringResource(R.string.setup_ready_title), style = TTType.TitleSmall, color = TT.Ink)
         Spacer(Modifier.height(10.dp))
         Text(stringResource(R.string.setup_ready_body, name), style = TTType.Body, color = TT.Gray45)
@@ -288,13 +317,16 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
 }
 
 /**
- * The second road: a watch that writes heart rate to Health Connect. Quieter
- * than the sensor, and said plainly when there is nothing to offer.
+ * The watches that wrote heart rate to Health Connect in the last 24 hours,
+ * each with its own "Usar", the first in Pink. When there is none, the one
+ * thing that makes a watch show up, and a way to look again.
  */
 @Composable
-private fun WatchRoad(onUse: (String, String) -> Unit) {
+private fun WatchChoices(onUse: (String, String) -> Unit) {
     val container = appContainer()
-    val reading by produceState<Pair<Boolean, SourceMeasurement?>?>(initialValue = null) {
+    var tick by remember { mutableStateOf(0) }
+    val reading by produceState<Pair<Boolean, SourceMeasurement?>?>(null, tick) {
+        value = null
         val granted = runCatching { container.health.hasPermission() }.getOrDefault(false)
         value = if (!granted) {
             false to null
@@ -305,19 +337,25 @@ private fun WatchRoad(onUse: (String, String) -> Unit) {
             true to SourceMeasurement(start, end, bySource, container.health.sourceDensities(bySource, start, end))
         }
     }
-    val r = reading ?: return
-    Text(stringResource(R.string.setup_watch_section), style = TTType.Meta, color = TT.Gray70)
-    Spacer(Modifier.height(10.dp))
+    val r = reading
+    if (r == null) {
+        Text(stringResource(R.string.setup_watch_looking), style = TTType.Footnote, color = TT.Gray45)
+        return
+    }
     val withData = r.second?.sources.orEmpty().filter { it.hasData }
     when {
-        !r.first -> Text(stringResource(R.string.setup_watch_no_permission), style = TTType.Footnote, color = TT.Gray45)
-        withData.isEmpty() -> Text(stringResource(R.string.setup_watch_none), style = TTType.Footnote, color = TT.Gray45)
+        !r.first -> Text(stringResource(R.string.setup_watch_no_permission), style = TTType.Body, color = TT.Ink)
+        withData.isEmpty() -> {
+            Text(stringResource(R.string.setup_watch_none), style = TTType.Body, color = TT.Ink)
+            Spacer(Modifier.height(14.dp))
+            TTButton(stringResource(R.string.setup_search_again), TTButtonStyle.Outline, onClick = { tick++ })
+        }
         else -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            withData.forEach { source ->
+            withData.forEachIndexed { i, source ->
                 SourceCard(source = source, selected = false, setupMode = true, onClick = {})
                 TTButton(
                     stringResource(R.string.sources_use, source.label),
-                    TTButtonStyle.Outline,
+                    if (i == 0) TTButtonStyle.Rose else TTButtonStyle.Outline,
                     onClick = { onUse(source.packageName, source.label) },
                 )
             }

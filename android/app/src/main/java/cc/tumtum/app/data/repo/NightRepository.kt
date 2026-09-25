@@ -1,5 +1,6 @@
 package cc.tumtum.app.data.repo
 
+import cc.tumtum.app.data.ble.SkinContact
 import cc.tumtum.app.data.db.EventEntity
 import cc.tumtum.app.data.db.MarkEntity
 import cc.tumtum.app.data.db.MomentEntity
@@ -159,6 +160,9 @@ class NightRepository(
     /** Amostras da fonte BLE ao vivo dentro da janela, no formato comum do pipeline (§2). */
     private suspend fun bleSamplesIn(eventId: Long, start: Instant, end: Instant): List<HrSample> =
         capture.samplesBetween(eventId, start.toEpochMilli(), end.toEpochMilli())
+            // A reading without skin contact is not a beat (25/09): the night
+            // gets a gap where the strap was off, never a number nobody had.
+            .filter { SkinContact.counts(it.contactStatus) }
             .map { HrSample(Instant.ofEpochMilli(it.wallClockMs), it.bpm) }
 
     /** Snapshot ao vivo: sensor BLE quando presente; senão, lote retroativo do Health Connect. */

@@ -76,13 +76,11 @@ fun SettingsScreen(nav: NavHostController) {
         value = container.health.hasPermission()
     }
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
-    var participantDraft by remember { mutableStateOf("") }
     var nameDraft by remember { mutableStateOf("") }
     var draftsLoaded by remember { mutableStateOf(false) }
     var operatorOpen by remember { mutableStateOf(false) }
     LaunchedEffect(user) {
         if (!draftsLoaded && user != null) {
-            participantDraft = user?.participantId ?: ""
             nameDraft = user?.account?.name ?: ""
             draftsLoaded = true
         }
@@ -121,79 +119,83 @@ fun SettingsScreen(nav: NavHostController) {
             },
         )
 
-        Spacer(Modifier.height(40.dp))
-        Text(stringResource(R.string.settings_profile_section), style = TTType.Meta, color = TT.Gray70)
-        Spacer(Modifier.height(12.dp))
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            val photoScope = rememberCoroutineScope()
-            val picker = rememberLauncherForActivityResult(
-                ActivityResultContracts.PickVisualMedia(),
-            ) { uri ->
-                if (uri != null) {
-                    photoScope.launch {
-                        AvatarStore.import(context, uri, user?.avatarPath)?.let {
-                            container.prefs.setAvatarPath(it)
+        // The profile is an account's (25/09): signed out, nobody's name,
+        // photo or @ is shown here.
+        if (user?.signedIn == true) {
+            Spacer(Modifier.height(40.dp))
+            Text(stringResource(R.string.settings_profile_section), style = TTType.Meta, color = TT.Gray70)
+            Spacer(Modifier.height(12.dp))
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                val photoScope = rememberCoroutineScope()
+                val picker = rememberLauncherForActivityResult(
+                    ActivityResultContracts.PickVisualMedia(),
+                ) { uri ->
+                    if (uri != null) {
+                        photoScope.launch {
+                            AvatarStore.import(context, uri, user?.avatarPath)?.let {
+                                container.prefs.setAvatarPath(it)
+                            }
                         }
                     }
                 }
+                UserAvatar(
+                    user?.account?.initials ?: "TT",
+                    Skin.PINK,
+                    photoPath = user?.avatarPath,
+                    size = 48.dp,
+                )
+                Spacer(Modifier.padding(6.dp))
+                Text(
+                    stringResource(R.string.settings_photo_change),
+                    style = TTType.Meta.copy(fontSize = 12.sp),
+                    color = TT.Ink,
+                    modifier = Modifier
+                        .clickable {
+                            picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        }
+                        .padding(6.dp),
+                )
             }
-            UserAvatar(
-                user?.account?.initials ?: "TT",
-                Skin.PINK,
-                photoPath = user?.avatarPath,
-                size = 48.dp,
+            Spacer(Modifier.height(14.dp))
+            TTField(
+                label = stringResource(R.string.account_name_label),
+                value = nameDraft,
+                onValueChange = { nameDraft = it },
             )
-            Spacer(Modifier.padding(6.dp))
-            Text(
-                stringResource(R.string.settings_photo_change),
-                style = TTType.Meta.copy(fontSize = 12.sp),
-                color = TT.Ink,
-                modifier = Modifier
-                    .clickable {
-                        picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    }
-                    .padding(6.dp),
-            )
-        }
-        Spacer(Modifier.height(14.dp))
-        TTField(
-            label = stringResource(R.string.account_name_label),
-            value = nameDraft,
-            onValueChange = { nameDraft = it },
-        )
-        Spacer(Modifier.height(8.dp))
-        // O @ é fixo: escolhido uma vez na criação da conta, não muda mais.
-        Text(
-            stringResource(R.string.settings_handle_fixed, user?.account?.username ?: ""),
-            style = TTType.Footnote,
-            color = TT.Gray45,
-        )
-        Spacer(Modifier.height(14.dp))
-        // The button used to fade once the name matched, which was the only sign
-        // a save had happened. It no longer fades (22/09), so the screen says
-        // both things out loud: that it saved, and why a tap did nothing.
-        var nameNote by remember { mutableStateOf<Int?>(null) }
-        TTButton(
-            stringResource(R.string.profile_save),
-            TTButtonStyle.Ink,
-            enabled = nameDraft.isNotBlank() && nameDraft.trim() != (user?.account?.name ?: ""),
-            onDeclined = {
-                nameNote = if (nameDraft.isBlank()) R.string.form_missing_name else R.string.form_same_name
-            },
-            onClick = {
-                scope.launch {
-                    container.prefs.setName(nameDraft)
-                    nameNote = R.string.form_name_saved
-                }
-            },
-        )
-        nameNote?.let {
             Spacer(Modifier.height(8.dp))
+            // O @ é fixo: escolhido uma vez na criação da conta, não muda mais.
             Text(
-                stringResource(it),
-                style = TTType.BodySmall,
-                color = if (it == R.string.form_name_saved) TT.Ink else TT.Rose,
+                stringResource(R.string.settings_handle_fixed, user?.account?.username ?: ""),
+                style = TTType.Footnote,
+                color = TT.Gray45,
             )
+            Spacer(Modifier.height(14.dp))
+            // The button used to fade once the name matched, which was the only sign
+            // a save had happened. It no longer fades (22/09), so the screen says
+            // both things out loud: that it saved, and why a tap did nothing.
+            var nameNote by remember { mutableStateOf<Int?>(null) }
+            TTButton(
+                stringResource(R.string.profile_save),
+                TTButtonStyle.Ink,
+                enabled = nameDraft.isNotBlank() && nameDraft.trim() != (user?.account?.name ?: ""),
+                onDeclined = {
+                    nameNote = if (nameDraft.isBlank()) R.string.form_missing_name else R.string.form_same_name
+                },
+                onClick = {
+                    scope.launch {
+                        container.prefs.setName(nameDraft)
+                        nameNote = R.string.form_name_saved
+                    }
+                },
+            )
+            nameNote?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(it),
+                    style = TTType.BodySmall,
+                    color = if (it == R.string.form_name_saved) TT.Ink else TT.Rose,
+                )
+            }
         }
 
         Spacer(Modifier.height(40.dp))
@@ -255,18 +257,8 @@ fun SettingsScreen(nav: NavHostController) {
                 on = lockOn,
                 onToggle = { scope.launch { container.prefs.setRevealLock(!lockOn) } },
             )
-            Spacer(Modifier.height(14.dp))
-            TTField(
-                label = stringResource(R.string.participant_label),
-                value = participantDraft,
-                onValueChange = {
-                    participantDraft = it
-                    scope.launch { container.prefs.setParticipantId(it) }
-                },
-                placeholder = "P01",
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(stringResource(R.string.participant_hint), style = TTType.Footnote, color = TT.Gray45)
+            // The experiment's participant code (P01…) went away at Felipe's
+            // word on 25/09: "não faz sentido, a gente não vai precisar".
         }
 
         Spacer(Modifier.height(40.dp))
@@ -320,14 +312,17 @@ fun SettingsScreen(nav: NavHostController) {
             Spacer(Modifier.height(32.dp))
             BlockedPeople()
         }
-        Spacer(Modifier.height(24.dp))
-        Text(stringResource(R.string.settings_delete_warning), style = TTType.Footnote, color = TT.Gray45)
-        Spacer(Modifier.height(14.dp))
-        TTButton(
-            stringResource(R.string.settings_delete),
-            TTButtonStyle.Outline,
-            onClick = { confirmDelete = true },
-        )
+        // Signed out there is no account here to delete (25/09).
+        if (session != null) {
+            Spacer(Modifier.height(24.dp))
+            Text(stringResource(R.string.settings_delete_warning), style = TTType.Footnote, color = TT.Gray45)
+            Spacer(Modifier.height(14.dp))
+            TTButton(
+                stringResource(R.string.settings_delete),
+                TTButtonStyle.Outline,
+                onClick = { confirmDelete = true },
+            )
+        }
     }
 
     if (confirmDelete) {
@@ -370,7 +365,7 @@ fun SettingsScreen(nav: NavHostController) {
                             scope.launch {
                                 val before = container.prefs.state.first()
                                 val session = before.session
-                                val serverDone = if (session == null && before.viewerId != null) {
+                                val serverDone = if (session == null && before.lastUserId != null) {
                                     // Signed out, but an account was here (25/09): the
                                     // server was never asked, so nothing is deleted and
                                     // the screen does not say it was.

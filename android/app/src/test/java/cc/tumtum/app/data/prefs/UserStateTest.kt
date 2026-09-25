@@ -60,10 +60,16 @@ class UserStateTest {
     }
 
     @Test
-    fun `the export shows to the operator and on a protocol phone, never to a fan`() {
+    fun `the export shows to the operator only`() {
         assertTrue(state(operatorUserId = "ana").showsExport)
-        assertTrue(state(participant = "P01").showsExport)
         assertFalse(state().showsExport)
-        assertFalse(state(participant = "  ").showsExport)
+        // The participant code no longer opens it (Felipe, 25/09).
+        assertFalse(state(participant = "P01").showsExport)
+    }
+
+    @Test
+    fun `signed out, the phone is nobody's`() {
+        assertFalse(state(sessionUser = null).signedIn)
+        assertTrue(state().signedIn)
     }
 }
