@@ -238,3 +238,20 @@ async def test_the_old_one_step_sign_up_is_closed():
         await register()
     assert refused.value.status_code == 410
     assert "código" in refused.value.detail
+
+
+@pytest.mark.asyncio
+async def test_the_reset_mail_greets_the_name_trimmed_and_escaped(db, mailbox):
+    """The first reset that ever left (24/09) said "Oi, Felipe Zanucci ." —
+    the name as typed once, trailing space and all."""
+    from app.api.auth import forgot_password
+    from app.schemas.auth import ForgotPasswordRequest
+
+    db.add(
+        User(id=uuid.uuid4(), email="felipe@x.cc", name="Felipe <b>Z</b> ", auth_provider="email")
+    )
+    await db.flush()
+    await forgot_password(ForgotPasswordRequest(email="felipe@x.cc"), db)
+    (mail,) = mailbox
+    assert mail["text"].startswith("Oi, Felipe <b>Z</b>.")
+    assert "Oi, Felipe &lt;b&gt;Z&lt;/b&gt;.</p>" in mail["html"]

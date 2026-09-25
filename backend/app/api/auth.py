@@ -1,3 +1,4 @@
+import html
 import traceback
 from datetime import UTC, datetime, timedelta
 
@@ -356,12 +357,16 @@ async def forgot_password(
         await db.flush()
 
         link = f"{settings.site_url}/redefinir-senha?token={token}"
+        # The name as the person typed it once, which can end in a space: the
+        # first reset that ever left (24/09) greeted "Felipe Zanucci ." — and
+        # escaped for the HTML part, since it is text a person chose.
+        name = user.name.strip()
         try:
             await send_email(
                 to=user.email,
                 subject="Criar uma nova senha na TumTum",
                 html=(
-                    f"<p>Oi, {user.name}.</p>"
+                    f"<p>Oi, {html.escape(name)}.</p>"
                     f"<p>Alguém pediu uma nova senha para a sua conta na TumTum. "
                     f"Se foi você, o link abaixo vale por 30 minutos:</p>"
                     f'<p><a href="{link}">Criar uma nova senha</a></p>'
@@ -369,7 +374,7 @@ async def forgot_password(
                     f"sua senha continua a mesma.</p>"
                 ),
                 text=(
-                    f"Oi, {user.name}.\n\n"
+                    f"Oi, {name}.\n\n"
                     f"Alguém pediu uma nova senha para a sua conta na TumTum. "
                     f"Se foi você, abra este link nos próximos 30 minutos:\n\n"
                     f"{link}\n\n"
