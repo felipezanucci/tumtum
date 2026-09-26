@@ -1,19 +1,28 @@
-fastapi==0.104.1
+# FastAPI 0.136.3 is the last release whose `app.routes` lists every route
+# flat; from 0.137 an included router is one lazy entry, and the tests that
+# prove which routes exist (operator-only, consent-gated, no demo in
+# production) would stop seeing them. Starlette is pinned with it because a
+# security fix lands there, not in FastAPI.
+fastapi==0.136.3
+starlette==1.7.0
 uvicorn[standard]==0.24.0
 sqlalchemy==2.0.23
 asyncpg==0.29.0
 alembic==1.12.1
-pydantic==2.5.0
-pydantic-settings==2.1.0
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-# passlib 1.7.4 reads `bcrypt.__about__`, which bcrypt 4.1 removed; with an
-# unpinned bcrypt (5.x today) hashing crashes and so do the tests.
-bcrypt>=4.0,<4.1
-python-multipart==0.0.6
+pydantic==2.13.5
+pydantic-settings==2.15.0
+# JWTs. python-jose is unmaintained and carried the "none"/algorithm-confusion
+# CVEs; PyJWT always verifies against the `algorithms` it is given.
+PyJWT==2.15.0
+# Used directly (api/auth.py). passlib is gone: it was unmaintained and broke
+# on bcrypt >= 4.1. The hashes are the same `$2b$` strings, so every stored
+# password still verifies.
+bcrypt==5.0.0
+python-multipart==0.0.32
 redis==5.0.1
 httpx==0.25.2
+anyio==4.15.1
 email-validator==2.1.0
-Pillow==10.2.0
+Pillow==12.3.0
 boto3==1.34.0
-sentry-sdk[fastapi]==1.39.1
+sentry-sdk[fastapi]==2.70.0

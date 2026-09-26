@@ -16,10 +16,27 @@ from app.services.access_log import ip_of, record_access
 from tests.conftest import add_user, grant, make_request, night_body
 
 
-def test_the_ip_is_the_first_forwarded_hop():
-    assert ip_of(make_request("203.0.113.9, 10.0.0.1")) == "203.0.113.9"
+def test_the_ip_is_the_hop_our_edge_appended(monkeypatch):
+    """Never the first entry: the client writes that one itself."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 1)
+    assert ip_of(make_request("1.2.3.4, 203.0.113.9")) == "203.0.113.9"
+    assert ip_of(make_request("203.0.113.9")) == "203.0.113.9"
     assert ip_of(make_request(None, client=("198.51.100.4", 1))) == "198.51.100.4"
     assert ip_of(None) is None
+
+
+def test_two_hops_read_past_the_sites_rewrite(monkeypatch):
+    """`/api/auth/*` comes through Vercel: person, then Vercel, then Railway."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 2)
+    chain = "1.2.3.4, 203.0.113.9, 76.76.21.21"
+    assert ip_of(make_request(chain)) == "203.0.113.9"
+    # Fewer entries than hops: not written by our proxies, so the peer.
+    only_one = make_request("1.2.3.4", client=("198.51.100.4", 1))
+    assert ip_of(only_one) == "198.51.100.4"
 
 
 @pytest.mark.asyncio

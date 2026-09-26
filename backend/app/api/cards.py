@@ -1,5 +1,8 @@
+import asyncio
+import traceback
 import uuid
 from datetime import UTC, datetime
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import Response
@@ -8,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
+from app.core.ratelimit import by_ip, limit
 from app.models.card import Card, Share
 from app.models.hr_data import HRData
 from app.models.hr_session import HRSession
@@ -27,6 +31,17 @@ from app.services.card_generator import generate_moment_card
 from app.services.local_time import format_moment_time
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
+
+# The layouts a card is drawn in. Anything else used to reach the generator
+# and the cache key as typed — a new Redis key, and a fresh render, per
+# string anybody cared to invent.
+CardFormat = Literal["story", "feed", "og"]
+
+# The public card routes draw an image on a miss; two a second per address
+# is far above what a link preview or a person needs.
+_PUBLIC_CARD_LIMIT = Depends(limit(by_ip, 120, 60, name="public_card"))
+
+CARD_NOT_MADE = "Não deu pra gerar o card agora. Tenta de novo."
 
 
 @router.post("", response_model=CardResponse, status_code=status.HTTP_201_CREATED)
@@ -132,7 +147,10 @@ async def create_card(
     moment_time = format_moment_time(peak.timestamp) if peak else None
 
     try:
-        image_bytes = generate_moment_card(
+        # Drawing a card is a few hundred milliseconds of CPU in Pillow. In a
+        # thread, so the event loop keeps answering everybody else meanwhile.
+        image_bytes = await asyncio.to_thread(
+            generate_moment_card,
             user_name=user.name,
             event_name=event_name,
             event_date=event_date,
@@ -145,10 +163,10 @@ async def create_card(
             peak_slot=peak_slot,
         )
     except Exception as e:
-        import traceback
-
+        # The exception goes to the log, never to the client: its text can
+        # carry a path, a font name or a value from somebody's night.
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erro ao gerar card: {e!s}") from e
+        raise HTTPException(status_code=500, detail=CARD_NOT_MADE) from e
 
     # In production: upload to R2/S3 and store URL
     # For MVP: store as data URL placeholder, serve via /api/cards/{id}/image
@@ -184,9 +202,9 @@ async def create_card(
 
     # Store image bytes in Redis for serving (MVP approach)
     try:
-        from app.core.redis import redis_client
+        from app.core.redis import redis_bytes
 
-        await redis_client.set(
+        await redis_bytes.set(
             card_cache.cache_key(card.id), image_bytes, ex=card_cache.TTL_SECONDS
         )
         card.image_url = f"/api/cards/{card.id}/image"
@@ -254,7 +272,11 @@ async def _published(db: AsyncSession, card_id: uuid.UUID) -> tuple[Card, str]:
     return card, (name or (card.metadata_ or {}).get("user_name") or "alguém")
 
 
-@router.get("/{card_id}/public", response_model=PublicCardResponse)
+@router.get(
+    "/{card_id}/public",
+    response_model=PublicCardResponse,
+    dependencies=[_PUBLIC_CARD_LIMIT],
+)
 async def get_public_card(card_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     """Read a shared card without signing in — only once it was shared.
 
@@ -276,10 +298,10 @@ async def get_public_card(card_id: uuid.UUID, db: AsyncSession = Depends(get_db)
     )
 
 
-@router.get("/{card_id}/image")
+@router.get("/{card_id}/image", dependencies=[_PUBLIC_CARD_LIMIT])
 async def get_card_image(
     card_id: uuid.UUID,
-    format: str | None = None,
+    format: CardFormat | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """Serve the card image, public so a shared link can render a preview.
@@ -298,20 +320,21 @@ async def get_card_image(
     )
 
 
-async def _render(card: Card, user_name: str, format: str | None) -> bytes:
+async def _render(card: Card, user_name: str, format: CardFormat | None) -> bytes:
     """The card's PNG, from the cache when it is there, drawn when it is not."""
     cache_key = card_cache.cache_key(card.id, format)
     try:
-        from app.core.redis import redis_client
+        from app.core.redis import redis_bytes
 
-        image_bytes = await redis_client.get(cache_key)
+        image_bytes = await redis_bytes.get(cache_key)
         if image_bytes:
             return image_bytes
     except Exception:
         pass
 
     meta = card.metadata_ or {}
-    image_bytes = generate_moment_card(
+    image_bytes = await asyncio.to_thread(
+        generate_moment_card,
         user_name=user_name,
         event_name=meta.get("event_name", "Evento"),
         event_date=meta.get("event_date", ""),
@@ -324,9 +347,9 @@ async def _render(card: Card, user_name: str, format: str | None) -> bytes:
         peak_slot=meta.get("peak_slot"),
     )
     try:
-        from app.core.redis import redis_client
+        from app.core.redis import redis_bytes
 
-        await redis_client.set(cache_key, image_bytes, ex=card_cache.TTL_SECONDS)
+        await redis_bytes.set(cache_key, image_bytes, ex=card_cache.TTL_SECONDS)
     except Exception:
         pass
     return image_bytes
@@ -335,7 +358,7 @@ async def _render(card: Card, user_name: str, format: str | None) -> bytes:
 @router.get("/{card_id}/preview")
 async def get_card_preview(
     card_id: uuid.UUID,
-    format: str | None = None,
+    format: CardFormat | None = None,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

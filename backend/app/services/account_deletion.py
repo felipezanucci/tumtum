@@ -17,6 +17,13 @@ log of reads of their data, and the cached images of their cards. What stays
 is one row in `deletion_log` with a date and no identifier — and the access
 log, which the Marco Civil (art. 15) requires kept for six months and which
 the maintenance loop purges after that.
+
+And one `deletion_tombstones` row (v1.1 opinion, §11): the hash of the id and
+a keyed hash of the address, so that a backup taken before today and
+restored after it does not bring the account back — `services.tombstones`
+deletes it again. Written here, in the same transaction as the deletion, so
+there is never a deleted account without one. See `DeletionTombstone` for
+why hashes and not the id or the address, and for how long it lives.
 """
 
 from sqlalchemy import delete, func, select
@@ -42,7 +49,7 @@ from app.models.signup_code import SignupCode
 from app.models.user import User
 from app.models.waitlist_entry import WaitlistEntry
 from app.models.wearable_connection import WearableConnection
-from app.services import card_cache
+from app.services import card_cache, tombstones
 
 # Children before parents. Tested, because the order *is* the correctness.
 #
@@ -137,6 +144,7 @@ async def delete_account(db: AsyncSession, user: User) -> None:
     await db.execute(
         delete(WaitlistEntry).where(func.lower(WaitlistEntry.email) == email_key)
     )
+    await tombstones.record(db, user)
     await db.execute(delete(User).where(User.id == user.id))
     db.add(DeletionLog())
     await db.flush()

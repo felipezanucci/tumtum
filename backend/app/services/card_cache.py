@@ -30,16 +30,28 @@ def keys_of(card_ids: Iterable[uuid.UUID | str]) -> list[str]:
 async def forget(card_ids: Iterable[uuid.UUID | str]) -> None:
     """Delete every cached image of these cards. Never raises.
 
+    The known variants go first, in one call. Then every other key under
+    `card:image:{id}` is found with `SCAN` and deleted too: a variant added
+    later, or one written while `format` still accepted any string, must not
+    outlive the card. SCAN rather than KEYS, which blocks Redis while it
+    walks the whole keyspace.
+
     Redis being down must not keep somebody's account or night alive: the
     rows go regardless, and since `/image` now reads the database first, a
     key that survives an outage serves nobody and expires within the week.
     """
-    keys = keys_of(card_ids)
+    ids = [str(cid) for cid in card_ids]
+    keys = keys_of(ids)
     if not keys:
         return
     try:
-        from app.core.redis import redis_client
+        from app.core import redis as redis_module
 
-        await redis_client.delete(*keys)
+        client = redis_module.redis_bytes
+        await client.delete(*keys)
+        for cid in ids:
+            stray = [key async for key in client.scan_iter(f"card:image:{cid}*")]
+            if stray:
+                await client.delete(*stray)
     except Exception as error:  # an outage must not block a deletion
-        log.warning("card cache: could not forget %d keys: %s", len(keys), error)
+        log.warning("card cache: could not forget %d cards: %s", len(ids), error)

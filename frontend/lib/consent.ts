@@ -106,14 +106,39 @@ export function needsConsentGate(
   return !choicesFrom(consents).terms
 }
 
+/** The fixed origin a `next` must resolve to — never `location`, which a page can be framed or proxied under. */
+const SITE_ORIGIN = 'https://tumtum.cc'
+
+// eslint-disable-next-line no-control-regex -- control characters are exactly what this refuses
+const UNSAFE_NEXT = /[\u0000-\u001f\u007f\\]/
+
 /**
  * A path to come back to after the consent screen. Only this site's own
  * paths: `//evil.example` and absolute URLs are dropped.
  */
 export function safeNext(next: string | null | undefined): string | null {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return null
-  if (next.startsWith('/consentimento')) return null
-  return next
+  if (!next || !next.startsWith('/')) return null
+  // Browsers strip tabs and newlines and read `\` as `/`, so `/\t/evil.com`
+  // and `/\evil.com` become `//evil.com`: refuse them before parsing, and
+  // their percent-encoded forms too.
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(next)
+  } catch {
+    return null
+  }
+  for (const candidate of [next, decoded]) {
+    if (UNSAFE_NEXT.test(candidate) || candidate.startsWith('//')) return null
+  }
+  let url: URL
+  try {
+    url = new URL(next, SITE_ORIGIN)
+  } catch {
+    return null
+  }
+  if (url.origin !== SITE_ORIGIN) return null
+  if (url.pathname.startsWith('/consentimento')) return null
+  return `${url.pathname}${url.search}${url.hash}`
 }
 
 /** Where a `consent_required` refusal sends the person. */

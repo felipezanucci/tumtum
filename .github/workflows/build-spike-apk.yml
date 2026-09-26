@@ -13,11 +13,15 @@ on:
     paths:
       - "hardware/jstyle-spike/v8test/**"
 
+# Read-only by default; the jobs that publish a release raise it to write
+# (security review, 27/09).
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

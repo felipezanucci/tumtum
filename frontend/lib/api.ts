@@ -984,13 +984,29 @@ export interface UserProfile {
   birth_date: string | null
 }
 
+/**
+ * `GET /api/users/{id}`. Since 26/09 it carries no count of nights or events:
+ * how often someone goes out is not for strangers to read.
+ */
 export interface PublicProfile {
   name: string
   avatar_url: string | null
   created_at: string
-  total_sessions: number
-  total_events: number
   total_cards: number
+}
+
+// --- Event feed ---
+
+export const feed = {
+  /**
+   * Take one of the person's own posts out of the feed (and out of the tour's
+   * other dates with it). Answers 204; 404 when it is not theirs or is gone.
+   */
+  deletePost: (eventId: string, postId: string) =>
+    request<void>(
+      `/api/events/${encodeURIComponent(eventId)}/feed/${encodeURIComponent(postId)}`,
+      { method: 'DELETE' },
+    ),
 }
 
 // --- Demo ---
@@ -1084,6 +1100,13 @@ export const users = {
       body: JSON.stringify({ password }),
     }),
 
+  /**
+   * "Com quem seus dados estão" (LGPD art. 18 VII): the operators that hold
+   * data on TumTum's behalf, who never gets it, and everything this person
+   * made public — cards, feed posts and the shares recorded.
+   */
+  sharing: () => request<SharingOverview>('/api/users/me/sharing'),
+
   /** Requests to the encarregado: answered within 15 days (`due_at`). */
   requests: {
     create: (kind: RequestKind, message: string) =>
@@ -1094,6 +1117,52 @@ export const users = {
 
     list: () => request<DataSubjectRequest[]>('/api/users/me/requests'),
   },
+}
+
+/** One operator under contract that holds data on TumTum's behalf. */
+export interface SharingOperator {
+  name: string
+  role: string
+  what: string
+  why: string
+  /** Where the data sits. May be the literal "[a confirmar]" until it is. */
+  where: string
+}
+
+export interface SharingPublishedCard {
+  id: string
+  event_name: string
+  published_at: string
+  public_url: string
+}
+
+/** `evento` is the one night's feed; `turnê` also reaches the tour's other dates. */
+export type SharingAudience = 'evento' | 'turnê'
+
+export interface SharingFeedPost {
+  id: string
+  event_id: string
+  event_name: string
+  created_at: string
+  audience: SharingAudience
+  reactions: number
+}
+
+export interface SharingShare {
+  card_id: string
+  platform: string
+  shared_at: string
+}
+
+/** `GET /api/users/me/sharing` (26/09). */
+export interface SharingOverview {
+  operators: SharingOperator[]
+  /** Who never receives personal data: clubs, artists, promoters… */
+  never: string[]
+  published_cards: SharingPublishedCard[]
+  feed_posts: SharingFeedPost[]
+  shares: SharingShare[]
+  anpd: { url: string; note: string }
 }
 
 // --- Consents (26/09): one yes per purpose, recorded with its text version ---

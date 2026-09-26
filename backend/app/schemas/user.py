@@ -1,7 +1,13 @@
 import uuid
 from datetime import date, datetime
+from typing import Annotated
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, HttpUrl, UrlConstraints
+
+# https only, and no longer than the column (`users.avatar_url`, 500).
+AvatarUrl = Annotated[
+    HttpUrl, UrlConstraints(allowed_schemes=["https"], max_length=500)
+]
 
 
 class UserProfileResponse(BaseModel):
@@ -21,8 +27,11 @@ class UserProfileResponse(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    name: str | None = None
-    avatar_url: str | None = None
+    name: str | None = Field(None, min_length=1, max_length=120)
+    # An https address or nothing. Any string used to be stored and then
+    # rendered as an <img src> on a public profile: `javascript:`, `data:`,
+    # an http tracker, or a megabyte of text.
+    avatar_url: AvatarUrl | None = None
     # Accepted once, while the account has none (accounts made before 26/09).
     birth_date: date | None = None
 
@@ -49,11 +58,12 @@ class DeleteAccountRequest(BaseModel):
 
 
 class PublicProfileResponse(BaseModel):
+    """What anybody may read about an account. No count of nights or events:
+    how often somebody records their heart is health-adjacent (26/09)."""
+
     name: str
     avatar_url: str | None
     created_at: datetime
-    total_sessions: int = 0
-    total_events: int = 0
     total_cards: int = 0
 
     model_config = {"from_attributes": True}

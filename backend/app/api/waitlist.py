@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core.auth import get_current_user
 from app.core.database import get_db
+from app.core.ratelimit import by_ip, limit
 from app.models.user import User
 from app.models.waitlist_entry import WaitlistEntry
 from app.schemas.waitlist import (
@@ -20,7 +21,12 @@ router = APIRouter(prefix="/api/waitlist", tags=["waitlist"])
 
 
 @router.post(
-    "", response_model=WaitlistJoinResponse, status_code=status.HTTP_201_CREATED
+    "",
+    response_model=WaitlistJoinResponse,
+    status_code=status.HTTP_201_CREATED,
+    # Public and unauthenticated: without a limit, a script fills the list
+    # with other people's addresses as fast as it can type them.
+    dependencies=[Depends(limit(by_ip, 20, 3600))],
 )
 async def join_waitlist(
     body: WaitlistJoinRequest,

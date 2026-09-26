@@ -137,7 +137,7 @@ async def search_football_fixtures(
         )
     if not team and not on:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Informe o time ou a data.",
         )
     try:

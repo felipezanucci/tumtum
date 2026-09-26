@@ -1,7 +1,16 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pydantic import BaseModel, Field
+
+# Twelve hours at 1 Hz is 43 200 readings; a night is never that long, and a
+# strap's real rate is under 1 Hz once gaps are counted. 30 000 covers eight
+# hours of a strap with room, and stops one request from asking the server
+# to hold millions of rows in memory.
+MAX_DATA_POINTS = 30_000
+MAX_NIGHT = timedelta(hours=12)
+END_BEFORE_START = "A noite termina antes de começar. Confere o horário."
+NIGHT_TOO_LONG = "Uma noite tem no máximo 12 horas."
 
 # --- Wearable Connection ---
 
@@ -39,15 +48,22 @@ class HRDataPointInput(BaseModel):
 
     time: datetime
     bpm: int = Field(..., ge=30, le=250)
-    source: str | None = None
+    source: str | None = Field(None, max_length=100)
 
 
 class HRSessionCreateRequest(BaseModel):
+    """A night as the app uploads it, bounded before anything is stored.
+
+    The span (end after start, twelve hours at most) is checked by the route,
+    which answers in a sentence; a validator here would answer with a list
+    nobody can show on a screen.
+    """
+
     start_time: datetime
     end_time: datetime
-    source_device: str | None = None
+    source_device: str | None = Field(None, max_length=100)
     event_id: uuid.UUID | None = None
-    data_points: list[HRDataPointInput]
+    data_points: list[HRDataPointInput] = Field(..., max_length=MAX_DATA_POINTS)
 
 
 class HRSessionResponse(BaseModel):

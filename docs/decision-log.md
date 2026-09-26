@@ -18,7 +18,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
-| **Privacidade/LGPD** | **26/09, night — the opinion's v1.1, and what enters now.** It corrected four things (consent is not the only basis; the pre-pilot RIPD is our gate, not an automatic art. 38 duty; the founder as encarregado is a conflict; hosting in Brazil is not required, transfers need a mechanism). Adopted tonight: the ledger gains `legal_basis`, `scope`, `proof`; **raw readings 30 → 7 days**; the reveal push stops naming the event; the site's refresh token moves to an `httpOnly` cookie; the policy says *"dado individual não vai para parceiros comerciais; fornecedores contratados processam em nosso nome"*; the ROPA rewritten per operation with its basis, the RIPD with the cumulative high-risk test, an incident register (`docs/incident-register.md`), a Transfer Register. The twelve P0 gates read as GATE/DESIGN, not law: **what blocks a participant is still items 71–77 plus a signed RIPD.** New: items 80 (independent encarregado), 81 (a lawyer checks the opinion's 21–25/09 sources), 82 (the ledger's probative period). *(Morning:)* **26/09 — audited and corrected the same day.** The audit against the legal opinion (`RELATORIO-AUDITORIA-LGPD.md`, at the repository root) scored 76 items and found **six critical**: no per-purpose consent and no record of any, the night uploading with no act of the person, a pilot with no term and no discard plan, no age check of any kind, a `SECRET_KEY` with a known default and no guard, and real data in test fixtures and third-party contacts in docs. **The fix was written as one contract and built in four parallel streams** (backend, app, site, docs): seven purposes in `consents`, *Guardar minha noite* as the only road up, 18+ refused by the server, raw readings deleted after 30 days, access logs, delete one night, export everything, data-subject requests with a 15-day clock, a card public only once shared, the crowd at N ≥ 100. Governance written: `docs/ropa.md`, `docs/ripd.md`, `docs/data-retention-policy.md`, `docs/backups.md`, `docs/incident-response.md`, `docs/dpo.md`, `docs/dpa-checklist.md`, `docs/play-console-answers.md`, and the pilot's term and discard plan. **Still Felipe's (items 71–79):** the CNPJ, the Railway checks **before the merge** (the API no longer starts on a weak `SECRET_KEY`), the DPAs, the Play health category, legal review, and the term's signatures. **No participant records a night before those.** |
+| **Privacidade/LGPD** | *(27/09:)* **The two checklists that are Felipe's clicks, written:** `docs/security-baseline.md` (2FA, secrets, rotation and the quarterly access review, system by system — item 83) and `docs/confidentiality-and-training.md` (the term, the 45-minute training, joiner/mover/leaver — item 84). **26/09, night — the opinion's v1.1, and what enters now.** It corrected four things (consent is not the only basis; the pre-pilot RIPD is our gate, not an automatic art. 38 duty; the founder as encarregado is a conflict; hosting in Brazil is not required, transfers need a mechanism). Adopted tonight: the ledger gains `legal_basis`, `scope`, `proof`; **raw readings 30 → 7 days**; the reveal push stops naming the event; the site's refresh token moves to an `httpOnly` cookie; the policy says *"dado individual não vai para parceiros comerciais; fornecedores contratados processam em nosso nome"*; the ROPA rewritten per operation with its basis, the RIPD with the cumulative high-risk test, an incident register (`docs/incident-register.md`), a Transfer Register. The twelve P0 gates read as GATE/DESIGN, not law: **what blocks a participant is still items 71–77 plus a signed RIPD.** New: items 80 (independent encarregado), 81 (a lawyer checks the opinion's 21–25/09 sources), 82 (the ledger's probative period). *(Morning:)* **26/09 — audited and corrected the same day.** The audit against the legal opinion (`RELATORIO-AUDITORIA-LGPD.md`, at the repository root) scored 76 items and found **six critical**: no per-purpose consent and no record of any, the night uploading with no act of the person, a pilot with no term and no discard plan, no age check of any kind, a `SECRET_KEY` with a known default and no guard, and real data in test fixtures and third-party contacts in docs. **The fix was written as one contract and built in four parallel streams** (backend, app, site, docs): seven purposes in `consents`, *Guardar minha noite* as the only road up, 18+ refused by the server, raw readings deleted after 30 days, access logs, delete one night, export everything, data-subject requests with a 15-day clock, a card public only once shared, the crowd at N ≥ 100. Governance written: `docs/ropa.md`, `docs/ripd.md`, `docs/data-retention-policy.md`, `docs/backups.md`, `docs/incident-response.md`, `docs/dpo.md`, `docs/dpa-checklist.md`, `docs/play-console-answers.md`, and the pilot's term and discard plan. **Still Felipe's (items 71–79):** the CNPJ, the Railway checks **before the merge** (the API no longer starts on a weak `SECRET_KEY`), the DPAs, the Play health category, legal review, and the term's signatures. **No participant records a night before those.** |
 | **Pilot** | **The 25/09 date is probably lost.** Felipe said on 17/09 he most likely cannot run the test at the Tasha & Tracie show. The calendar was searched and shortlisted in `docs/pilot-event-options.md`: a **football match** as the technical test (objective timestamps, a peak synchronised across every chest in the stadium, tickets that actually exist, and a kick-off that ends before midnight) and a **concert with an engaged fan base** as the product test (which card someone actually sends). Still **decoupled from the supplier decision**. The binding constraint is not the calendar: with one chest strap only one person has moments, and card 04 cannot be tested at all. |
 
 ### Open items
@@ -879,8 +879,121 @@ the linked documents — this file is the index and the reasoning, not a diary.
     (purpose, basis, text version, proof and dates, behind an identifier that
     leads nowhere else). **Today the ledger is deleted with the account** —
     the proof goes with it.
+83. **Baseline de segurança (`docs/security-baseline.md`) — cliques do
+    Felipe.** `[PENDENTE — Felipe]` 27/09. The item 16 checklist (RR13, RR15,
+    P0.7): 2FA, members, tokens and secrets in GitHub, Railway, Vercel,
+    Resend, Sentry, Play Console, the DNS and oi@tumtum.cc, each row with the
+    evidence to keep (outside the repo) and a date to fill; branch protection
+    on `main` requiring the six CI jobs, `Privacy Scan` included — **only once
+    `main` is green** (item 79), or it locks every merge. Writing it found
+    two things: **rotating `SECRET_KEY` logs nobody out** — refresh tokens
+    are random values stored as plain SHA-256, not tied to the key — so the
+    "everyone signs in again" step is an explicit `UPDATE refresh_tokens`
+    (the doc's §9), needed after a leak, not after a routine rotation; and
+    **nobody knows who answers for tumtum.cc's DNS**: `CLAUDE.md` says
+    Cloudflare, the 26/08 Resend records went in at GoDaddy, the MX points at
+    Google Workspace (which also answers `docs/dpa-checklist.md`'s mailbox
+    question, and makes Workspace an operator with a DPA to accept). The
+    Snap, TikTok and Meta IDs in the app are public client IDs — nothing to
+    rotate there; the secret is the portal accounts.
+84. **Termo de confidencialidade e treinamento quando houver outra pessoa
+    com acesso.** `[PENDENTE — Felipe, e jurídico para o termo]` 27/09.
+    `docs/confidentiality-and-training.md`: the confidentiality and
+    data-protection term (health data, documented instructions, least
+    access, no copying or pasting real data into AI tools, incidents within
+    24 h, return and deletion, duty beyond the end), the 45-minute training
+    in eight topics with its attendance record, and joiner/mover/leaver with
+    the access list per system from item 83. Nothing to do while Felipe is
+    alone; **the order is term → training → access** the day anyone else —
+    a partner, a contractor, a pilot operator holding a phone — needs one.
+    The term's legal review rides with the pilot term's (item 77).
+85. **Verificação de idade e o ECA Digital (27/09).** A Lei 15.211/2025 está
+    em vigor desde 17/03/2026 e proíbe autodeclaração de idade; a ANPD
+    fiscaliza os demais setores a partir de janeiro de 2027. Se a TumTum está
+    no escopo ("provável acesso" por adolescentes), a data de nascimento no
+    picker não basta para o público. `docs/age-assurance-options.md` compara
+    nove fornecedores e recomenda duas camadas (CPF na Receita, depois Serpro
+    Datavalid ou Didit). Decisões de Felipe: advogado sobre o escopo (junto
+    com o item 81), CNPJ para o Datavalid (item 71), tabela de preços do
+    Serpro e conta de teste no Didit.
+86. **Left from the 27/09 security review.** Next.js 14 → 15 upgrade (own
+    PR; advisories fixed only in 15.5.24+); pin `softprops/action-gh-release`
+    to a commit SHA; certificate pinning in the app once there is a custom
+    API domain; a copy of `deletion_tombstones` outside the database; Sentry
+    alerting; the card cache still swallows Redis errors silently.
 
 ---
+
+## 2026-09-27 — Itens 19, 21 e 23, a revisão de segurança e o custo da verificação de idade
+
+**What was decided.** Of the "before the public launch" list (items 15–23 of
+the v1.1 follow-up), the three that are code with no outside dependency were
+built now, and a read-only security review of the whole codebase was run
+before paying anyone for a pentest (item 17). PR #107.
+
+- **Deletion tombstone (19):** `deletion_tombstones` keeps hashes of a
+  deleted account's id and e-mail for 400 days; a sweep at startup and in
+  the daily maintenance runs `delete_account` again on anything a restored
+  backup brought back, and cleans `signup_codes`, `email_changes` and
+  `waitlist_entries` by the same e-mail hash. Known gap, written in
+  `alembic/README-migrations.md`: the tombstones live in the same database,
+  so a restore of the *whole* database also restores the tombstone table to
+  the backup's state — dump the live table before restoring, load it back
+  after. A copy outside the database does not exist yet.
+- **Privacy centre (21):** `GET /api/users/me/sharing` and the profile
+  section "Com quem seus dados estão": the operators from
+  `app/services/operators.py` (single source; the policy and the ROPA cite
+  it), the person's public cards with Despublicar, their feed posts with
+  Tirar do feed, their recorded shares, and the ANPD channel.
+- **Cache (23):** the site has no service worker, so there was nothing to
+  purge; every `/api/*` response is `Cache-Control: no-store` except the card
+  image bytes.
+- **The security review** found 22 items, two of them high: the CORS regex
+  for Vercel previews was not anchored and, with the new session cookie,
+  would have let an attacker-registered Vercel project read a signed-in
+  visitor's tokens; and no route had a rate limit. Both fixed the same
+  night, with the rest: request bounds, a 4 MB body limit, the public card
+  image bounded to three formats and rendered off the event loop,
+  attendance requiring real readings inside the event window
+  (`hr_sessions.event_readings`), feed posts checked against the night,
+  access tokens refused after a password reset or e-mail change
+  (`users.tokens_valid_after`), demo routes only in development, the
+  public profile without counts of nights, story intents pinned to
+  Instagram and Facebook, device-transfer rules on Android, a read-only CI
+  token, security headers and no open image proxy on the site, and the
+  backend dependencies brought current (FastAPI 0.136, Pillow 12, Sentry
+  SDK 2, PyJWT instead of python-jose, bcrypt directly instead of passlib).
+- **Two things the review found that were simply broken:** the Redis card
+  cache had never served a single image (`decode_responses=True` cannot
+  return PNG bytes, and the error was swallowed), and deleting a shared
+  card was impossible before #105. Both fixed.
+- **Rate-limit keys:** every site request reaches the API from Vercel's few
+  addresses, so the site is never counted by IP — login, sign-up and reset
+  by e-mail, refresh by the hash of the token; the app's refresh is by
+  token too, because a stadium shares one carrier address.
+- **Age verification (15):** researched, not built. The ECA Digital (Lei
+  15.211/2025) has been in force since 17/03/2026 and forbids
+  self-declaration; the ANPD enforces the other sectors from January 2027.
+  `docs/age-assurance-options.md` compares nine providers and recommends
+  two layers: CPF checked at the Receita (cpfhub or entrar.api.br, cents
+  per check) and then Serpro Datavalid with facial biometrics against the
+  CNH base (needs the CNPJ) or Didit (500 free checks a month, data abroad).
+  Open item 85.
+
+**What it cost.** One night. Not done and recorded as pending: SHA-pinning
+the release action (this session cannot read other repositories), the
+Next.js 14 → 15 upgrade (open advisories fixed only in 15.5.24+; its own
+PR), Sentry-side alerting, certificate pinning in the app (P1), a copy of
+the tombstones outside the database.
+
+**Felipe, before merging #107:** set `ENVIRONMENT=production`,
+`CORS_EXTRA_ORIGINS=https://tumtum-eight.vercel.app` (and confirm in the
+Vercel dashboard whether `tumtum.vercel.app` is ours — it was removed from
+the list), `RATE_LIMIT_ENABLED=true`, `TRUSTED_PROXY_HOPS=1` on Railway; the
+schema catch-up adds the new columns and the tombstone table on startup.
+After the deploy: the e-mail change now signs the current device out at
+once, and a feed post must fit the night it belongs to — both to see in a
+hand.
 
 ## 2026-09-26 (noite) — Parecer v1.1 e o que dele entra agora
 

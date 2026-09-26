@@ -18,12 +18,13 @@ act, never derived from a night that happens to exist, and it can be taken
 down — the undo without which the consent is not real.
 """
 
+import html
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -47,6 +48,7 @@ from app.schemas.feed import (
 from app.services import consents, moderation
 from app.services.crowd import collective_moments
 from app.services.email import EmailNotConfigured, send_email
+from app.services.event_window import aware
 
 router = APIRouter(prefix="/api/events", tags=["feed"])
 
@@ -72,14 +74,28 @@ def measured(column=HRSession.source_device):
     return or_(column.is_(None), ~column.like(f"{DEMO_SOURCE_PREFIX}%"))
 
 
+def attended():
+    """The SQL condition that a night is proof of having been at its event.
+
+    Measured, and with at least `settings.attendance_min_readings` readings
+    inside the event's window (`hr_sessions.event_readings`, counted at
+    upload). Before 26/09 any night carrying the event's id was enough, and
+    an `event_id` on a five-second upload is a claim, not a night.
+    """
+    return and_(
+        measured(),
+        HRSession.event_readings >= settings.attendance_min_readings,
+    )
+
+
 async def was_there(db: AsyncSession, user_id: uuid.UUID, event_id: uuid.UUID) -> bool:
-    """Whether this account has a measured night at this event."""
+    """Whether this account has a night at this event that proves it was there."""
     result = await db.execute(
         select(HRSession.id)
         .where(
             HRSession.user_id == user_id,
             HRSession.event_id == event_id,
-            measured(),
+            attended(),
         )
         .limit(1)
     )
@@ -132,7 +148,7 @@ async def _open_report_counts(
 async def attended_events(
     db: AsyncSession, user_id: uuid.UUID, event_ids: list[uuid.UUID]
 ) -> set[uuid.UUID]:
-    """Which of these events this account has a measured night at."""
+    """Which of these events this account has a night proving attendance at."""
     if not event_ids:
         return set()
     rows = await db.execute(
@@ -140,7 +156,7 @@ async def attended_events(
         .where(
             HRSession.user_id == user_id,
             HRSession.event_id.in_(event_ids),
-            measured(),
+            attended(),
         )
         .distinct()
     )
@@ -302,6 +318,26 @@ async def get_event_feed(
     )
 
 
+MOMENT_NOT_OURS = "Esse momento não bate com a sua noite."
+
+
+def moment_fits(night: HRSession, moment_at: datetime, bpm: int) -> bool:
+    """Whether a posted moment could have come from this night.
+
+    The post is copied, not joined, so until 26/09 its bpm and minute were
+    whatever the client sent: "187 às 22h12" on a night that never passed
+    120 or ended at 21h. The minute must lie within the night and the bpm
+    within what the night measured. A night with no readings has no range,
+    so nothing from it can be published as a heart rate.
+    """
+    if night.min_bpm is None or night.max_bpm is None:
+        return False
+    if not night.min_bpm <= bpm <= night.max_bpm:
+        return False
+    at = aware(moment_at)
+    return aware(night.start_time) <= at <= aware(night.end_time)
+
+
 @router.post(
     "/{event_id}/feed",
     response_model=FeedPostResponse,
@@ -327,10 +363,15 @@ async def post_moment(
             HRSession.event_id == event_id,
         )
     )
-    if result.scalar_one_or_none() is None:
+    night = result.scalar_one_or_none()
+    if night is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Essa noite não é sua ou não é deste evento.",
+        )
+    if not moment_fits(night, body.moment_at, body.bpm):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=MOMENT_NOT_OURS
         )
 
     post = EventPost(
@@ -461,7 +502,7 @@ async def get_crowd(
             await db.execute(
                 select(HRSession.id).where(
                     HRSession.event_id == event_id,
-                    measured(),
+                    attended(),
                     HRSession.user_id.in_(consents.active_consent_users("crowd_stats")),
                 )
             )
@@ -593,12 +634,18 @@ async def _tell_operators(db: AsyncSession, post: EventPost) -> None:
     text = (
         f"Um post no feed de “{event.name}” foi denunciado.\n\nVeja e decida em {link}"
     )
+    # The event's name is escaped for the HTML part: it is text an operator
+    # typed, and markup in it would otherwise be markup in the operators' mail.
+    markup = (
+        f"<p>Um post no feed de “{html.escape(event.name)}” foi denunciado.</p>"
+        f'<p>Veja e decida em <a href="{html.escape(link)}">{html.escape(link)}</a></p>'
+    )
     for to in settings.admins:
         try:
             await send_email(
                 to=to,
                 subject="TumTum · denúncia no feed",
-                html=f"<p>{text.replace(chr(10), '<br>')}</p>",
+                html=markup,
                 text=text,
             )
         except EmailNotConfigured:

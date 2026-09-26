@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { Wordmark } from '@/components/brand'
 import type { PrivacyCopy } from '@/lib/privacy-copy'
+import { splitLinks } from '@/lib/sharing'
 
 /**
  * The privacy page: black canvas, white text, nothing pink louder than a
@@ -36,7 +37,7 @@ export function PrivacyPage({ copy }: { copy: PrivacyCopy }) {
               <h2 className="text-xl font-semibold leading-snug md:text-2xl">{section.heading}</h2>
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph} className="mt-4 leading-relaxed text-[#CFCFCF]">
-                  {paragraph}
+                  <Linked text={paragraph} />
                 </p>
               ))}
               {section.items && (
@@ -44,7 +45,9 @@ export function PrivacyPage({ copy }: { copy: PrivacyCopy }) {
                   {section.items.map((item) => (
                     <li key={item} className="flex gap-3 leading-relaxed text-[#CFCFCF]">
                       <span aria-hidden="true" className="mt-[11px] h-1.5 w-1.5 shrink-0 rounded-full bg-tumtum-pink" />
-                      <span>{item}</span>
+                      <span>
+                        <Linked text={item} />
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -72,5 +75,28 @@ export function PrivacyPage({ copy }: { copy: PrivacyCopy }) {
         </p>
       </main>
     </div>
+  )
+}
+
+/** Text with any `https://` address in it turned into a quiet link. */
+function Linked({ text }: { text: string }) {
+  return (
+    <>
+      {splitLinks(text).map((part, i) =>
+        part.href ? (
+          <a
+            key={i}
+            href={part.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-all text-tumtum-pink underline underline-offset-2"
+          >
+            {part.text}
+          </a>
+        ) : (
+          <span key={i}>{part.text}</span>
+        ),
+      )}
+    </>
   )
 }

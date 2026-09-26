@@ -29,6 +29,10 @@ class User(Base):
     # fixed. A column on an existing table: migration 015, and the startup
     # catch-up in `core/schema_catchup.py`.
     birth_date: Mapped[date | None] = mapped_column(Date)
+    # Access tokens issued before this instant are refused (core/auth.py).
+    # Set by a password reset, an e-mail change and a deletion. Migration 025
+    # and the startup catch-up.
+    tokens_valid_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

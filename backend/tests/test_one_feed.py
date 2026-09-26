@@ -13,7 +13,7 @@ against a real (in-memory) database, because the rule lives in SQL:
 """
 
 import uuid
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 import pytest_asyncio
@@ -85,8 +85,17 @@ async def _event(db, name: str, day: int, series: EventSeries | None = None) -> 
 
 
 async def _night(db, user: User, event: Event) -> HRSession:
+    # An hour at the event, a minute of it or more measured (attendance), and
+    # a range the posted 150 bpm at AT falls inside.
     night = HRSession(
-        id=uuid.uuid4(), user_id=user.id, event_id=event.id, start_time=AT, end_time=AT
+        id=uuid.uuid4(),
+        user_id=user.id,
+        event_id=event.id,
+        start_time=AT - timedelta(minutes=30),
+        end_time=AT + timedelta(minutes=30),
+        min_bpm=80,
+        max_bpm=160,
+        event_readings=3600,
     )
     db.add(night)
     await db.flush()

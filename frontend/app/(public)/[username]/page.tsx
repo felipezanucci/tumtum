@@ -102,18 +102,12 @@ export default function PublicProfilePage() {
           <p className="text-sm text-tumtum-muted">Membro desde {memberSince}</p>
         </div>
 
-        {/* Stats */}
-        <div className="mt-8 grid grid-cols-3 gap-3">
-          {[
-            { label: 'Sessões', value: profile.total_sessions },
-            { label: 'Eventos', value: profile.total_events },
-            { label: 'Cards', value: profile.total_cards },
-          ].map(({ label, value }) => (
-            <Card key={label} className="text-center">
-              <p className="text-xl font-bold text-tumtum-white">{value}</p>
-              <p className="text-xs text-tumtum-muted">{label}</p>
-            </Card>
-          ))}
+        {/* Stats: only the cards — nights and events are not public (26/09). */}
+        <div className="mt-8 flex justify-center">
+          <Card className="min-w-[8rem] text-center">
+            <p className="text-xl font-bold text-tumtum-white">{profile.total_cards}</p>
+            <p className="text-xs text-tumtum-muted">Cards</p>
+          </Card>
         </div>
 
         {/* Branding */}

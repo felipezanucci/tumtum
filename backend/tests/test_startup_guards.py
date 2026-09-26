@@ -102,8 +102,18 @@ def test_the_schema_catch_up_only_ever_adds():
         "users ADD COLUMN IF NOT EXISTS birth_date",
         "hr_sessions ADD COLUMN IF NOT EXISTS analyzed_at",
         "cards ADD COLUMN IF NOT EXISTS published_at",
+        "users ADD COLUMN IF NOT EXISTS tokens_valid_after",
+        "hr_sessions ADD COLUMN IF NOT EXISTS event_readings",
     ):
         assert column in joined
+
+
+def test_the_event_readings_backfill_touches_only_unfilled_rows():
+    from app.core.schema_catchup import EVENT_READINGS_BACKFILL
+
+    assert "WHERE event_readings IS NULL AND event_id IS NOT NULL" in (
+        EVENT_READINGS_BACKFILL
+    )
 
 
 def test_wearable_connections_no_longer_hold_provider_tokens():

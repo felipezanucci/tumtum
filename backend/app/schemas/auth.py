@@ -41,7 +41,11 @@ class SignupConfirmRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    # Bounded, so one request cannot make the server hash a megabyte; 128
+    # and not the sign-up's 64 because a reset accepted any length until
+    # 26/09, and nobody who chose a long one there may be locked out. Only
+    # the first 72 bytes reach bcrypt either way (api/auth.py).
+    password: str = Field(max_length=128)
 
 
 class TokenResponse(BaseModel):
@@ -79,8 +83,8 @@ class ForgotPasswordRequest(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    token: str
-    password: str = Field(min_length=6)
+    token: str = Field(max_length=256)
+    password: str = Field(min_length=6, max_length=128)
 
 
 class MessageResponse(BaseModel):

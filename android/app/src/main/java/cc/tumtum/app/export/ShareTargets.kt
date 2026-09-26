@@ -96,6 +96,9 @@ object ShareTargets {
         val backgroundUri = uriFor(context, background)
         val stickerUri = sticker?.let { uriFor(context, it) }
         val intent = Intent(STORY_ACTION).apply {
+            // Pinned to Instagram: without a package, any app that registers
+            // this action could receive the card and the granted URIs.
+            setPackage(INSTAGRAM)
             setDataAndType(backgroundUri, backgroundMime)
             stickerUri?.let { putExtra("interactive_asset_uri", it) }
             // Meta asks for the sharing app's Facebook App ID. Measured 22/09:
@@ -122,6 +125,7 @@ object ShareTargets {
         val backgroundUri = uriFor(context, background)
         val stickerUri = sticker?.let { uriFor(context, it) }
         val intent = Intent(FACEBOOK_STORY_ACTION).apply {
+            setPackage(FACEBOOK)
             setDataAndType(backgroundUri, backgroundMime)
             stickerUri?.let { putExtra("interactive_asset_uri", it) }
             putExtra("com.facebook.platform.extra.APPLICATION_ID", appId)

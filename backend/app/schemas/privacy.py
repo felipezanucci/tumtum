@@ -185,3 +185,71 @@ class MyDataResponse(BaseModel):
 
 class MyExportResponse(MyDataResponse):
     sessions: list[ExportSession]
+
+
+# --- "Ver compartilhamentos" (v1.1 opinion, §7) ---
+
+
+class SharingOperator(BaseModel):
+    """One company that processes the person's data for TumTum."""
+
+    name: str
+    role: str
+    what: str
+    why: str
+    where: str
+
+
+class SharingPublishedCard(BaseModel):
+    """A card anyone with the link can open, until the person unpublishes it."""
+
+    id: uuid.UUID
+    event_name: str
+    published_at: datetime
+    public_url: str
+
+
+class SharingFeedPost(BaseModel):
+    """A moment in a feed: seen by the event's crowd, or the whole tour's.
+
+    `event_id` is there so the screen can take the post down with the feed's
+    own `DELETE /api/events/{event_id}/feed/{id}` — seeing what is shared
+    and undoing it belong on the same line.
+    """
+
+    id: uuid.UUID
+    event_id: uuid.UUID
+    event_name: str
+    created_at: datetime
+    audience: Literal["evento", "turnê"]
+    reactions: int
+
+
+class SharingShare(BaseModel):
+    """A tap on a network: where the person sent a card, and when."""
+
+    card_id: uuid.UUID
+    platform: str
+    shared_at: datetime
+
+
+class SharingAuthority(BaseModel):
+    url: str
+    note: str
+
+
+class SharingResponse(BaseModel):
+    """`GET /api/users/me/sharing` — who has the person's data besides TumTum.
+
+    Two kinds of answer in one screen: the operators TumTum hands data to
+    (and the list of whom it never does), and what the person themself made
+    public — cards, feed posts, shares. Then where to complain if TumTum's
+    own answer is not enough.
+    """
+
+    operators: list[SharingOperator]
+    never: list[str]
+    published_cards: list[SharingPublishedCard]
+    feed_posts: list[SharingFeedPost]
+    shares: list[SharingShare]
+    anpd: SharingAuthority

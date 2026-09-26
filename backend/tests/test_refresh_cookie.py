@@ -91,7 +91,9 @@ async def test_the_site_gets_the_refresh_token_as_an_httponly_cookie(client, ana
     assert cookie is not None and len(cookie.value) >= 16
     assert cookie["httponly"] is True
     assert cookie["secure"] is True
-    assert cookie["samesite"].lower() == "none"
+    # Lax: the site reaches /api/auth through its own rewrite, so the cookie
+    # is first-party; None would hand it to any other site's POST as well.
+    assert cookie["samesite"].lower() == "lax"
     assert cookie["path"] == "/api/auth"
     assert int(cookie["max-age"]) == 90 * 24 * 60 * 60
 

@@ -16,6 +16,7 @@ import {
   DeleteAccount,
   EmailChange,
   PrivacyRequests,
+  SharingView,
 } from '@/components/privacy'
 
 export default function ProfilePage() {
@@ -278,6 +279,10 @@ export default function ProfilePage() {
 
             <PrivacyBlock title="Baixar meus dados">
               <DataDownload />
+            </PrivacyBlock>
+
+            <PrivacyBlock title="Com quem seus dados estão">
+              <SharingView />
             </PrivacyBlock>
 
             <PrivacyBlock title="Pedidos ao encarregado">

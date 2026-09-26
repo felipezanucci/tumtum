@@ -17,6 +17,11 @@ Every retention figure the policy states is enforced here, not by hand
 - **Spent credentials**: refresh tokens, password-reset links, sign-up codes
   and e-mail-change codes a day after they expired — kept that day so a
   late reuse is still recognised and refused as such.
+- **Deleted accounts stay deleted**: anything a restored backup brought
+  back of an account deleted after the backup was taken is deleted again
+  (`services/tombstones.py`, v1.1 opinion §11) — and the tombstones
+  themselves go `tombstone_retention_days` (400) after the deletion, when
+  no backup from before it can still exist.
 
 Runs inside the API process (`run_forever`, started in the lifespan like the
 match watch), and by hand with `python -m app.services.maintenance`.
@@ -35,9 +40,10 @@ from app.models.consent import Consent
 from app.models.hr_data import HRData
 from app.models.hr_session import HRSession
 from app.models.password_reset_token import PasswordResetToken
-from app.models.privacy import AccessLog, EmailChange
+from app.models.privacy import AccessLog, DeletionTombstone, EmailChange
 from app.models.refresh_token import RefreshToken
 from app.models.signup_code import SignupCode
+from app.services import tombstones
 from app.services.access_log import ACCESS_LOG_RETENTION
 from app.services.night_deletion import delete_nights
 
@@ -59,6 +65,8 @@ class Report:
     password_reset_tokens_deleted: int = 0
     signup_codes_deleted: int = 0
     email_changes_deleted: int = 0
+    restored_accounts_removed: int = 0
+    tombstones_deleted: int = 0
 
 
 async def _withdrawn_keep_night(db: AsyncSession, before: datetime) -> list:
@@ -120,6 +128,17 @@ async def run_once(db: AsyncSession, now: datetime | None = None) -> Report:
     ):
         result = await db.execute(delete(model).where(model.expires_at < spent))
         setattr(report, field, result.rowcount or 0)
+
+    # Before the purge below: a tombstone past its time has nothing left to
+    # find, but one still inside it must get its pass first.
+    report.restored_accounts_removed = await tombstones.sweep(db)
+    result = await db.execute(
+        delete(DeletionTombstone).where(
+            DeletionTombstone.deleted_at
+            < now - timedelta(days=settings.tombstone_retention_days)
+        )
+    )
+    report.tombstones_deleted = result.rowcount or 0
 
     await db.flush()
     return report

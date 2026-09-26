@@ -91,7 +91,7 @@ def _paste_wordmark(img: Image.Image, centre_x: int, top: int, height: int) -> N
     except OSError:
         return
     width = round(mark.width * height / mark.height)
-    mark = mark.resize((width, height), Image.LANCZOS)
+    mark = mark.resize((width, height), Image.Resampling.LANCZOS)
     img.paste(mark, (centre_x - width // 2, top), mark)
 
 
