@@ -9,6 +9,7 @@ import { useHRStore } from '@/lib/stores/useHRStore'
 import { ApiError, users, cards, type UserProfile, type CardData } from '@/lib/api'
 import { Avatar, Button, Card, Input, Loading, Badge, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
+import { OwnerCardImage } from '@/components/cards'
 import {
   ConsentSettings,
   DataDownload,
@@ -231,23 +232,24 @@ export default function ProfilePage() {
               <div className="grid grid-cols-3 gap-3">
                 {recentCards.map((card) => (
                   <div key={card.id} className="overflow-hidden rounded-lg border border-tumtum-border">
-                    {/* Served only once the card is public (26/09). */}
-                    {card.image_url && card.published_at ? (
-                      <img
-                        src={cards.getImageUrl(card.id)}
-                        alt="Card"
-                        className="w-full"
-                      />
-                    ) : (
-                      <div className="flex aspect-[9/16] flex-col items-center justify-center bg-tumtum-surface text-center">
-                        <span className="text-2xl font-hero text-tumtum-pink">
-                          {(card.metadata as { peak_bpm?: number } | null)?.peak_bpm ?? '—'}
-                        </span>
-                        <span className="mt-1 text-[10px] uppercase tracking-wider text-tumtum-muted">
-                          {card.published_at ? 'sem imagem' : 'só você vê'}
-                        </span>
-                      </div>
-                    )}
+                    {/* The owner's own image, public or not (26/09). */}
+                    <OwnerCardImage
+                      cardId={card.id}
+                      alt="Card"
+                      fallback={
+                        <div
+                          role="alert"
+                          className="flex aspect-[9/16] flex-col items-center justify-center bg-tumtum-surface text-center"
+                        >
+                          <span className="text-2xl font-hero text-tumtum-pink">
+                            {(card.metadata as { peak_bpm?: number } | null)?.peak_bpm ?? '—'}
+                          </span>
+                          <span className="mt-1 text-[10px] uppercase tracking-wider text-tumtum-muted">
+                            não carregou
+                          </span>
+                        </div>
+                      }
+                    />
                   </div>
                 ))}
               </div>

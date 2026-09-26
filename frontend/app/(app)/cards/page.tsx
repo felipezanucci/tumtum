@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { ApiError, cards, type CardData } from '@/lib/api'
 import { Button, Card, Loading, Badge, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
-import { nativeShare, canNativeShare, getShareUrl, copyToClipboard, downloadImage } from '@/lib/utils/share'
+import { OwnerCardImage } from '@/components/cards'
+import { nativeShare, canNativeShare, getShareUrl, copyToClipboard } from '@/lib/utils/share'
 
 const platformLabels: Record<string, string> = {
   instagram: 'Instagram',
@@ -24,6 +25,7 @@ export default function CardsPage() {
   /** Building the image file to hand over takes a moment on a slow connection. */
   const [sharingId, setSharingId] = useState<string | null>(null)
   const [unpublishingId, setUnpublishingId] = useState<string | null>(null)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
   /** One line per card for what just happened to it — or what failed. */
   const [cardNotice, setCardNotice] = useState<{ id: string; text: string; error?: boolean } | null>(null)
 
@@ -155,9 +157,25 @@ export default function CardsPage() {
     setShareMenuId(null)
   }
 
+  /**
+   * The owner's copy, through the session (26/09): saving a card to your own
+   * phone publishes nothing, so it no longer waits for a share. The line
+   * under the card says which file landed — or why none did.
+   */
   async function handleDownload(card: CardData) {
-    if (card.image_url) {
-      downloadImage(cards.getImageUrl(card.id), `tumtum-${card.id.slice(0, 8)}.png`)
+    setDownloadingId(card.id)
+    setCardNotice(null)
+    try {
+      const name = await cards.downloadPreview(card.id)
+      setCardNotice({ id: card.id, text: `Baixado: ${name}. Está na pasta de downloads do seu navegador.` })
+    } catch (error) {
+      setCardNotice({
+        id: card.id,
+        text: error instanceof Error ? error.message : 'Não deu pra baixar o card agora.',
+        error: true,
+      })
+    } finally {
+      setDownloadingId(null)
     }
   }
 
@@ -197,29 +215,35 @@ export default function CardsPage() {
                 const meta = card.metadata as any
                 return (
                   <Card key={card.id} className="relative overflow-hidden">
-                    {/* Card preview. The image is served only once the card is
-                        public (26/09), so a private card shows its words. */}
-                    {card.image_url && !card.published_at && (
-                      <div className="mb-4 flex aspect-[9/16] max-h-64 w-full flex-col items-center justify-center rounded-lg border border-tumtum-border bg-tumtum-black p-4 text-center">
-                        <p className="text-5xl font-hero text-tumtum-pink">{meta?.peak_bpm ?? '—'}</p>
-                        <p className="mt-1 text-xs uppercase tracking-wider text-tumtum-muted">bpm</p>
-                        {meta?.matched_label && (
-                          <p className="mt-3 text-sm text-tumtum-white">{meta.matched_label}</p>
-                        )}
-                        <p className="mt-4 text-xs text-tumtum-muted">
-                          A imagem aparece aqui quando o card for compartilhado.
-                        </p>
-                      </div>
-                    )}
-                    {card.image_url && card.published_at && (
-                      <div className="mb-4 overflow-hidden rounded-lg">
-                        <img
-                          src={cards.getImageUrl(card.id)}
-                          alt="Share card"
-                          className="w-full"
-                        />
-                      </div>
-                    )}
+                    {/* The owner sees the real image whether or not the card is
+                        public (26/09): it comes through the session, not the
+                        public link. If it cannot be fetched, the words stand
+                        in and say so. */}
+                    <div className="mb-4 overflow-hidden rounded-lg">
+                      <OwnerCardImage
+                        cardId={card.id}
+                        alt={
+                          meta?.peak_bpm
+                            ? `Card: seu coração foi a ${meta.peak_bpm} bpm`
+                            : 'Seu card'
+                        }
+                        fallback={
+                          <div
+                            role="alert"
+                            className="flex aspect-[9/16] max-h-64 w-full flex-col items-center justify-center rounded-lg border border-tumtum-border bg-tumtum-black p-4 text-center"
+                          >
+                            <p className="text-5xl font-hero text-tumtum-pink">{meta?.peak_bpm ?? '—'}</p>
+                            <p className="mt-1 text-xs uppercase tracking-wider text-tumtum-muted">bpm</p>
+                            {meta?.matched_label && (
+                              <p className="mt-3 text-sm text-tumtum-white">{meta.matched_label}</p>
+                            )}
+                            <p className="mt-4 text-xs text-tumtum-muted">
+                              Não deu pra carregar a imagem agora.
+                            </p>
+                          </div>
+                        }
+                      />
+                    </div>
 
                     <div className="flex items-center gap-2">
                       <Badge variant={card.card_type === 'solo' ? 'default' : 'accent'}>
@@ -257,8 +281,9 @@ export default function CardsPage() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => handleDownload(card)}
-                        disabled={!card.image_url || !card.published_at}
+                        onClick={() => void handleDownload(card)}
+                        loading={downloadingId === card.id}
+                        disabled={card.status !== 'ready'}
                       >
                         Baixar
                       </Button>

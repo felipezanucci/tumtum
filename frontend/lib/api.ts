@@ -184,15 +184,40 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 /**
- * Fetch a file the API serves behind the session and hand it to the browser
- * as a download. A plain link cannot carry the token, so the bytes come
- * through here.
+ * The file name a response names in its Content-Disposition, or the fallback
+ * when it names none. Reads the RFC 5987 `filename*=UTF-8''…` form first (it
+ * is the one that can carry an accent), then plain `filename=`, quoted or not.
+ * The header is readable cross-origin only because the API exposes it.
  */
-async function download(path: string, fallbackName: string): Promise<string> {
+export function filenameFromDisposition(disposition: string | null, fallback: string): string {
+  if (!disposition) return fallback
+  const extended = /filename\*\s*=\s*(?:[\w-]+)?'[^']*'([^;]+)/i.exec(disposition)?.[1]
+  if (extended) {
+    try {
+      const decoded = decodeURIComponent(extended.trim().replace(/^"|"$/g, ''))
+      if (decoded) return decoded
+    } catch {
+      // A malformed escape falls through to the plain form.
+    }
+  }
+  const plain = /filename\s*=\s*(?:"([^"]*)"|([^;]+))/i.exec(disposition)
+  const name = (plain?.[1] ?? plain?.[2] ?? '').trim()
+  return name || fallback
+}
+
+/**
+ * Fetch a file the API serves behind the session. A plain link or an `<img>`
+ * cannot carry the token, so the bytes come through here.
+ */
+async function fetchFile(path: string, fallbackName: string): Promise<{ blob: Blob; name: string }> {
   const response = await send(path)
   const blob = await response.blob()
-  const disposition = response.headers.get('Content-Disposition') ?? ''
-  const name = /filename="?([^";]+)"?/i.exec(disposition)?.[1] ?? fallbackName
+  const name = filenameFromDisposition(response.headers.get('Content-Disposition'), fallbackName)
+  return { blob, name }
+}
+
+/** Hand a blob to the browser as a download under the given name. */
+function saveBlob(blob: Blob, name: string): void {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
@@ -201,6 +226,15 @@ async function download(path: string, fallbackName: string): Promise<string> {
   link.click()
   link.remove()
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
+/**
+ * Fetch a file behind the session and save it as a download. Returns the
+ * name it was saved under, so the screen can say which file landed.
+ */
+async function download(path: string, fallbackName: string): Promise<string> {
+  const { blob, name } = await fetchFile(path, fallbackName)
+  saveBlob(blob, name)
   return name
 }
 
@@ -693,6 +727,16 @@ export interface PublicCardData {
   user_name: string
 }
 
+export type CardImageFormat = 'story' | 'og'
+
+function cardPreviewPath(cardId: string, format: CardImageFormat): string {
+  return `/api/cards/${encodeURIComponent(cardId)}/preview?format=${format}`
+}
+
+function cardFileName(cardId: string): string {
+  return `tumtum-${cardId.slice(0, 8)}.png`
+}
+
 export const cards = {
   create: (data: {
     session_id: string
@@ -714,6 +758,27 @@ export const cards = {
   /** Landscape variant, sized for the link-preview slot rather than a Story. */
   getPreviewImageUrl: (cardId: string) =>
     `${API_BASE}/api/cards/${cardId}/image?format=og`,
+
+  /**
+   * The owner's own card image, published or not (26/09). `/image` is public
+   * and answers only once the card is shared, and an `<img>` cannot carry the
+   * token, so the PNG comes through the session and is handed back as an
+   * object URL. Whoever asks for one owns it: release it with
+   * `revokePreviewUrl` when the image leaves the screen.
+   */
+  previewBlobUrl: async (cardId: string, format: CardImageFormat = 'story'): Promise<string> => {
+    const { blob } = await fetchFile(cardPreviewPath(cardId, format), cardFileName(cardId))
+    return URL.createObjectURL(blob)
+  },
+
+  revokePreviewUrl: (url: string) => URL.revokeObjectURL(url),
+
+  /**
+   * Save the owner's card as a PNG — no need to publish it first: a file on
+   * the person's own phone is not a public page. Returns the saved name.
+   */
+  downloadPreview: (cardId: string, format: CardImageFormat = 'story') =>
+    download(cardPreviewPath(cardId, format), cardFileName(cardId)),
 
   /** Read a shared card without signing in. Returns only what the image shows. */
   getPublic: (cardId: string) =>
