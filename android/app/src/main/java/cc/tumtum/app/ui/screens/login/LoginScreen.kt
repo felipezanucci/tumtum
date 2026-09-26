@@ -33,6 +33,7 @@ import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.prefs.Account
 import cc.tumtum.app.data.repo.afterSignIn
+import cc.tumtum.app.data.repo.consentGateNeeded
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.components.TTField
@@ -140,19 +141,29 @@ fun LoginScreen(nav: NavHostController) {
                             container.prefs.replaceAccount(account)
                         }
                         container.afterSignIn()
+                        // The consent gate (26/09): an account without a birth
+                        // date or without the Terms agreed passes it first.
+                        val gate = container.consentGateNeeded() == true
                         // Signing back in goes straight to the feed (#57, 23/09) —
                         // from Configurações it used to drop the person back on
                         // Configurações, one more step from what they came for.
                         // The back stack is cleared so "back" does not return
                         // to the sign-in form. Only a first sign-in goes on to
                         // the permissions.
-                        if (user?.onboarded == true) {
+                        if (user?.onboarded == true && !gate) {
                             nav.navigate(Routes.Feed) {
                                 popUpTo(nav.graph.id) { inclusive = true }
                                 launchSingleTop = true
                             }
+                        } else if (user?.onboarded == true) {
+                            nav.navigate(Routes.consent()) {
+                                popUpTo(nav.graph.id) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         } else {
-                            nav.navigate(Routes.Permission)
+                            // A first sign-in: the consent screen, then the
+                            // Health Connect dialog if reading was turned on.
+                            nav.navigate(Routes.consent())
                         }
                     } catch (e: Exception) {
                         error = AuthErrors.messageFor(e, context)

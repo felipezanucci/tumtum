@@ -77,6 +77,13 @@ data class NightEntity(
      * may post from it; null for nights uploaded before this was recorded.
      */
     val ownerUserId: String? = null,
+    /**
+     * The person asked for this night to be kept on the server (26/09). Nothing
+     * uploads without it: the end of a capture only saves on the phone.
+     */
+    val sendRequested: Boolean = false,
+    /** When the readings reached the server (epoch ms), for the screen to say so. Null = not there. */
+    val sentAt: Long? = null,
 )
 
 /** Amostras cruas da noite — guardadas como lidas. Buraco é ausência de linha. */

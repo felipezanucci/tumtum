@@ -51,7 +51,9 @@ class HealthConnectSource(private val context: Context) : HrSource {
 
     /**
      * Lê todas as amostras de FC da janela, agrupadas por origem (app da fonte).
-     * Fora da janela do evento, este método simplesmente não é chamado.
+     * Chamado na janela do evento (± 30 min) e, fora dela, só uma vez: no
+     * setup, sobre a última hora, para achar o relógio (26/09) — nada lido lá
+     * é guardado ou enviado.
      */
     suspend fun readWindowBySource(start: Instant, end: Instant): Map<String, List<HrSample>> {
         if (!isAvailable || !hasPermission()) return emptyMap()

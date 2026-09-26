@@ -50,6 +50,8 @@ fun ShareCardView(
     curveSamples: List<HrSample>? = null,
     curveWindow: Pair<Instant, Instant>? = null,
     photo: ImageBitmap? = null,
+    /** The number as printed — "110+" when the person hid the exact bpm (26/09); null prints [bpm]. */
+    bpmLabel: String? = null,
 ) {
     val bg = skinColor(skin)
     val fg = if (skin == Skin.BLACK) TT.Paper else TT.Ink
@@ -81,7 +83,7 @@ fun ShareCardView(
             color = fg,
         )
         Text(
-            "$bpm",
+            bpmLabel ?: "$bpm",
             style = TextStyle(
                 fontFamily = InstrumentSans,
                 fontWeight = FontWeight.Bold,

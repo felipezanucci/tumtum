@@ -53,7 +53,7 @@
     <!-- b3 · Permissão — a tela quieta -->
     <string name="perm_title">Seus batimentos,\nsuas regras.</string>
     <string name="perm_body">Pra contar a história da sua noite, a TumTum precisa ler a batida que o seu relógio já grava.</string>
-    <string name="perm_do_1">Lemos batimentos só nas janelas dos seus eventos</string>
+    <string name="perm_do_1">Lemos batimentos só nas janelas dos seus eventos — e a última hora, uma vez, pra achar seu relógio</string>
     <string name="perm_do_2">Você escolhe o que compartilha, sempre</string>
     <string name="perm_dont_1">Não fazemos leitura de saúde, diagnóstico ou alerta</string>
     <string name="perm_dont_2">Não vendemos nem cruzamos seus dados com anúncios</string>
@@ -67,7 +67,7 @@
     <string name="sources_subtitle">Achamos essas fontes no Health Connect.</string>
     <string name="sources_best">MELHOR FONTE</string>
     <string name="sources_coverage">%1$d%% da noite coberta · leitura a cada %2$s</string>
-    <string name="sources_coverage_24h">%1$d%% das últimas 24h coberto · leitura a cada %2$s</string>
+    <string name="sources_coverage_last_hour">%1$d%% da última hora coberto · leitura a cada %2$s</string>
     <string name="sources_no_data">sem dados nessa janela</string>
     <string name="sources_footnote">A gente mede a densidade de cada fonte na janela do evento e usa a melhor. Buracos ficam visíveis — nunca inventamos batida.</string>
     <string name="sources_use">Usar %1$s</string>
@@ -151,7 +151,6 @@
 
     <!-- a3 · A noite — a revela -->
     <string name="reveal_label">A NOITE</string>
-    <string name="reveal_default_title">EU TAVA TRANQUILO.\nAÍ VEIO ISSO.</string>
     <string name="reveal_bpm">bpm</string>
     <string name="reveal_at">às %1$s</string>
     <string name="reveal_gap">%1$d MIN SEM DADO</string>
@@ -260,15 +259,14 @@
     <string name="feed_post_at">às %1$s</string>
     <!-- Abaixo do piso do servidor não existe número coletivo: ele seria um
          fato sobre cada pessoa do grupo. Diz quantas são, nunca zero. -->
-    <plurals name="crowd_too_few">
-        <item quantity="one">AINDA SOMOS POUCOS · %1$d NOITE</item>
-        <item quantity="other">AINDA SOMOS POUCOS · %1$d NOITES</item>
-    </plurals>
+    <!-- 26/09: abaixo do piso o servidor nem publica a contagem. -->
+    <string name="crowd_too_few_band">AINDA SOMOS POUCOS AQUI</string>
     <plurals name="crowd_nights">
         <item quantity="one">%1$d NOITE MEDIDA</item>
         <item quantity="other">%1$d NOITES MEDIDAS</item>
     </plurals>
-    <string name="crowd_top">%1$d JUNTOS ÀS %2$s</string>
+    <!-- 26/09: gente em faixa ("25+"), nunca um número exato. -->
+    <string name="crowd_top">%1$s JUNTOS ÀS %2$s</string>
 
     <!-- Postar no feed é publicar dado de saúde: a pergunta é no momento,
          com todas as letras, e dá pra tirar depois (item 47 / 22/09). -->
@@ -326,7 +324,7 @@
     <string name="you_settings">Configurações</string>
     <string name="settings_title">Configurações</string>
     <string name="settings_hc_section">LEITURA DE BATIMENTOS</string>
-    <string name="settings_hc_granted">Leitura permitida, só nas janelas dos seus eventos</string>
+    <string name="settings_hc_granted">Leitura permitida: nas janelas dos seus eventos, e a última hora quando você conecta um relógio</string>
     <string name="settings_hc_revoked">Leitura revogada. Nova captura está bloqueada.</string>
     <string name="settings_hc_manage">Gerenciar no Health Connect</string>
     <string name="settings_account_section">SUA CONTA</string>
@@ -346,7 +344,7 @@
     <string name="sensor_connect">Conectar sensor</string>
     <string name="sensor_change">TROCAR</string>
     <string name="sensor_remove">REMOVER</string>
-    <string name="sensor_footnote">Sensor de peito ou braço com perfil padrão de batimento (Polar H10, Verity Sense). A captura fica ao vivo, segundo a segundo, com HRV.</string>
+    <string name="sensor_footnote">Sensor de peito ou braço com perfil padrão de batimento (Polar H10, Verity Sense). A captura fica ao vivo, segundo a segundo. Enquanto grava, o celular mostra uma notificação, o acelerômetro do celular mede quanto você se mexe e o sensor manda os intervalos entre batidas (R-R) — isso fica só no celular e é apagado quando a noite é salva. Até o Android 11, o Android pede a localização pra achar o sensor; a gente não usa onde você está.</string>
     <string name="sensor_scan_title">Buscando sensores</string>
     <string name="sensor_scan_searching">Ligue o sensor e espera um instante. Ele aparece aqui.</string>
     <string name="sensor_scan_tap">Toque no seu para parear.</string>
@@ -356,7 +354,7 @@
 
     <!-- Permissão BLE na tela quieta (§5) -->
     <string name="perm_ble_section">SENSOR NO CORPO · OPCIONAL</string>
-    <string name="perm_ble_body">Com um sensor de peito ou braço, a gente captura a noite ao vivo, batida a batida, direto no aparelho. Precisa da permissão de Bluetooth do Android.</string>
+    <string name="perm_ble_body">Com um sensor de peito ou braço, a gente captura a noite ao vivo, batida a batida, direto no aparelho. O Android pede a permissão de Bluetooth e a de notificação — a captura fica numa notificação enquanto grava. Até o Android 11, ele pede também a localização, só pra achar o sensor; a gente não usa onde você está. Durante a captura, o acelerômetro do celular mede quanto você se mexe, e o sensor manda os intervalos entre batidas (R-R). Os dois ficam só no celular e são apagados quando a noite é salva.</string>
     <string name="perm_ble_allow">Permitir Bluetooth</string>
     <string name="perm_ble_granted">Bluetooth permitido.</string>
 
@@ -409,7 +407,7 @@
     <string name="sources_skip">Fazer isso depois</string>
     <!-- Setup: bring the sensor (25/09) -->
     <string name="setup_title">Conecta seu relógio.</string>
-    <string name="setup_body">A TumTum lê a batida que o seu relógio já grava, pelo Health Connect.</string>
+    <string name="setup_body">A TumTum lê a batida que o seu relógio já grava, pelo Health Connect. Pra achar o relógio, a gente olha só a última hora — e nada disso é guardado.</string>
     <string name="setup_searching_title">Procurando…</string>
     <string name="setup_searching_body">Liga o sensor e deixa perto do celular. Ele aparece aqui.</string>
     <string name="setup_searching_none">Nada apareceu ainda. Confere se o sensor está ligado e perto do celular.</string>
@@ -427,7 +425,7 @@
     <string name="setup_paired_no_beat">%1$s ainda não mandou batida. Veste o sensor: ele só manda no corpo. Dá pra seguir — na hora do show ele conecta sozinho.</string>
     <string name="setup_home">Ir pro início</string>
     <string name="setup_change">Trocar sensor</string>
-    <string name="setup_watch_none">Nenhum relógio mandou batida pro Health Connect nas últimas 24h. No Galaxy Watch, confere no app Samsung Health se ele está sincronizando com o Health Connect.</string>
+    <string name="setup_watch_none">Nenhum relógio mandou batida pro Health Connect na última hora. Bota o relógio no pulso por uns minutos e procura de novo. No Galaxy Watch, confere no app Samsung Health se ele está sincronizando com o Health Connect.</string>
     <string name="setup_watch_no_permission">Sem a permissão do Health Connect, o app não vê seu relógio.</string>
 
     <!-- Entrar (quem já tem conta) -->
@@ -612,6 +610,129 @@
     <string name="setup_strap_search">Procurar sensor</string>
     <!-- True whether the strap is still awake or has switched itself off on the table (25/09). -->
     <string name="setup_no_contact">%1$s está sem contato com a pele. Veste ele pra ver a batida.</string>
-    <string name="reveal_calm_title">UMA NOITE\nTRANQUILA.</string>
     <string name="sync_server_none">O servidor não achou nenhum momento nessa noite.</string>
+
+    <!-- LGPD remediation, 26/09. Consent screens are quiet and careful: the
+         brand goes silent, the person reads what each key does. ANY change
+         to the consent_* sentences below is a new ConsentText.VERSION (and
+         the same version in the backend and the web). -->
+    <string name="consent_label">CONSENTIMENTO</string>
+    <string name="consent_title">Antes de ler\nsua batida.</string>
+    <string name="consent_intro_health">Batimento é dado de saúde. Por isso cada uso tem a sua chave, e nenhuma fica ligada sem você ligar.</string>
+    <string name="consent_intro_window">A gente só lê sua batida na janela do evento: de 30 minutos antes do começo até 30 minutos depois do fim.</string>
+    <string name="consent_intro_retention">Se você guardar a noite na TumTum, a série de batidas fica no servidor por 30 dias depois do momento. Os momentos e os cards ficam enquanto sua conta existir e “Guardar a noite” estiver ligado.</string>
+    <string name="consent_intro_not_medical">A TumTum não é um dispositivo médico e não interpreta saúde.</string>
+    <string name="consent_intro_nobody">Nada vai para clubes, artistas ou anunciantes.</string>
+    <string name="consent_intro_revoke">Dá pra desligar qualquer chave quando quiser, em Configurações.</string>
+    <string name="consent_section_focus">O QUE FALTA</string>
+    <string name="consent_section_core">PRA USAR A TUMTUM</string>
+    <string name="consent_section_optional">OPCIONAIS · DESLIGADAS ATÉ VOCÊ LIGAR</string>
+    <string name="consent_terms_title">Termos e Política de Privacidade</string>
+    <string name="consent_terms_body">Você leu e aceita os Termos de uso e a Política de Privacidade. Sem isso, não tem conta.</string>
+    <string name="consent_terms_stops">Sem os Termos, a conta não funciona. Pra sair de vez, apague a conta aqui embaixo.</string>
+    <string name="consent_read_title">Ler sua batida</string>
+    <string name="consent_read_body">Ler a batida que seu relógio ou sensor grava, só na janela do evento, e achar seus momentos. Sem isso, não tem noite.</string>
+    <string name="consent_read_stops">Nenhuma noite nova é gravada. As que já estão aqui continuam.</string>
+    <string name="consent_keep_title">Guardar a noite</string>
+    <string name="consent_keep_body">Guardar a noite (a série de batidas e os momentos) na sua coleção, no servidor da TumTum. Sem isso, a noite fica só no seu celular.</string>
+    <string name="consent_keep_stops">Nenhuma noite nova sobe pra TumTum. Pra apagar uma que já subiu, abre a noite e toca em Apagar esta noite.</string>
+    <string name="consent_crowd_title">Entrar na galera</string>
+    <string name="consent_crowd_body">Sua noite, sem seu nome, entra na conta coletiva do evento (“A galera”). Só aparece em faixas, tipo “25+”, e só quando tem gente suficiente.</string>
+    <string name="consent_crowd_stops">Suas noites deixam de contar na galera dos eventos.</string>
+    <string name="consent_artist_title">Comparar com o artista</string>
+    <string name="consent_artist_body">Quando existir: comparar sua batida com a do artista ou do atleta que topar mostrar a dele.</string>
+    <string name="consent_artist_stops">Sem comparação com artista ou atleta.</string>
+    <string name="consent_improve_title">Melhorar o detector</string>
+    <string name="consent_improve_body">Usar suas noites pra melhorar o jeito como a TumTum acha os momentos.</string>
+    <string name="consent_improve_stops">Suas noites não são usadas pra melhorar o detector.</string>
+    <string name="consent_marketing_title">Novidades por e-mail</string>
+    <string name="consent_marketing_body">Receber e-mails da TumTum sobre eventos e novidades.</string>
+    <string name="consent_marketing_stops">A gente para de mandar e-mail de novidade.</string>
+    <string name="consent_link_terms">Termos de uso</string>
+    <string name="consent_link_privacy">Política de Privacidade</string>
+    <string name="consent_version">Texto de %1$s.</string>
+    <string name="consent_continue">Continuar</string>
+    <string name="consent_saving">Salvando…</string>
+    <string name="consent_loading">Carregando suas escolhas…</string>
+    <string name="consent_signed_out">Entra na sua conta pra escolher o que a TumTum pode fazer.</string>
+    <string name="consent_load_offline">Sem internet agora. Suas escolhas ficam no servidor — tenta de novo quando voltar.</string>
+    <string name="consent_load_failed">Não deu pra carregar suas escolhas agora.</string>
+    <string name="consent_birth_label">DATA DE NASCIMENTO</string>
+    <string name="consent_birth_note">A TumTum é só pra quem tem 18 anos ou mais.</string>
+    <string name="consent_birth_missing">Escolhe sua data de nascimento.</string>
+    <!-- The server's own sentence, word for word (shared contract). -->
+    <string name="age_under_18">Você precisa ter 18 anos ou mais para usar a TumTum.</string>
+    <string name="consent_terms_needed">Pra ter conta na TumTum, a chave dos Termos precisa estar ligada.</string>
+    <string name="consent_failed_expired">Sua sessão expirou. Entra de novo e escolhe outra vez. Nada foi salvo.</string>
+    <string name="consent_failed_offline">Sem internet agora. Nada foi salvo — tenta de novo quando voltar.</string>
+    <string name="consent_failed_server">O servidor não salvou: %1$s. Nada mudou.</string>
+
+    <!-- Health Connect's "por que esse app lê?" (rationale) -->
+    <string name="rationale_title">Por que a TumTum\nlê sua batida.</string>
+    <string name="rationale_purposes">PRA QUE SERVE CADA CHAVE</string>
+    <string name="rationale_where">Você liga e desliga cada uma no app, em Configurações › Privacidade.</string>
+    <string name="rationale_policy">Ler a Política de Privacidade</string>
+    <string name="rationale_close">Fechar</string>
+
+    <!-- Criar conta: data de nascimento e aceite -->
+    <string name="account_birth_label">DATA DE NASCIMENTO</string>
+    <string name="account_terms_check">Li e aceito os Termos e a Política de Privacidade</string>
+    <string name="form_missing_birth">Escolhe sua data de nascimento.</string>
+    <string name="form_missing_terms">Marca que você leu e aceita os Termos e a Política de Privacidade.</string>
+    <string name="picker_choose">Escolher</string>
+
+    <!-- Fim da noite: nada sobe sem o toque -->
+    <string name="keep_cta">Guardar minha noite na TumTum</string>
+    <string name="keep_asking">Um segundo…</string>
+    <string name="keep_local_only">Sua noite está só neste celular. Momentos calculados aqui.</string>
+    <string name="keep_explained">Ela só sai daqui se você guardar.</string>
+    <string name="keep_signed_out">Entra na sua conta pra guardar a noite.</string>
+    <string name="keep_offline">Sem internet agora. A noite fica aqui — tenta de novo quando voltar.</string>
+    <string name="keep_needs_consent">Não subiu: “Guardar a noite” está desligado.</string>
+    <string name="keep_give_consent">Ligar e guardar</string>
+    <string name="keep_done_at">Guardada na TumTum %1$s.</string>
+    <string name="keep_done">Guardada na TumTum.</string>
+
+    <!-- Apagar esta noite -->
+    <string name="night_delete">Apagar esta noite</string>
+    <string name="night_delete_title">Apagar esta noite?</string>
+    <string name="night_delete_body_server">Ela sai deste celular e do servidor da TumTum: batidas, momentos, cards e o que você mostrou no feed. Não dá pra desfazer.</string>
+    <string name="night_delete_body_local">Ela sai deste celular: batidas e momentos. Não dá pra desfazer.</string>
+    <string name="night_delete_confirm">Apagar</string>
+    <string name="night_delete_running">Apagando…</string>
+    <string name="night_delete_offline">Sem internet: o servidor não apagou, então nada foi apagado. Tenta de novo com internet.</string>
+    <string name="night_delete_expired">Sua sessão expirou. Entra de novo e tenta apagar. Nada foi apagado.</string>
+    <string name="night_delete_signed_out">Essa noite está no servidor. Entra na conta que gravou pra apagar. Nada foi apagado.</string>
+    <string name="night_delete_server">O servidor não apagou: %1$s. Nada foi apagado.</string>
+
+    <!-- O título do card, a partir dos números da noite (moment_copy do backend) -->
+    <string name="card_title_average">%1$d A NOITE INTEIRA.</string>
+    <string name="card_title_until_at">ATÉ %1$s.</string>
+    <string name="card_title_until_then">ATÉ ESSE MOMENTO.</string>
+    <string name="card_title_heart">SEU CORAÇÃO,</string>
+    <string name="card_title_heart_at">ÀS %1$s.</string>
+    <string name="card_title_heart_then">NAQUELE MOMENTO.</string>
+    <string name="card_title_no_moments">SEM MOMENTOS\nNESSA NOITE.</string>
+    <string name="card_shows">Esse card mostra seu pico, a hora e o evento.</string>
+    <string name="card_show_hour">Mostrar hora</string>
+    <string name="card_show_event">Mostrar evento</string>
+    <string name="card_show_exact">Bpm exato</string>
+
+    <!-- Configurações · Privacidade -->
+    <string name="settings_privacy_section">PRIVACIDADE</string>
+    <string name="settings_privacy_signed_out">Entra na conta pra ver e mudar suas escolhas.</string>
+    <string name="settings_privacy_failed">Não deu pra carregar suas escolhas agora.</string>
+    <string name="settings_privacy_saving">Salvando…</string>
+    <string name="settings_privacy_change_failed">Não mudou: o servidor não respondeu. Continua como estava.</string>
+    <string name="settings_privacy_granted">Ligado.</string>
+    <string name="settings_not_medical">A TumTum não é um dispositivo médico e não interpreta saúde.</string>
+    <string name="settings_dpo">Encarregado de dados: %1$s (assunto %2$s)</string>
+    <string name="settings_download_data">Baixar meus dados</string>
+    <string name="settings_download_hint">Abre tumtum.cc/perfil, onde você baixa tudo que a TumTum guarda sobre você.</string>
+    <string name="settings_delete_password">SUA SENHA</string>
+    <string name="settings_delete_wrong_password">Senha errada. Nada foi apagado.</string>
+    <string name="settings_delete_needs_password">Coloca sua senha pra apagar a conta.</string>
+
+    <!-- Setup: o que a cinta pede do celular -->
+    <string name="setup_strap_body">Com a cinta, o celular grava a noite numa notificação, usa o acelerômetro pra medir quanto você se mexe e recebe os intervalos entre batidas (R-R) — tudo fica só no celular e é apagado quando a noite é salva. Até o Android 11, o Android pede a localização pra achar a cinta; a gente não usa onde você está.</string>
 </resources>

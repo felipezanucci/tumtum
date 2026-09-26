@@ -329,7 +329,7 @@ fun LiveTabScreen(nav: NavHostController) {
                     TTButton(
                         stringResource(R.string.empty_connect),
                         TTButtonStyle.Rose,
-                        onClick = { nav.navigate(Routes.Permission) },
+                        onClick = { nav.navigate(Routes.consent(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE)) },
                     )
                     Spacer(Modifier.height(24.dp))
                 } else {
@@ -431,7 +431,7 @@ fun LiveTabScreen(nav: NavHostController) {
             },
             onConnect = {
                 startSheet = null
-                nav.navigate(Routes.Permission)
+                nav.navigate(Routes.consent(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE))
             },
             onStart = {
                 startSheet = null

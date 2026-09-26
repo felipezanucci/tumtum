@@ -373,18 +373,23 @@ object ShareTargets {
     const val CAMERA_ROLL = "DCIM/Camera"
 
     /**
-     * The person's video, copied into our cache so a FileProvider URI of ours
-     * can be handed on: a picker's `content://` grant is ours, not
-     * transferable, and Instagram opening it would fail with no explanation.
+     * The person's video, into our cache so a FileProvider URI of ours can be
+     * handed on: a picker's `content://` grant is ours, not transferable, and
+     * Instagram opening it would fail with no explanation.
+     *
+     * Since 26/09 it is **remuxed, not copied** ([StripMetadata]): a byte copy
+     * carried the camera's GPS position and date to the Story. The result is
+     * always an MP4; when the remux fails, nothing is handed over — never the
+     * original in its place.
      */
     fun copyVideo(context: Context, source: Uri, nightId: Long): Pair<File, String>? = runCatching {
         val dir = File(context.cacheDir, "cards").apply { mkdirs() }
-        val mov = context.contentResolver.getType(source) == "video/quicktime"
-        val file = File(dir, "story-$nightId.${if (mov) "mov" else "mp4"}")
-        context.contentResolver.openInputStream(source)?.use { input ->
-            file.outputStream().use { output -> input.copyTo(output) }
-        } ?: return null
-        file to if (mov) "video/quicktime" else "video/mp4"
+        val file = File(dir, "story-$nightId.mp4")
+        if (!StripMetadata.remux(context, source, file)) {
+            file.delete()
+            return null
+        }
+        file to "video/mp4"
     }.getOrNull()
 
     /** A still (the person's photo) written where our FileProvider can serve it. */

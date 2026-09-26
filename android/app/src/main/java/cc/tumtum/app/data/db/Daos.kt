@@ -165,8 +165,13 @@ interface NightDao {
     @Query("SELECT * FROM samples WHERE nightId = :nightId ORDER BY time")
     suspend fun samplesOf(nightId: Long): List<SampleEntity>
 
-    @Query("SELECT * FROM nights WHERE uploadState != 'ANALYSED' ORDER BY startAt DESC")
+    /** Nights the person asked to keep that are not done yet — the only ones a retry touches (26/09). */
+    @Query("SELECT * FROM nights WHERE sendRequested = 1 AND uploadState != 'ANALYSED' ORDER BY startAt DESC")
     suspend fun pendingUpload(): List<NightEntity>
+
+    /** The tap on "Guardar minha noite na TumTum" — or its withdrawal when a consent is missing. */
+    @Query("UPDATE nights SET sendRequested = :requested WHERE id = :id")
+    suspend fun setSendRequested(id: Long, requested: Boolean)
 
     /** Nights still sealed by the reveal lock — their reminders are set again after a reboot. */
     @Query("SELECT * FROM nights WHERE revealAt IS NOT NULL AND revealAt > :now")
@@ -175,8 +180,8 @@ interface NightDao {
     @Query("SELECT * FROM moments WHERE nightId = :nightId")
     suspend fun momentsOf(nightId: Long): List<MomentEntity>
 
-    @Query("UPDATE nights SET serverSessionId = :serverSessionId, ownerUserId = :ownerUserId WHERE id = :id")
-    suspend fun setServerSessionId(id: Long, serverSessionId: String, ownerUserId: String?)
+    @Query("UPDATE nights SET serverSessionId = :serverSessionId, ownerUserId = :ownerUserId, sentAt = :sentAt WHERE id = :id")
+    suspend fun setServerSessionId(id: Long, serverSessionId: String, ownerUserId: String?, sentAt: Long)
 
     @Query("UPDATE nights SET uploadState = :state, uploadError = :error WHERE id = :id")
     suspend fun setUploadState(id: Long, state: String, error: String?)

@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 /** Persistência local primeiro (§2). O feed social vem depois do backend. */
 @Database(
@@ -13,7 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class, MarkEntity::class,
         BleSampleEntity::class, RrIntervalEntity::class, MotionEntity::class, ConnectionEventEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = false,
 )
 abstract class TumTumDatabase : RoomDatabase() {
@@ -118,9 +119,43 @@ abstract class TumTumDatabase : RoomDatabase() {
             }
         }
 
-        fun build(context: Context): TumTumDatabase =
-            Room.databaseBuilder(context, TumTumDatabase::class.java, "tumtum.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+        /**
+         * v8 → v9 (LGPD remediation, 26/09): **a night goes to the server only
+         * when the person asks.** Until now every night was uploaded on its
+         * own at the end of the capture and retried on every start, while the
+         * onboarding promised "Nada deixa seu aparelho sem você mandar".
+         * `sendRequested` is that ask; `sentAt` is when it reached the server,
+         * so the screen can say so. A night already on the server was sent by
+         * the rules of its time and keeps going (its analysis may be pending);
+         * a night never sent stays on the phone until its owner taps.
+         */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE nights ADD COLUMN sendRequested INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE nights ADD COLUMN sentAt INTEGER")
+                db.execSQL("UPDATE nights SET sendRequested = 1 WHERE serverSessionId IS NOT NULL")
+            }
+        }
+
+        private const val NAME = "tumtum.db"
+
+        /**
+         * Encrypted at rest since 26/09 (SQLCipher): heart-rate readings are
+         * health data, and until then they sat in a plain SQLite file. The
+         * key is this phone's own ([DatabaseKey]); an older, unencrypted
+         * file is converted once, before Room opens it.
+         */
+        fun build(context: Context): TumTumDatabase {
+            System.loadLibrary("sqlcipher")
+            val (passphrase, keyIsNew) = DatabaseKey.passphrase(context)
+            DatabaseKey.prepare(context, NAME, passphrase, keyIsNew)
+            return Room.databaseBuilder(context, TumTumDatabase::class.java, NAME)
+                .openHelperFactory(SupportOpenHelperFactory(passphrase.toByteArray(Charsets.UTF_8)))
+                .addMigrations(
+                    MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,
+                    MIGRATION_7_8, MIGRATION_8_9,
+                )
                 .build()
+        }
     }
 }

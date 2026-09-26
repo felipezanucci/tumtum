@@ -346,6 +346,41 @@ class NightRepository(
         return gone
     }
 
+    /**
+     * "Apagar esta noite" (26/09): one night off this phone — its beats,
+     * moments, the event it hung from when no other night does, that event's
+     * marks and raw capture. Returns the row that went (for its card photo and
+     * reveal alarm), or null when it was not here.
+     */
+    suspend fun deleteNight(nightId: Long): NightEntity? {
+        val gone = db.nightDao().nightRow(nightId) ?: return null
+        val ids = listOf(nightId)
+        val eventIds = listOf(gone.eventId)
+        db.nightDao().deleteMomentsOfNights(ids)
+        db.nightDao().deleteSamplesOfNights(ids)
+        db.nightDao().deleteNights(ids)
+        db.eventDao().deleteOrphans(eventIds)
+        db.markDao().deleteOrphans(eventIds)
+        capture.deleteSamplesOf(eventIds)
+        capture.deleteRrOf(eventIds)
+        capture.deleteMotionOf(eventIds)
+        capture.deleteConnectionEventsOf(eventIds)
+        return gone
+    }
+
+    /**
+     * Local minimisation (26/09): the night is saved, so the event's raw
+     * capture — per-packet readings, R-R intervals, the phone's motion, the
+     * connection log — is no longer needed by anything the person sees, and
+     * goes. The night's beats and moments stay.
+     */
+    suspend fun dropRawCapture(eventId: Long) {
+        capture.deleteSamplesOfEvent(eventId)
+        capture.deleteRrOfEvent(eventId)
+        capture.deleteMotionOfEvent(eventId)
+        capture.deleteConnectionEventsOfEvent(eventId)
+    }
+
     private fun NightWithData.toDomain(): Night {
         val start = Instant.ofEpochMilli(night.startAt)
         val end = Instant.ofEpochMilli(night.endAt)
@@ -381,6 +416,8 @@ class NightRepository(
             momentsSource = runCatching { MomentsSource.valueOf(night.momentsSource) }.getOrDefault(MomentsSource.LOCAL),
             photoPath = night.photoPath,
             ownerUserId = night.ownerUserId,
+            sendRequested = night.sendRequested,
+            sentAt = night.sentAt?.let(Instant::ofEpochMilli),
         )
     }
 

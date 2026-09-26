@@ -1,5 +1,6 @@
 package cc.tumtum.app.data.api
 
+import cc.tumtum.app.BuildConfig
 import cc.tumtum.app.data.prefs.Session
 import cc.tumtum.app.data.prefs.UserPrefs
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +12,7 @@ import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.LocalDate
 
 /**
  * Everything this app asks of the backend.
@@ -31,10 +33,27 @@ class TumtumApi(private val prefs: UserPrefs) {
     private val renewLock = Mutex()
 
     /** The server refused or could not do what was asked; [detail] is its own sentence. */
-    class ApiException(val code: Int, val detail: String) : IOException(detail)
+    open class ApiException(val code: Int, val detail: String) : IOException(detail)
 
-    /** Who the token says we are, as the server describes it — including whether it operates the platform. */
-    data class Me(val id: String, val email: String, val name: String, val isAdmin: Boolean = false)
+    /**
+     * The server refused because a consent is missing (403, `code:
+     * "consent_required"`, 26/09). Typed, so a screen opens the consent screen
+     * on [purpose] — the contract says never to retry this silently.
+     */
+    class ConsentRequired(val purpose: String, detail: String) : ApiException(403, detail)
+
+    /**
+     * Who the token says we are, as the server describes it — including
+     * whether it operates the platform, and the birth date (null until given:
+     * accounts from before 26/09 are asked for it once, at the gate).
+     */
+    data class Me(
+        val id: String,
+        val email: String,
+        val name: String,
+        val isAdmin: Boolean = false,
+        val birthDate: LocalDate? = null,
+    )
 
     // --- Auth ---
 
@@ -43,8 +62,25 @@ class TumtumApi(private val prefs: UserPrefs) {
      * [email] and creates nothing. The account exists only after
      * [signupConfirm], so an address nobody reads never becomes one.
      */
-    suspend fun signupStart(email: String, name: String, password: String): SignupStarted {
-        val body = JSONObject().put("email", email).put("name", name).put("password", password)
+    suspend fun signupStart(
+        email: String,
+        name: String,
+        password: String,
+        birthDate: LocalDate,
+        termsAccepted: Boolean = true,
+        readHeartRate: Boolean = false,
+    ): SignupStarted {
+        // Since 26/09 the account carries its birth date and the person's own
+        // tick on the Terms and the Privacy Policy, with the text version they
+        // read. The server refuses under 18 and without the tick, in its own words.
+        val body = JSONObject()
+            .put("email", email)
+            .put("name", name)
+            .put("password", password)
+            .put("birth_date", birthDate.toString())
+            .put("terms_accepted", termsAccepted)
+            .put("consent_text_version", cc.tumtum.app.domain.ConsentText.VERSION)
+            .put("read_heart_rate", readHeartRate)
         val response = JSONObject(request("POST", "/api/auth/register/start", body.toString(), token = null))
         return SignupStarted.from(response, asked = email)
     }
@@ -74,6 +110,7 @@ class TumtumApi(private val prefs: UserPrefs) {
             email = json.getString("email"),
             name = json.getString("name"),
             isAdmin = json.optBoolean("is_admin", false),
+            birthDate = Json.text(json, "birth_date")?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
         )
         prefs.setOperatorUserId(if (me.isAdmin) me.id else null)
         return me
@@ -97,10 +134,48 @@ class TumtumApi(private val prefs: UserPrefs) {
      * Deletes the account on the server — readings, moments, cards, all of
      * it — then forgets the token. Throws when the server did not do it, so
      * the caller never wipes the phone believing the server followed.
+     *
+     * Since 26/09 it asks the password again (`POST /api/users/me/delete`):
+     * a phone left unlocked on a table must not be enough to erase someone.
+     * A wrong password is a 401 the caller says as such.
      */
-    suspend fun deleteAccount() {
-        request("DELETE", "/api/users/me", null, token = requireToken())
+    suspend fun deleteAccount(password: String) {
+        val body = JSONObject().put("password", password)
+        request("POST", "/api/users/me/delete", body.toString(), token = requireToken())
         prefs.clearSession()
+    }
+
+    /**
+     * Once, for an account that has none (`PATCH /api/users/me`, 26/09): the
+     * server takes a birth date only while it is null, and refuses under 18
+     * with its own sentence.
+     */
+    suspend fun patchBirthDate(date: LocalDate) {
+        val body = JSONObject().put("birth_date", date.toString())
+        request("PATCH", "/api/users/me", body.toString(), token = requireToken())
+    }
+
+    // --- Consent (26/09) ---
+
+    /** What this account agreed to, purpose by purpose, as the server recorded it. */
+    suspend fun getConsents(): ConsentSnapshot =
+        ConsentSnapshot.parse(request("GET", "/api/consents", null, token = requireToken()))
+
+    /**
+     * Grants or revokes the purposes given, and only those. The server keeps
+     * the history append-only and answers with the state as it now stands.
+     */
+    suspend fun putConsents(purposes: Map<String, Boolean>, means: String = cc.tumtum.app.domain.ConsentText.MEANS_TAP): ConsentSnapshot =
+        ConsentSnapshot.parse(
+            request("PUT", "/api/consents", ConsentSnapshot.putBody(purposes, means), token = requireToken()),
+        )
+
+    /**
+     * "Apagar esta noite" (26/09): the server deletes the session with its
+     * readings, moments, cards and feed posts. A 404 means it is already gone.
+     */
+    suspend fun deleteNight(serverSessionId: String) {
+        request("DELETE", "/api/health/sessions/$serverSessionId", null, token = requireToken())
     }
 
     // --- Nights (Etapa 2) ---
@@ -317,6 +392,9 @@ class TumtumApi(private val prefs: UserPrefs) {
             try {
                 connection.requestMethod = method
                 connection.setRequestProperty("Accept", "application/json")
+                // Which client made the request (26/09): recorded with each
+                // consent, so the history says where a choice was made.
+                connection.setRequestProperty("X-Tumtum-Client", CLIENT)
                 if (token != null) connection.setRequestProperty("Authorization", "Bearer $token")
                 if (body != null) {
                     connection.doOutput = true
@@ -340,8 +418,16 @@ class TumtumApi(private val prefs: UserPrefs) {
                     // FastAPI puts a sentence in `detail` for the errors it
                     // raises on purpose, and a list of field problems for the
                     // ones Pydantic raises. Only the first is worth showing.
-                    val detail = runCatching { JSONObject(text).getString("detail") }
-                        .getOrDefault("Erro $code")
+                    val detail = runCatching {
+                        val o = JSONObject(text)
+                        // A structured refusal may nest its sentence one level down.
+                        o.optJSONObject("detail")?.let { Json.text(it, "detail") } ?: o.getString("detail")
+                    }.getOrDefault("Erro $code")
+                    // A missing consent is its own thing (26/09): the screen
+                    // opens the consent on that purpose instead of retrying.
+                    if (code == 403) {
+                        ConsentSnapshot.requiredPurpose(text)?.let { throw ConsentRequired(it, detail) }
+                    }
                     throw ApiException(code, detail)
                 }
                 text
@@ -352,6 +438,9 @@ class TumtumApi(private val prefs: UserPrefs) {
 
     companion object {
         const val BASE_URL = "https://tumtum-production.up.railway.app"
+
+        /** `X-Tumtum-Client`, as the shared contract spells it. */
+        private val CLIENT = "android/${BuildConfig.VERSION_CODE}"
 
         /** Renew a minute early, so a request never leaves with a token that dies in flight. */
         private const val RENEW_MARGIN_MS = 60_000L

@@ -60,6 +60,8 @@ object CardRenderer {
      *   its edges were faded ("a máscara, o filtro errado"). Not for the video
      *   the card is burned into, where the card cannot be moved off a bright
      *   frame.
+     * @param bpmLabel The number as the person chose to show it: exact, or
+     *   rounded down to the ten with a plus ("110+"). Null prints the peak.
      */
     fun render(
         context: Context,
@@ -71,6 +73,7 @@ object CardRenderer {
         photo: Bitmap? = null,
         sticker: Boolean = false,
         bare: Boolean = false,
+        bpmLabel: String? = null,
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -227,7 +230,8 @@ object CardRenderer {
 
         y += numTopPad
         // Dígitos não têm descendente: a baseline no pé do bloco preenche a altura toda.
-        canvas.drawText("${night.peakBpm}", PAD - 8f, y + numH - 10f, numPaint)
+        // "110+" when the person hid the exact number (26/09); the bpm otherwise.
+        canvas.drawText(bpmLabel ?: "${night.peakBpm}", PAD - 8f, y + numH - 10f, numPaint)
         y += numH
 
         if (hasCurve) {

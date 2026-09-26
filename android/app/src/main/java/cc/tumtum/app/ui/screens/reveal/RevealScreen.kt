@@ -57,6 +57,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import cc.tumtum.app.data.repo.SyncPhase
+import cc.tumtum.app.data.repo.SendRequest
+import cc.tumtum.app.data.CardPhotoStore
+import cc.tumtum.app.data.api.TumtumApi
+import cc.tumtum.app.domain.CardCopy
+import cc.tumtum.app.domain.Night
+import cc.tumtum.app.service.Reminders
+import cc.tumtum.app.ui.components.cardTitleText
+import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.text.font.FontWeight
+import java.io.IOException
+import kotlinx.coroutines.flow.first
 import cc.tumtum.app.ui.components.revealWhen
 import androidx.core.app.NotificationManagerCompat
 
@@ -86,8 +97,8 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
     val peaksAlpha = remember { Animatable(0f) }
     LaunchedEffect(night?.id) {
         if (night != null) {
-            // Etapa 2: opening a night that never reached the server is a natural moment to try again.
-            if (night?.uploadState != UploadState.ANALYSED) container.sync.uploadLater(night!!.id)
+            // Opening a night no longer sends it (26/09): only the person's
+            // tap on "Guardar minha noite na TumTum" does.
             progress.snapTo(0f)
             peaksAlpha.snapTo(0f)
             progress.animateTo(1f, tween(durationMillis = 1_200, easing = FastOutSlowInEasing))
@@ -164,9 +175,16 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
         }
         Spacer(Modifier.height(22.dp))
         Text(
-            // A night with no moment gets its own line (25/09): "Aí veio isso"
-            // over a flat minute pointed at nothing.
-            stringResource(if (n.moments.isEmpty()) R.string.reveal_calm_title else R.string.reveal_default_title),
+            // The title the night's numbers prove (26/09, the backend's
+            // moment_copy): never a calm, or a mood, nobody measured.
+            cardTitleText(
+                CardCopy.title(
+                    n.peakBpm,
+                    CardCopy.averageBpm(n.samples),
+                    Fmt.hour(n.peakAt),
+                    hasMoments = n.moments.isNotEmpty(),
+                ),
+            ),
             style = TTType.ShoutSmall.copy(fontSize = 23.sp, lineHeight = 24.5.sp),
             color = TT.Paper,
         )
@@ -219,7 +237,12 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
         // below the fold: the person saw nothing and read "nothing happened",
         // then a GOL that named no moment. The steps now stay on screen long
         // enough to be read, and the state line sits where the eye already is.
-        SyncStatus(n, container.sync)
+        SyncStatus(
+            n = n,
+            sync = container.sync,
+            onConsent = { purpose -> nav.navigate(Routes.consent(purpose, n.id)) },
+            onSignIn = { nav.navigate(Routes.Login) },
+        )
         Spacer(Modifier.height(14.dp))
 
         // Picos — revelados depois da curva.
@@ -286,6 +309,11 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
                 },
             )
         }
+
+        // "Apagar esta noite" (26/09): from this phone, and from the server
+        // when it went there. Quiet, at the foot; a dialog says what goes.
+        Spacer(Modifier.height(22.dp))
+        DeleteNight(n, onDeleted = home)
       }
         Spacer(Modifier.height(14.dp))
         TTButton(
@@ -297,19 +325,34 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
 }
 
 /**
- * Three honest states, never a blend: the two real steps while they run (and
- * for a moment after, both marked OK, so a sync faster than a glance is
- * still seen to have happened), then the line that says which moments these
- * are and why — the server's, the phone's, or the phone's because the server
- * could not be reached — with the one thing to do about it.
+ * Where the night stands with the server, never a blend of states (26/09):
+ *
+ * - **only on this phone** — the moments are the phone's, and the one act is
+ *   "Guardar minha noite na TumTum" (Toxic Yellow: the Pink stays with
+ *   sharing, one Pink button at a time). The tap asks the server for the
+ *   `keep_night` consent first; without it, the consent screen opens on it.
+ * - **the two real steps** while they run, and for a moment after;
+ * - **kept**, with the hour it got there, and which moments these are;
+ * - **failed**, in the words of the real condition, with "Enviar de novo" —
+ *   or, when the server refused for a missing consent, the way to give it.
  */
 @Composable
-private fun SyncStatus(n: cc.tumtum.app.domain.Night, sync: NightSync) {
+private fun SyncStatus(
+    n: Night,
+    sync: NightSync,
+    onConsent: (String) -> Unit,
+    onSignIn: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
     val uploading by sync.uploading.collectAsStateWithLifecycle()
     val phases by sync.phase.collectAsStateWithLifecycle()
     val phase = phases[n.id]
     var shown by remember { mutableStateOf<SyncPhase?>(null) }
     var holding by remember { mutableStateOf(false) }
+    // The answer to the last tap on "Guardar", when it did not start an upload.
+    var asking by remember { mutableStateOf(false) }
+    var askNote by remember { mutableStateOf<Int?>(null) }
+    var askDetail by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(phase) {
         if (phase != null) {
             shown = phase
@@ -321,13 +364,78 @@ private fun SyncStatus(n: cc.tumtum.app.domain.Night, sync: NightSync) {
             shown = null
         }
     }
+
+    fun keep() {
+        asking = true
+        askNote = null
+        askDetail = null
+        scope.launch {
+            when (val r = sync.requestSend(n.id)) {
+                SendRequest.Started -> Unit
+                is SendRequest.NeedsConsent -> onConsent(r.purpose)
+                SendRequest.SignedOut -> askNote = R.string.keep_signed_out
+                SendRequest.Offline -> askNote = R.string.keep_offline
+                is SendRequest.Failed -> askDetail = r.detail
+            }
+            asking = false
+        }
+    }
+
+    val consentMissing = NightSync.consentMissing(n.uploadError)
     when {
         phase != null -> SyncSteps(phase, n.samples.size, finished = false)
         holding -> SyncSteps(shown ?: SyncPhase.ANALYSING, n.samples.size, finished = true)
         n.id in uploading -> SyncSteps(SyncPhase.SENDING, n.samples.size, finished = false)
+
+        // The server refused for a missing consent: the way to give it, never a silent retry.
+        consentMissing != null && n.serverSessionId == null -> {
+            Text(stringResource(R.string.keep_needs_consent), style = TTType.MetaSmall, color = TT.Rose)
+            Spacer(Modifier.height(10.dp))
+            TTButton(
+                stringResource(R.string.keep_give_consent),
+                TTButtonStyle.Acid,
+                onClick = { onConsent(consentMissing) },
+            )
+        }
+
+        // Only on this phone, and nobody asked to keep it yet.
+        n.serverSessionId == null && !n.sendRequested -> {
+            Text(stringResource(R.string.keep_local_only), style = TTType.MetaSmall, color = TT.Gray55)
+            Spacer(Modifier.height(10.dp))
+            TTButton(
+                stringResource(if (asking) R.string.keep_asking else R.string.keep_cta),
+                TTButtonStyle.Acid,
+                enabled = !asking,
+                onClick = { keep() },
+            )
+            Spacer(Modifier.height(6.dp))
+            val note = askNote
+            val detail = askDetail
+            when {
+                note == R.string.keep_signed_out -> Text(
+                    stringResource(note),
+                    style = TTType.BodySmall,
+                    color = TT.Rose,
+                    modifier = Modifier.clickable(onClick = onSignIn).padding(vertical = 4.dp),
+                )
+                note != null -> Text(stringResource(note), style = TTType.BodySmall, color = TT.Rose)
+                detail != null -> Text(stringResource(R.string.sync_failed_server, detail), style = TTType.BodySmall, color = TT.Rose)
+                else -> Text(stringResource(R.string.keep_explained), style = TTType.Footnote, color = TT.Gray45)
+            }
+        }
+
         else -> {
             val analysed = n.uploadState == UploadState.ANALYSED
             val failed = n.uploadError != null && n.uploadError != NightSync.ERR_NO_SESSION
+            // Kept, and when — said once the readings are there.
+            val sentAt = n.sentAt
+            if (sentAt != null) {
+                Text(stringResource(R.string.keep_done_at, revealWhen(sentAt)), style = TTType.MetaSmall, color = TT.Acid)
+                Spacer(Modifier.height(4.dp))
+            } else if (n.serverSessionId != null) {
+                Text(stringResource(R.string.keep_done), style = TTType.MetaSmall, color = TT.Acid)
+                Spacer(Modifier.height(4.dp))
+            }
             Text(
                 when {
                     // "Momentos encontrados" over an empty list claimed what did not happen (25/09).
@@ -356,6 +464,122 @@ private fun SyncStatus(n: cc.tumtum.app.domain.Night, sync: NightSync) {
             }
         }
     }
+}
+
+/**
+ * "Apagar esta noite" (26/09). The server first when the night went there —
+ * if it could not delete, nothing local goes either, so the screen never says
+ * a night is gone that is still on the server. Then the phone: beats,
+ * moments, the photo behind its card, its reveal alarm.
+ */
+@Composable
+private fun DeleteNight(n: Night, onDeleted: () -> Unit) {
+    val container = appContainer()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var confirm by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    var failure by remember { mutableStateOf<String?>(null) }
+
+    Text(
+        stringResource(R.string.night_delete),
+        style = TTType.Button.copy(fontSize = 14.sp),
+        color = TT.Gray55,
+        modifier = Modifier.clickable { failure = null; confirm = true }.padding(vertical = 10.dp),
+    )
+
+    if (!confirm) return
+    val offline = stringResource(R.string.night_delete_offline)
+    val expired = stringResource(R.string.night_delete_expired)
+    val signedOut = stringResource(R.string.night_delete_signed_out)
+    val serverFmt = stringResource(R.string.night_delete_server)
+    AlertDialog(
+        onDismissRequest = { if (!deleting) confirm = false },
+        containerColor = TT.Paper,
+        title = {
+            Text(
+                stringResource(R.string.night_delete_title),
+                style = TTType.TitleSmall.copy(fontSize = 22.sp),
+                color = TT.Ink,
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    stringResource(
+                        if (n.serverSessionId != null) R.string.night_delete_body_server else R.string.night_delete_body_local,
+                    ),
+                    style = TTType.Body,
+                    color = TT.Gray70,
+                )
+                failure?.let {
+                    Spacer(Modifier.height(10.dp))
+                    Text(it, style = TTType.BodySmall, color = TT.Ink)
+                }
+            }
+        },
+        confirmButton = {
+            Text(
+                stringResource(if (deleting) R.string.night_delete_running else R.string.night_delete_confirm),
+                style = TTType.Button.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
+                color = if (deleting) TT.Gray45 else TT.Ink,
+                modifier = Modifier
+                    .clickable(enabled = !deleting) {
+                        deleting = true
+                        failure = null
+                        scope.launch {
+                            val serverId = n.serverSessionId
+                            val serverDone = if (serverId == null) {
+                                true
+                            } else if (container.prefs.state.first().session == null) {
+                                failure = signedOut
+                                false
+                            } else {
+                                try {
+                                    container.api.deleteNight(serverId)
+                                    true
+                                } catch (e: TumtumApi.ApiException) {
+                                    when (e.code) {
+                                        404 -> true // already gone
+                                        401 -> {
+                                            failure = expired
+                                            false
+                                        }
+                                        else -> {
+                                            failure = serverFmt.format(e.detail)
+                                            false
+                                        }
+                                    }
+                                } catch (e: IOException) {
+                                    failure = offline
+                                    false
+                                }
+                            }
+                            if (serverDone) {
+                                container.nights.deleteNight(n.id)?.let { gone ->
+                                    CardPhotoStore.delete(gone.photoPath)
+                                    Reminders.cancelReveal(context, gone.id)
+                                }
+                                confirm = false
+                                deleting = false
+                                onDeleted()
+                            } else {
+                                deleting = false
+                            }
+                        }
+                    }
+                    .padding(12.dp),
+            )
+        },
+        dismissButton = {
+            Text(
+                stringResource(R.string.settings_delete_cancel),
+                style = TTType.Button.copy(fontSize = 14.sp),
+                color = TT.Gray45,
+                modifier = Modifier.clickable(enabled = !deleting) { confirm = false }.padding(12.dp),
+            )
+        },
+    )
 }
 
 @Composable

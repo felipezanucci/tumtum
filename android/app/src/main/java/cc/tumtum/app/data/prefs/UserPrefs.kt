@@ -9,9 +9,11 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "tumtum_prefs")
 
@@ -168,6 +170,14 @@ data class SessionEnd(val reason: String, val at: java.time.Instant) {
 
 class UserPrefs(private val context: Context) {
 
+    /**
+     * The session tokens, encrypted (26/09). They lived in this DataStore
+     * until then, in plain text; [migrateLegacyTokens] moves an old pair
+     * across once, and until it has run the old pair is still read, so an
+     * update never signs anybody out.
+     */
+    private val secure = SecureTokens(context)
+
     private object Keys {
         val onboarded = booleanPreferencesKey("onboarded")
         val name = stringPreferencesKey("name")
@@ -189,8 +199,10 @@ class UserPrefs(private val context: Context) {
         val upcomingType = stringPreferencesKey("upcoming_type")
         val upcomingStartAt = longPreferencesKey("upcoming_start_at")
         val upcomingServerEventId = stringPreferencesKey("upcoming_server_event_id")
+        /** Legacy (before 26/09): read only to migrate. The tokens live in [SecureTokens]. */
         val accessToken = stringPreferencesKey("access_token")
         val userId = stringPreferencesKey("user_id")
+        /** Legacy, like [accessToken]. */
         val refreshToken = stringPreferencesKey("refresh_token")
         val viewerId = stringPreferencesKey("viewer_user_id")
         val operatorUserId = stringPreferencesKey("operator_user_id")
@@ -198,7 +210,8 @@ class UserPrefs(private val context: Context) {
         val sessionEndedAt = longPreferencesKey("session_ended_at")
     }
 
-    val state: Flow<UserState> = context.dataStore.data.map { p ->
+    val state: Flow<UserState> = combine(context.dataStore.data, secure.tokens) { p, secureTokens ->
+        val tokens = secureTokens ?: p[Keys.accessToken]?.let { Tokens(it, p[Keys.refreshToken]) }
         val username = p[Keys.username]
         UserState(
             onboarded = p[Keys.onboarded] ?: false,
@@ -231,8 +244,8 @@ class UserPrefs(private val context: Context) {
                     )
                 }
             },
-            session = p[Keys.accessToken]?.let {
-                Session(token = it, userId = p[Keys.userId], refreshToken = p[Keys.refreshToken])
+            session = tokens?.let {
+                Session(token = it.access, userId = p[Keys.userId], refreshToken = it.refresh)
             },
             viewerId = p[Keys.userId],
             lastUserId = p[Keys.viewerId] ?: p[Keys.userId],
@@ -244,10 +257,11 @@ class UserPrefs(private val context: Context) {
     }
 
     suspend fun setSession(session: Session) {
+        withContext(Dispatchers.IO) { secure.set(Tokens(session.token, session.refreshToken)) }
         context.dataStore.edit { p ->
-            p[Keys.accessToken] = session.token
+            p.remove(Keys.accessToken)
+            p.remove(Keys.refreshToken)
             session.userId?.let { p[Keys.userId] = it } ?: p.remove(Keys.userId)
-            session.refreshToken?.let { p[Keys.refreshToken] = it } ?: p.remove(Keys.refreshToken)
             // Remembered past Sair only to own a night cut by it (lastUserId).
             session.userId?.let { p[Keys.viewerId] = it }
             p.remove(Keys.sessionEndedReason)
@@ -260,6 +274,7 @@ class UserPrefs(private val context: Context) {
      * the phone remembers that this was a Sair, and when.
      */
     suspend fun clearSession(reason: String = SessionEnd.SIGNED_OUT) {
+        withContext(Dispatchers.IO) { secure.set(null) }
         context.dataStore.edit { p ->
             p.remove(Keys.accessToken)
             p.remove(Keys.userId)
@@ -274,6 +289,7 @@ class UserPrefs(private val context: Context) {
      * screen now reads the session as expired, and the phone keeps why.
      */
     suspend fun markRenewalRefused() {
+        withContext(Dispatchers.IO) { secure.dropRefresh() }
         context.dataStore.edit { p ->
             p.remove(Keys.refreshToken)
             p[Keys.sessionEndedReason] = SessionEnd.REFUSED
@@ -424,6 +440,23 @@ class UserPrefs(private val context: Context) {
 
     /** Apagar conta apaga tudo (§7). O Room é limpo pelo repositório. */
     suspend fun wipe() {
+        withContext(Dispatchers.IO) { secure.set(null) }
         context.dataStore.edit { it.clear() }
+    }
+
+    /**
+     * Once per install, at start (26/09): a session kept in plain DataStore
+     * by an older build moves into [SecureTokens] and leaves this file.
+     */
+    suspend fun migrateLegacyTokens() {
+        val p = context.dataStore.data.first()
+        val access = p[Keys.accessToken] ?: return
+        withContext(Dispatchers.IO) {
+            if (secure.peek() == null) secure.set(Tokens(access, p[Keys.refreshToken]))
+        }
+        context.dataStore.edit { e ->
+            e.remove(Keys.accessToken)
+            e.remove(Keys.refreshToken)
+        }
     }
 }

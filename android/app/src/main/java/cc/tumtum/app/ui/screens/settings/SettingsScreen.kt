@@ -42,6 +42,13 @@ import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.AvatarStore
 import cc.tumtum.app.data.CardPhotoStore
+import cc.tumtum.app.data.LocalFiles
+import cc.tumtum.app.domain.ConsentText
+import cc.tumtum.app.ui.screens.consent.ConsentCopy
+import cc.tumtum.app.ui.screens.consent.ConsentRow
+import cc.tumtum.app.ui.screens.consent.PolicyLinks
+import cc.tumtum.app.ui.screens.consent.mailDpo
+import cc.tumtum.app.ui.screens.consent.openLink
 import cc.tumtum.app.data.prefs.SessionEnd
 import cc.tumtum.app.service.Reminders
 import cc.tumtum.app.ui.Fmt
@@ -71,6 +78,9 @@ fun SettingsScreen(nav: NavHostController) {
     var confirmDelete by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     var deleteError by remember { mutableStateOf<String?>(null) }
+    // The password, asked again inside the dialog (26/09): an unlocked phone
+    // on a table must not be enough to erase someone.
+    var deletePassword by remember { mutableStateOf("") }
 
     val granted by produceState(initialValue = false) {
         value = container.health.hasPermission()
@@ -199,6 +209,9 @@ fun SettingsScreen(nav: NavHostController) {
         }
 
         Spacer(Modifier.height(40.dp))
+        PrivacySection(signedIn = user?.session != null)
+
+        Spacer(Modifier.height(40.dp))
         // §10 — sensor BLE: parear/trocar/remover também depois do onboarding.
         SensorSection(
             prefs = container.prefs,
@@ -324,7 +337,11 @@ fun SettingsScreen(nav: NavHostController) {
             TTButton(
                 stringResource(R.string.settings_delete),
                 TTButtonStyle.Outline,
-                onClick = { confirmDelete = true },
+                onClick = {
+                    deletePassword = ""
+                    deleteError = null
+                    confirmDelete = true
+                },
             )
         }
     }
@@ -343,6 +360,15 @@ fun SettingsScreen(nav: NavHostController) {
             text = {
                 Column {
                     Text(stringResource(R.string.settings_delete_warning), style = TTType.Body, color = TT.Gray70)
+                    if (user?.session != null) {
+                        Spacer(Modifier.height(12.dp))
+                        TTField(
+                            label = stringResource(R.string.settings_delete_password),
+                            value = deletePassword,
+                            onValueChange = { deletePassword = it; deleteError = null },
+                            isPassword = true,
+                        )
+                    }
                     deleteError?.let {
                         Spacer(Modifier.height(10.dp))
                         Text(it, style = TTType.BodySmall, color = TT.Ink)
@@ -358,12 +384,18 @@ fun SettingsScreen(nav: NavHostController) {
                 val expiredText = stringResource(R.string.settings_delete_failed_expired)
                 val serverText = stringResource(R.string.settings_delete_failed_server)
                 val signInFirstText = stringResource(R.string.settings_delete_needs_sign_in)
+                val wrongPasswordText = stringResource(R.string.settings_delete_wrong_password)
+                val needsPasswordText = stringResource(R.string.settings_delete_needs_password)
                 Text(
                     stringResource(if (deleting) R.string.settings_delete_running else R.string.settings_delete_confirm),
                     style = TTType.Button.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
                     color = if (deleting) TT.Gray45 else TT.Ink,
                     modifier = Modifier
                         .clickable(enabled = !deleting) {
+                            if (user?.session != null && deletePassword.isEmpty()) {
+                                deleteError = needsPasswordText
+                                return@clickable
+                            }
                             deleting = true
                             deleteError = null
                             scope.launch {
@@ -378,12 +410,19 @@ fun SettingsScreen(nav: NavHostController) {
                                 } else if (session == null) {
                                     true // never signed in: nothing on the server to delete
                                 } else {
-                                    runCatching { container.api.deleteAccount() }.fold(
+                                    runCatching { container.api.deleteAccount(deletePassword) }.fold(
                                         onSuccess = { true },
                                         onFailure = { e ->
                                             when {
                                                 e is TumtumApi.ApiException && e.code == 404 -> true // already gone
-                                                e is TumtumApi.ApiException && e.code == 401 -> { deleteError = expiredText; false }
+                                                // 401 is a wrong password while the session still
+                                                // lives, and an expired session once it does not.
+                                                e is TumtumApi.ApiException && e.code == 401 -> {
+                                                    val live = container.prefs.state.first().session
+                                                        ?.isLive(System.currentTimeMillis()) == true
+                                                    deleteError = if (live) wrongPasswordText else expiredText
+                                                    false
+                                                }
                                                 e is TumtumApi.ApiException -> { deleteError = serverText.format(e.detail); false }
                                                 else -> { deleteError = offlineText; false }
                                             }
@@ -399,6 +438,10 @@ fun SettingsScreen(nav: NavHostController) {
                                         CardPhotoStore.delete(gone.photoPath)
                                         Reminders.cancelReveal(context, gone.id)
                                     }
+                                    // Every file the account left (26/09): the share cache,
+                                    // export ZIPs, profile photos, photos behind cards.
+                                    LocalFiles.wipeAccountFiles(context)
+                                    deletePassword = ""
                                     container.prefs.wipe()
                                     nav.navigate(Routes.Onboarding) { popUpTo(0) { inclusive = true } }
                                 }
@@ -417,6 +460,106 @@ fun SettingsScreen(nav: NavHostController) {
             },
         )
     }
+}
+
+/**
+ * Privacidade (LGPD remediation, 26/09): the seven consents, each a switch
+ * that shows only what the server recorded — read on opening, changed one at
+ * a time, and on a revocation the screen says what stops. Then the Terms and
+ * the Policy, the person in charge of data, the one sentence about what
+ * TumTum is not, and the way to download everything.
+ *
+ * Signed out, the switches are not shown (there is no account to read them
+ * from) and the screen says so; a list that failed to load says that, never
+ * a row of switches all off.
+ */
+@Composable
+private fun PrivacySection(signedIn: Boolean) {
+    val container = appContainer()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var granted by remember { mutableStateOf<Map<String, Boolean>?>(null) }
+    var loadFailed by remember { mutableStateOf(false) }
+    var tick by remember { mutableStateOf(0) }
+    var busy by remember { mutableStateOf<String?>(null) }
+    var notes by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    LaunchedEffect(tick, signedIn) {
+        granted = null
+        loadFailed = false
+        if (!signedIn) return@LaunchedEffect
+        runCatching { container.api.getConsents() }
+            .onSuccess { granted = ConsentText.startingSwitches(it.asMap()) }
+            .onFailure { loadFailed = true }
+    }
+
+    Text(stringResource(R.string.settings_privacy_section), style = TTType.Meta, color = TT.Gray70)
+    Spacer(Modifier.height(10.dp))
+    val current = granted
+    when {
+        !signedIn -> Text(stringResource(R.string.settings_privacy_signed_out), style = TTType.Footnote, color = TT.Gray45)
+        loadFailed -> {
+            Text(stringResource(R.string.settings_privacy_failed), style = TTType.Footnote, color = TT.Gray45)
+            Text(
+                stringResource(R.string.events_retry),
+                style = TTType.MetaSmall,
+                color = TT.Ink,
+                modifier = Modifier.clickable { tick++ }.padding(vertical = 8.dp),
+            )
+        }
+        current == null -> Text(stringResource(R.string.consent_loading), style = TTType.Footnote, color = TT.Gray45)
+        else -> ConsentText.PURPOSES.forEach { purpose ->
+            val savingText = stringResource(R.string.settings_privacy_saving)
+            val failedText = stringResource(R.string.settings_privacy_change_failed)
+            val grantedText = stringResource(R.string.settings_privacy_granted)
+            val stopsText = ConsentCopy.of(purpose)?.let { stringResource(it.stops) }.orEmpty()
+            ConsentRow(
+                purpose = purpose,
+                on = current[purpose] == true,
+                onDark = false,
+                busy = busy != null,
+                note = if (busy == purpose) savingText else notes[purpose],
+                onToggle = { value ->
+                    busy = purpose
+                    notes = notes - purpose
+                    scope.launch {
+                        try {
+                            val saved = container.api.putConsents(mapOf(purpose to value), ConsentText.MEANS_TAP)
+                            val now = ConsentText.startingSwitches(saved.asMap())
+                            granted = now
+                            // Said as what happened: what stops on a revocation, a plain
+                            // "ligado" on a grant — and nothing claimed that did not happen.
+                            notes = notes + (purpose to if (now[purpose] == true) grantedText else stopsText)
+                        } catch (e: Exception) {
+                            notes = notes + (purpose to failedText)
+                        } finally {
+                            busy = null
+                        }
+                    }
+                },
+            )
+        }
+    }
+
+    Spacer(Modifier.height(14.dp))
+    PolicyLinks(onDark = false)
+    Spacer(Modifier.height(6.dp))
+    Text(stringResource(R.string.settings_not_medical), style = TTType.Footnote, color = TT.Gray70)
+    Spacer(Modifier.height(8.dp))
+    Text(
+        stringResource(R.string.settings_dpo, ConsentText.DPO_EMAIL, ConsentText.DPO_SUBJECT),
+        style = TTType.Footnote,
+        color = TT.Gray70,
+        modifier = Modifier.clickable { mailDpo(context) }.padding(vertical = 4.dp),
+    )
+    Spacer(Modifier.height(14.dp))
+    TTButton(
+        stringResource(R.string.settings_download_data),
+        TTButtonStyle.Outline,
+        onClick = { openLink(context, ConsentText.DATA_URL) },
+    )
+    Spacer(Modifier.height(6.dp))
+    Text(stringResource(R.string.settings_download_hint), style = TTType.Footnote, color = TT.Gray45)
 }
 
 /**

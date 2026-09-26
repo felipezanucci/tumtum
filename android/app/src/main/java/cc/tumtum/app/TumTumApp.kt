@@ -59,11 +59,16 @@ class TumTumApp : Application() {
         container = AppContainer(this)
         repairLegacyHandle()
         resumeCaptureIfNeeded()
-        // Etapa 2: a night that never reached the server tries again on every start.
+        // A night its owner asked to keep, and that has not got there yet,
+        // tries again on every start — and only those (26/09). A night
+        // nobody asked to send stays on the phone.
         container.sync.retryPendingLater()
         // The operator role is the server's word (item 52): asked again on
         // every start, so a role granted or taken away reaches the phone.
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            // Tokens written in plain DataStore by an older build move into
+            // the encrypted store first (26/09).
+            runCatching { container.prefs.migrateLegacyTokens() }
             val session = container.prefs.state.first().session
             if (session?.isLive(System.currentTimeMillis()) == true) runCatching { container.api.me() }
         }

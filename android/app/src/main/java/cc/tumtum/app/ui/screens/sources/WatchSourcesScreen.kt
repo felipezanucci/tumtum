@@ -225,7 +225,7 @@ internal fun SourceCard(
             }
             Text(
                 stringResource(
-                    if (setupMode) R.string.sources_coverage_24h else R.string.sources_coverage,
+                    if (setupMode) R.string.sources_coverage_last_hour else R.string.sources_coverage,
                     source.coveragePct,
                     interval,
                 ),

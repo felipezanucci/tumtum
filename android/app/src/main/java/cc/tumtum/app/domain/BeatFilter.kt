@@ -25,7 +25,8 @@ data class RawReading(val timeMs: Long, val bpm: Int, val contactStatus: Int?, v
  * A sensor that never sends R-R cannot be checked this way and is believed, as
  * long as the number is one a heart can have. A sensor that does flag "no
  * contact" is believed too. Nothing here deletes anything: the raw rows stay
- * in the database and in the export; only the reading of them changes.
+ * in the database until the night is saved (then they go, 26/09); only the
+ * reading of them changes.
  */
 object BeatFilter {
     /** The server's accepted range, and the range of a human heart at a show. */

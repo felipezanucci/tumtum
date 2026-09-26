@@ -209,7 +209,7 @@ fun CaptureScreen(nav: NavHostController) {
                 TTButton(
                     stringResource(R.string.live_blocked_cta),
                     TTButtonStyle.OutlineOnDark,
-                    onClick = { nav.navigate(Routes.Permission) },
+                    onClick = { nav.navigate(Routes.consent(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE)) },
                 )
                 Spacer(Modifier.weight(1f))
             } else {

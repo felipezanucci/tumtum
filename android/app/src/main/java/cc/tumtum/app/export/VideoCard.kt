@@ -149,7 +149,7 @@ object VideoCard {
             )
             .build()
 
-        suspendCancellableCoroutine { cont ->
+        val burned: File? = suspendCancellableCoroutine { cont ->
             val transformer = Transformer.Builder(context)
                 // H.264, whatever the phone recorded in: a Samsung's HEVC is
                 // a codec not every app that receives the file will play.
@@ -200,5 +200,9 @@ object VideoCard {
                     if (cont.isActive) cont.resume(null)
                 }
         }
+        // The encoder may carry the source's location into its output (26/09):
+        // the finished file is remuxed without it before anyone receives it.
+        // A file that cannot be cleaned is not handed over.
+        burned?.let { withContext(Dispatchers.IO) { StripMetadata.inPlace(it) } }
     }
 }

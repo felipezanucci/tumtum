@@ -22,12 +22,20 @@ object AuthErrors {
             // a wait before another, a mail that could not leave. Shown as
             // the server wrote them.
             400, 410, 429, 503 -> error.detail
-            // Pydantic's refusal carries a list, not a sentence.
-            422 -> context.getString(R.string.auth_error_invalid)
+            // Pydantic's refusal carries a list, not a sentence; a refusal
+            // the server raises on purpose (under 18, the Terms not ticked,
+            // 26/09) is a sentence, shown as the server wrote it.
+            422 -> if (isSentence(error.detail)) error.detail else context.getString(R.string.auth_error_invalid)
             else -> context.getString(R.string.auth_error_server, "${error.code} · ${error.detail}")
         }
         is IOException -> context.getString(R.string.auth_error_offline)
         else -> context.getString(R.string.auth_error_server, error.message ?: error.javaClass.simpleName)
+    }
+
+    /** A `detail` written for a person, not a serialised list or object of field errors. */
+    fun isSentence(detail: String): Boolean {
+        val t = detail.trimStart()
+        return t.isNotEmpty() && !t.startsWith("[") && !t.startsWith("{") && !t.startsWith("Erro ")
     }
 
     /** The local @ for an account that arrives from the server without one. */

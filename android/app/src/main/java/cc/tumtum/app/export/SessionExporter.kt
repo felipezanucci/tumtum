@@ -40,7 +40,9 @@ class SessionExporter(
 
         val dir = File(context.cacheDir, "exports").apply { mkdirs() }
         val participant = user.participantId ?: "P00"
-        val zipFile = File(dir, "tumtum-$participant-night$nightId.zip")
+        // The file name says which night, and nothing about whose (26/09): a
+        // ZIP forwarded or left in a Downloads folder should not name anyone.
+        val zipFile = File(dir, "tumtum-night$nightId.zip")
 
         ZipOutputStream(zipFile.outputStream().buffered()).use { zip ->
             zip.writeEntry("samples.csv") { sb ->
@@ -48,7 +50,9 @@ class SessionExporter(
                 bleSamples.forEach {
                     sb.appendLine("$nightId,${it.wallClockMs},${it.elapsedRealtimeMs},${it.bpm},${HrSource.ID_BLE},${it.contactStatus}")
                 }
-                if (n.sourcePackage != HrSource.ID_BLE) {
+                // The raw BLE rows go once a night is saved (26/09); then, as for
+                // a Health Connect night, the night's own beats are what there is.
+                if (n.sourcePackage != HrSource.ID_BLE || bleSamples.isEmpty()) {
                     // A fonte escolhida foi Health Connect: amostras da noite, sem carimbo monotônico.
                     night.samples.forEach {
                         sb.appendLine("$nightId,${it.time},,${it.bpm},${csv(n.sourcePackage)},")
@@ -85,7 +89,6 @@ class SessionExporter(
                         .put("chosenSource", n.sourcePackage)
                         .put("bleSampleCount", bleSamples.size)
                         .put("rrCount", rr.size)
-                        .put("sensorAddress", user.bleAddress ?: JSONObject.NULL)
                         .put("sensorName", user.bleName ?: JSONObject.NULL)
                         .put("deviceManufacturer", Build.MANUFACTURER)
                         .put("deviceModel", Build.MODEL)

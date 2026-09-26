@@ -111,6 +111,71 @@ fun WheelDateField(label: String, value: LocalDate, onChange: (LocalDate) -> Uni
     }
 }
 
+/**
+ * A birth date (26/09): the same wheels, over a century of years instead of
+ * the next two, and a field that says "Escolher" until something is chosen —
+ * never a date the person did not pick. Typing stays impossible.
+ */
+@Composable
+fun WheelBirthDateField(
+    label: String,
+    value: LocalDate?,
+    onChange: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier,
+    onDark: Boolean = false,
+) {
+    var open by remember { mutableStateOf(false) }
+    PickerField(
+        label,
+        value?.let { EventTimes.formatDate(it) } ?: stringResource(R.string.picker_choose),
+        modifier,
+        onDark = onDark,
+    ) { open = true }
+    if (open) {
+        val today = remember { LocalDate.now() }
+        val start = value ?: cc.tumtum.app.domain.BirthDate.wheelStart(today)
+        var day by remember { mutableIntStateOf(start.dayOfMonth) }
+        var month by remember { mutableIntStateOf(start.monthValue) }
+        var year by remember { mutableIntStateOf(start.year) }
+        val maxDay = remember(month, year) { YearMonth.of(year, month).lengthOfMonth() }
+        LaunchedEffect(maxDay) { if (day > maxDay) day = maxDay }
+        val years = remember(today) { (today.year - 100..today.year).toList() }
+
+        WheelDialog(
+            title = label,
+            onDismiss = { open = false },
+            onOk = {
+                onChange(LocalDate.of(year, month, day.coerceAtMost(maxDay)))
+                open = false
+            },
+        ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                WheelColumn(
+                    caption = stringResource(R.string.picker_day),
+                    items = (1..maxDay).map { "$it" },
+                    index = day - 1,
+                    onIndex = { day = it + 1 },
+                    modifier = Modifier.weight(1f),
+                )
+                WheelColumn(
+                    caption = stringResource(R.string.picker_month),
+                    items = MONTHS.toList(),
+                    index = month - 1,
+                    onIndex = { month = it + 1 },
+                    modifier = Modifier.weight(1.2f),
+                )
+                WheelColumn(
+                    caption = stringResource(R.string.picker_year),
+                    items = years.map { "$it" },
+                    index = years.indexOf(year).coerceAtLeast(0),
+                    onIndex = { year = years[it] },
+                    modifier = Modifier.weight(1.3f),
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun WheelTimeField(label: String, value: LocalTime, onChange: (LocalTime) -> Unit, modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf(false) }
@@ -223,21 +288,28 @@ private fun WheelColumn(
 
 /** The field: the house label, the chosen value, and MUDAR — a control that looks like one. */
 @Composable
-private fun PickerField(label: String, value: String, modifier: Modifier, onClick: () -> Unit) {
+private fun PickerField(
+    label: String,
+    value: String,
+    modifier: Modifier,
+    onDark: Boolean = false,
+    onClick: () -> Unit,
+) {
     val shape = RoundedCornerShape(4.dp)
+    val text = if (onDark) TT.Paper else TT.Ink
     Column(modifier.fillMaxWidth()) {
-        Text(label, style = TTType.Meta, color = TT.Gray70)
+        Text(label, style = TTType.Meta, color = if (onDark) TT.Gray45 else TT.Gray70)
         Spacer(Modifier.height(6.dp))
         Row(
             Modifier
                 .fillMaxWidth()
-                .border(1.dp, TT.Gray25, shape)
+                .border(1.dp, if (onDark) TT.Ink600 else TT.Gray25, shape)
                 .clickable(onClick = onClick)
                 .padding(horizontal = 14.dp, vertical = 15.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(value, style = TTType.Body, color = TT.Ink, modifier = Modifier.weight(1f))
-            Text(stringResource(R.string.picker_change), style = TTType.Meta, color = TT.Ink)
+            Text(value, style = TTType.Body, color = text, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.picker_change), style = TTType.Meta, color = text)
         }
     }
 }

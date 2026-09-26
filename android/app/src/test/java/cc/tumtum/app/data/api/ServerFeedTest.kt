@@ -91,35 +91,42 @@ class ServerFeedTest {
 
     @Test
     fun `a crowd the server refuses to publish is not an empty crowd`() {
-        // enough=false is the privacy floor, not "nobody felt anything". The
-        // count comes back so the screen can say how few we still are.
-        val json = """{"measured_nights":2,"enough":false,"shared_count":0,
+        // enough=false is the privacy floor, not "nobody felt anything". Since
+        // 26/09 the server does not even publish the count below it.
+        val json = """{"measured_nights":null,"enough":false,"shared_count":0,
             "moments":[],"top":null}"""
 
         val crowd = ServerCrowd.parse(json)
 
         assertFalse(crowd.enough)
-        assertEquals(2, crowd.measuredNights)
+        assertNull(crowd.measuredNights)
         assertNull(crowd.top)
     }
 
     @Test
-    fun `a crowd above the floor carries its moments and its top`() {
+    fun `a crowd with no measured_nights key reads as unknown, never zero`() {
+        val crowd = ServerCrowd.parse("""{"enough":false,"moments":[]}""")
+        assertNull(crowd.measuredNights)
+    }
+
+    @Test
+    fun `a crowd above the floor carries its moments as bands, never exact counts`() {
         val json = """
-            {"measured_nights":9,"enough":true,"shared_count":4,
-             "moments":[{"at":"2026-10-10T22:41:00Z","people":6,"label":"⚽ Gol"},
-                        {"at":"2026-10-10T23:12:00Z","people":4,"label":null}],
-             "top":{"at":"2026-10-10T22:41:00Z","people":6,"label":"⚽ Gol"}}
+            {"measured_nights":140,"enough":true,"shared_count":4,
+             "moments":[{"at":"2026-10-10T22:41:00Z","people_band":"25+","label":"⚽ Gol"},
+                        {"at":"2026-10-10T23:12:00Z","people_band":"10+","label":null}],
+             "top":{"at":"2026-10-10T22:41:00Z","people_band":"25+","label":"⚽ Gol"}}
         """.trimIndent()
 
         val crowd = ServerCrowd.parse(json)
 
         assertTrue(crowd.enough)
-        assertEquals(9, crowd.measuredNights)
+        assertEquals(140, crowd.measuredNights)
         assertEquals(4, crowd.sharedCount)
         assertEquals(2, crowd.moments.size)
+        assertEquals("10+", crowd.moments[1].peopleBand)
         assertNull(crowd.moments[1].label)
-        assertEquals(6, crowd.top?.people)
+        assertEquals("25+", crowd.top?.peopleBand)
     }
 
     @Test
