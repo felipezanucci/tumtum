@@ -20,6 +20,7 @@ from app.schemas.privacy import (
     DataSubjectRequestCreate,
     DataSubjectRequestResponse,
     MyDataResponse,
+    SharingResponse,
 )
 from app.schemas.user import (
     DeleteAccountRequest,
@@ -30,7 +31,7 @@ from app.schemas.user import (
     UserProfileResponse,
     UserUpdateRequest,
 )
-from app.services import refresh_tokens, subject_data
+from app.services import refresh_tokens, sharing, subject_data
 from app.services import signup_codes as codes
 from app.services.access_log import record_access
 from app.services.account_deletion import delete_account
@@ -202,6 +203,18 @@ async def my_export_csv(
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": "attachment; filename=tumtum-export.csv"},
     )
+
+
+@router.get("/me/sharing", response_model=SharingResponse)
+async def my_sharing(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """ "Ver compartilhamentos" (art. 18, VII): the operators that process the
+    person's data, whom TumTum never gives it to, and what they published."""
+    await record_access(db, user, user, "sharing", user.id, "read", request)
+    return await sharing.collect(db, user)
 
 
 # The controller answers within 15 days (art. 19, II, for the complete

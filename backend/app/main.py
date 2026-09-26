@@ -1,3 +1,4 @@
+import re
 import traceback
 from contextlib import asynccontextmanager
 
@@ -101,6 +102,7 @@ async def lifespan(app: FastAPI):
         DataAccessLog,
         DataSubjectRequest,
         DeletionLog,
+        DeletionTombstone,
         EmailChange,
     )
     from app.models.refresh_token import RefreshToken  # noqa: F401
@@ -128,6 +130,20 @@ async def lifespan(app: FastAPI):
             await catch_up(conn)
     except Exception as e:
         print(f"Schema catch-up warning: {e}")
+
+    # A restored backup brings back every account deleted since it was
+    # taken; a restore is followed by a start, so the tombstones get a pass
+    # here and not only a day later (services/tombstones.py, v1.1 §11).
+    from app.core.database import async_session
+    from app.services import tombstones
+
+    try:
+        async with async_session() as db:
+            removed = await tombstones.sweep(db)
+            await db.commit()
+        print(f"Tombstone sweep: {removed} restored account(s) deleted again")
+    except Exception as e:
+        print(f"Tombstone sweep warning: {e}")
 
     # The live watch of football matches (#52): one loop in this process,
     # only when there is a key to watch with.
@@ -229,10 +245,53 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
             print(f"Access log warning: {error}")
 
 
+# The two image routes of a card, the only `/api/*` bytes a cache may keep.
+CARD_IMAGE_ROUTE = re.compile(r"^/api/cards/[^/]+/(image|preview)$")
+NO_STORE = {"Cache-Control": "no-store", "Pragma": "no-cache"}
+
+
+def cache_headers(method: str, path: str, status: int) -> dict[str, str]:
+    """What a response may let a browser, a proxy or a CDN keep (v1.1 §18).
+
+    Every `/api/*` answer is somebody's data — a profile, a night, a consent
+    record — and a shared computer's browser cache, or a proxy between the
+    phone and Railway, is not a place it may stay. So `no-store`, and the
+    `Pragma` old caches still read.
+
+    Two exceptions, both image bytes and both only when they are the image:
+    a **published** card's PNG, which is public by the person's own act and
+    is what a link preview fetches (`public`, an hour — so an unpublished
+    card can linger in a CDN for at most that); and the owner's preview,
+    which only their own browser may keep (`private`). A 404 or an error on
+    those routes is not an image and is not kept either. `/health` and the
+    root are not personal data and get nothing.
+    """
+    if not path.startswith("/api/"):
+        return {}
+    match = CARD_IMAGE_ROUTE.match(path)
+    if match and method == "GET" and status == 200:
+        scope = "public" if match.group(1) == "image" else "private"
+        return {"Cache-Control": f"{scope}, max-age=3600"}
+    return NO_STORE
+
+
+class NoStoreForPersonalData(BaseHTTPMiddleware):
+    """Sets the headers `cache_headers` decides on every response."""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        headers = cache_headers(request.method, request.url.path, response.status_code)
+        for name, value in headers.items():
+            response.headers[name] = value
+        return response
+
+
 # Added before CORSMiddleware so CORS ends up outermost: Starlette treats the
 # most recently added middleware as the outer one. The access log sits
 # outside the error trap, so a crash is logged with the 500 it became.
 app.add_middleware(CatchUnhandledErrors)
+# Outside the error trap, so the 500 it makes is marked no-store as well.
+app.add_middleware(NoStoreForPersonalData)
 app.add_middleware(AccessLogMiddleware)
 
 app.add_middleware(

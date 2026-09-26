@@ -81,6 +81,13 @@ class Settings(BaseSettings):
     # downsampled curve, so seven days cover re-analysis and QA; anything
     # longer is retention without a purpose (v1.1 opinion, §11).
     raw_readings_retention_days: int = 7
+    # How long the deletion tombstone of an account outlives the deletion
+    # (`deletion_tombstones`, v1.1 opinion §11). It exists to clean a
+    # restored backup, so it must outlive every backup taken before the
+    # deletion; 400 days is longer than any backup Railway or a person could
+    # keep. After that it is purged: it is minimal personal data too, and a
+    # hash kept forever is retention without a purpose.
+    tombstone_retention_days: int = 400
 
     @property
     def waitlist_admins(self) -> set[str]:

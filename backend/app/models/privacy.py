@@ -3,6 +3,8 @@
 - `deletion_log` — that an account was deleted, and when. Nothing else: the
   row exists so the count of deletions can be shown to the ANPD, and a row
   that said *whose* account would be the one thing deletion must not leave.
+- `deletion_tombstones` — the two hashes that let a restored backup be
+  cleaned of an account deleted after it was taken (v1.1 opinion, §11).
 - `email_changes` — a new address waiting for its code, like `signup_codes`.
 - `data_subject_requests` — the person's requests under art. 18, with the
   15-day deadline the law gives the controller to answer.
@@ -38,6 +40,43 @@ class DeletionLog(Base):
     )
     deleted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now, nullable=False
+    )
+
+
+class DeletionTombstone(Base):
+    """What is left of a deleted account so that it stays deleted.
+
+    A deletion reaches the live database, not the backups taken before it.
+    Restore one of those — after an incident, by mistake — and every account
+    deleted since comes back, with its nights. `deletion_log` cannot help:
+    it has no identifier, by design. So this row carries two **hashes**:
+
+    - `subject_key`: SHA-256 of the account's id. Ids are random UUIDs, so
+      the hash cannot be walked back by guessing, and a restored `users` row
+      carries the same id — this is the key that finds it.
+    - `email_key`: HMAC-SHA256 of the lowercased address under `SECRET_KEY`
+      (`services.tombstones.email_fingerprint`). Keyed, because addresses
+      *can* be guessed: a plain hash of `ana@gmail.com` is found by hashing
+      a list of addresses. It finds what the id cannot — the sign-up code,
+      the e-mail-change code and the waitlist entry of that address.
+
+    Neither the id nor the address is stored, because a list of who deleted
+    their account is exactly what a deletion must not leave. The hashes are
+    still personal data (pseudonymous, LGPD art. 13 §4), kept for the one
+    purpose above and only for `TOMBSTONE_RETENTION_DAYS` — longer than any
+    backup lives — then purged by the maintenance loop. No foreign key: the
+    account it points at is gone.
+    """
+
+    __tablename__ = "deletion_tombstones"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    subject_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    email_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    deleted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False, index=True
     )
 
 

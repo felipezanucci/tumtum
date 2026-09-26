@@ -23,7 +23,9 @@ may run it again.
 | 022 | drop `wearable_connections.access_token`/`refresh_token` | **no** — destructive, needs a person |
 | 023 | `consents.legal_basis`, `scope`, `proof` (the consent ledger, v1.1 opinion §4.2), backfilled by purpose and NOT NULL | yes, by the catch-up — nothing manual |
 
-(008–014 and 018–021 only create tables: `create_all` handles them. 005,
+(008–014, 018–021 and 024 only create tables: `create_all` handles them;
+024 — `deletion_tombstones` — uses `IF NOT EXISTS`, so running it after the
+startup made the table is a no-op. 005,
 before this range, added `waitlist_entries.first_name`/`last_name` and is in
 the same situation as 007.)
 
@@ -54,9 +56,10 @@ alembic upgrade 007             # if it still has the timezone (the likely case)
 alembic stamp 021
 
 # 4. 022 drops the unused wearable tokens; 023 finds its columns already
-#    added and filled by the catch-up, and only records itself.
+#    added and filled by the catch-up, and 024 its table already created by
+#    create_all — both only record themselves.
 alembic upgrade head
-alembic current                 # → 023 (head)
+alembic current                 # → 024 (head)
 ```
 
 From then on the version table is honest, and a future migration is one
@@ -71,3 +74,27 @@ From then on the version table is honest, and a future migration is one
 - **Keep public the cards that were already shared** (017 leaves every
   existing card unpublished):
   `UPDATE cards SET published_at = (SELECT min(shared_at) FROM shares WHERE shares.card_id = cards.id) WHERE published_at IS NULL AND EXISTS (SELECT 1 FROM shares WHERE shares.card_id = cards.id);`
+
+## Restoring a backup
+
+A backup holds the tombstones that existed when it was taken — not the ones
+written after, which are exactly the ones a restore needs. So the tombstones
+must cross the restore from the live side:
+
+```bash
+# 1. Before restoring, while the live database is still readable:
+pg_dump --data-only --inserts --on-conflict-do-nothing \
+  --table=deletion_tombstones "$LIVE_URL" > tombstones.sql
+# 2. Restore the backup.
+# 3. Put the live tombstones back (the ones the backup already had are skipped).
+psql "$RESTORED_URL" -f tombstones.sql
+# 4. Restart the API.
+```
+
+The first start then deletes every account deleted after the backup, with
+its codes and waitlist entries (`app/services/tombstones.py`; the log says
+`Tombstone sweep: N restored account(s) deleted again`), and the daily
+maintenance pass repeats it. If the live database is lost and cannot be
+read, its tombstones are lost with it and this does not help: that case
+needs a copy of the table kept outside the database, which does not exist
+yet.
