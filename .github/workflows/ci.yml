@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
 
+# The default token would be able to write to the repository; nothing here
+# needs more than reading it (security review, 27/09).
+permissions:
+  contents: read
+
 jobs:
   frontend-lint:
     name: Frontend Lint
@@ -166,8 +171,10 @@ jobs:
                 if (tolower(addr) !~ allow) print
               }')
           if [ -n "$hits" ]; then
+            # Only file:line — the matched address must not be printed into a
+            # public Actions log.
             echo "::error::E-mail addresses outside the allowlist (use @exemplo.com in tests, never a real one):"
-            echo "$hits"
+            echo "$hits" | cut -d: -f1,2
             fail=1
           fi
 
@@ -176,10 +183,15 @@ jobs:
           STRIPE='sk_''live_'
           RESEND='\bre_''[A-Za-z0-9]{20,}'
           PEM='-----BEG''IN .* PRIV''ATE KEY'
-          hits=$(grep "${EXCLUDES[@]}" -e "$AWS" -e "$STRIPE" -e "$RESEND" -e "$PEM" . || true)
+          GITHUB_TOKEN_PATTERN='\bgh[pousr]_''[A-Za-z0-9]{30,}'
+          GOOGLE_KEY='\bAIza''[0-9A-Za-z_-]{35}'
+          SENTRY_DSN='https://[0-9a-f]{32}@'
+          hits=$(grep "${EXCLUDES[@]}" -e "$AWS" -e "$STRIPE" -e "$RESEND" -e "$PEM" \
+                   -e "$GITHUB_TOKEN_PATTERN" -e "$GOOGLE_KEY" -e "$SENTRY_DSN" . || true)
           if [ -n "$hits" ]; then
+            # file:line only, never the matched value.
             echo "::error::Something that looks like a secret is committed:"
-            echo "$hits"
+            echo "$hits" | cut -d: -f1,2
             fail=1
           fi
 

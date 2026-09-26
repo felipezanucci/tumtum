@@ -56,7 +56,7 @@ class DeletionTombstone(Base):
       carries the same id — this is the key that finds it.
     - `email_key`: HMAC-SHA256 of the lowercased address under `SECRET_KEY`
       (`services.tombstones.email_fingerprint`). Keyed, because addresses
-      *can* be guessed: a plain hash of `ana@gmail.com` is found by hashing
+      *can* be guessed: a plain hash of `ana@exemplo.com` is found by hashing
       a list of addresses. It finds what the id cannot — the sign-up code,
       the e-mail-change code and the waitlist entry of that address.
 
