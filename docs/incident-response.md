@@ -2,12 +2,39 @@
 
 26/09/2026. Nasceu da auditoria LGPD (`RELATORIO-AUDITORIA-LGPD.md`, item
 K2, achado AL-8). Base: art. 48 da LGPD e o Regulamento de Comunicação de
-Incidente de Segurança da ANPD (Resolução CD/ANPD nº 15/2024).
+Incidente de Segurança da ANPD (Resolução CD/ANPD nº 15/2024). **Revisto em
+26/09 (noite)** pelo parecer v1.1 (§12): o runbook de dez passos abaixo, e o
+registro de **todo** incidente, comunicado ou não.
 
 **A regra em uma frase:** ao saber de um incidente que pode expor batimento,
 e-mail, senha ou conta de alguém, **contém primeiro, avalia depois, e comunica
 à ANPD e às pessoas em até 3 dias úteis** — batimento é dado sensível, então a
 resposta padrão é comunicar.
+
+**E a regra que vale mesmo quando não se comunica:** pela Resolução CD/ANPD
+nº 15/2024, **todo incidente de segurança é registrado, comunicado ou não**, e
+o registro é guardado por **no mínimo 5 anos**, com a **justificativa da
+avaliação** — por que se concluiu que havia, ou não havia, risco ou dano
+relevante. Uma suspeita descartada também entra. O registro é
+**`docs/incident-register.md`** (seção 7).
+
+## 0. Runbook em dez passos
+
+O do parecer v1.1 (§12.1), ligado às seções deste plano. Cada passo feito é
+anotado, com hora, na linha do incidente no registro.
+
+| # | Passo | Onde está o como |
+|---|---|---|
+| 1 | **Detectar, conter e preservar evidências** — anotar a hora da ciência: o prazo conta dela | §2 (detecção), §4 (contenção), §4e (evidência antes de o ciclo de manutenção apagar logs) |
+| 2 | **Classificar** dados, titulares, sistemas e período | §5, itens 1–3 |
+| 3 | **Avaliar** confidencialidade, integridade, disponibilidade e autenticidade | §5, item 6 |
+| 4 | **Avaliar risco ou dano relevante**, com peso elevado para saúde | §3 (níveis e os critérios da Resolução) |
+| 5 | **Acionar** jurídico, encarregado, segurança e liderança | §1. Hoje as quatro funções são Felipe: registrar isso no incidente, e acionar o jurídico de referência mesmo assim |
+| 6 | **Decidir e documentar a comunicação** no prazo — e, se a decisão for não comunicar, escrever por quê | §6 (textos), §7 (registro) |
+| 7 | **Comunicar fornecedores e parceiros** quando necessário | §6a |
+| 8 | **Corrigir a causa raiz e rotacionar** credenciais e chaves | §4a, §4b, §4d, §8 |
+| 9 | **Registrar** o incidente por pelo menos 5 anos | §7, `docs/incident-register.md` |
+| 10 | **Post-mortem** e atualização do RIPD e dos controles | §8 |
 
 ## 1. Papéis
 
@@ -15,7 +42,7 @@ resposta padrão é comunicar.
 |---|---|---|
 | **Responsável pelo incidente** | Felipe Zanucci (controlador e encarregado) | Decide contenção, classificação e comunicação; assina a comunicação |
 | **Suplente** | [PENDENTE — suplente] | Assume se Felipe não responder em 2 horas |
-| Apoio técnico | Quem estiver trabalhando no código (hoje, sessões do Claude Code a pedido do Felipe) | Executa a contenção, levanta o alcance nos logs. **Não decide comunicar** |
+| Apoio técnico | Quem estiver trabalhando no código (hoje, sessões do Claude Code a pedido do Felipe) | Prepara e executa a contenção, escreve as consultas que levantam o alcance. **Não decide comunicar.** E **não recebe dado real**: a consulta roda do lado do Felipe, e o que volta à sessão é contagem e categoria — nunca linhas com e-mail, nome ou bpm (parecer §19) |
 | Jurídico | [PENDENTE — Felipe: advogado de referência] | Revisa a comunicação antes do envio, se houver tempo dentro do prazo |
 
 Contatos de fornecedor para ter à mão: suporte do Railway, do Vercel, do
@@ -49,9 +76,16 @@ hora em que soube: é dela que o prazo de 3 dias úteis conta.
 | **1 — Sem risco relevante** | E-mail de uma pessoa visto por outra por engano, sem batimento, contido na hora | Avaliar; registrar sempre |
 | **2 — Risco relevante** | Qualquer exposição de **batimento**, noite, card não publicado, senha/hash, token de sessão, data de nascimento; `SECRET_KEY` vazada; acesso ao banco ou a um backup; ZIP de operador perdido; muitas pessoas afetadas | **Sim**: ANPD e titulares, 3 dias úteis |
 
-Na dúvida entre 1 e 2, é 2. A Resolução lista dado sensível e dado de
-autenticação entre os critérios de risco relevante; na TumTum, quase todo
-incidente com conta toca um dos dois.
+Na dúvida entre 1 e 2, é 2. Pela Resolução 15/2024, há risco ou dano
+relevante quando o incidente **pode afetar significativamente interesses e
+direitos fundamentais** dos titulares **e**, ao mesmo tempo, envolve ao menos
+um destes: dado sensível; dado de criança, adolescente ou idoso; dado
+financeiro; dado de autenticação; dado protegido por sigilo; ou larga escala
+[PENDENTE — jurídico: conferir a redação e os artigos]. Na TumTum, quase todo
+incidente com conta toca dado sensível ou de autenticação.
+
+**Nível 0 e nível 1 também vão para o registro**, com a justificativa de por
+que não se comunicou. É essa justificativa que a ANPD pode pedir depois.
 
 ## 4. Contenção — o que fazer primeiro
 
@@ -110,6 +144,10 @@ Responder, por escrito, no registro do incidente (seção 7):
    servidor [PENDENTE — criptografia em repouso do Railway]).
 5. Consequências prováveis para as pessoas (exposição de presença num evento,
    de dado de saúde, uso de conta).
+6. **Qual propriedade foi atingida**: confidencialidade (alguém viu),
+   integridade (algo foi alterado — uma noite, um consentimento), disponibilidade
+   (algo se perdeu ou ficou fora do ar) ou autenticidade (alguém agiu como
+   outra pessoa — token roubado, consentimento gravado em nome de outro).
 
 ## 6. Comunicação — até 3 dias úteis
 
@@ -174,31 +212,41 @@ em privacidade — quieto e cuidadoso, sem piada e sem minimizar.
 > cadastro abaixo de 18).
 > **Medidas de segurança existentes:** HTTPS; senhas e tokens em hash;
 > consentimento por finalidade; registro de acesso a dado de saúde; retenção
-> de 30 dias para a série bruta; [demais].
+> de 7 dias para a série bruta; [demais].
 > **Riscos:** [exposição de dado de saúde e de presença em evento; uso
 > indevido de conta].
 > **Medidas adotadas:** [revogação de chaves e sessões; correção; comunicação
 > aos titulares em dd/mm].
 > **Motivo de eventual atraso:** [ ].
 
+### 6a. Fornecedores e parceiros (passo 7)
+
+- **O incidente nasceu num operador** (Railway, Vercel, Resend, Sentry): abrir
+  chamado no suporte dele pelo painel, pedir o alcance e a linha do tempo por
+  escrito, e anotar no registro o que o DPA dele promete como prazo de aviso
+  (`docs/dpa-checklist.md`).
+- **O incidente nasceu aqui e toca um operador** (uma chave dele vazou, um
+  dado foi parar num log dele): avisar, pedir a exclusão do que não deveria
+  estar lá, e guardar a confirmação.
+- **Parceiro comercial:** hoje nenhum recebe dado pessoal. Se um dia receber,
+  entra aqui.
+
 ## 7. Registro do incidente
 
 **Todo incidente é registrado, comunicado ou não**, e o registro é guardado
-por **no mínimo 5 anos** (Resolução CD/ANPD nº 15/2024). Onde: [PENDENTE —
-Felipe: pasta fora do repositório, a mesma dos termos do piloto]. Campos:
+por **no mínimo 5 anos** (Resolução CD/ANPD nº 15/2024), **com a justificativa
+da avaliação de risco** — inclusive, e principalmente, quando a decisão foi
+não comunicar.
 
-| Campo | |
-|---|---|
-| Número | INC-AAAA-NN |
-| Ciência (data e hora) e quem avisou | |
-| Descrição | |
-| Dados e titulares afetados (quantidade, categorias — sem lista de nomes aqui) | |
-| Nível (0/1/2) e por quê | |
-| Contenção: o quê, quando, quem | |
-| Comunicou à ANPD? Quando, protocolo | |
-| Comunicou aos titulares? Quando, como | |
-| Causa raiz | |
-| Correções e prazo | |
+**Onde:** `docs/incident-register.md` — uma linha por incidente, com as
+colunas que a Resolução pede. **O repositório é público**, então a linha leva
+só o que pode ser lido por qualquer pessoa: categorias e quantidades, nunca
+nome, e-mail ou identificador; e nenhum detalhe explorável enquanto a correção
+não estiver no ar (a linha entra como "em contenção" e é completada depois).
+O que identifica pessoas — a lista de afetados, os protocolos, os e-mails
+enviados, as evidências exportadas — fica na pasta fora do repositório
+[PENDENTE — Felipe: a mesma dos termos do piloto], referida pelo número
+INC-AAAA-NN.
 
 No `docs/decision-log.md` entra uma entrada datada, **sem nenhum dado
 pessoal**: o que falhou, o que custou, o que mudou.
@@ -207,12 +255,15 @@ pessoal**: o que falhou, o que custou, o que mudou.
 
 Em até duas semanas: causa raiz escrita; correção com teste que prova o
 conserto; revisão do `docs/ripd.md` (o risco virou fato — a probabilidade
-muda) e do `docs/ropa.md` se um operador esteve envolvido; checagem de que
+muda; é um dos gatilhos do §10 de lá, e a coluna "revisão do RIPD" do registro
+anota a versão) e do `docs/ropa.md` se um operador esteve envolvido; checagem de que
 todos os segredos trocados estão só no Railway/GitHub e em nenhum arquivo;
 e, se a falha era de uma classe, procurar os irmãos dela no código.
 
 ## 9. Ensaio
 
 Uma vez antes do piloto: executar a seção 4 (a, b) num ambiente de teste,
-cronometrar, e corrigir este plano onde ele estiver errado.
-[PENDENTE — Felipe: data do ensaio].
+cronometrar, e corrigir este plano onde ele estiver errado. Depois, **um
+ensaio de mesa a cada seis meses** (parecer §10): um incidente inventado,
+percorrido nos dez passos do §0, até escrever a linha que iria para o
+registro (e não vai: o ensaio entra no `docs/decision-log.md`). [PENDENTE — Felipe: data do primeiro ensaio].

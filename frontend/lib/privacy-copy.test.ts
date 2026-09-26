@@ -36,8 +36,12 @@ describe('the privacy policy says what the LGPD audit found missing', () => {
     ['R-R and motion', 'Intervalos R-R'],
     ['imports', 'Samsung Health'],
     ['crowd threshold', '100 noites'],
-    ['no clubs or artists', 'Nenhum dado pessoal vai para clube, artista, produtora, festival ou anunciante'],
-    ['raw series retention', '30 dias'],
+    [
+      'no clubs or artists (v1.1 §20.1)',
+      'Seu dado cardíaco individual não é compartilhado com parceiros comerciais, clubes, artistas ou anunciantes',
+    ],
+    ['contracted providers act on our behalf', 'estritamente em nosso nome'],
+    ['raw series retention', '7 dias'],
     ['access logs', '180 dias'],
     ['card cache', '7 dias'],
     ['sign-up code', '24 horas'],
@@ -57,6 +61,21 @@ describe('the privacy policy says what the LGPD audit found missing', () => {
   it('opens with the medical disclaimer in both languages', () => {
     expect(PRIVACY_PT.disclaimer).toBe('A TumTum não é um dispositivo médico e não interpreta saúde.')
     expect(PRIVACY_EN.disclaimer).toBe('TumTum is not a medical device and does not interpret health.')
+  })
+
+  it('makes no absolute promise that nobody else touches the data (v1.1 §20.1)', () => {
+    const en = all(PRIVACY_EN)
+    expect(pt).not.toContain('Nenhum dado pessoal vai para')
+    expect(pt).not.toContain('Nunca.')
+    expect(en).not.toContain('No personal data goes to')
+    expect(en).not.toContain('Ever.')
+    expect(en).toContain('strictly on our behalf')
+  })
+
+  it('does not promise that no backup exists', () => {
+    expect(all(DELETE_ACCOUNT_PT)).not.toContain('sem cópia guardada')
+    expect(all(DELETE_ACCOUNT_EN)).not.toContain('no copy kept')
+    expect(pt).toContain('Cópias de segurança do banco')
   })
 
   it('no longer claims deleting one night does not exist', () => {

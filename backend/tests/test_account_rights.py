@@ -187,6 +187,172 @@ async def test_deletion_takes_everything_around_the_account_and_leaves_no_name(
     assert log.actor_user_id is None and log.subject_user_id is None
 
 
+# What each column that can point at a person points at, for the walk below.
+POINTS_AT = {
+    "user_id": "user",
+    "actor_user_id": "user",
+    "subject_user_id": "user",
+    "reporter_id": "user",
+    "blocker_id": "user",
+    "blocked_id": "user",
+    "session_id": "night",
+    "peak_id": "peak",
+    "card_id": "card",
+    "post_id": "post",
+}
+# The Marco Civil (art. 15) keeps the access log six months whoever asks;
+# the maintenance loop purges it after that (tested there).
+KEPT_BY_LAW = {"access_log"}
+
+
+async def _pointing_at(db, ids: dict) -> dict[str, int]:
+    """Rows in every table of the schema that point at one of these ids."""
+    from sqlalchemy import or_
+
+    from app.core.database import Base
+
+    counts = {}
+    for table in Base.metadata.sorted_tables:
+        conditions = [
+            table.c[name].in_(ids[kind])
+            for name, kind in POINTS_AT.items()
+            if name in table.c and ids[kind]
+        ]
+        if conditions:
+            counts[table.name] = (
+                await db.execute(
+                    select(func.count()).select_from(table).where(or_(*conditions))
+                )
+            ).scalar_one()
+    return counts
+
+
+@pytest.mark.asyncio
+async def test_delete_account_leaves_nothing_behind(memdb, fake_redis):
+    """Walk every table in the schema, not a list (v1.1 §24): after the
+    deletion no row points at the person, their nights, moments, cards or
+    posts — except the access log the law keeps, and one anonymous row in
+    `deletion_log`. The fixture touches every such table first, so a new one
+    that points at a person fails here until it is both seeded and deleted."""
+    from datetime import UTC, datetime
+
+    from app.models.card import Share
+    from app.models.event_post import EventPost, EventPostReaction
+    from app.models.event_series import EventSeries, SeriesPost
+    from app.models.moderation import PostReport, UserBlock
+    from app.models.password_reset_token import PasswordResetToken
+    from app.models.peak import Peak
+    from app.models.privacy import AccessLog
+    from app.models.wearable_connection import WearableConnection
+    from tests.conftest import AT, add_event
+
+    ana = await add_user(memdb, "Ana", password="segredo123")
+    bia = await add_user(memdb, "Bia")
+    event = await add_event(memdb)
+    night = await add_night(memdb, ana, event)
+    peak = Peak(
+        id=uuid.uuid4(),
+        session_id=night.id,
+        timestamp=AT,
+        bpm=150,
+        duration_seconds=30,
+        magnitude=4.0,
+        rank=1,
+    )
+    memdb.add(peak)
+    await memdb.flush()
+    card = Card(
+        id=uuid.uuid4(),
+        user_id=ana.id,
+        session_id=night.id,
+        peak_id=peak.id,
+        card_type="solo",
+    )
+    post = EventPost(
+        id=uuid.uuid4(),
+        event_id=event.id,
+        user_id=ana.id,
+        session_id=night.id,
+        bpm=150,
+        moment_at=AT,
+    )
+    bias_night = await add_night(memdb, bia, event)
+    bias_post = EventPost(
+        id=uuid.uuid4(),
+        event_id=event.id,
+        user_id=bia.id,
+        session_id=bias_night.id,
+        bpm=140,
+        moment_at=AT,
+    )
+    series = EventSeries(id=uuid.uuid4(), name="Turnê")
+    memdb.add_all([card, post, bias_post, series])
+    await memdb.flush()
+    now = datetime.now(UTC)
+    memdb.add_all(
+        [
+            Share(card_id=card.id, platform="link"),
+            SeriesPost(post_id=post.id, series_id=series.id),
+            EventPostReaction(post_id=post.id, user_id=bia.id),  # on her post
+            EventPostReaction(post_id=bias_post.id, user_id=ana.id),  # by her
+            PostReport(post_id=bias_post.id, reporter_id=ana.id),
+            UserBlock(blocker_id=bia.id, blocked_id=ana.id),
+            WearableConnection(user_id=ana.id, provider="google_fit"),
+            PasswordResetToken(user_id=ana.id, token_hash="h", expires_at=now),
+            DataSubjectRequest(user_id=ana.id, kind="access", due_at=now),
+            EmailChange(
+                user_id=ana.id,
+                new_email="n@x.cc",
+                email_key="n@x.cc",
+                code_hash="h",
+                expires_at=now,
+            ),
+            DataAccessLog(
+                actor_user_id=ana.id,
+                subject_user_id=ana.id,
+                resource="hr_session",
+                action="read",
+            ),
+            AccessLog(method="GET", path="/api/cards", status=200, user_id=ana.id),
+        ]
+    )
+    await refresh_tokens.issue(memdb, ana.id)
+    await grant(memdb, ana, "terms", "keep_night")
+    await memdb.flush()
+
+    hers = {
+        "user": [ana.id],
+        "night": [night.id],
+        "peak": [peak.id],
+        "card": [card.id],
+        "post": [post.id],
+    }
+    before = await _pointing_at(memdb, hers)
+    unseeded = sorted(name for name, count in before.items() if count == 0)
+    assert unseeded == [], f"seed these so the walk covers them: {unseeded}"
+    deletions_before = await _count(memdb, DeletionLog)
+
+    await delete_profile(
+        DeleteAccountRequest(password="segredo123"), make_request(), ana, memdb
+    )
+
+    after = await _pointing_at(memdb, hers)
+    left = {name: n for name, n in after.items() if n and name not in KEPT_BY_LAW}
+    assert left == {}, f"still pointing at the deleted account: {left}"
+    assert await _count(memdb, User, User.id == hers["user"][0]) == 0
+    assert await _count(memdb, DeletionLog) == deletions_before + 1
+    assert (
+        await _count(memdb, DataAccessLog, DataAccessLog.subject_user_id.is_not(None))
+        == 0
+    )
+    for key in (f"card:image:{card.id}", f"card:image:{card.id}:og"):
+        assert key in fake_redis.deleted
+    # Everyone else's evening is untouched.
+    assert await _count(memdb, User, User.id == bia.id) == 1
+    assert await _count(memdb, EventPost, EventPost.id == bias_post.id) == 1
+    assert await _count(memdb, HRData, HRData.session_id == bias_night.id) == 20
+
+
 # --- access and portability ---
 
 

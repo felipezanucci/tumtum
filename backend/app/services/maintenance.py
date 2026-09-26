@@ -4,7 +4,7 @@ Every retention figure the policy states is enforced here, not by hand
 (LGPD audit, AL-9 and AL-8):
 
 - **Raw readings**: `hr_data` of a night is deleted
-  `raw_readings_retention_days` (30) after its moments were detected
+  `raw_readings_retention_days` (7) after its moments were detected
   (`hr_sessions.analyzed_at`). The moments, the night's summary and its cards
   stay — they are what the night is kept for.
 - **A withdrawn `keep_night`**: when a person revokes keeping their nights

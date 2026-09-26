@@ -16,7 +16,7 @@
  * short sentences that say exactly what happens.
  */
 
-export const CONSENT_TEXT_VERSION = '2026-09-26'
+export const CONSENT_TEXT_VERSION = '2026-09-26.1'
 
 export type ConsentPurpose =
   | 'terms'
@@ -83,10 +83,10 @@ export const CONSENT_PT: ConsentCopy = {
   facts: [
     'Batimento é dado de saúde. A lei (LGPD) trata ele como dado pessoal sensível, e por isso a TumTum só usa com o seu sim, uso por uso.',
     'A leitura acontece só na janela dos eventos que você ativar: do começo do evento menos 30 minutos até o fim mais 30 minutos. Fora disso, nada é lido.',
-    'Cada leitura da noite (a série bruta) é apagada 30 dias depois que seus momentos são encontrados. Os momentos e os cards ficam enquanto sua conta existir e "Guardar minhas noites" estiver ligado.',
+    'Cada leitura da noite (a série bruta) é apagada 7 dias depois que seus momentos são encontrados. Os momentos e os cards ficam enquanto sua conta existir e "Guardar minhas noites" estiver ligado.',
     'A TumTum não é um dispositivo médico e não interpreta saúde. Ela mostra quando seu coração subiu, nunca o que isso quer dizer.',
-    'Nada vai para clubes, artistas, produtoras, festivais ou anunciantes.',
-    'Mudou de ideia? Muda aqui, no seu perfil, ou no app em Configurações → Privacidade. Vale dali pra frente.',
+    'Seu dado cardíaco individual não vai para clubes, artistas, produtoras, festivais ou anunciantes. Fornecedores contratados processam dados só em nome da TumTum.',
+    'Mudou de ideia? Muda aqui, no seu perfil, ou no app em Configurações → Privacidade. Desligar "Guardar minhas noites" apaga do servidor, em até 24 horas, as noites que já subiram.',
   ],
   purposes: {
     terms: {
@@ -104,7 +104,8 @@ export const CONSENT_PT: ConsentCopy = {
       title: 'Guardar minhas noites',
       description:
         'Sua noite (as leituras e os momentos) fica guardada na sua coleção, nos servidores da TumTum, pra você rever e fazer cards.',
-      without: 'Sem isso, a noite fica só no seu celular e não sobe.',
+      without:
+        'Nenhuma noite nova sobe pra TumTum, e as que já subiram são apagadas do servidor em até 24 horas. Elas continuam só no seu celular.',
     },
     crowd_stats: {
       title: 'Entrar na estatística da galera',
@@ -150,10 +151,10 @@ export const CONSENT_EN: ConsentCopy = {
   facts: [
     'Heart rate is health data. Brazilian law (LGPD) treats it as sensitive personal data, so TumTum only uses it with your yes, use by use.',
     'Reading happens only in the window of the events you activate: from 30 minutes before the event starts to 30 minutes after it ends. Nothing is read outside it.',
-    'Each reading of the night (the raw series) is deleted 30 days after your moments are found. Moments and cards stay while your account exists and "Keep my nights" is on.',
+    'Each reading of the night (the raw series) is deleted 7 days after your moments are found. Moments and cards stay while your account exists and "Keep my nights" is on.',
     'TumTum is not a medical device and does not interpret health. It shows when your heart rose, never what that means.',
-    'Nothing goes to clubs, artists, promoters, festivals or advertisers.',
-    'Changed your mind? Change it here, on your profile, or in the app under Configurações → Privacidade. It applies from then on.',
+    'Your individual heart-rate data does not go to clubs, artists, promoters, festivals or advertisers. Contracted providers process data only on TumTum’s behalf.',
+    'Changed your mind? Change it here, on your profile, or in the app under Configurações → Privacidade. Turning off "Keep my nights" deletes the nights already uploaded from the server within 24 hours.',
   ],
   purposes: {
     terms: {
@@ -171,7 +172,8 @@ export const CONSENT_EN: ConsentCopy = {
       title: 'Keep my nights',
       description:
         'Your night (the readings and the moments) is kept in your collection, on TumTum’s servers, so you can relive it and make cards.',
-      without: 'Without this, the night stays on your phone and is not uploaded.',
+      without:
+        'No new night is uploaded to TumTum, and the ones already uploaded are deleted from the server within 24 hours. They stay only on your phone.',
     },
     crowd_stats: {
       title: 'Count me in the crowd statistics',

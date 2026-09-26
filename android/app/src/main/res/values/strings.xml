@@ -56,8 +56,8 @@
     <string name="perm_do_1">Lemos batimentos só nas janelas dos seus eventos — e a última hora, uma vez, pra achar seu relógio</string>
     <string name="perm_do_2">Você escolhe o que compartilha, sempre</string>
     <string name="perm_dont_1">Não fazemos leitura de saúde, diagnóstico ou alerta</string>
-    <string name="perm_dont_2">Não vendemos nem cruzamos seus dados com anúncios</string>
-    <string name="perm_footnote">Dá para revogar quando quiser, em Configurações. Apagar sua conta apaga os dados.</string>
+    <string name="perm_dont_2">Seu dado cardíaco não vai para anunciantes, clubes ou artistas</string>
+    <string name="perm_footnote">Dá para revogar quando quiser, em Configurações. Apagar sua conta apaga os dados; cópias de segurança expiram no prazo da política.</string>
     <string name="perm_allow">Permitir leitura</string>
     <string name="perm_not_now">Agora não</string>
     <string name="perm_hc_missing">O Health Connect não está disponível neste aparelho. Sem ele, não tem leitura.</string>
@@ -530,7 +530,7 @@
     <string name="remind_event_title">Hoje: %1$s</string>
     <string name="remind_event_text">Bota o relógio. A gente só olha depois.</string>
     <string name="remind_reveal_title">Sua noite abriu.</string>
-    <string name="remind_reveal_text">%1$s — a curva está pronta.</string>
+    <string name="remind_reveal_text">Sua curva está pronta. Abre quando quiser.</string>
     <string name="locked_body_notify">A curva abre aqui %1$s. A gente te avisa — vale a espera.</string>
 
     <!-- Trava da revela (protocolo do teste) -->
@@ -620,9 +620,9 @@
     <string name="consent_title">Antes de ler\nsua batida.</string>
     <string name="consent_intro_health">Batimento é dado de saúde. Por isso cada uso tem a sua chave, e nenhuma fica ligada sem você ligar.</string>
     <string name="consent_intro_window">A gente só lê sua batida na janela do evento: de 30 minutos antes do começo até 30 minutos depois do fim.</string>
-    <string name="consent_intro_retention">Se você guardar a noite na TumTum, a série de batidas fica no servidor por 30 dias depois do momento. Os momentos e os cards ficam enquanto sua conta existir e “Guardar a noite” estiver ligado.</string>
+    <string name="consent_intro_retention">Se você guardar a noite na TumTum, a série de batidas fica no servidor por 7 dias depois do momento. Os momentos e os cards ficam enquanto sua conta existir e “Guardar a noite” estiver ligado.</string>
     <string name="consent_intro_not_medical">A TumTum não é um dispositivo médico e não interpreta saúde.</string>
-    <string name="consent_intro_nobody">Nada vai para clubes, artistas ou anunciantes.</string>
+    <string name="consent_intro_nobody">Seu dado cardíaco individual não vai para clubes, artistas, produtoras, festivais ou anunciantes. Fornecedores contratados processam dados só em nome da TumTum.</string>
     <string name="consent_intro_revoke">Dá pra desligar qualquer chave quando quiser, em Configurações.</string>
     <string name="consent_section_focus">O QUE FALTA</string>
     <string name="consent_section_core">PRA USAR A TUMTUM</string>
@@ -635,7 +635,7 @@
     <string name="consent_read_stops">Nenhuma noite nova é gravada. As que já estão aqui continuam.</string>
     <string name="consent_keep_title">Guardar a noite</string>
     <string name="consent_keep_body">Guardar a noite (a série de batidas e os momentos) na sua coleção, no servidor da TumTum. Sem isso, a noite fica só no seu celular.</string>
-    <string name="consent_keep_stops">Nenhuma noite nova sobe pra TumTum. Pra apagar uma que já subiu, abre a noite e toca em Apagar esta noite.</string>
+    <string name="consent_keep_stops">Nenhuma noite nova sobe pra TumTum, e as que já subiram são apagadas do servidor em até 24 horas. Elas continuam só no seu celular.</string>
     <string name="consent_crowd_title">Entrar na galera</string>
     <string name="consent_crowd_body">Sua noite, sem seu nome, entra na conta coletiva do evento (“A galera”). Só aparece em faixas, tipo “25+”, e só quando tem gente suficiente.</string>
     <string name="consent_crowd_stops">Suas noites deixam de contar na galera dos eventos.</string>

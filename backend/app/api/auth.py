@@ -4,12 +4,18 @@ from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from pydantic import BaseModel, Field
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.auth import client_of, create_access_token, get_current_user
+from app.core.auth import (
+    client_of,
+    create_access_token,
+    get_current_user,
+    is_web_client,
+)
 from app.core.database import get_db
 from app.models.password_reset_token import PasswordResetToken
 from app.models.signup_code import SignupCode
@@ -18,7 +24,6 @@ from app.schemas.auth import (
     ForgotPasswordRequest,
     LoginRequest,
     MessageResponse,
-    RefreshRequest,
     ResetPasswordRequest,
     SignupConfirmRequest,
     SignupStarted,
@@ -39,13 +44,83 @@ from app.services.password_reset import (
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
+# The site's refresh token (legal opinion v1.1, §18, 26/09): no persistent
+# credential in the browser's storage, where any script on the page can read
+# it. For a request that says `X-Tumtum-Client: web/...` the token travels in
+# this httpOnly cookie and never in the body. The Android app is unchanged:
+# it keeps the body token in its own encrypted storage.
+REFRESH_COOKIE = "tumtum_refresh"
+REFRESH_COOKIE_PATH = "/api/auth"
+REFRESH_COOKIE_MAX_AGE = refresh_tokens.REFRESH_TOKEN_DAYS * 24 * 60 * 60
+# SameSite=None because the site (tumtum.cc) and the API (Railway) are
+# different sites; Secure is what None requires; the path keeps the cookie
+# off every request but the auth ones.
+_COOKIE_FLAGS = {
+    "path": REFRESH_COOKIE_PATH,
+    "secure": True,
+    "httponly": True,
+    "samesite": "none",
+}
 
-async def _signed_in(db: AsyncSession, user_id, family_id=None) -> TokenResponse:
+
+class SessionTokenRequest(BaseModel):
+    """The body of `refresh` and `logout`.
+
+    Android sends its token here. The site sends nothing (or an empty body):
+    its token is the cookie. Kept here rather than in `schemas/` because it
+    is this router's transport detail, not a shape any client builds.
+    """
+
+    refresh_token: str | None = Field(default=None, max_length=256)
+
+
+def _presented(body: SessionTokenRequest | None, request: Request | None) -> str | None:
+    """The refresh token a request carries: the body's, else the site's cookie.
+
+    The cookie is read only when the request names itself `web/...` — the
+    custom header is what stops another origin from spending it.
+    """
+    raw = (body.refresh_token or "").strip() if body is not None else ""
+    if raw:
+        return raw
+    if request is not None and is_web_client(request):
+        return (request.cookies.get(REFRESH_COOKIE) or "").strip() or None
+    return None
+
+
+def _hand_over(
+    tokens: TokenResponse, request: Request | None, response: Response | None
+) -> TokenResponse:
+    """Deliver a fresh pair the way the client keeps it.
+
+    The site gets the refresh token as an httpOnly cookie and a body without
+    it — so not even a script injected into the page can read a 90-day
+    credential; the most it could take is the hour-long access token.
+    """
+    if response is not None and tokens.refresh_token and is_web_client(request):
+        response.set_cookie(
+            REFRESH_COOKIE,
+            tokens.refresh_token,
+            max_age=REFRESH_COOKIE_MAX_AGE,
+            **_COOKIE_FLAGS,
+        )
+        tokens.refresh_token = None
+    return tokens
+
+
+async def _signed_in(
+    db: AsyncSession,
+    user_id,
+    family_id=None,
+    request: Request | None = None,
+    response: Response | None = None,
+) -> TokenResponse:
     """An access token and the refresh token that renews it."""
-    return TokenResponse(
+    tokens = TokenResponse(
         access_token=create_access_token({"sub": str(user_id)}),
         refresh_token=await refresh_tokens.issue(db, user_id, family_id=family_id),
     )
+    return _hand_over(tokens, request, response)
 
 
 def hash_password(password: str) -> str:
@@ -235,6 +310,7 @@ async def register_confirm(
     body: SignupConfirmRequest,
     db: AsyncSession = Depends(get_db),
     request: Request = None,
+    response: Response = None,
 ):
     """Step two: the code came back, so the address is real — make the account.
 
@@ -307,11 +383,16 @@ async def register_confirm(
         now=codes._aware(pending.created_at) if pending.created_at else now,
     )
 
-    return await _signed_in(db, user.id)
+    return await _signed_in(db, user.id, request=request, response=response)
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(
+    body: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+    request: Request = None,
+    response: Response = None,
+):
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
@@ -324,39 +405,66 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Email ou senha incorretos"
         )
 
-    return await _signed_in(db, user.id)
+    return await _signed_in(db, user.id, request=request, response=response)
+
+
+SESSION_ENDED = "Sua sessão terminou. Entre de novo."
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
+async def refresh(
+    body: SessionTokenRequest | None = None,
+    db: AsyncSession = Depends(get_db),
+    request: Request = None,
+    response: Response = None,
+):
     """Renew a session without a password — and rotate the token that did it.
 
-    The refusal is one sentence whatever the cause, and it is **committed
-    before it is raised**: a reused token revokes its whole family, and the
-    request's own rollback must not quietly undo that.
+    The token comes in the body (Android) or, for the site, in the httpOnly
+    cookie — and the site's next one goes back the same way. The refusal is
+    one sentence whatever the cause, and it is **committed before it is
+    raised**: a reused token revokes its whole family, and the request's own
+    rollback must not quietly undo that.
     """
+    raw = _presented(body, request)
+    if raw is None:
+        # Nothing to renew with: a site visitor who never signed in, or whose
+        # cookie is gone. The same sentence as any other refusal.
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=SESSION_ENDED
+        )
     try:
-        user_id, nxt = await refresh_tokens.rotate(db, body.refresh_token)
+        user_id, nxt = await refresh_tokens.rotate(db, raw)
     except refresh_tokens.RefreshRefused:
         await db.commit()
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sua sessão terminou. Entre de novo.",
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=SESSION_ENDED
         ) from None
-    return TokenResponse(
+    tokens = TokenResponse(
         access_token=create_access_token({"sub": str(user_id)}),
         refresh_token=nxt,
     )
+    return _hand_over(tokens, request, response)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
+async def logout(
+    body: SessionTokenRequest | None = None,
+    db: AsyncSession = Depends(get_db),
+    request: Request = None,
+    response: Response = None,
+):
     """ "Sair" means out: this device's refresh chain is revoked.
 
     No access token required, so a device whose hour has run out can still
-    sign itself out properly; knowing the refresh token is the proof.
+    sign itself out properly; knowing the refresh token is the proof — the
+    body's, or the site's cookie, which is cleared on the way out.
     """
-    await refresh_tokens.revoke(db, body.refresh_token)
+    raw = _presented(body, request)
+    if raw is not None:
+        await refresh_tokens.revoke(db, raw)
+    if response is not None and is_web_client(request):
+        response.delete_cookie(REFRESH_COOKIE, **_COOKIE_FLAGS)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -441,6 +549,8 @@ async def forgot_password(
 async def reset_password(
     body: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db),
+    request: Request = None,
+    response: Response = None,
 ):
     """Spend the token, set the password, and sign the person in."""
     now = datetime.now(UTC)
@@ -488,4 +598,4 @@ async def reset_password(
 
     # Signing them straight in: they just proved control of the mailbox and
     # chose a password. A login form here would only ask them to type it again.
-    return await _signed_in(db, user.id)
+    return await _signed_in(db, user.id, request=request, response=response)

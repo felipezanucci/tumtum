@@ -16,12 +16,13 @@ from app.api.cards import (
     delete_card,
     get_card_image,
     get_public_card,
+    list_cards,
     track_share,
     unpublish_card,
 )
 from app.models.card import Card, Share
-from app.schemas.card import CardCreateRequest, ShareRequest
-from tests.conftest import add_night, add_user
+from app.schemas.card import CardCreateRequest, CardResponse, ShareRequest
+from tests.conftest import add_night, add_user, make_request
 
 
 async def _card(db, user, night, **meta):
@@ -144,3 +145,43 @@ async def test_the_owner_sees_an_unpublished_card_and_nobody_else_does(
     with pytest.raises(HTTPException) as refused:
         await get_card_preview(card.id, None, bia, memdb)
     assert refused.value.status_code == 404
+
+
+async def _made_by_the_route(db, user_id, night_id):
+    """A card as `POST /api/cards` makes it, not as a test would write it."""
+    from app.models.user import User
+
+    db.expire_all()  # SQLite hands times back naive; read them all from it
+    user = await db.get(User, user_id)
+    return user, await create_card(CardCreateRequest(session_id=night_id), user, db)
+
+
+@pytest.mark.asyncio
+async def test_nothing_leaves_before_the_explicit_share(memdb, fake_redis):
+    """A card just made is the owner's alone (v1.1 §24). The 404s themselves
+    are pinned by test_a_card_nobody_shared_is_not_public; this adds the card
+    the route makes and what the owner's own list says about it."""
+    user = await add_user(memdb)
+    night = await add_night(memdb, user)
+    user, card = await _made_by_the_route(memdb, user.id, night.id)
+    assert card.published_at is None
+    for read in (get_public_card(card.id, memdb), get_card_image(card.id, None, memdb)):
+        with pytest.raises(HTTPException) as refused:
+            await read
+        assert refused.value.status_code == 404
+
+    listed = await list_cards(make_request(), user, memdb)
+    wire = [CardResponse.model_validate(c).model_dump(mode="json") for c in listed]
+    assert [(c["id"], c["published_at"]) for c in wire] == [(str(card.id), None)]
+
+
+@pytest.mark.asyncio
+async def test_public_url_is_not_predictable(memdb, fake_redis):
+    """The card id is the whole secret of an unlisted link: random, not a
+    counter nor a time-ordered id."""
+    user = await add_user(memdb)
+    night = await add_night(memdb, user)
+    user_id, night_id = user.id, night.id
+    ids = [(await _made_by_the_route(memdb, user_id, night_id))[1].id for _ in "ab"]
+    assert [card_id.version for card_id in ids] == [4, 4]
+    assert ids[0] != ids[1]

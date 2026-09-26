@@ -131,7 +131,7 @@ describe('signupReady', () => {
 
 describe('the consent text', () => {
   it('carries the version every codebase shares', () => {
-    expect(CONSENT_TEXT_VERSION).toBe('2026-09-26')
+    expect(CONSENT_TEXT_VERSION).toBe('2026-09-26.1')
   })
 
   it('names exactly the seven purposes of the contract', () => {
@@ -155,8 +155,18 @@ describe('the consent text', () => {
     const text = CONSENT_PT.facts.join(' ')
     expect(text).toContain('dado de saúde')
     expect(text).toContain('30 minutos')
-    expect(text).toContain('30 dias')
+    expect(text).toContain('7 dias')
+    expect(text).not.toContain('30 dias')
     expect(text).toContain('não é um dispositivo médico')
     expect(text).toContain('clubes, artistas')
+    // v1.1 §20.1: no absolute "nothing goes anywhere" — contracted providers exist.
+    expect(text).not.toContain('Nada vai para')
+    expect(text).toContain('Fornecedores contratados processam dados só em nome da TumTum')
+  })
+
+  it('says what turning off keep_night does, as the server does it (24 h)', () => {
+    expect(CONSENT_PT.purposes.keep_night.without).toContain('apagadas do servidor em até 24 horas')
+    expect(CONSENT_EN.purposes.keep_night.without).toContain('deleted from the server within 24 hours')
+    expect(CONSENT_PT.facts.join(' ')).not.toContain('Vale dali pra frente')
   })
 })

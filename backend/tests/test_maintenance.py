@@ -31,12 +31,12 @@ async def _readings(db, night) -> int:
 
 
 @pytest.mark.asyncio
-async def test_raw_readings_go_thirty_days_after_the_moments_were_found(memdb):
+async def test_raw_readings_go_seven_days_after_the_moments_were_found(memdb):
     user = await add_user(memdb)
     old = await add_night(memdb, user)
-    old.analyzed_at = NOW - timedelta(days=31)
+    old.analyzed_at = NOW - timedelta(days=8)
     recent = await add_night(memdb, user)
-    recent.analyzed_at = NOW - timedelta(days=29)
+    recent.analyzed_at = NOW - timedelta(days=6)
     never = await add_night(memdb, user)  # not analysed: its clock never started
     memdb.add(
         Peak(
@@ -161,7 +161,37 @@ async def test_spent_codes_and_tokens_go_a_day_after_they_expire(memdb):
         assert left == 1, model.__tablename__
 
 
-def test_the_retention_default_is_thirty_days():
-    from app.config import settings
+def test_the_retention_default_is_seven_days():
+    """A week covers re-analysis and QA; longer is retention without a
+    purpose (v1.1 opinion, §11). The field default, not the environment's."""
+    from app.config import Settings
 
-    assert settings.raw_readings_retention_days == 30
+    assert Settings.model_fields["raw_readings_retention_days"].default == 7
+
+
+@pytest.mark.asyncio
+async def test_retention_deletes_on_schedule_and_leaves_evidence(
+    memdb, monkeypatch, capsys
+):
+    """The daily pass itself — its own session, its own commit, its clock —
+    deletes the expired series, keeps the rest, and says what it did in one
+    line of the process log: the evidence the policy is being kept."""
+    from app.core import database
+
+    monkeypatch.setattr(database, "async_session", memdb.maker)
+    now = datetime.now(UTC)
+    user = await add_user(memdb)
+    expired = await add_night(memdb, user)
+    expired.analyzed_at = now - timedelta(days=8)
+    fresh = await add_night(memdb, user)
+    fresh.analyzed_at = now - timedelta(days=6)
+    await memdb.commit()
+
+    report = await maintenance.run_and_commit()
+
+    assert report.readings_deleted == 20
+    assert await _readings(memdb, expired) == 0
+    assert await _readings(memdb, fresh) == 20
+    (line,) = capsys.readouterr().out.strip().splitlines()
+    assert line.startswith("Maintenance: ")
+    assert "'readings_deleted': 20" in line and "'nights_deleted': 0" in line

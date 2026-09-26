@@ -4,6 +4,9 @@ import { create } from 'zustand'
 import {
   auth,
   clearTokens,
+  currentAccessToken,
+  onAccessTokenChange,
+  restoreSession,
   storeTokens,
   type SignupStartData,
   type SignupStarted,
@@ -12,7 +15,16 @@ import {
 
 interface AuthState {
   user: UserResponse | null
+  /**
+   * The access token this tab holds — never the refresh token, which lives
+   * in an httpOnly cookie the site cannot read (26/09).
+   */
   token: string | null
+  /**
+   * Whether the cookie has been asked on this page load. Until it has, no
+   * token means "not known yet", not "signed out".
+   */
+  sessionChecked: boolean
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   /** Sends the code (#64); creates nothing. */
@@ -21,12 +33,20 @@ interface AuthState {
   confirmSignup: (email: string, code: string) => Promise<void>
   logout: () => void
   loadUser: () => Promise<void>
+  /** Ask the cookie for a session, once per page load. */
+  restore: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: typeof window !== 'undefined' ? localStorage.getItem('access_token') : null,
+  token: currentAccessToken(),
+  sessionChecked: currentAccessToken() !== null,
   loading: false,
+
+  restore: async () => {
+    const signedIn = await restoreSession()
+    set({ token: signedIn ? currentAccessToken() : null, sessionChecked: true })
+  },
 
   login: async (email, password) => {
     set({ loading: true })
@@ -65,7 +85,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     void auth.logout()
-    set({ user: null, token: null })
+    set({ user: null, token: null, sessionChecked: true })
   },
 
   loadUser: async () => {
@@ -81,3 +101,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }))
+
+// Renewals, refusals and restores happen inside lib/api; the store follows.
+onAccessTokenChange((token) => {
+  useAuthStore.setState((state) => ({
+    token,
+    sessionChecked: true,
+    user: token ? state.user : null,
+  }))
+})

@@ -24,6 +24,11 @@ class ConsentEntry(BaseModel):
     granted_at: datetime | None
     revoked_at: datetime | None
     text_version: str | None
+    # The ledger (v1.1 opinion, §4.2): what the grant stands on, what it
+    # covers, and the fingerprint of the text it was given under.
+    legal_basis: str | None = None
+    scope: str | None = None
+    proof: str | None = None
 
     @classmethod
     def of(cls, state: ConsentState) -> "ConsentEntry":
@@ -33,6 +38,9 @@ class ConsentEntry(BaseModel):
             granted_at=state.granted_at,
             revoked_at=state.revoked_at,
             text_version=state.text_version,
+            legal_basis=state.legal_basis,
+            scope=state.scope,
+            proof=state.proof,
         )
 
 
@@ -65,5 +73,8 @@ class ConsentHistoryEntry(BaseModel):
     revoked_at: datetime | None
     means: str
     client: str | None
+    legal_basis: str | None = None
+    scope: str | None = None
+    proof: str | None = None
 
     model_config = {"from_attributes": True}

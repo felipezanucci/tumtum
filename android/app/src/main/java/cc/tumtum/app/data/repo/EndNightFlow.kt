@@ -28,7 +28,7 @@ suspend fun AppContainer.saveEndedNight(event: EventSession, measurement: Source
         Reminders.scheduleReveal(
             appContext, nightId, revealAt,
             appContext.getString(R.string.remind_reveal_title),
-            appContext.getString(R.string.remind_reveal_text, event.name),
+            appContext.getString(R.string.remind_reveal_text),
         )
     }
     // Nothing goes to the server from here (26/09). The night is saved on the

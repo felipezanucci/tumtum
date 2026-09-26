@@ -9,7 +9,7 @@ class ConsentTextTest {
 
     @Test
     fun `the version is the contract's literal`() {
-        assertEquals("2026-09-26", ConsentText.VERSION)
+        assertEquals("2026-09-26.1", ConsentText.VERSION)
     }
 
     @Test

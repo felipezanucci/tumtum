@@ -165,3 +165,70 @@ async def grant(db, user, *purposes):
         text_version=consents.CONSENT_TEXT_VERSION,
         means="tap",
     )
+
+
+@pytest_asyncio.fixture
+async def api(memdb, monkeypatch):
+    """The real app over HTTP, on the test database, signed in as anybody.
+
+    For the rules that must hold end to end — through the router, the
+    consent guard, the exception handler and the access-log middleware —
+    rather than on a route function called by hand. `api(user)` gives a
+    client whose requests carry that person's access token.
+    """
+    from fastapi import Depends
+    from httpx import ASGITransport, AsyncClient
+
+    from app.core import database
+    from app.core.auth import (
+        create_access_token,
+        decode_access_token,
+        get_current_user,
+        oauth2_scheme,
+    )
+    from app.core.database import get_db
+    from app.main import app
+    from app.models.user import User
+
+    async def the_test_db():
+        yield memdb
+
+    async def the_signed_in_user(token: str = Depends(oauth2_scheme)):
+        # The real one, except that SQLite's UUID column wants a UUID where
+        # asyncpg accepts the token's string.
+        return await memdb.get(User, uuid.UUID(decode_access_token(token)["sub"]))
+
+    monkeypatch.setattr(database, "async_session", memdb.maker)
+    app.dependency_overrides[get_db] = the_test_db
+    app.dependency_overrides[get_current_user] = the_signed_in_user
+    clients = []
+
+    def client_for(user=None):
+        headers = {}
+        if user is not None:
+            token = create_access_token({"sub": str(user.id)})
+            headers["Authorization"] = f"Bearer {token}"
+        client = AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://t", headers=headers
+        )
+        clients.append(client)
+        return client
+
+    yield client_for
+    for client in clients:
+        await client.aclose()
+    app.dependency_overrides.pop(get_db, None)
+    app.dependency_overrides.pop(get_current_user, None)
+
+
+def night_body(start=AT, bpms=(90, 91, 92, 93, 94)) -> dict:
+    """What the app uploads for a night, as JSON."""
+    return {
+        "start_time": start.isoformat(),
+        "end_time": (start + timedelta(minutes=30)).isoformat(),
+        "source_device": "Polar H10",
+        "data_points": [
+            {"time": (start + timedelta(seconds=i)).isoformat(), "bpm": bpm}
+            for i, bpm in enumerate(bpms)
+        ],
+    }

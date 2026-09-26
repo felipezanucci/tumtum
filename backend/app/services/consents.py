@@ -14,8 +14,18 @@ there is nobody left to prove anything to.
 The purposes and the text version are constants shared, literally, with the
 Android app and the site (contract of 26/09). A new text version is a new
 string here *and* there, never a silent edit of the words.
+
+**The ledger (v1.1 opinion, §4.2).** Each row also says on what legal basis
+it stands (`legal_basis`), what it covers in one plain sentence (`scope`),
+and which text it was given under (`proof`: the SHA-256 of
+`"{purpose}:{text_version}"`). The words themselves are not in the database:
+each version's full text lives in the clients' string resources and, for
+the record, in `docs/consent-texts.md`. The hash names a version, not the
+words, so it ties a row to exactly one section there only as long as a
+version's words are never edited in place — which is the rule.
 """
 
+import hashlib
 import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -26,7 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.consent import Consent
 
-CONSENT_TEXT_VERSION = "2026-09-26"
+CONSENT_TEXT_VERSION = "2026-09-26.1"
 
 PURPOSES = (
     "terms",
@@ -39,6 +49,51 @@ PURPOSES = (
 )
 
 MEANS = ("tap", "checkbox", "button", "form")
+
+# The legal basis each purpose's row stands on. Heart-rate uses are sensitive
+# data, so consent under art. 11; marketing e-mail is ordinary personal data,
+# consent under art. 7. `terms` is different in kind: the row records that
+# the person accepted the contract, and the basis for what the contract needs
+# is its execution (art. 7, V) — calling it "consent" would promise a
+# withdrawal that only deleting the account can honour.
+LEGAL_BASES = {
+    "terms": "contract_art7",
+    "read_heart_rate": "consent_art11",
+    "keep_night": "consent_art11",
+    "crowd_stats": "consent_art11",
+    "artist_compare": "consent_art11",
+    "improve_detection": "consent_art11",
+    "marketing": "consent_art7",
+}
+
+# What each grant covers, in one line a person (or the ANPD) reads in the
+# export without opening the app. Fixed per purpose: the words the person
+# agreed to are the versioned text, this is its label in the ledger.
+SCOPES = {
+    "terms": "Termos de uso e Política de Privacidade da conta, enquanto ela existir",
+    "read_heart_rate": (
+        "leitura da batida do relógio ou sensor, só na janela do evento, "
+        "e detecção dos momentos"
+    ),
+    "keep_night": "série, momentos e cards da noite no servidor, enquanto ativo",
+    "crowd_stats": (
+        "noite sem nome na conta coletiva do evento (A galera), só em faixas "
+        "e com gente suficiente"
+    ),
+    "artist_compare": "comparação da batida com a do artista ou atleta que topar",
+    "improve_detection": "uso das noites para melhorar a detecção de momentos",
+    "marketing": "e-mails da TumTum sobre eventos e novidades",
+}
+
+
+def proof_of(purpose: str, text_version: str) -> str:
+    """The fingerprint of the text a grant was given under (64 hex chars).
+
+    Postgres computes the same for old rows in the catch-up and in 023:
+    `encode(sha256(convert_to(purpose || ':' || text_version, 'UTF8')), 'hex')`.
+    """
+    return hashlib.sha256(f"{purpose}:{text_version}".encode()).hexdigest()
+
 
 # What the 403 says when an action needs a purpose the person has not
 # granted. The screen opens the consent for that purpose; the sentence is
@@ -63,6 +118,9 @@ class ConsentState:
     granted_at: datetime | None
     revoked_at: datetime | None
     text_version: str | None
+    legal_basis: str | None = None
+    scope: str | None = None
+    proof: str | None = None
 
 
 async def _latest(
@@ -145,6 +203,9 @@ async def set_many(
                     user_id=user_id,
                     purpose=purpose,
                     text_version=text_version,
+                    legal_basis=LEGAL_BASES[purpose],
+                    scope=SCOPES[purpose],
+                    proof=proof_of(purpose, text_version),
                     granted_at=now,
                     means=means,
                     client=(client or None) and client[:80],
@@ -157,7 +218,12 @@ async def set_many(
 
 
 async def snapshot(db: AsyncSession, user_id: uuid.UUID) -> list[ConsentState]:
-    """Every purpose, in the contract's order, granted or not."""
+    """Every purpose, in the contract's order, granted or not.
+
+    The basis and the scope belong to the purpose, so they are there even for
+    one never answered; the proof belongs to a row, so it is there only when
+    the person gave one.
+    """
     latest = await _latest(db, user_id)
     out = []
     for purpose in PURPOSES:
@@ -169,6 +235,9 @@ async def snapshot(db: AsyncSession, user_id: uuid.UUID) -> list[ConsentState]:
                 granted_at=row.granted_at if row else None,
                 revoked_at=row.revoked_at if row else None,
                 text_version=row.text_version if row else None,
+                legal_basis=row.legal_basis if row else LEGAL_BASES[purpose],
+                scope=row.scope if row else SCOPES[purpose],
+                proof=row.proof if row else None,
             )
         )
     return out

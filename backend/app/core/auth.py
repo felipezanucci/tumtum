@@ -142,3 +142,15 @@ def client_of(request: Request | None) -> str | None:
         return None
     value = (request.headers.get("x-tumtum-client") or "").strip()
     return value[:80] or None
+
+
+def is_web_client(request: Request | None) -> bool:
+    """Whether the request says it comes from the site (`web/...`).
+
+    The site's refresh token lives in an httpOnly cookie instead of the body
+    (legal opinion v1.1, §18). The header doubles as the cookie's CSRF guard:
+    a custom header makes the browser ask CORS first, so a page on another
+    origin cannot make a request that spends or clears the cookie.
+    """
+    client = client_of(request)
+    return bool(client and client.lower().startswith("web/"))

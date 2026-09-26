@@ -85,7 +85,7 @@ funciona sem eles. Você pode mudar qualquer um a qualquer hora.
   (`docs/pilot-data-retention.md`). Isso vale para o servidor, para o celular
   emprestado (se houver) e para qualquer cópia feita pela equipe.
 - **Se você continuar usando a TumTum depois do piloto** e tiver marcado o item
-  C: a série bruta de batimentos é apagada 30 dias depois de os momentos serem
+  C: a série bruta de batimentos é apagada 7 dias depois de os momentos serem
   encontrados; os momentos e os cards ficam enquanto a conta existir e o item C
   estiver marcado.
 - **Imagem do card:** fica em cache por até 7 dias e sai na hora se você apagar
@@ -109,8 +109,8 @@ publicação é um toque seu.
 Você pode, a qualquer momento e sem dar motivo:
 
 - **desmarcar qualquer item** em Configurações → Privacidade, no app. Desmarcar
-  o item C para de guardar as próximas noites; para apagar as que já estão lá,
-  use "Apagar esta noite";
+  o item C para de guardar as próximas noites e **apaga as que já estão lá
+  24 horas depois**, se você não marcar de novo;
 - **apagar uma noite** (Configurações ou a própria noite → "Apagar esta
   noite");
 - **baixar todos os seus dados** (tumtum.cc/perfil → "Baixar meus dados");
