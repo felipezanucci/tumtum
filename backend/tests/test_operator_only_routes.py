@@ -37,6 +37,11 @@ OPERATOR_ONLY = {
     # Which series an event belongs to is the operator's to say (#33).
     ("POST", "/api/series"),
     ("PUT", "/api/events/{event_id}/series"),
+    # The queue of data-subject requests and the answer to each (26/09).
+    ("GET", "/api/admin/requests"),
+    ("PATCH", "/api/admin/requests/{request_id}"),
+    # A simulated night, outside production only (AL-10, 26/09).
+    ("POST", "/api/demo/simulate/{event_id}"),
 }
 
 # What a fan may do without operating the platform.

@@ -3,7 +3,14 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
 
-engine = create_async_engine(settings.database_url, echo=False)
+# `DATABASE_SSL=true` makes asyncpg refuse a connection it cannot encrypt.
+# Heart-rate series cross this link; off the private network they must not
+# cross it in the clear (LGPD audit, C3).
+engine = create_async_engine(
+    settings.database_url,
+    echo=False,
+    connect_args={"ssl": "require"} if settings.database_ssl else {},
+)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 

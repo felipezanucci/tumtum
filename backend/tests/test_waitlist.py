@@ -2,18 +2,18 @@ from app.services.waitlist import normalize_email, normalize_name
 
 
 def test_lowercases_so_one_person_is_one_row():
-    assert normalize_email("Felipe@Gmail.com") == "felipe@gmail.com"
+    assert normalize_email("Ana@Exemplo.com") == "ana@exemplo.com"
 
 
 def test_strips_the_whitespace_a_phone_keyboard_adds():
-    assert normalize_email("  felipe@gmail.com ") == "felipe@gmail.com"
-    assert normalize_email("\tfelipe@gmail.com\n") == "felipe@gmail.com"
+    assert normalize_email("  ana@exemplo.com ") == "ana@exemplo.com"
+    assert normalize_email("\tana@exemplo.com\n") == "ana@exemplo.com"
 
 
 def test_a_capitalised_first_letter_matches_the_original():
     # What actually happens on Android: the keyboard capitalises for you and
     # the person does not notice. Without this the same address signs up twice.
-    assert normalize_email("Felipe@gmail.com") == normalize_email("felipe@gmail.com")
+    assert normalize_email("Ana@exemplo.com") == normalize_email("ana@exemplo.com")
 
 
 def test_leaves_the_address_otherwise_intact():
@@ -23,7 +23,7 @@ def test_leaves_the_address_otherwise_intact():
 
 
 def test_already_normal_addresses_are_unchanged():
-    assert normalize_email("felipe@gmail.com") == "felipe@gmail.com"
+    assert normalize_email("ana@exemplo.com") == "ana@exemplo.com"
 
 
 def test_name_collapses_the_spaces_people_type():

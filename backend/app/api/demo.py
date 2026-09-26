@@ -13,7 +13,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import get_current_user, require_admin
+from app.api.feed import DEMO_SOURCE_PREFIX
+from app.core.auth import require_admin
 from app.core.database import get_db
 from app.models.event import Event
 from app.models.event_timeline import EventTimeline
@@ -30,9 +31,14 @@ from app.schemas.event import (
     offset_aware,
 )
 from app.services.event_correlator import correlate_peaks_to_timeline
+from app.services.night_deletion import delete_nights
 from app.services.peak_detection import detect_peaks
 
 router = APIRouter(prefix="/api/demo", tags=["demo"])
+
+# What every simulated night says it came from. Attendance and the crowd
+# match on the prefix (`api/feed.measured`).
+DEMO_SOURCE = "Tumtum Demo (simulado)"
 
 
 # ── Seed data ─────────────────────────────────────────────────────────
@@ -368,12 +374,20 @@ def _generate_realistic_hr(
 @router.post("/simulate/{event_id}", response_model=ExperienceResponse)
 async def simulate_experience(
     event_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Simulate an HR session for a given event with realistic data.
 
     Creates HR data, runs peak detection, and returns the full experience.
+
+    Operators only, and never in production (the router is not mounted
+    there — `main.include_routers`). Until 26/09 any account could call it,
+    and it both **deleted the caller's real night** at the event and made a
+    synthetic one that opened the event's feed (LGPD audit, AL-10). Now it
+    replaces only an earlier *simulated* night, and the one it makes carries
+    `source_device="Tumtum Demo (simulado)"`, which attendance and the crowd
+    ignore.
     """
     # Fetch event with timeline
     result = await db.execute(select(Event).where(Event.id == event_id))
@@ -403,27 +417,16 @@ async def simulate_experience(
     )
     duration_minutes = int((end_dt - start_dt).total_seconds() / 60)
 
-    # Delete any existing session for this user+event (so we can re-simulate)
+    # Replace an earlier simulation of this event, and only a simulation: a
+    # real night of the operator's at the same event is never touched.
     old_sessions = await db.execute(
-        select(HRSession).where(
-            HRSession.user_id == user.id, HRSession.event_id == event_id
+        select(HRSession.id).where(
+            HRSession.user_id == user.id,
+            HRSession.event_id == event_id,
+            HRSession.source_device.like(f"{DEMO_SOURCE_PREFIX}%"),
         )
     )
-    for old_session in old_sessions.scalars().all():
-        # Delete associated peaks
-        old_peaks = await db.execute(
-            select(Peak).where(Peak.session_id == old_session.id)
-        )
-        for p in old_peaks.scalars().all():
-            await db.delete(p)
-        # Delete associated HR data
-        old_data = await db.execute(
-            select(HRData).where(HRData.session_id == old_session.id)
-        )
-        for d in old_data.scalars().all():
-            await db.delete(d)
-        await db.delete(old_session)
-    await db.flush()
+    await delete_nights(db, list(old_sessions.scalars().all()))
 
     # Generate realistic HR data
     tl_for_gen = [
@@ -450,7 +453,7 @@ async def simulate_experience(
         max_bpm=max_bpm,
         min_bpm=min_bpm,
         data_quality_score=95,
-        source_device="Tumtum Demo (simulado)",
+        source_device=DEMO_SOURCE,
     )
     db.add(session)
     await db.flush()

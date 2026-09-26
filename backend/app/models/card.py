@@ -41,6 +41,11 @@ class Card(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
+    # Set when the person shares the card, cleared when they unpublish it.
+    # Until then the public page and the image answer 404: a card is made
+    # in private and published by an act (LGPD audit, AL-3). Migration 017 /
+    # schema catch-up.
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user = relationship("User")
     session = relationship("HRSession")

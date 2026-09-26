@@ -1,12 +1,13 @@
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, require_consent
 from app.core.database import get_db
+from app.models.event import Event
 from app.models.hr_data import HRData
 from app.models.hr_session import HRSession
 from app.models.user import User
@@ -19,8 +20,14 @@ from app.schemas.health import (
     WearableConnectRequest,
 )
 from app.services import data_quality
+from app.services.access_log import record_access
+from app.services.event_window import NOT_THIS_EVENT, night_fits
+from app.services.night_deletion import delete_nights
 
 router = APIRouter(prefix="/api/health", tags=["health"])
+
+# Keeping a night on the server is its own purpose (contract of 26/09).
+requires_keep_night = require_consent("keep_night")
 
 
 # --- Wearable Connections ---
@@ -51,12 +58,7 @@ async def connect_wearable(
             detail=f"Conexão ativa com {body.provider} já existe",
         )
 
-    connection = WearableConnection(
-        user_id=user.id,
-        provider=body.provider,
-        access_token=body.access_token,
-        refresh_token=body.refresh_token,
-    )
+    connection = WearableConnection(user_id=user.id, provider=body.provider)
     db.add(connection)
     await db.flush()
     return connection
@@ -105,9 +107,28 @@ async def disconnect_wearable(
 )
 async def create_hr_session(
     body: HRSessionCreateRequest,
-    user: User = Depends(get_current_user),
+    user: User = Depends(requires_keep_night),
     db: AsyncSession = Depends(get_db),
 ):
+    """Keep a night on the server — only with `keep_night` granted.
+
+    The upload is the act the consent is for (LGPD audit, CR-2): without the
+    row, the 403 names the purpose and the app opens that consent screen.
+    """
+    # An event id is a claim of having been there, and it opens that event's
+    # feed. The night has to have happened when the event did.
+    if body.event_id is not None:
+        event = await db.get(Event, body.event_id)
+        if event is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado"
+            )
+        if not night_fits(event, body.start_time, body.end_time):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=NOT_THIS_EVENT,
+            )
+
     # hr_data is keyed by (time, session_id), so two readings sharing a
     # timestamp would abort the whole insert. A client that rounds or replays
     # timestamps can produce those, and losing a four-hour capture to one
@@ -153,8 +174,6 @@ async def create_hr_session(
             time=dp.time,
             session_id=session.id,
             bpm=dp.bpm,
-            rr_interval_ms=dp.rr_interval_ms,
-            motion_level=dp.motion_level,
             source=dp.source,
         )
         for dp in unique_points
@@ -181,6 +200,7 @@ async def list_hr_sessions(
 @router.get("/sessions/{session_id}", response_model=HRSessionDetailResponse)
 async def get_hr_session(
     session_id: uuid.UUID,
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -195,8 +215,37 @@ async def get_hr_session(
             status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada"
         )
 
+    await record_access(db, user, user, "hr_session", session_id, "read", request)
     data_result = await db.execute(
         select(HRData).where(HRData.session_id == session_id).order_by(HRData.time)
     )
     session.data_points = data_result.scalars().all()
     return session
+
+
+@router.delete("/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_hr_session(
+    session_id: uuid.UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """ "Apagar esta noite": the night and everything made from it (AL-9).
+
+    Readings, moments, cards (with their shares and cached images) and the
+    feed posts made from it go; the event stays. A night that is not the
+    caller's is a 404, not a 403 — whether it exists is not theirs to learn.
+    """
+    owned = (
+        await db.execute(
+            select(HRSession.id).where(
+                HRSession.id == session_id, HRSession.user_id == user.id
+            )
+        )
+    ).scalar_one_or_none()
+    if owned is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada"
+        )
+    await delete_nights(db, [session_id])
+    await record_access(db, user, user, "hr_session", session_id, "delete", request)

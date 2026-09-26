@@ -1,7 +1,7 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import Boolean, Date, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -33,6 +33,15 @@ class SignupCode(Base):
     email_key: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    # What the account will be born with (26/09): the birth date, the version
+    # of the terms the person ticked, and whether they also granted reading
+    # the heart rate on the same screen. Consent rows are written only when
+    # the account exists, from these. Migration 015 / schema catch-up.
+    birth_date: Mapped[date | None] = mapped_column(Date)
+    consent_text_version: Mapped[str | None] = mapped_column(String(20))
+    read_heart_rate: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     expires_at: Mapped[datetime] = mapped_column(

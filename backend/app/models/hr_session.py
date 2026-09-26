@@ -29,6 +29,11 @@ class HRSession(Base):
     min_bpm: Mapped[int | None] = mapped_column(Integer)
     data_quality_score: Mapped[int | None] = mapped_column(Integer)  # 0-100
     source_device: Mapped[str | None] = mapped_column(String(100))
+    # When the moments were last detected. The raw readings are deleted
+    # `raw_readings_retention_days` after this (services/maintenance.py): the
+    # moments are what the night is kept for, the series what they were made
+    # from. Migration 016 / schema catch-up.
+    analyzed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy import select
@@ -75,3 +75,70 @@ async def require_admin(user=Depends(get_current_user)):
             detail="Esta ação não está disponível para a sua conta.",
         )
     return user
+
+
+class ConsentRequired(HTTPException):
+    """A 403 that names the purpose the person has not granted.
+
+    Its body is `{"detail", "code": "consent_required", "purpose"}` (contract
+    of 26/09) — the handler in `main.py` writes it — so a client can open the
+    consent screen on exactly that purpose instead of retrying silently.
+    """
+
+    def __init__(self, purpose: str):
+        from app.services.consents import REQUIRED_SENTENCES
+
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=REQUIRED_SENTENCES.get(
+                purpose, "Essa ação precisa da sua autorização antes."
+            ),
+        )
+        self.purpose = purpose
+
+    def body(self) -> dict:
+        return {
+            "detail": self.detail,
+            "code": "consent_required",
+            "purpose": self.purpose,
+        }
+
+
+def require_consent(purpose: str):
+    """A dependency: the signed-in person, if `purpose` is granted right now.
+
+    Checked on the server on every request, never trusted from the client —
+    the app's own switch is a convenience, the row in `consents` is the
+    permission.
+    """
+    from app.services.consents import PURPOSES
+
+    if purpose not in PURPOSES:
+        raise ValueError(f"unknown consent purpose: {purpose}")
+
+    async def dependency(
+        user=Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ):
+        from app.services import consents
+
+        if not await consents.active(db, user.id, purpose):
+            raise ConsentRequired(purpose)
+        return user
+
+    # Named after the purpose so a router test can read which consent a route
+    # asks for, the way it reads `require_admin`.
+    dependency.__name__ = f"require_consent_{purpose}"
+    return dependency
+
+
+def client_of(request: Request | None) -> str | None:
+    """The `X-Tumtum-Client` header — `android/<versionCode>` or `web/<commit>`.
+
+    Optional: a request without it is still served, and the consent row
+    simply records that nobody said which client it was.
+    """
+    if request is None:
+        return None
+    value = (request.headers.get("x-tumtum-client") or "").strip()
+    return value[:80] or None

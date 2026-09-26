@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -44,7 +44,7 @@ from app.schemas.feed import (
     ReportRequest,
     SeriesEvent,
 )
-from app.services import moderation
+from app.services import consents, moderation
 from app.services.crowd import collective_moments
 from app.services.email import EmailNotConfigured, send_email
 
@@ -61,11 +61,26 @@ async def _event_or_404(db: AsyncSession, event_id: uuid.UUID) -> Event:
     return event
 
 
+# The source every simulated night carries (`/api/demo/simulate`). A demo is
+# not a night anybody lived, so it is neither proof of having been there nor
+# a heart in the crowd (LGPD audit, AL-10).
+DEMO_SOURCE_PREFIX = "Tumtum Demo"
+
+
+def measured(column=HRSession.source_device):
+    """The SQL condition that a night was really measured, not simulated."""
+    return or_(column.is_(None), ~column.like(f"{DEMO_SOURCE_PREFIX}%"))
+
+
 async def was_there(db: AsyncSession, user_id: uuid.UUID, event_id: uuid.UUID) -> bool:
     """Whether this account has a measured night at this event."""
     result = await db.execute(
         select(HRSession.id)
-        .where(HRSession.user_id == user_id, HRSession.event_id == event_id)
+        .where(
+            HRSession.user_id == user_id,
+            HRSession.event_id == event_id,
+            measured(),
+        )
         .limit(1)
     )
     return result.scalar_one_or_none() is not None
@@ -122,7 +137,11 @@ async def attended_events(
         return set()
     rows = await db.execute(
         select(HRSession.event_id)
-        .where(HRSession.user_id == user_id, HRSession.event_id.in_(event_ids))
+        .where(
+            HRSession.user_id == user_id,
+            HRSession.event_id.in_(event_ids),
+            measured(),
+        )
         .distinct()
     )
     return set(rows.scalars().all())
@@ -430,14 +449,23 @@ async def get_crowd(
 ):
     """Card 04 — the event as a crowd, or an honest refusal to say.
 
-    Nothing is published below the floor in `services/crowd`, and the count it
-    refuses on comes back anyway so the screen can say *"ainda somos poucos
-    aqui"* instead of drawing a zero.
+    Only the nights of people who granted `crowd_stats` count, and never a
+    simulated one. Nothing is published below `settings.crowd_min_nights`;
+    the screen gets `enough=false` and says *"ainda somos poucos aqui"*
+    instead of drawing a zero.
     """
     await _event_or_404(db, event_id)
 
     sessions = list(
-        (await db.execute(select(HRSession.id).where(HRSession.event_id == event_id)))
+        (
+            await db.execute(
+                select(HRSession.id).where(
+                    HRSession.event_id == event_id,
+                    measured(),
+                    HRSession.user_id.in_(consents.active_consent_users("crowd_stats")),
+                )
+            )
+        )
         .scalars()
         .all()
     )
@@ -465,7 +493,11 @@ async def get_crowd(
     ).scalar_one()
 
     crowd = collective_moments(
-        top_peaks, measured_nights=len(sessions), shared_count=shared
+        top_peaks,
+        measured_nights=len(sessions),
+        shared_count=shared,
+        min_nights=settings.crowd_min_nights,
+        min_cell=settings.crowd_min_cell,
     )
     return CrowdResponse.of(crowd)
 

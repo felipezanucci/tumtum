@@ -7,9 +7,11 @@ from pydantic import BaseModel, Field
 
 
 class WearableConnectRequest(BaseModel):
+    """Which source the person reads from. No provider tokens (26/09): nothing
+    on the server ever used them, and an idle credential to somebody's health
+    account is only a liability. Extra fields an old client sends are ignored."""
+
     provider: str = Field(..., pattern="^(apple_health|google_fit|garmin|fitbit)$")
-    access_token: str
-    refresh_token: str | None = None
 
 
 class WearableConnectionResponse(BaseModel):
@@ -26,10 +28,17 @@ class WearableConnectionResponse(BaseModel):
 
 
 class HRDataPointInput(BaseModel):
+    """One reading. Time and bpm, and nothing finer.
+
+    R-R intervals and motion were accepted until 26/09 and stored for
+    nothing: no feature reads them, and each is more health data than a
+    moment needs (LGPD audit, minimisation). An old client still sending them
+    is not refused — pydantic ignores the extra fields — they are simply not
+    kept. The columns stay in `hr_data`, empty, until a migration drops them.
+    """
+
     time: datetime
     bpm: int = Field(..., ge=30, le=250)
-    rr_interval_ms: int | None = Field(None, ge=200, le=2000)
-    motion_level: int | None = Field(None, ge=0, le=10)
     source: str | None = None
 
 
@@ -60,8 +69,6 @@ class HRSessionResponse(BaseModel):
 class HRDataPointResponse(BaseModel):
     time: datetime
     bpm: int
-    rr_interval_ms: int | None
-    motion_level: int | None
     source: str | None
 
     model_config = {"from_attributes": True}

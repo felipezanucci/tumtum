@@ -6,9 +6,10 @@ carries somebody's heart rate:
 - **No e-mail ever leaves here.** The author is a display name and initials,
   which is what a feed needs, and nothing that identifies the person outside
   TumTum.
-- **A refusal is a value, not an absence.** [CrowdResponse.enough] is false
-  with the count that made it false, so the screen can say *"ainda somos
-  poucos aqui"* rather than drawing zeros — an empty state is a claim.
+- **A refusal is a value, not an absence.** [CrowdResponse.enough] is false,
+  so the screen can say *"ainda somos poucos aqui"* rather than drawing
+  zeros — an empty state is a claim. Since 26/09 the count behind a refusal
+  is withheld too (null): how few is a fact about the few.
 """
 
 import uuid
@@ -162,14 +163,19 @@ class SeriesAssign(BaseModel):
 
 class CrowdMomentResponse(BaseModel):
     at: datetime
-    people: int
+    # "10+" | "25+" | "50+" | "100+" | "250+" — never an exact count.
+    people_band: str
     label: str | None
 
 
 class CrowdResponse(BaseModel):
-    """Card 04, or an honest account of why there is no card 04 yet."""
+    """Card 04, or an honest account of why there is no card 04 yet.
 
-    measured_nights: int
+    `measured_nights` is null unless `enough`: below the floor, how few is
+    itself a fact about the few.
+    """
+
+    measured_nights: int | None
     enough: bool
     shared_count: int
     moments: list[CrowdMomentResponse]
@@ -177,21 +183,17 @@ class CrowdResponse(BaseModel):
 
     @classmethod
     def of(cls, crowd: Crowd) -> "CrowdResponse":
+        def moment(m) -> CrowdMomentResponse:
+            return CrowdMomentResponse(
+                at=m.at, people_band=m.people_band, label=m.label
+            )
+
         return cls(
-            measured_nights=crowd.measured_nights,
+            measured_nights=crowd.measured_nights if crowd.enough else None,
             enough=crowd.enough,
             shared_count=crowd.shared_count,
-            moments=[
-                CrowdMomentResponse(at=m.at, people=m.people, label=m.label)
-                for m in crowd.moments
-            ],
-            top=(
-                CrowdMomentResponse(
-                    at=crowd.top.at, people=crowd.top.people, label=crowd.top.label
-                )
-                if crowd.top
-                else None
-            ),
+            moments=[moment(m) for m in crowd.moments],
+            top=moment(crowd.top) if crowd.top else None,
         )
 
 
