@@ -79,7 +79,7 @@ object Reminders {
             scheduleReveal(
                 context, night.id, Instant.ofEpochMilli(night.revealAt ?: return@forEach),
                 context.getString(cc.tumtum.app.R.string.remind_reveal_title),
-                context.getString(cc.tumtum.app.R.string.remind_reveal_text, night.eventName),
+                context.getString(cc.tumtum.app.R.string.remind_reveal_text),
             )
         }
     }

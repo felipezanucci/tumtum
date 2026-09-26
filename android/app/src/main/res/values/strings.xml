@@ -530,7 +530,7 @@
     <string name="remind_event_title">Hoje: %1$s</string>
     <string name="remind_event_text">Bota o relógio. A gente só olha depois.</string>
     <string name="remind_reveal_title">Sua noite abriu.</string>
-    <string name="remind_reveal_text">%1$s — a curva está pronta.</string>
+    <string name="remind_reveal_text">Sua curva está pronta. Abre quando quiser.</string>
     <string name="locked_body_notify">A curva abre aqui %1$s. A gente te avisa — vale a espera.</string>
 
     <!-- Trava da revela (protocolo do teste) -->
