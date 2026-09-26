@@ -115,14 +115,14 @@ export const PT: SiteCopy = {
     ctaSecondary: 'Como funciona',
     card: {
       event: 'LOLLAPALOOZA — DIA 2 · 23H47',
-      copy: ['EU TAVA TRANQUILO.', 'AÍ VEIO ISSO.'],
+      copy: ['ÀS 23H47,', 'FOI A 187.'],
       unit: 'bpm — meu maior da noite',
     },
   },
   proof: [
     { value: '176', caption: 'A torcida foi junto.', meta: 'Pênalti · 94:12' },
     { value: '191', caption: 'Quando entrou, meu coração foi junto.', meta: 'Abertura do show · 21:03' },
-    { value: '183', caption: 'Ninguém tava tranquilo.', meta: 'O drop · 23:41' },
+    { value: '183', caption: 'A galera inteira subiu junto.', meta: 'O drop · 23:41' },
   ],
   does: {
     eyebrow: 'O QUE A TUMTUM FAZ',
@@ -161,11 +161,11 @@ export const PT: SiteCopy = {
     disclaimer:
       'Os cards acima são exemplos ilustrativos. Cada formato aparece pra você quando os dados daquela noite permitem.',
     items: [
-      { label: 'SÓ O MOMENTO', copy: ['AQUI ACABOU', 'MEU PSICOLÓGICO.'], value: '187', meta: '22:47 · A Sky Full of Stars' },
+      { label: 'SÓ O MOMENTO', copy: ['ÀS 22H47,', 'MEU CORAÇÃO', 'FOI A 187.'], value: '187', meta: '22:47 · A Sky Full of Stars' },
       { label: 'MINHA NOITE', copy: ['DO INÍCIO AO FIM,', 'TUDO FEZ SENTIDO.'], value: '187', meta: 'O pico marcado no tempo real da noite.' },
       {
         label: 'A GALERA',
-        copy: ['NINGUÉM TAVA', 'TRANQUILO.'],
+        copy: ['A GALERA', 'SUBIU JUNTO.'],
         value: '187',
         you: '187',
         crowd: '172',
@@ -193,8 +193,8 @@ export const PT: SiteCopy = {
     ],
   },
   gallery: {
-    eyebrow: 'A GALERIA DE SENTIMENTOS',
-    title: 'Tudo que você sentiu, desde que chegou.',
+    eyebrow: 'A GALERIA DAS SUAS NOITES',
+    title: 'Toda noite que você viveu, desde que chegou.',
     body: 'Cada noite vira um card, cada card guarda uma pele. Com o tempo, sua galeria conta a história: 14 noites, 312 momentos, um recorde. A forma fica, a pele muda — e a coleção é obviamente sua.',
     stats: [
       { value: '14', label: 'NOITES' },
@@ -263,14 +263,14 @@ export const EN: SiteCopy = {
     ctaSecondary: 'How it works',
     card: {
       event: 'LOLLAPALOOZA — DAY 2 · 11:47PM',
-      copy: ['I WAS FINE.', 'THEN THIS.'],
+      copy: ['AT 11:47PM,', 'IT HIT 187.'],
       unit: 'bpm — my highest of the night',
     },
   },
   proof: [
     { value: '176', caption: 'The whole crowd went with it.', meta: 'Penalty · 94:12' },
     { value: '191', caption: 'When they walked on, my heart went too.', meta: 'Show opener · 21:03' },
-    { value: '183', caption: 'Nobody was calm.', meta: 'The drop · 23:41' },
+    { value: '183', caption: 'The whole crowd rose together.', meta: 'The drop · 23:41' },
   ],
   does: {
     eyebrow: 'WHAT TUMTUM DOES',
@@ -309,11 +309,11 @@ export const EN: SiteCopy = {
     disclaimer:
       'The cards above are illustrative. Each format appears for you when that night’s data allows it.',
     items: [
-      { label: 'JUST THE MOMENT', copy: ['THIS IS WHERE', 'I LOST IT.'], value: '187', meta: '22:47 · A Sky Full of Stars' },
+      { label: 'JUST THE MOMENT', copy: ['AT 10:47PM,', 'MY HEART', 'HIT 187.'], value: '187', meta: '22:47 · A Sky Full of Stars' },
       { label: 'MY NIGHT', copy: ['START TO FINISH,', 'IT ALL MADE SENSE.'], value: '187', meta: 'The peak marked on the night’s real timeline.' },
       {
         label: 'THE CROWD',
-        copy: ['NOBODY WAS', 'CALM.'],
+        copy: ['THE CROWD', 'ROSE TOGETHER.'],
         value: '187',
         you: '187',
         crowd: '172',
@@ -341,8 +341,8 @@ export const EN: SiteCopy = {
     ],
   },
   gallery: {
-    eyebrow: 'THE GALLERY OF FEELINGS',
-    title: 'Everything you’ve felt, since you joined.',
+    eyebrow: 'THE GALLERY OF YOUR NIGHTS',
+    title: 'Every night you have lived, since you joined.',
     body: 'Every night becomes a card, and every card keeps its skin. Over time your gallery tells the story: 14 nights, 312 moments, one record. The shape stays, the skin changes — and the collection is unmistakably yours.',
     stats: [
       { value: '14', label: 'NIGHTS' },
