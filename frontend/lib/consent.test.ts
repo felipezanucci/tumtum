@@ -119,6 +119,19 @@ describe('where a refusal sends the person', () => {
     expect(safeNext('/consentimento?focus=terms')).toBeNull()
     expect(safeNext('/cards')).toBe('/cards')
   })
+
+  it('refuses the tab, newline and percent-encoded tricks browsers turn into //', () => {
+    expect(safeNext('/\t/evil.com')).toBeNull()
+    expect(safeNext('/%09/evil.com')).toBeNull()
+    expect(safeNext('/\n/evil.com')).toBeNull()
+    expect(safeNext('/%5Cevil.com')).toBeNull()
+    expect(safeNext('/%2F/evil.com')).toBeNull()
+    expect(safeNext('/%E0%A4%A')).toBeNull()
+  })
+
+  it('keeps an on-site path with its query and hash', () => {
+    expect(safeNext('/events/abc?tab=feed#post-1')).toBe('/events/abc?tab=feed#post-1')
+  })
 })
 
 describe('signupReady', () => {

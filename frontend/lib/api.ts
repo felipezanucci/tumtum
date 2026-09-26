@@ -984,12 +984,14 @@ export interface UserProfile {
   birth_date: string | null
 }
 
+/**
+ * `GET /api/users/{id}`. Since 26/09 it carries no count of nights or events:
+ * how often someone goes out is not for strangers to read.
+ */
 export interface PublicProfile {
   name: string
   avatar_url: string | null
   created_at: string
-  total_sessions: number
-  total_events: number
   total_cards: number
 }
 

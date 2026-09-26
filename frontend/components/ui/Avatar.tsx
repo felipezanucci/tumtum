@@ -1,4 +1,8 @@
-import Image from 'next/image'
+'use client'
+
+import { useState } from 'react'
+
+import { safeHttpsUrl } from '@/lib/sharing'
 
 type AvatarSize = 'sm' | 'md' | 'lg'
 
@@ -30,14 +34,26 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
+/**
+ * A person's photo, or their initials. The photo is a plain `<img>` and only
+ * from an `https:` address: next/image no longer proxies arbitrary remote
+ * hosts (security review, 26/09), and anything else — or a photo that fails
+ * to load — falls back to the initials rather than a broken image.
+ */
 export default function Avatar({ src, name, size = 'md', className = '' }: AvatarProps) {
-  if (src) {
+  const [failed, setFailed] = useState(false)
+  const safeSrc = safeHttpsUrl(src)
+
+  if (safeSrc && !failed) {
     return (
-      <Image
-        src={src}
+      // eslint-disable-next-line @next/next/no-img-element -- a remote avatar, deliberately not proxied through next/image
+      <img
+        src={safeSrc}
         alt={name}
         width={sizePx[size]}
         height={sizePx[size]}
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
         className={`rounded-full object-cover ${sizeStyles[size]} ${className}`}
       />
     )
