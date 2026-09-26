@@ -80,7 +80,19 @@ export interface SiteCopy {
     errorInvalid: string
     errorServer: string
   }
-  footer: { privacy: string; privacyLink: string; privacyHref: string; termsLink: string; termsHref: string; line: string; signIn: string }
+  footer: {
+    privacy: string
+    privacyLink: string
+    privacyHref: string
+    termsLink: string
+    termsHref: string
+    deleteLink: string
+    deleteHref: string
+    /** The sentence the product never stops saying about itself (26/09). */
+    medical: string
+    line: string
+    signIn: string
+  }
   meta: { title: string; description: string }
 }
 
@@ -219,6 +231,9 @@ export const PT: SiteCopy = {
     privacyHref: '/privacidade',
     termsLink: 'Termos de uso',
     termsHref: '/termos',
+    deleteLink: 'Apagar conta',
+    deleteHref: '/apagar-conta',
+    medical: 'A TumTum não é um dispositivo médico e não interpreta saúde.',
     line: 'TumTum · São Paulo · 2026',
     signIn: 'Entrar na sua conta',
   },
@@ -364,6 +379,9 @@ export const EN: SiteCopy = {
     privacyHref: '/en/privacy',
     termsLink: 'Terms of use',
     termsHref: '/en/terms',
+    deleteLink: 'Delete account',
+    deleteHref: '/en/delete-account',
+    medical: 'TumTum is not a medical device and does not interpret health.',
     line: 'TumTum · São Paulo · 2026',
     signIn: 'Sign in to your account',
   },

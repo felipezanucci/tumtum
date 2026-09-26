@@ -7,12 +7,19 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Button, Input, PasswordInput } from '@/components/ui'
 import { codeDigits, isCompleteCode, secondsUntil } from '@/lib/signup-code'
+import { isAdult, latestAdultBirthDate, signupReady, UNDER_AGE_MESSAGE } from '@/lib/consent'
 
 /**
  * Criar conta, in two steps since 24/09 (#64). Test 7 made an account with
  * `teste@teste.com`; Felipe's rule is that only a real address makes one. The
  * first step mails a 6-digit code and creates nothing, the second takes the
  * code back — and only then does the account exist.
+ *
+ * Since 26/09 (LGPD remediation) the first step also carries the birth date
+ * (the server refuses under 18) and two separate yeses, both unticked: the
+ * Terms and Privacy Policy, without which there is no account, and reading
+ * the heart rate at the events the person activates. The server records each
+ * one with the text version it was given under.
  */
 export default function SignupPage() {
   const router = useRouter()
@@ -21,6 +28,11 @@ export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [readHeartRate, setReadHeartRate] = useState(false)
+  // A hint for the picker only; the server decides.
+  const [maxBirthDate] = useState(() => latestAdultBirthDate())
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -47,7 +59,14 @@ export default function SignupPage() {
     setError('')
     setNotice('')
     try {
-      const started = await startSignup(email, name, password)
+      const started = await startSignup({
+        email,
+        name,
+        password,
+        birth_date: birthDate,
+        terms_accepted: termsAccepted,
+        read_heart_rate: readHeartRate,
+      })
       setSentTo(started.email)
       setMinutes(Math.ceil(started.expires_in_seconds / 60))
       setCode('')
@@ -66,6 +85,15 @@ export default function SignupPage() {
       // This check is the only thing standing between a slip and an address
       // that can never sign in again.
       setError('As senhas não são iguais. Confere as duas antes de continuar.')
+      return
+    }
+    if (!termsAccepted) {
+      setError('Pra criar a conta, marque que você aceita os Termos e a Política de Privacidade.')
+      return
+    }
+    if (isAdult(birthDate) === false) {
+      // The server says the same sentence; saying it here saves a round trip.
+      setError(UNDER_AGE_MESSAGE)
       return
     }
     await sendCode(false)
@@ -185,6 +213,56 @@ export default function SignupPage() {
               error={mismatch ? 'As senhas não são iguais.' : undefined}
             />
 
+            <Input
+              label="Data de nascimento"
+              id="birth-date"
+              type="date"
+              value={birthDate}
+              max={maxBirthDate}
+              min="1900-01-01"
+              onChange={(e) => setBirthDate(e.target.value)}
+              required
+            />
+            <p className="-mt-2 text-xs text-tumtum-muted">
+              A TumTum é só para quem tem 18 anos ou mais.
+            </p>
+
+            <label className="flex items-start gap-3 text-sm text-tumtum-white">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-tumtum-pink"
+                required
+              />
+              <span>
+                Li e aceito os{' '}
+                <Link href="/termos" target="_blank" className="text-tumtum-pink underline underline-offset-2">
+                  Termos de Uso
+                </Link>{' '}
+                e a{' '}
+                <Link href="/privacidade" target="_blank" className="text-tumtum-pink underline underline-offset-2">
+                  Política de Privacidade
+                </Link>
+                .
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 text-sm text-tumtum-white">
+              <input
+                type="checkbox"
+                checked={readHeartRate}
+                onChange={(e) => setReadHeartRate(e.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-tumtum-pink"
+              />
+              <span>
+                Autorizo a TumTum a ler meus batimentos na janela dos eventos que eu ativar.
+                <span className="mt-1 block text-xs text-tumtum-muted">
+                  Batimento é dado de saúde. Dá pra decidir isso depois e mudar quando quiser.
+                </span>
+              </span>
+            </label>
+
             <p className="text-sm text-tumtum-muted">
               A gente manda um código de 6 números pro seu e-mail. A conta só é criada quando
               você digitar ele aqui.
@@ -192,7 +270,12 @@ export default function SignupPage() {
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <Button type="submit" loading={loading} disabled={mismatch} className="w-full">
+            <Button
+              type="submit"
+              loading={loading}
+              disabled={mismatch || !signupReady({ birthDate, termsAccepted })}
+              className="w-full"
+            >
               Mandar o código
             </Button>
           </form>

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ApiError, auth, millisUntilTokenExpiry } from '@/lib/api'
+import { ApiError, ConsentRequiredError, auth, millisUntilTokenExpiry } from '@/lib/api'
+import { consentHref } from '@/lib/consent'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useEventStore } from '@/lib/stores/useEventStore'
 import { useHRStore } from '@/lib/stores/useHRStore'
@@ -269,6 +270,19 @@ export default function LivePage() {
       clearSnapshot()
       router.push(`/experience?session=${session.id}`)
     } catch (err) {
+      // Keeping the night on the server needs its own yes (26/09). The
+      // capture stays in this browser's snapshot; the consent screen brings
+      // the person back here to save it.
+      if (err instanceof ConsentRequiredError) {
+        saveSnapshot({
+          startedAt: samples[0].time,
+          deviceName: deviceName ?? null,
+          eventId: eventId || null,
+          samples,
+        })
+        router.push(consentHref(err.purpose, '/live'))
+        return
+      }
       setError(err instanceof Error ? err.message : 'Falha ao salvar a sessão.')
       setSaving(false)
       setConfirmingFinish(false)
@@ -599,12 +613,6 @@ export default function LivePage() {
                     }
                   />
                 </dl>
-
-                {lastReading && lastReading.rrIntervalsMs.length > 0 && (
-                  <p className="mt-3 text-center text-xs text-tumtum-muted">
-                    Intervalos R-R disponíveis ({lastReading.rrIntervalsMs.join(', ')} ms)
-                  </p>
-                )}
 
                 {browserWarning && (
                   <p className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">

@@ -1,7 +1,7 @@
 {
   "name": "TumTum",
   "short_name": "TumTum",
-  "description": "Sinta o evento. Compartilhe a emoção.",
+  "description": "Sua batida na noite. Do jeito que foi.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

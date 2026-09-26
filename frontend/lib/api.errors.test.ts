@@ -50,6 +50,15 @@ describe('401 handling', () => {
 
   it('leaves other failures alone', async () => {
     respondWith(409, { detail: 'Email já cadastrado' })
-    await expect(auth.signupStart('a@b.c', 'A', 'segredo')).rejects.toThrow('Email já cadastrado')
+    await expect(
+      auth.signupStart({
+        email: 'a@b.c',
+        name: 'A',
+        password: 'segredo',
+        birth_date: '1990-01-01',
+        terms_accepted: true,
+        read_heart_rate: false,
+      }),
+    ).rejects.toThrow('Email já cadastrado')
   })
 })

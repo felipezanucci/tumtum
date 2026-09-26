@@ -169,7 +169,7 @@ function ExperienceContent() {
             {/* Peaks */}
             <div className="lg:col-span-2">
               <h2 className="mb-4 text-lg font-semibold text-tumtum-white">
-                Seus Picos de Emoção
+                Seus momentos
               </h2>
               {peaks.length === 0 ? (
                 <p className="text-tumtum-muted">{noPeaksMessage(session)}</p>

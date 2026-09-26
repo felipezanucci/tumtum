@@ -1,0 +1,6 @@
+export { default as ConsentToggles } from './ConsentToggles'
+export { default as ConsentSettings } from './ConsentSettings'
+export { default as EmailChange } from './EmailChange'
+export { default as DataDownload } from './DataDownload'
+export { default as PrivacyRequests } from './PrivacyRequests'
+export { default as DeleteAccount } from './DeleteAccount'

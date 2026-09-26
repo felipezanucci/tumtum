@@ -1,42 +1,57 @@
 import { describe, it, expect } from 'vitest'
 import { parseHRFile } from './import-parsers'
 
-const POLAR_CSV = `Name,Sport,Date,Start time,Duration,Total distance (km),Average heart rate (bpm),Average speed (km/h),Max heart rate (bpm)
-Felipe Zanucci,Other indoor,29-08-2026,22:00:00,05:58:12,0,112,0,187
+/**
+ * A synthetic Polar Flow export (26/09, LGPD audit C8). It keeps the shape of
+ * the real format — summary block, blank line, sample block with elapsed
+ * times — with a fictitious name and readings generated below. No one's
+ * night lives in this file.
+ */
+const OFFSETS_S = [0, 1, 2, 5400] // seconds from the session start
+const syntheticBpm = (offsetS: number) => 80 + Math.round(offsetS / 60) + (offsetS % 3)
+const BPMS = OFFSETS_S.map(syntheticBpm)
 
-Sample rate,Time,HR (bpm),Speed (km/h),Pace (min/km),Cadence,Altitude (m),Stride length (m),Distances (m),Temperatures (C),Power (W)
-1,00:00:00,85,,,,,,,,
-1,00:00:01,86,,,,,,,,
-1,00:00:02,88,,,,,,,,
-1,01:30:00,187,,,,,,,,
-`
+function elapsed(offsetS: number): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${pad(Math.floor(offsetS / 3600))}:${pad(Math.floor((offsetS % 3600) / 60))}:${pad(offsetS % 60)}`
+}
+
+const POLAR_CSV = [
+  'Name,Sport,Date,Start time,Duration,Total distance (km),Average heart rate (bpm),Average speed (km/h),Max heart rate (bpm)',
+  `Teste Sintético,Other indoor,14-03-2026,21:15:00,01:30:00,0,${Math.round(BPMS.reduce((a, b) => a + b, 0) / BPMS.length)},0,${Math.max(...BPMS)}`,
+  '',
+  'Sample rate,Time,HR (bpm),Speed (km/h),Pace (min/km),Cadence,Altitude (m),Stride length (m),Distances (m),Temperatures (C),Power (W)',
+  ...OFFSETS_S.map((offset, i) => `1,${elapsed(offset)},${BPMS[i]},,,,,,,,`),
+  '',
+].join('\n')
 
 describe('Polar Flow CSV', () => {
   it('is read, anchored to the session start in the preamble', () => {
     const r = parseHRFile('polar.csv', POLAR_CSV)
-    expect(r.samples).toHaveLength(4)
-    expect(r.samples.map((s) => s.bpm)).toEqual([85, 86, 88, 187])
+    expect(r.samples).toHaveLength(OFFSETS_S.length)
+    expect(r.samples.map((s) => s.bpm)).toEqual(BPMS)
+    expect(BPMS).toEqual([80, 81, 82, 170])
 
-    // 29 August 2026, 22:00 local, plus each row's elapsed offset.
+    // 14 March 2026, 21:15 local, plus each row's elapsed offset.
     const first = new Date(r.samples[0].time)
     expect(first.getFullYear()).toBe(2026)
-    expect(first.getMonth()).toBe(7) // August
-    expect(first.getDate()).toBe(29)
-    expect(first.getHours()).toBe(22)
-    expect(first.getMinutes()).toBe(0)
+    expect(first.getMonth()).toBe(2) // March
+    expect(first.getDate()).toBe(14)
+    expect(first.getHours()).toBe(21)
+    expect(first.getMinutes()).toBe(15)
 
     const last = new Date(r.samples[3].time)
-    expect(last.getDate()).toBe(29)
-    expect(last.getHours()).toBe(23) // 22:00 + 1h30
-    expect(last.getMinutes()).toBe(30)
+    expect(last.getDate()).toBe(14)
+    expect(last.getHours()).toBe(22) // 21:15 + 1h30
+    expect(last.getMinutes()).toBe(45)
 
     expect(r.warnings.join(' ')).toContain('contados a partir do início')
   })
 
   it('warns when the date could be read either way round', () => {
-    const ambiguous = POLAR_CSV.replace('29-08-2026', '05-08-2026')
+    const ambiguous = POLAR_CSV.replace('14-03-2026', '05-03-2026')
     const r = parseHRFile('polar.csv', ambiguous)
-    expect(r.samples.length).toBe(4)
+    expect(r.samples.length).toBe(OFFSETS_S.length)
     expect(r.warnings.join(' ')).toContain('dia/mês ou mês/dia')
   })
 
