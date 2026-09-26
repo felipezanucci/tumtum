@@ -47,6 +47,9 @@ The other durable documents:
 | `docs/incident-response.md` | What to do when personal data leaks: roles, containment, the 3-business-day notice to ANPD and the people, the ready-made text |
 | `docs/dpo.md` · `docs/dpa-checklist.md` | The encarregado (who answers the people, in 15 days) and the operator contracts still to sign |
 | `docs/play-console-answers.md` | Every Play Console answer in one versioned table, including the health-category answer that needs legal review |
+| `docs/security-baseline.md` | **Felipe's security clicks, 27/09**: 2FA, members, tokens and secrets per system (GitHub, Railway, Vercel, Resend, Sentry, Play Console, DNS, oi@tumtum.cc) with the evidence to keep, how each secret is rotated — including why a new `SECRET_KEY` logs nobody out and the step that does — and the quarterly access review |
+| `docs/confidentiality-and-training.md` | **Before anyone else gets access, 27/09**: the confidentiality and data-protection term (pending legal review), the 45-minute training in eight topics with its attendance record, and joiner/mover/leaver with the access list per system |
+| `docs/age-assurance-options.md` | **Age verification after the ECA Digital, 27/09**: the law forbids self-declaration since 17/03/2026, the three families of method, nine providers with their public prices, a cost preview per scenario, and the two-layer recommendation (CPF at the Receita, then Serpro Datavalid or Didit) |
 | `docs/app-psychology-principles.md` | **What makes an app feel great, 19/09**: the sourced catalogue of behavioural principles, the benchmark of thirty apps with their published numbers, TumTum's loop audited screen by screen against both, and the ranked list of what to borrow, what to refuse, and what the pilot can measure |
 
 One working rule the log records, learned four times: push everything first,
