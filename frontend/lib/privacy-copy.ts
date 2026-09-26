@@ -9,7 +9,7 @@
  * What it must stay true to: the Play Console data-safety form, the Health
  * Connect rationale screen in the Android app (strings.xml, `rationale_*`),
  * the waitlist line "a gente só usa seu e-mail pra te avisar dos próximos
- * eventos", the consent screen (`consent-copy.ts`, text version 2026-09-26)
+ * eventos", the consent screen (`consent-copy.ts`, text version 2026-09-26.1)
  * and the LGPD remediation contract of 26/09 — its retention windows, its
  * crowd thresholds and its list of operators are quoted here as promises.
  *
@@ -37,7 +37,7 @@ export const PRIVACY_PT: PrivacyCopy = {
   intro:
     'Seus batimentos são seus. Esta página diz, sem rodeio, o que a TumTum guarda, pra quê, por quanto tempo, com quem, e como você decide sobre tudo isso.',
   disclaimer: 'A TumTum não é um dispositivo médico e não interpreta saúde.',
-  updated: 'Atualizada em 26 de setembro de 2026. Texto de consentimento: versão 2026-09-26.',
+  updated: 'Atualizada em 26 de setembro de 2026. Texto de consentimento: versão 2026-09-26.1.',
   sections: [
     {
       heading: 'Quem cuida dos seus dados',
@@ -93,8 +93,8 @@ export const PRIVACY_PT: PrivacyCopy = {
     {
       heading: 'Como mudar ou retirar um consentimento',
       paragraphs: [
-        'No site, em Perfil → Privacidade ou em tumtum.cc/consentimento. No app, em Configurações → Privacidade. Vale dali pra frente.',
-        'Retirar um sim não apaga sozinho o que já foi guardado com ele. Pra apagar, use "Apagar esta noite" em cada noite, ou apague a conta.',
+        'No site, em Perfil → Privacidade ou em tumtum.cc/consentimento. No app, em Configurações → Privacidade.',
+        'Desligar "Guardar minhas noites": nenhuma noite nova sobe pra TumTum, e as que já subiram são apagadas do servidor em até 24 horas; elas continuam só no seu celular. Pra apagar uma noite só, use "Apagar esta noite"; pra apagar tudo, apague a conta.',
         'No Android, dá também pra retirar a permissão do Health Connect nas configurações dele. A TumTum para de ler na hora.',
         'Retirar o aceite dos Termos é o mesmo que encerrar a conta.',
       ],
@@ -118,8 +118,8 @@ export const PRIVACY_PT: PrivacyCopy = {
     {
       heading: 'O que a TumTum não faz',
       items: [
-        'Não vende seus dados. Nunca.',
-        'Nenhum dado pessoal vai para clube, artista, produtora, festival ou anunciante. Só estatística anonimizada pode sair.',
+        'Não vende seus dados pessoais.',
+        'Seu dado cardíaco individual não é compartilhado com parceiros comerciais, clubes, artistas ou anunciantes. Fornecedores contratados (Railway, Vercel, Resend, Sentry) processam dados estritamente em nosso nome, sob instruções e obrigações de proteção de dados, para operar e proteger o serviço.',
         'Não mostra anúncios.',
         'Não lê nada do seu relógio fora da janela do evento que você ativou.',
         'Não publica nada sem você apertar o botão.',
@@ -145,7 +145,7 @@ export const PRIVACY_PT: PrivacyCopy = {
     {
       heading: 'Quem mais trata seus dados',
       paragraphs: [
-        'A TumTum usa estes serviços (operadores), que tratam dados em nome dela e só para isso:',
+        'A TumTum usa estes serviços (operadores), contratados para tratar dados estritamente em nome dela, sob as instruções dela e com obrigações de proteção de dados, para operar e proteger o serviço:',
       ],
       items: [
         'Railway: servidores e banco de dados. Região: a confirmar.',
@@ -164,16 +164,17 @@ export const PRIVACY_PT: PrivacyCopy = {
     {
       heading: 'Por quanto tempo',
       items: [
-        'Leituras de batimento (a série bruta da noite): apagadas 30 dias depois que os momentos da noite são encontrados.',
+        'Leituras de batimento (a série bruta da noite): apagadas 7 dias depois que os momentos da noite são encontrados.',
         'Momentos, resumo da noite e cards: enquanto sua conta existir e "Guardar minhas noites" estiver ligado.',
         'Imagem do card guardada pra carregar rápido: até 7 dias. Um card despublicado ou apagado deixa de ser mostrado na hora.',
         'Registros de acesso: 180 dias.',
         'Cadastro não confirmado: 24 horas.',
         'Lista de espera: até você pedir pra sair.',
         'Consentimentos e pedidos ao encarregado: enquanto a conta existir, pra provar o que você escolheu e o que pediu.',
+        'Cópias de segurança do banco: existem só pra recuperar o serviço num desastre e saem sozinhas quando expiram (prazo a confirmar). Não são usadas pra trazer de volta o que você apagou.',
       ],
       paragraphs: [
-        'Cada tipo de dado tem seu prazo. Apagou a conta, apagou tudo: fica só o registro de que uma conta foi apagada, com a data e nada que identifique você.',
+        'Cada tipo de dado tem seu prazo. Apagou a conta, tudo sai do app e do servidor na hora, e das cópias de segurança quando elas expiram: fica só o registro de que uma conta foi apagada, com a data e nada que identifique você.',
       ],
     },
     {
@@ -224,7 +225,7 @@ export const PRIVACY_EN: PrivacyCopy = {
   intro:
     'Your heartbeat is yours. This page says plainly what TumTum keeps, what for, for how long, with whom, and how you decide about all of it.',
   disclaimer: 'TumTum is not a medical device and does not interpret health.',
-  updated: 'Updated 26 September 2026. Consent text: version 2026-09-26.',
+  updated: 'Updated 26 September 2026. Consent text: version 2026-09-26.1.',
   sections: [
     {
       heading: 'Who looks after your data',
@@ -280,8 +281,8 @@ export const PRIVACY_EN: PrivacyCopy = {
     {
       heading: 'How to change or withdraw a consent',
       paragraphs: [
-        'On the site, under Profile → Privacidade or at tumtum.cc/consentimento. In the app, under Configurações → Privacidade. It applies from then on.',
-        'Withdrawing a yes does not by itself delete what was already kept under it. To delete, use "Apagar esta noite" on each night, or delete the account.',
+        'On the site, under Profile → Privacidade or at tumtum.cc/consentimento. In the app, under Configurações → Privacidade.',
+        'Turning off "Keep my nights": no new night is uploaded to TumTum, and the ones already uploaded are deleted from the server within 24 hours; they stay only on your phone. To delete a single night, use "Apagar esta noite"; to delete everything, delete the account.',
         'On Android, you can also withdraw the Health Connect permission in its settings. TumTum stops reading at once.',
         'Withdrawing acceptance of the Terms is the same as closing the account.',
       ],
@@ -305,8 +306,8 @@ export const PRIVACY_EN: PrivacyCopy = {
     {
       heading: 'What TumTum does not do',
       items: [
-        'Does not sell your data. Ever.',
-        'No personal data goes to any club, artist, promoter, festival or advertiser. Only anonymised statistics may leave.',
+        'Does not sell your personal data.',
+        'Your individual heart-rate data is not shared with commercial partners, clubs, artists or advertisers. Contracted providers (Railway, Vercel, Resend, Sentry) process data strictly on our behalf, under instructions and data-protection obligations, to operate and protect the service.',
         'Does not show ads.',
         'Does not read anything from your watch outside the window of the event you activated.',
         'Does not publish anything unless you press the button.',
@@ -332,7 +333,7 @@ export const PRIVACY_EN: PrivacyCopy = {
     {
       heading: 'Who else processes your data',
       paragraphs: [
-        'TumTum uses these services (processors), which handle data on its behalf and only for this:',
+        'TumTum uses these services (processors), contracted to handle data strictly on its behalf, under its instructions and with data-protection obligations, to operate and protect the service:',
       ],
       items: [
         'Railway: servers and database. Region: to be confirmed.',
@@ -351,16 +352,17 @@ export const PRIVACY_EN: PrivacyCopy = {
     {
       heading: 'For how long',
       items: [
-        'Heart-rate readings (the night’s raw series): deleted 30 days after the night’s moments are found.',
+        'Heart-rate readings (the night’s raw series): deleted 7 days after the night’s moments are found.',
         'Moments, the night’s summary and cards: while your account exists and "Keep my nights" is on.',
         'Card image kept to load quickly: up to 7 days. An unpublished or deleted card stops being shown at once.',
         'Access logs: 180 days.',
         'Unconfirmed sign-up: 24 hours.',
         'Waitlist: until you ask to leave.',
         'Consents and requests to the data protection officer: while the account exists, to prove what you chose and what you asked.',
+        'Database backups: they exist only to recover the service after a disaster and go by themselves when they expire (period to be confirmed). They are not used to bring back what you deleted.',
       ],
       paragraphs: [
-        'Each kind of data has its own window. Delete the account and all of it goes: only a record that an account was deleted remains, with the date and nothing that identifies you.',
+        'Each kind of data has its own window. Delete the account and all of it leaves the app and the server at once, and the backups when they expire: only a record that an account was deleted remains, with the date and nothing that identifies you.',
       ],
     },
     {

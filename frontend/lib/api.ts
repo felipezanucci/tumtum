@@ -4,6 +4,16 @@ import type { RequestKind, RequestStatus } from './privacy-requests'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 /**
+ * Where a path is asked. `/api/auth/*` goes to the site's own origin, which
+ * proxies it to the API (the rewrite in next.config.js), so the refresh
+ * cookie is first-party and Safari keeps it; everything else goes straight
+ * to the API with the bearer token.
+ */
+function urlFor(path: string): string {
+  return isAuthPath(path) ? path : `${API_BASE}${path}`
+}
+
+/**
  * Who is asking, on every request (26/09 contract). The server writes it next
  * to each consent, so a "yes" can be traced to the screen that asked for it.
  */
@@ -44,31 +54,106 @@ function isGenericAuthFailure(detail: unknown): boolean {
   return text === '' || text === 'not authenticated' || text === 'erro desconhecido'
 }
 
-// --- The session (#34, 22/09) ---
+// --- The session (#34, 22/09; cookie since 26/09) ---
 //
 // The access token lasts an hour; the refresh token renews it and lasts 90
 // days from its last use. Every renewal rotates the refresh token, and the
-// server treats a spent one presented again as a stolen copy — so two tabs
-// renewing at once would sign each other out. Renewal therefore runs under a
-// browser-wide lock, and a tab that waited finds the other tab's fresh token
-// instead of spending the old one again.
+// server treats a spent one presented again as a stolen copy.
+//
+// The refresh token never reaches this code any more (legal opinion v1.1,
+// §18: no persistent sensitive token in localStorage). The API keeps it in an
+// httpOnly cookie, path /api/auth, that no script can read — set on the
+// site's own origin, since auth calls are proxied through it (urlFor); the site only
+// ever holds the hour-long access token — in memory, with a sessionStorage
+// copy so a reload in the same tab does not need a round-trip. A new tab, or
+// an hour gone, asks /api/auth/refresh with an empty body and the cookie
+// answers for it. Renewal runs under a browser-wide lock because the cookie
+// is shared by every tab: two tabs rotating it at once would sign each other
+// out.
 
-const ACCESS_KEY = 'access_token'
-const REFRESH_KEY = 'refresh_token'
+const ACCESS_KEY = 'tumtum_access'
+/** Where sessions before 26/09 kept their tokens. Read once, then deleted. */
+const LEGACY_ACCESS_KEY = 'access_token'
+const LEGACY_REFRESH_KEY = 'refresh_token'
 
-function stored(key: string): string | null {
-  return typeof window !== 'undefined' ? localStorage.getItem(key) : null
+let accessToken: string | null = null
+/** The cookie has answered on this page load, one way or the other. */
+let sessionChecked = false
+const listeners = new Set<(token: string | null) => void>()
+
+function tabStorage(): Storage | null {
+  try {
+    return typeof window !== 'undefined' ? window.sessionStorage : null
+  } catch {
+    return null // storage blocked: memory alone still works
+  }
 }
 
-/** Keep what the server just issued. Every sign-in path goes through here. */
+function localStore(): Storage | null {
+  try {
+    return typeof window !== 'undefined' ? window.localStorage : null
+  } catch {
+    return null
+  }
+}
+
+function setAccessToken(token: string | null) {
+  const changed = token !== accessToken
+  accessToken = token
+  const tab = tabStorage()
+  try {
+    if (token) tab?.setItem(ACCESS_KEY, token)
+    else tab?.removeItem(ACCESS_KEY)
+  } catch {
+    // A full or blocked sessionStorage only costs a round-trip on reload.
+  }
+  if (changed) listeners.forEach((listener) => listener(token))
+}
+
+/** The access token this tab holds, or null. Never the refresh token. */
+export function currentAccessToken(): string | null {
+  if (accessToken) return accessToken
+  try {
+    accessToken = tabStorage()?.getItem(ACCESS_KEY) ?? null
+  } catch {
+    accessToken = null
+  }
+  return accessToken
+}
+
+/** Tell `listener` whenever the access token changes; returns the unsubscribe. */
+export function onAccessTokenChange(listener: (token: string | null) => void): () => void {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+/**
+ * Keep what the server just issued. Every sign-in path goes through here.
+ * Only the access token: the refresh token, if a body ever carried one, is
+ * dropped on purpose — the API keeps the site's in its cookie.
+ */
 export function storeTokens(tokens: { access_token: string; refresh_token?: string | null }) {
-  localStorage.setItem(ACCESS_KEY, tokens.access_token)
-  if (tokens.refresh_token) localStorage.setItem(REFRESH_KEY, tokens.refresh_token)
+  setAccessToken(tokens.access_token)
+  // A fresh sign-in makes any pre-26/09 token in localStorage moot.
+  forgetLegacyTokens()
+}
+
+function forgetLegacyTokens() {
+  const local = localStore()
+  try {
+    local?.removeItem(LEGACY_ACCESS_KEY)
+    local?.removeItem(LEGACY_REFRESH_KEY)
+  } catch {
+    // Nothing to do: storage that cannot be written holds nothing of ours.
+  }
 }
 
 export function clearTokens() {
-  localStorage.removeItem(ACCESS_KEY)
-  localStorage.removeItem(REFRESH_KEY)
+  setAccessToken(null)
+  forgetLegacyTokens()
+  // Signed out is an answer: no request may quietly restore the session
+  // from a cookie the logout call is still on its way to clear.
+  sessionChecked = true
 }
 
 async function withRenewLock<T>(work: () => Promise<T>): Promise<T> {
@@ -76,33 +161,112 @@ async function withRenewLock<T>(work: () => Promise<T>): Promise<T> {
   return locks ? locks.request('tumtum-renew', work) : work()
 }
 
+/** What /refresh answered: a new access token, a refusal, or no answer. */
+type RefreshOutcome = 'renewed' | 'refused' | 'unreachable'
+
 /**
- * Trade the refresh token for a new pair. True when there is now a fresh
- * access token — renewed here or, while this tab waited, by another one.
+ * Ask /api/auth/refresh for a new access token. The cookie is the credential;
+ * `legacyRefresh` is sent in the body only once, to move a session from
+ * before 26/09 into the cookie.
+ */
+async function callRefresh(legacyRefresh?: string): Promise<RefreshOutcome> {
+  try {
+    const response = await fetch(urlFor('/api/auth/refresh'), {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...CLIENT_HEADER },
+      body: JSON.stringify(legacyRefresh ? { refresh_token: legacyRefresh } : {}),
+    })
+    if (response.ok) {
+      storeTokens(await response.json())
+      return 'renewed'
+    }
+    // Refused for good (none, expired, revoked, reused): signed out, so the
+    // page says "sessão expirou" — which is now true.
+    if (response.status === 401) {
+      setAccessToken(null)
+      return 'refused'
+    }
+    return 'unreachable'
+  } catch {
+    return 'unreachable'
+  }
+}
+
+/**
+ * Trade the cookie for a new access token. True when there is now a fresh
+ * one — renewed here or, while this call waited for the lock, by another
+ * request of this tab.
  */
 async function renew(spent: string | null): Promise<boolean> {
   return withRenewLock(async () => {
-    const refresh = stored(REFRESH_KEY)
-    if (!refresh) return false
-    if (spent !== null && refresh !== spent) return true // another tab renewed
-    try {
-      const response = await fetch(`${API_BASE}/api/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...CLIENT_HEADER },
-        body: JSON.stringify({ refresh_token: refresh }),
-      })
-      if (!response.ok) {
-        // Refused for good (expired, revoked, reused): forget it, so the page
-        // says "sessão expirou" — which is now true.
-        if (response.status === 401) clearTokens()
-        return false
-      }
-      storeTokens(await response.json())
-      return true
-    } catch {
-      return false
-    }
+    const held = currentAccessToken()
+    if (held && held !== spent) return true // renewed while we waited
+    return (await callRefresh()) === 'renewed'
   })
+}
+
+let restoring: Promise<boolean> | null = null
+
+/**
+ * Find out, once per page load, whether this browser has a session.
+ *
+ * A tab that already holds an access token has one. Otherwise the cookie is
+ * asked (an empty body to /refresh); a 401 there means signed out, and is
+ * remembered so a stranger's page does not ask again before every request.
+ * A session from before 26/09 still has its refresh token in localStorage:
+ * it is sent once in the body — the server answers with the cookie — and
+ * both legacy keys are deleted as soon as the server has answered.
+ */
+export function restoreSession(): Promise<boolean> {
+  if (currentAccessToken()) return Promise.resolve(true)
+  if (sessionChecked || typeof window === 'undefined') return Promise.resolve(false)
+  if (!restoring) {
+    restoring = withRenewLock(async (): Promise<RefreshOutcome> => {
+      if (currentAccessToken()) return 'renewed'
+      let legacy: string | null = null
+      try {
+        legacy = localStore()?.getItem(LEGACY_REFRESH_KEY) ?? null
+      } catch {
+        legacy = null
+      }
+      if (legacy) {
+        const moved = await callRefresh(legacy)
+        // Kept only when the server never answered: the next load tries again.
+        if (moved !== 'unreachable') forgetLegacyTokens()
+        if (moved === 'renewed') return moved
+      }
+      return callRefresh()
+    })
+      .then((outcome) => {
+        // Unreachable is not an answer: the next request may ask again.
+        if (outcome !== 'unreachable') sessionChecked = true
+        return outcome === 'renewed'
+      })
+      .finally(() => {
+        restoring = null
+      })
+  }
+  return restoring
+}
+
+/** Auth calls carry the cookie both ways; nothing else needs it. */
+function isAuthPath(path: string): boolean {
+  return path.startsWith('/api/auth/')
+}
+
+/** The calls that make or end a session, and so never wait for one. */
+const SESSION_PATHS = [
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/refresh',
+  '/api/auth/logout',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+]
+
+function makesSession(path: string): boolean {
+  return SESSION_PATHS.some((prefix) => path.startsWith(prefix))
 }
 
 /**
@@ -114,13 +278,17 @@ async function send(
   options: RequestInit = {},
   retried = false,
 ): Promise<Response> {
-  const token = stored(ACCESS_KEY)
-  const refreshHeld = stored(REFRESH_KEY)
+  // A new tab holds no access token yet: ask the cookie before the first
+  // request, so a signed-in person is not answered as a stranger. The calls
+  // that sign in or out never wait on it.
+  if (!makesSession(path) && !currentAccessToken()) await restoreSession()
+  const token = currentAccessToken()
 
   let response: Response
   try {
-    response = await fetch(`${API_BASE}${path}`, {
+    response = await fetch(urlFor(path), {
       ...options,
+      ...(isAuthPath(path) ? { credentials: 'include' as RequestCredentials } : {}),
       headers: {
         'Content-Type': 'application/json',
         ...CLIENT_HEADER,
@@ -139,7 +307,7 @@ async function send(
   // An hour-old access token is routine now, not an ending: renew once and
   // ask again. Only a request that carried a token is retried — a 401 on
   // /login is a wrong password, not an expired session.
-  if (response.status === 401 && token && !retried && (await renew(refreshHeld))) {
+  if (response.status === 401 && token && !retried && (await renew(token))) {
     return send(path, options, true)
   }
 
@@ -319,13 +487,13 @@ export const auth = {
 
   /** "Sair" means out: the server revokes this browser's refresh chain. */
   logout: async () => {
-    const refresh = stored(REFRESH_KEY)
     clearTokens()
-    if (!refresh) return
-    await fetch(`${API_BASE}/api/auth/logout`, {
+    // The cookie is the proof; the server revokes its family and clears it.
+    await fetch(urlFor('/api/auth/logout'), {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', ...CLIENT_HEADER },
-      body: JSON.stringify({ refresh_token: refresh }),
+      body: JSON.stringify({}),
     }).catch(() => undefined)
   },
 

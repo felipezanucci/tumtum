@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ApiError, ConsentRequiredError, auth, millisUntilTokenExpiry } from '@/lib/api'
+import {
+  ApiError,
+  ConsentRequiredError,
+  auth,
+  currentAccessToken,
+  millisUntilTokenExpiry,
+} from '@/lib/api'
 import { consentHref } from '@/lib/consent'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useEventStore } from '@/lib/stores/useEventStore'
@@ -378,11 +384,19 @@ export default function LivePage() {
   // hours, so one saved a few days before an event still looks like an account
   // here, and the capture would only discover otherwise when it was saved.
   const authToken = useAuthStore((s) => s.token)
+  const sessionChecked = useAuthStore((s) => s.sessionChecked)
+  const restoreSession = useAuthStore((s) => s.restore)
   const [signedIn, setSignedIn] = useState<boolean | null>(null)
   const [tokenExpiringSoon, setTokenExpiringSoon] = useState(false)
   useEffect(() => {
-    const stored = authToken ?? window.localStorage.getItem('access_token')
+    const stored = authToken ?? currentAccessToken()
     if (!stored) {
+      // A new tab holds no access token until the refresh cookie is asked
+      // (26/09): until then the answer is "not known yet", not "signed out".
+      if (!sessionChecked) {
+        void restoreSession()
+        return
+      }
       setSignedIn(false)
       return
     }
@@ -403,7 +417,7 @@ export default function LivePage() {
     return () => {
       cancelled = true
     }
-  }, [authToken])
+  }, [authToken, sessionChecked, restoreSession])
 
   const capturing = state === 'connected' || state === 'reconnecting'
   const elapsed = startedAt ? (now - Date.parse(startedAt)) / 1000 : 0

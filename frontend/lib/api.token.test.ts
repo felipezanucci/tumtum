@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 import { millisUntilTokenExpiry } from './api'
 
 /** Build a JWT-shaped string with the given payload. Signature is irrelevant here. */
@@ -47,5 +47,172 @@ describe('millisUntilTokenExpiry', () => {
     expect(millisUntilTokenExpiry('not-a-token', NOW)).toBeNull()
     expect(millisUntilTokenExpiry('', NOW)).toBeNull()
     expect(millisUntilTokenExpiry('a.!!!not-base64!!!.c', NOW)).toBeNull()
+  })
+})
+
+// --- The session without localStorage (legal opinion v1.1, §18, 26/09) ---
+
+type Stored = Record<string, string>
+
+function fakeStorage(store: Stored) {
+  return {
+    getItem: (k: string) => store[k] ?? null,
+    setItem: (k: string, v: string) => {
+      store[k] = v
+    },
+    removeItem: (k: string) => {
+      delete store[k]
+    },
+  }
+}
+
+interface Call {
+  url: string
+  init: RequestInit
+}
+
+describe('the web session', () => {
+  let local: Stored
+  let tab: Stored
+  let calls: Call[]
+  let answers: Array<() => Response>
+
+  function answer(status: number, body: unknown = {}) {
+    answers.push(() => new Response(status === 204 ? null : JSON.stringify(body), { status }))
+  }
+
+  async function freshApi() {
+    vi.resetModules()
+    return import('./api')
+  }
+
+  function bodyOf(call: Call): Record<string, unknown> {
+    return JSON.parse(String(call.init.body ?? '{}'))
+  }
+
+  beforeEach(() => {
+    local = {}
+    tab = {}
+    calls = []
+    answers = []
+    vi.stubGlobal('window', { localStorage: fakeStorage(local), sessionStorage: fakeStorage(tab) })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: RequestInit = {}) => {
+        calls.push({ url, init })
+        const next = answers.shift()
+        if (!next) throw new Error(`unexpected fetch to ${url}`)
+        return next()
+      }),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('keeps the access token in the tab and never writes a refresh token', async () => {
+    const api = await freshApi()
+    api.storeTokens({ access_token: 'access-1', refresh_token: 'refresh-must-not-stay' })
+    expect(api.currentAccessToken()).toBe('access-1')
+    expect(Object.values(tab)).toEqual(['access-1'])
+    expect(local).toEqual({})
+    expect(JSON.stringify(tab)).not.toContain('refresh-must-not-stay')
+  })
+
+  it('restores a new tab from the cookie with an empty body', async () => {
+    const api = await freshApi()
+    answer(200, { access_token: 'from-cookie', token_type: 'bearer', refresh_token: null })
+    await expect(api.restoreSession()).resolves.toBe(true)
+    expect(api.currentAccessToken()).toBe('from-cookie')
+    expect(calls).toHaveLength(1)
+    // Through the site's own origin (the rewrite), so the cookie is first-party.
+    expect(calls[0].url).toBe('/api/auth/refresh')
+    expect(calls[0].init.credentials).toBe('include')
+    expect((calls[0].init.headers as Record<string, string>)['X-Tumtum-Client']).toBe('web/site')
+    expect(bodyOf(calls[0])).toEqual({})
+    expect(local).toEqual({})
+  })
+
+  it('treats a 401 from the cookie as signed out, and does not ask again', async () => {
+    const api = await freshApi()
+    answer(401, { detail: 'Sua sessão terminou. Entre de novo.' })
+    await expect(api.restoreSession()).resolves.toBe(false)
+    await expect(api.restoreSession()).resolves.toBe(false)
+    expect(calls).toHaveLength(1)
+    expect(api.currentAccessToken()).toBeNull()
+  })
+
+  it('moves a legacy localStorage session into the cookie once, then forgets it', async () => {
+    local.access_token = 'old-access'
+    local.refresh_token = 'old-refresh-token-0123456789'
+    const api = await freshApi()
+    answer(200, { access_token: 'migrated', token_type: 'bearer', refresh_token: null })
+    await expect(api.restoreSession()).resolves.toBe(true)
+    expect(calls).toHaveLength(1)
+    expect(bodyOf(calls[0])).toEqual({ refresh_token: 'old-refresh-token-0123456789' })
+    expect(calls[0].init.credentials).toBe('include')
+    expect(local).toEqual({})
+    expect(api.currentAccessToken()).toBe('migrated')
+  })
+
+  it('keeps a legacy token only when the server never answered', async () => {
+    local.refresh_token = 'old-refresh-token-0123456789'
+    const api = await freshApi()
+    answers.push(() => {
+      throw new TypeError('offline')
+    })
+    answers.push(() => {
+      throw new TypeError('offline')
+    })
+    await expect(api.restoreSession()).resolves.toBe(false)
+    expect(local.refresh_token).toBe('old-refresh-token-0123456789')
+  })
+
+  it('sends the cookie on auth calls and signs out through it', async () => {
+    const api = await freshApi()
+    answer(200, { access_token: 'signed-in', token_type: 'bearer', refresh_token: null })
+    const tokens = await api.auth.login('ana@x.cc', 'segredo123')
+    expect(calls[0].init.credentials).toBe('include')
+    api.storeTokens(tokens)
+
+    answer(204)
+    await api.auth.logout()
+    expect(api.currentAccessToken()).toBeNull()
+    expect(tab).toEqual({})
+    expect(calls[0].url).toBe('/api/auth/login')
+    const out = calls[1]
+    expect(out.url).toBe('/api/auth/logout')
+    expect(out.init.credentials).toBe('include')
+    expect(bodyOf(out)).toEqual({})
+  })
+
+  it('renews an expired access token through the cookie and retries', async () => {
+    const api = await freshApi()
+    api.storeTokens({ access_token: 'stale' })
+    answer(401, { detail: 'Token inválido ou expirado' })
+    answer(200, { access_token: 'fresh', token_type: 'bearer', refresh_token: null })
+    answer(200, { id: 'u1' })
+    await api.auth.me()
+    expect(calls.map((c) => c.url.replace(/^.*\/api/, '/api'))).toEqual([
+      '/api/auth/me',
+      '/api/auth/refresh',
+      '/api/auth/me',
+    ])
+    expect(bodyOf(calls[1])).toEqual({})
+    const retried = calls[2].init.headers as Record<string, string>
+    expect(retried.Authorization).toBe('Bearer fresh')
+    expect(local).toEqual({})
+  })
+
+  it('sends everything else straight to the API with the bearer token', async () => {
+    const api = await freshApi()
+    api.storeTokens({ access_token: 'bearer-1' })
+    answer(200, [])
+    await api.events.list()
+    expect(calls[0].url).toMatch(/^https?:\/\/[^/]+\/api\/events/)
+    expect(calls[0].init.credentials).toBeUndefined()
+    const headers = calls[0].init.headers as Record<string, string>
+    expect(headers.Authorization).toBe('Bearer bearer-1')
   })
 })

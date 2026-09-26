@@ -57,7 +57,7 @@ export const DELETE_ACCOUNT_PT: DeleteAccountCopy = {
     },
     {
       heading: 'O que é apagado',
-      paragraphs: ['Tudo que é seu sai dos nossos servidores na hora, sem cópia guardada:'],
+      paragraphs: ['Tudo que é seu sai dos nossos servidores na hora:'],
       items: [
         'Sua conta: e-mail, nome e data de nascimento.',
         'Seus batimentos: todas as leituras que você capturou ou importou.',
@@ -75,7 +75,7 @@ export const DELETE_ACCOUNT_PT: DeleteAccountCopy = {
         'Os eventos em si — o show, o jogo, a data, a linha do tempo — continuam existindo, porque são de todo mundo que estava lá, não seus. Depois que sua conta some, nada neles aponta para você.',
         'Cards que você já postou no Instagram, no WhatsApp ou em qualquer outro lugar ficam onde você postou. Esses são seus para apagar lá.',
         'Fica só um registro de que uma conta foi apagada, com a data e nada que identifique você.',
-        'Não guardamos nada seu por um período extra depois da exclusão. Não há cópia em espera nem conta suspensa esperando você mudar de ideia. Apagou, acabou.',
+        'Não existe conta suspensa esperando você mudar de ideia: apagou, acabou. As cópias de segurança do banco, que só servem pra recuperar o serviço num desastre, saem sozinhas quando expiram (prazo a confirmar), e não são usadas pra trazer de volta o que você apagou.',
       ],
     },
   ],
@@ -126,7 +126,7 @@ export const DELETE_ACCOUNT_EN: DeleteAccountCopy = {
     },
     {
       heading: 'What gets deleted',
-      paragraphs: ['Everything that is yours leaves our servers immediately, with no copy kept:'],
+      paragraphs: ['Everything that is yours leaves our servers immediately:'],
       items: [
         'Your account: email, name and date of birth.',
         'Your heartbeats: every reading you captured or imported.',
@@ -144,7 +144,7 @@ export const DELETE_ACCOUNT_EN: DeleteAccountCopy = {
         'The events themselves — the show, the match, the date, the timeline — keep existing, because they belong to everyone who was there, not to you. Once your account is gone, nothing in them points to you.',
         'Cards you already posted on Instagram, WhatsApp or anywhere else stay where you posted them. Those are yours to delete there.',
         'Only a record that an account was deleted remains, with the date and nothing that identifies you.',
-        'We keep nothing of yours for an extra period after deletion. There is no copy on hold and no suspended account waiting for you to change your mind. Deleted is deleted.',
+        'There is no suspended account waiting for you to change your mind: deleted is deleted. The database backups, which exist only to recover the service after a disaster, go by themselves when they expire (period to be confirmed), and are not used to bring back what you deleted.',
       ],
     },
   ],

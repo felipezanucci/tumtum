@@ -62,6 +62,7 @@ function ConsentScreen() {
   const next = safeNext(params.get('next'))
 
   const token = useAuthStore((s) => s.token)
+  const sessionChecked = useAuthStore((s) => s.sessionChecked)
   const loadUser = useAuthStore((s) => s.loadUser)
   const user = useCurrentUser()
   const { userId, entries, status, error: loadError, load, save } = useConsentStore()
@@ -87,7 +88,12 @@ function ConsentScreen() {
         <Nav />
         <main className="min-h-screen bg-tumtum-black">
           <div className="mx-auto max-w-2xl px-4 py-8">
-            <SignInRequired what="suas escolhas de privacidade" />
+            {/* A new tab asks the refresh cookie first: not signed out yet. */}
+            {sessionChecked ? (
+              <SignInRequired what="suas escolhas de privacidade" />
+            ) : (
+              <Loading size="lg" className="py-20" />
+            )}
           </div>
         </main>
       </>
