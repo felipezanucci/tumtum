@@ -40,6 +40,13 @@ The other durable documents:
 | `docs/pilot-event-options.md` | **The events that can carry the pilot** after 25/09 was lost: the São Paulo calendar shortlisted against this project's own constraints, and football evaluated honestly against a concert |
 | `docs/design-brief.md` | **Self-contained brand + product handoff for design tools and outside collaborators.** Paste it whole before asking for design work |
 | `docs/naming-moments-plan.md` | **Como um momento ganha nome sem ninguém tocar, 22/09**: o detector já acha sozinho, a marca só nomeia; futebol resolvido com o intervalo e duas âncoras, show sem solução pelo setlist (que não tem horário), e os três caminhos com seus custos |
+| `RELATORIO-AUDITORIA-LGPD.md` | **The LGPD audit, 26/09** (repository root): 76 items against the legal opinion on heart-rate data, six critical findings, and the order of correction the 26/09 remediation followed |
+| `docs/ropa.md` · `docs/ripd.md` | The record of processing operations (each purpose, its data, legal basis, retention, operators) and the impact report (draft) |
+| `docs/data-retention-policy.md` · `docs/backups.md` | How long each category of data lives, and what is still to be checked about the database backups on Railway |
+| `docs/pilot-consent-template.md` · `docs/pilot-data-retention.md` | The pilot's written consent term (seven purposes, one box each) and the plan that wipes the pilot's data 30 days after the event |
+| `docs/incident-response.md` | What to do when personal data leaks: roles, containment, the 3-business-day notice to ANPD and the people, the ready-made text |
+| `docs/dpo.md` · `docs/dpa-checklist.md` | The encarregado (who answers the people, in 15 days) and the operator contracts still to sign |
+| `docs/play-console-answers.md` | Every Play Console answer in one versioned table, including the health-category answer that needs legal review |
 | `docs/app-psychology-principles.md` | **What makes an app feel great, 19/09**: the sourced catalogue of behavioural principles, the benchmark of thirty apps with their published numbers, TumTum's loop audited screen by screen against both, and the ranked list of what to borrow, what to refuse, and what the pilot can measure |
 
 One working rule the log records, learned four times: push everything first,
@@ -111,19 +118,20 @@ Custom hardware (Tumtum smart band) comes in Phase 1, only after Phase 0 validat
 ### Backend
 - **Framework**: FastAPI (Python 3.11+)
 - **ORM**: SQLAlchemy (async) with Alembic migrations
-- **Auth**: JWT tokens + OAuth 2.0 (Google and Apple sign-in)
-- **Task queue**: Celery with Redis broker (for card generation)
+- **Auth**: JWT tokens (access 1 h, refresh 90 days, rotated) with e-mail and password, the e-mail proved by a 6-digit code. **Google and Apple sign-in (OAuth) are not implemented** — `auth_provider` exists in the schema and nothing sets it to anything but e-mail
+- **Background work**: none dispatched. Celery is in `requirements.txt` and `tasks/card_tasks.py` exists, but no worker runs and nothing is ever queued; cards are generated inside the request. The only loops are in-process `asyncio` tasks started in the lifespan: the live match watch and, since 26/09, the daily maintenance loop (`services/maintenance.py`: raw-reading retention, log purge, expired codes and tokens)
 
 ### Database
 - **Primary**: PostgreSQL 16 with TimescaleDB extension
-- **Cache**: Redis
-- **Object storage**: Cloudflare R2 (S3-compatible)
+- **Cache**: Redis (on Railway). Card images live here as `card:image:{id}` and `card:image:{id}:og`, **7 days**, and are deleted with the card
+- **Object storage**: none. Cloudflare R2 was planned and never used; no card, photo or video is stored in object storage. The person's own photos and videos never leave the phone
 
 ### Infrastructure
 - **Frontend hosting**: Vercel
 - **Backend hosting**: Railway
 - **CDN**: Cloudflare
-- **Monitoring**: Sentry (errors) + PostHog (analytics)
+- **Monitoring**: Sentry (errors only, when `SENTRY_DSN` is set; since 26/09 with `send_default_pii=False`, no request bodies, no local variables). **No analytics SDK anywhere** — PostHog was never installed and its dead wrapper was deleted on 26/09
+- **E-mail**: Resend, from `mail.tumtum.cc` (sign-up codes, password reset, e-mail change)
 - **CI/CD**: GitHub Actions
 
 ## Project structure
@@ -211,10 +219,11 @@ tumtum-app/
 
 ```sql
 -- Users
-users: id (uuid PK), email, name, avatar_url, auth_provider, auth_provider_id, created_at, updated_at
+users: id (uuid PK), email, name, avatar_url, auth_provider, auth_provider_id, birth_date (date, 26/09 — 18+ checked by the server), created_at, updated_at
 
 -- Wearable connections
-wearable_connections: id (uuid PK), user_id (FK), provider (apple_health|google_fit|garmin|fitbit), access_token, refresh_token, last_sync_at, status (active|expired|revoked)
+-- 26/09: the access_token/refresh_token columns were dropped; nothing ever held a real one
+wearable_connections: id (uuid PK), user_id (FK), provider (apple_health|google_fit|garmin|fitbit), last_sync_at, status (active|expired|revoked)
 
 -- Events
 events: id (uuid PK), name, subtitle, venue, city, country, date, start_time, end_time, event_type (concert|sports|festival), external_id, cover_image_url, created_at
@@ -223,16 +232,21 @@ events: id (uuid PK), name, subtitle, venue, city, country, date, start_time, en
 event_timeline: id (uuid PK), event_id (FK), timestamp, label, entry_type (song_start|goal|halftime|encore|highlight), metadata (jsonb)
 
 -- HR sessions (one per user per event)
-hr_sessions: id (uuid PK), user_id (FK), event_id (FK), start_time, end_time, avg_bpm, max_bpm, min_bpm, data_quality_score (0-100), source_device, created_at
+-- analyzed_at (26/09): when the peaks were found; the raw hr_data of the session is
+-- deleted RAW_READINGS_RETENTION_DAYS (default 30) after it
+hr_sessions: id (uuid PK), user_id (FK), event_id (FK), start_time, end_time, avg_bpm, max_bpm, min_bpm, data_quality_score (0-100), source_device, analyzed_at, created_at
 
 -- HR data points (TimescaleDB hypertable — partitioned by time)
+-- rr_interval_ms and motion_level: no longer accepted nor returned since 26/09 (always null)
 hr_data: time (timestamptz), session_id (FK), bpm (smallint), rr_interval_ms (smallint), motion_level (smallint), source
 
 -- Detected peaks
 peaks: id (uuid PK), session_id (FK), timestamp, bpm, duration_seconds, magnitude (float), timeline_entry_id (FK nullable), rank (smallint)
 
 -- Generated share cards
-cards: id (uuid PK), user_id (FK), session_id (FK), peak_id (FK), card_type (solo|comparison), image_url, video_url, metadata (jsonb), created_at
+-- published_at (26/09): set by the share, cleared by unpublish; /public and /image are 404
+-- without it. metadata no longer stores the person's name (resolved at read time)
+cards: id (uuid PK), user_id (FK), session_id (FK), peak_id (FK), card_type (solo|comparison), image_url, video_url, metadata (jsonb), published_at, created_at
 
 -- Share tracking
 shares: id (uuid PK), card_id (FK), platform (instagram|tiktok|x|whatsapp|link|native), shared_at
@@ -259,10 +273,25 @@ refresh_tokens: id, user_id (FK), family_id, parent_id, token_hash, expires_at, 
 -- code is stored only as a keyed hash; unconfirmed rows are deleted after a day.
 signup_codes: id, email, email_key, name, hashed_password, code_hash, attempts, expires_at, used_at, created_at
 
--- Public waitlist (landing page). Email and nothing else: the page promises
--- "a gente só usa seu e-mail pra te avisar dos próximos eventos", and a column
--- we do not have is a promise we cannot accidentally break.
-waitlist_entries: id (uuid PK), email (unique), source, created_at
+-- Public waitlist (landing page). E-mail plus an optional first and last name
+-- (migration 005); the privacy policy says so since 26/09. Kept until the person
+-- asks to leave the list, and deleted with the account of the same e-mail.
+waitlist_entries: id (uuid PK), email (unique), first_name, last_name, source, created_at
+
+-- Privacy (26/09, LGPD). Consent is per purpose, append-only: granting inserts a
+-- row, revoking sets revoked_at on the active one. Purposes: terms, read_heart_rate,
+-- keep_night, crowd_stats, artist_compare, improve_detection, marketing.
+consents: id, user_id (FK), purpose, text_version, granted_at, revoked_at, means (tap|checkbox|button|form), client, created_at
+-- E-mail change: a 6-digit code to the NEW address, stored as a hash; 24 h after expiry the row goes
+email_changes: id, user_id (FK), new_email, code_hash, attempts, expires_at, used_at, created_at
+-- Data-subject requests (access, portability, correction, deletion, revocation, other); due in 15 days
+data_subject_requests: id, user_id (FK), kind, message, status (open|answered|closed), opened_at, due_at, answered_at, answer
+-- Who read whose health data. No bpm in it
+data_access_log: id, at, actor_user_id, subject_user_id, resource, resource_id, action, ip
+-- Every /api/* request (Marco Civil). Purged after 180 days
+access_log: id, at, method, path, status, ip, user_id
+-- One row per deleted account, with no identifier: the proof that deletions happen
+deletion_log: id, deleted_at
 ```
 
 ## Brand identity
@@ -491,7 +520,7 @@ designed against them. The values live in `detect_peaks()` in
 | API | Purpose | Auth | Rate limit |
 |-----|---------|------|------------|
 | Apple HealthKit | Read HR data from iPhone/Apple Watch | OAuth (on-device) | N/A |
-| Google Health Connect | Read HR data from Android/Wear OS | OAuth 2.0 REST | Standard Google quotas |
+| Google Health Connect | Read HR data from Android/Wear OS | **On-device SDK** (`androidx.health.connect`), a runtime permission on the phone — there is no REST API and nothing is read server-side | N/A |
 | Setlist.fm | Concert setlists with song order | API key (free) | 2 req/sec |
 | API-Football | Match events (goals, cards) | API key (freemium) | 100 req/day (free) |
 | Spotify Web API | Song metadata, album art | OAuth 2.0 | Standard Spotify quotas |
@@ -563,3 +592,21 @@ designed against them. The values live in `detect_peaks()` in
   never becomes a number on screen, a point on the curve or a beat on the
   server — the night keeps a gap there. **Read a sensor's export before
   writing a rule about what it sends.**
+- **Consentimento é por finalidade, registrado e revogável; nada sobe sem
+  "guardar a noite"; 18+ verificado pela data de nascimento; nenhum dado
+  pessoal sai para terceiros.** (26/09, after the LGPD audit) Heart rate is
+  sensitive personal data (LGPD art. 11), and consent is the only legal basis
+  it has here. So there are seven purposes, each its own switch, each a row in
+  `consents` with the text version it was given under (`CONSENT_TEXT_VERSION`):
+  `terms` and `read_heart_rate` (the two the core loop needs, each with its own
+  tap) and `keep_night`, `crowd_stats`, `artist_compare`, `improve_detection`,
+  `marketing` (**always off until the person turns them on**). A night reaches
+  the server only when the person taps *Guardar minha noite na TumTum* with
+  `keep_night` granted — never automatically, never on a retry of something
+  they did not ask for. A night counts in *A galera* only with `crowd_stats`.
+  Sign-up asks the birth date through the platform picker and the server
+  refuses anyone under 18. Nothing personal goes to a club, an artist, an
+  advertiser or any third party that is not an operator under contract
+  (`docs/ropa.md`). Revoking is as easy as granting (Configurações →
+  Privacidade), and the screens where this happens are the quiet, careful
+  ones.

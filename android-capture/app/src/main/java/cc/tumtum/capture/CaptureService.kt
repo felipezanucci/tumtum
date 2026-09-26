@@ -157,12 +157,18 @@ class CaptureService : Service() {
             PendingIntent.FLAG_IMMUTABLE,
         )
 
+        // No bpm in the notification (LGPD audit AL-13, 26/09): the shade and
+        // the lock screen are read by whoever holds the phone, and a heart
+        // rate is health data. The count says the capture is alive; `bpm`
+        // only tells "waiting" from "recording". PRIVATE hides even that on
+        // a secure lock screen.
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.capture_notification_title))
             .setContentText(
-                if (bpm != null) "$bpm bpm · ${samples.size} leituras"
+                if (bpm != null) "${samples.size} leituras"
                 else getString(R.string.capture_notification_waiting)
             )
+            .setVisibility(Notification.VISIBILITY_PRIVATE)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
             .setContentIntent(open)
             .setOngoing(true)

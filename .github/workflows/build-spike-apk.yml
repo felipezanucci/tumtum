@@ -1,3 +1,9 @@
+# NEVER DISTRIBUTE THIS APK (LGPD audit B2, 26/09/2026).
+# The J-Style spike app is a vendor-SDK test harness. Its manifest asks for
+# location, camera, BODY_SENSORS and storage, none of which TumTum needs, and
+# it is signed with a debug key. It is for the bench phone that runs the
+# spike, never for a participant, a fan or anyone outside the project. The
+# release it publishes is therefore a prerelease, and the body says so.
 name: Build JStyle spike APK
 
 on:
@@ -40,8 +46,12 @@ jobs:
         with:
           tag_name: spike-apk
           name: "Tumtum spike — JStyle V8 raw PPG (APK)"
+          prerelease: true
           body: >
-            APK de teste para o spike de PPG bruto do JStyle V8.
-            Baixe o arquivo tumtum-spike-v8.apk no celular Android, instale
+            APK de teste para o spike de PPG bruto do JStyle V8, só para o
+            celular de bancada do spike. NUNCA distribua: ele pede localização,
+            câmera, sensores corporais (BODY_SENSORS) e armazenamento, e não é
+            para participante nem para fã.
+            Baixe o arquivo tumtum-spike-v8.apk no celular de bancada, instale
             (permitindo "fontes desconhecidas") e siga o guia do spike.
           files: tumtum-spike-v8.apk

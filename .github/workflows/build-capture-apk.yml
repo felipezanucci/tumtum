@@ -4,6 +4,11 @@ name: Build capture APK (reference)
 # designed app (docs/one-app-plan.md); this keeps it building until it goes.
 # Written without an Android SDK to compile against, so CI is the only place
 # this is ever verified.
+#
+# NOT FOR PARTICIPANTS (LGPD audit, 26/09/2026). This APK has no per-purpose
+# consent, no age check, and is signed with the debug key committed to this
+# public repository. It stays a CI artifact for reading code, never a release;
+# participants get cc.tumtum.app from the Play internal-testing track.
 on:
   workflow_dispatch:
   push:

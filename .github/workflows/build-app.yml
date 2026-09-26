@@ -64,6 +64,13 @@ jobs:
       #
       # Builds off main are marked prerelease so they never become the repo's
       # "Latest release" while still having that link.
+      #
+      # WHO this APK is for (LGPD audit AL-11, 26/09/2026): the founder's own
+      # test phone and nobody else. It is signed with the debug keystore that
+      # is committed to this public repository, so anyone could build an
+      # "update" that installs over it and reads its local database.
+      # Participants get cc.tumtum.app only from the Play internal-testing
+      # track (upload key). The release body says so where the link lands.
       - name: Publish GitHub Release
         continue-on-error: true
         uses: softprops/action-gh-release@v2
@@ -74,6 +81,12 @@ jobs:
           target_commitish: ${{ github.sha }}
           body: |
             APK de teste (assinatura de debug) para instalar no celular — Android 9+ com Health Connect.
+
+            **Só para o celular de teste do próprio Felipe. Nunca para participantes.**
+            A chave de debug que assina este APK está no repositório público, então qualquer
+            pessoa poderia gerar um "update" que instala por cima dele. Participantes do piloto
+            instalam só pela faixa de teste interno do Play (assinada com a chave de upload).
+            Não repasse este link.
 
             **Instalar:** baixe o `tumtum-1.0-b${{ env.TUMTUM_VERSION_CODE }}.apk` abaixo no celular,
             toque no arquivo e permita a instalação quando o Android pedir. Builds novos
@@ -164,4 +177,5 @@ jobs:
             ---
             **Para a Play Store:** `tumtum-b${{ env.TUMTUM_VERSION_CODE }}.aab`, assinado com a chave de upload. É este arquivo que sobe no Play Console.
             `tumtum-b${{ env.TUMTUM_VERSION_CODE }}.apk` (sem "1.0") é o mesmo build assinado para a loja — só instala depois de desinstalar o APK de teste, porque a assinatura é outra.
+            Participantes recebem o app só pelo Play (teste interno), nunca por este link.
           files: android/dist-release/*

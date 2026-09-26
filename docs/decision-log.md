@@ -5,7 +5,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-09-25
+## Where things stand — 2026-09-26
 
 | Track | Status |
 |---|---|
@@ -18,6 +18,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
+| **Privacidade/LGPD** | **26/09 — audited and corrected the same day.** The audit against the legal opinion (`RELATORIO-AUDITORIA-LGPD.md`, at the repository root) scored 76 items and found **six critical**: no per-purpose consent and no record of any, the night uploading with no act of the person, a pilot with no term and no discard plan, no age check of any kind, a `SECRET_KEY` with a known default and no guard, and real data in test fixtures and third-party contacts in docs. **The fix was written as one contract and built in four parallel streams** (backend, app, site, docs): seven purposes in `consents`, *Guardar minha noite* as the only road up, 18+ refused by the server, raw readings deleted after 30 days, access logs, delete one night, export everything, data-subject requests with a 15-day clock, a card public only once shared, the crowd at N ≥ 100. Governance written: `docs/ropa.md`, `docs/ripd.md`, `docs/data-retention-policy.md`, `docs/backups.md`, `docs/incident-response.md`, `docs/dpo.md`, `docs/dpa-checklist.md`, `docs/play-console-answers.md`, and the pilot's term and discard plan. **Still Felipe's (items 71–79):** the CNPJ, the Railway checks **before the merge** (the API no longer starts on a weak `SECRET_KEY`), the DPAs, the Play health category, legal review, and the term's signatures. **No participant records a night before those.** |
 | **Pilot** | **The 25/09 date is probably lost.** Felipe said on 17/09 he most likely cannot run the test at the Tasha & Tracie show. The calendar was searched and shortlisted in `docs/pilot-event-options.md`: a **football match** as the technical test (objective timestamps, a peak synchronised across every chest in the stadium, tickets that actually exist, and a kick-off that ends before midnight) and a **concert with an engaged fan base** as the product test (which card someone actually sends). Still **decoupled from the supplier decision**. The binding constraint is not the calendar: with one chest strap only one person has moments, and card 04 cannot be tested at all. |
 
 ### Open items
@@ -167,7 +168,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
     it gives penetration (30,1%), the class cut and the function ranking, but
     **crosses wearables with nothing demographic** — its gender and age figures
     are about smartphones. The only route to the split is the raw crossing
-    tables, on request from `fernando.paiva@mobiletime.com.br`. Felipe's to
+    tables, on request from `[e-mail — fora do repositório]`. Felipe's to
     ask; it does not block Health Connect. Until then the only figure we have
     is global (Counterpoint, women ~35%), and it should not be guessed at.
 20. **The iOS/Apple Watch path is real but uncosted.** Reading the Health app
@@ -254,7 +255,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
     report and a block (the smaller version: report a night, block a
     profile, both landing somewhere a human reads) or keep the feed private
     to the pilot. Not a pilot blocker; a launch blocker.
-35. **Deleting one night, keeping the account, does not exist.** Found
+35. **Deleting one night, keeping the account, does not exist.** *(26/09: built in the LGPD remediation — `DELETE /api/health/sessions/{id}` and "Apagar esta noite" in the app. Not yet in a hand; the Play form's partial-deletion answer changes with it, `docs/play-console-answers.md`.)* Found
     2026-09-18 while answering the Play data-safety question "can users
     request deletion of some data without deleting the account". There is
     no delete on the reveal screen, no `deleteNight` in the repository and
@@ -785,7 +786,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
     capture, the sealed night and now setup shows a white status bar and a
     white navigation bar around a black screen. Cosmetic; the fix is the
     system bar colour per screen (or edge-to-edge). Low.
-56. **Nobody has ever seen the feed with more than one person in it.** The
+56. **Nobody has ever seen the feed with more than one person in it.** *(26/09: the floor is now 100 measured nights with `crowd_stats` consent and 10 people per moment, from the legal opinion — so **a pilot of three to five people will never see card 04 at all**. Testing it needs either a crowd event with 100 consenting nights or a test-only floor, set by env (`CROWD_MIN_NIGHTS`, `CROWD_MIN_CELL`) on a non-production server, never on the live one.)* The
     privacy floor in `services/crowd` is four measured nights, and a pilot
     with three to five straps sits exactly on it. So the two states most
     likely to appear in Felipe's hand are *"ainda somos poucos aqui"* and an
@@ -793,6 +794,186 @@ the linked documents — this file is the index and the reasoning, not a diary.
     collective moment (card 04) cannot be judged until an event has four
     nights uploaded, which makes **one match with four straps** the cheapest
     experiment that answers whether any of this is worth anything.
+71. **The controller has no name.** `[PENDENTE — Felipe]` Razão social and
+    CNPJ (or the decision to process as a natural person until there is one)
+    go into the privacy policy, the Terms, the pilot term
+    (`docs/pilot-consent-template.md`), `docs/ropa.md`, `docs/ripd.md`,
+    `docs/dpo.md` and the incident template. Every one of them carries the
+    same placeholder today.
+72. **The encarregado's own address and a stand-in.** `[PENDENTE — Felipe]`
+    `privacidade@tumtum.cc` (until then oi@tumtum.cc with the subject
+    "Privacidade", which is what every screen says), and a suplente for the
+    incident plan (`docs/incident-response.md`).
+73. **Railway, checked before the LGPD merge — not after.** `[PENDENTE —
+    Felipe]` From 26/09 the API **refuses to start** on a placeholder or
+    short `SECRET_KEY`, so a weak one in Railway turns the merge into an
+    outage. Check, in the backend's *Variables*: `SECRET_KEY` (set, ≥ 32
+    characters, not an example); `DATABASE_SSL` (`true` unless
+    `DATABASE_URL` points at `*.railway.internal`); `SENTRY_DSN` (set or
+    not — if set, the DPA of item 75 is due); `ENVIRONMENT=production` (hides
+    `/api/demo`). And in Postgres: backups, their retention, encryption,
+    region (`docs/backups.md`).
+74. **The migrations the server does not run by itself.** `[PENDENTE —
+    Felipe]` The deployed app still never runs Alembic (item 16). Since 26/09
+    startup adds the new *columns* itself (`core/schema_catchup.py`:
+    `users.birth_date`, `hr_sessions.analyzed_at`, `cards.published_at`,
+    and the sign-up code's new fields — additive, idempotent), and
+    `create_all` makes the new *tables*. What waits for a person is
+    `backend/alembic/README-migrations.md`: stamp the real schema once, then
+    `alembic upgrade head`, which runs 022 (dropping the unused wearable
+    token columns). Three data decisions ride on it: **nights uploaded
+    before 26/09 have no `keep_night` consent** (ask at the gate, or delete —
+    `[PENDENTE — decisão]`); **their `analyzed_at` is null**, so the 30-day
+    job never touches their raw readings until the back-fill in that README
+    is run; and **every existing card starts unpublished**, so cards already
+    shared stop opening until the second back-fill there is run.
+75. **Operator contracts.** `[PENDENTE — Felipe]` Download the DPAs of
+    Railway, Vercel, Resend and Sentry, record date and region in
+    `docs/dpa-checklist.md`, and settle the international-transfer mechanism
+    for any region outside Brazil. `docs/ropa.md` §2 stays `[PENDENTE]`
+    until then.
+76. **Play Console after 26/09.** `[PENDENTE — Felipe]` The health-apps
+    answer *Atividade e condicionamento físicos* contradicts the manual's
+    NEVER; it stays as is until legal review answers the question written in
+    `docs/play-console-answers.md`. Data safety changes now: partial deletion
+    **yes**, birth date declared, IP in the access log to be checked. The
+    reviewer account must pass the new gate (code, birth date, Terms).
+77. **The pilot term.** `[PENDENTE — Felipe]` Legal review of
+    `docs/pilot-consent-template.md`, the event and its discard date (event
+    + 30 days), the folder outside the repository where signed terms live,
+    and one signature per participant **before** their first night.
+78. **Four decisions the remediation left open** (`docs/ropa.md` §4):
+    does revoking `keep_night` delete the nights already kept (art. 16 says
+    yes); a deleted feed post keeps its bpm under `deleted_at` (purge after
+    30 days?); the maximum age of `data_access_log`; and whether to rewrite
+    git history for the e-mails and fixtures removed on 26/09
+    (`git filter-repo`) or accept them as history and say so.
+79. **`privacy-scan` is red until the code catches up.** The new CI job
+    (26/09) fails on non-allowlisted e-mails in backend tests, an Android
+    test, `backend/app/services/waitlist.py` docstrings,
+    `.design-sync/previews/Input.tsx`, and on `allowBackup="true"` in
+    `android/app/src/main/AndroidManifest.xml`. The code workstreams of the
+    same day are moving them to `@exemplo.com` and `false`; if any remain at
+    merge, fix them there — do not widen the allowlist.
+
+---
+
+## 2026-09-26 — Auditoria LGPD e as correções
+
+A legal opinion on heart-rate data under the LGPD arrived, and the repository
+was audited against it, read-only, item by item: **76 items — 16 met, 31
+partial, 26 not met**, one not verifiable from the code, two not yet
+applicable. The report is `RELATORIO-AUDITORIA-LGPD.md`, at the repository
+root, with `file:line` evidence for every item and no personal data in it.
+
+The base was better than the average MVP: moments are purely relative to the
+person's own night, there is no ad or analytics SDK, no external AI, sharing
+is always a system intent the person starts, session endpoints check the
+owner, and account deletion exists. **What was missing was the whole legal
+layer.** The six critical findings, one line each:
+
+1. **No consent per purpose, and no record of any consent.** The Health
+   Connect dialog was the only act; nothing was written anywhere.
+2. **The night went up by itself.** `EndNightFlow` uploaded at the end of
+   every capture while the app said *"Nada deixa seu aparelho sem você
+   mandar"*.
+3. **No pilot term and no discard plan** for the pilot's data.
+4. **No age check of any kind** — no birth date, no box, no Terms accepted.
+5. **`SECRET_KEY` defaulted to `your-secret-key`** with nothing refusing it;
+   if Railway ever lacked the variable, anyone could sign a token for any
+   account.
+6. **Real data in the public repository**: the founder's Polar export and
+   night 18 in two test fixtures; the founder's addresses, the Play
+   reviewer's login and fan-club admins' contacts in docs.
+
+**The finding under the findings is this log's own bug class.** The app said
+three false things about itself — *nothing leaves without you* (it uploaded),
+*only during events* (setup read 24 hours), *there is no backup*
+(`allowBackup="true"`) — and a privacy policy is exactly where that class
+stops being a UX defect and becomes a legal one. Item 35 had already caught
+it once, on 18/09, in the privacy page.
+
+### What was decided
+
+**One contract, four streams, one day.** The remediation was written first as
+a single contract (field names, constants, endpoints, screen behaviour) and
+then built in parallel by four workstreams — backend, the Android app, the
+site, and documentation — so that nothing had to be reconciled afterwards.
+In one paragraph: consent is per purpose, recorded and revocable, in an
+append-only `consents` table with the text version it was given under
+(`CONSENT_TEXT_VERSION = "2026-09-26"`); seven purposes — `terms` and
+`read_heart_rate`, which the core loop needs and each get their own tap, and
+`keep_night`, `crowd_stats`, `artist_compare`, `improve_detection` and
+`marketing`, **always off by default**. A night reaches the server only
+through *Guardar minha noite na TumTum* with `keep_night` granted, and the
+server answers 403 `consent_required` otherwise. Sign-up asks the birth date
+through the platform picker and the server refuses anyone under 18. Raw
+readings (`hr_data`) are deleted 30 days after the night is analysed; peaks
+and cards stay while the account and `keep_night` do. Every `/api/*` request
+goes to `access_log` (180 days, Marco Civil), every read of someone's health
+data to `data_access_log` (no bpm in it). A person can delete one night,
+download everything (JSON and CSV), change their e-mail with a code, open a
+request with a 15-day clock, and delete the account with their password,
+which now also clears Redis, sign-up codes, the waitlist row and every
+privacy row, leaving one `deletion_log` line with no identifier. A card is
+public only once shared (`published_at`), with `noindex`. *A galera* counts
+only consenting nights, needs 100 of them and 10 people per moment, and
+publishes bands, never counts. Sentry sends no PII, no bodies, no locals.
+On the phone: SQLCipher, encrypted tokens, `allowBackup="false"`, the raw
+capture tables dropped once the night is kept, video remuxed without GPS,
+setup reads 60 minutes instead of 24 hours. The API refuses to start on a
+placeholder `SECRET_KEY`. Nothing personal goes to a club, an artist or an
+advertiser — now also a standing product rule in `CLAUDE.md`.
+
+The documentation stream wrote the governance the opinion asks for, in
+Portuguese, dated 26/09: `docs/ropa.md` (record of processing: each purpose,
+its data, legal basis, retention, operators), `docs/ripd.md` (impact report,
+draft), `docs/data-retention-policy.md`, `docs/backups.md`,
+`docs/incident-response.md` (3 business days to ANPD and the people, the
+texts ready), `docs/dpo.md` (Felipe as encarregado, oi@tumtum.cc with the
+subject "Privacidade", 15 days), `docs/dpa-checklist.md`,
+`docs/play-console-answers.md` (every answer in one table, and the health
+category flagged for legal review), `docs/pilot-consent-template.md` and
+`docs/pilot-data-retention.md` (a purge by `event_id`, 30 days after the
+event). It also scrubbed the addresses and contacts from the docs, took the
+live bpm off the retired capture app's notification, told every debug and
+spike release who it is for (the founder's test phone, never a
+participant), and added a `privacy-scan` job to CI that fails on
+non-allowlisted e-mails, committed secrets and `allowBackup="true"`.
+`CLAUDE.md` stopped describing things that do not exist — OAuth, Celery,
+R2, PostHog, a Health Connect "REST API", a waitlist of e-mail only.
+
+### What it cost
+
+The audit took one session and the remediation a second, run as four
+workstreams at once. The contract is what made that possible; without it,
+four streams inventing field names would have cost a third session to
+reconcile. What it did **not** buy: the git history still holds the removed
+fixtures and addresses (item 78); the identity and the series still share one
+database with no pseudonymisation (`docs/ripd.md`, RR1); and a pilot of five
+people will now never see card 04, because the crowd floor went from 4
+nights to 100 (item 56).
+
+### What is still Felipe's
+
+Nothing below can be done from the code, and **no participant records a night
+before the first five are done**:
+
+- `[PENDENTE]` **Controlador:** razão social and CNPJ (item 71).
+- `[PENDENTE]` **Encarregado:** `privacidade@tumtum.cc` and a suplente
+  (item 72).
+- `[PENDENTE]` **Railway, before the merge:** `SECRET_KEY`, `DATABASE_SSL`,
+  `SENTRY_DSN`, `ENVIRONMENT`, backups and their retention, region (item 73);
+  and, after it, the one-time Alembic stamp and the two back-fills in
+  `backend/alembic/README-migrations.md` (item 74).
+- `[PENDENTE]` **DPAs** of Railway, Vercel, Resend and Sentry, with region
+  (item 75).
+- `[PENDENTE]` **Play Console:** the health category under legal review, the
+  data-safety changes, the reviewer account through the new gate (item 76).
+- `[PENDENTE]` **Pilot term:** legal review, event and discard date,
+  signatures (item 77).
+- `[PENDENTE]` Four open decisions (item 78) and the red `privacy-scan`
+  until the code catches up (item 79).
 
 ---
 
@@ -1016,7 +1197,7 @@ there:**
    over an empty list; the site's welcome left-aligned, with the strap
    named before the watch.
 
-A measurement came out of the round as well. **felipezanucci@gmail.com is
+A measurement came out of the round as well. **Felipe's personal account, [e-mail — fora do repositório], is
 an operator on the server**, because its Configurações show both operator
 switches. So "só pra conta de operador" can only be seen from a +teste
 account.
@@ -1104,8 +1285,8 @@ notes, eighteen of them, were kept in the session; this is what they came to.
    and left their reveal alarms set. At 10h01 the phone announced curves it
    had deleted, and tapping one opened a **blank white screen**
    (`RevealScreen` returned early on a null night). Felipe asked whether
-   Gmail's `+teste` addresses caused it. They do not: `name+teste@gmail.com`
-   and `name@gmail.com` are two accounts to the server and to the app. Gmail
+   Gmail's `+teste` addresses caused it. They do not: `[e-mail+teste — fora do repositório]`
+   and `[e-mail — fora do repositório]` are two accounts to the server and to the app. Gmail
    only delivers both to one inbox.
 3. **A night was recorded signed out.** The phone had been signed out
    overnight, and the capture started anyway. The night sat PENDING with no
@@ -1793,8 +1974,8 @@ watching with the current status, done — and which whistles it caught.
 Built with the two above (b173), each from a finding in Felipe's hands:
 
 - **#58 — posting threw the server's answer away again.** The Madonna post
-  failed because he was signed in as `felipe@tumtum.cc` and the night had been
-  uploaded by `felipezanucci@gmail.com`; the server said *"Essa noite não é
+  failed because he was signed in as his work account (`[e-mail — fora do repositório]`) and the night had been
+  uploaded by his personal one (`[e-mail — fora do repositório]`); the server said *"Essa noite não é
   sua"* and the app said *"Não deu pra mostrar agora"*. `post()` now returns
   the server's words, and each night records the account that uploaded it
   (Room v8, `ownerUserId`): the feed offers only the signed-in account's
@@ -5456,7 +5637,7 @@ their heart all along. The onboarding copy should tell them.
 **The demographic cut is not in this report.** The gender and age splits in its
 analysis (the 48,7%/35,2% on smartphone importance, the 16–29 cuts) are about
 smartphones; wearables are crossed only with social class. The report itself
-offers the raw crossing tables on request — `fernando.paiva@mobiletime.com.br`.
+offers the raw crossing tables on request — `[e-mail — fora do repositório]`.
 Open item 19 is updated rather than closed: what is known is now known, what is
 missing is now known to be missing from this source specifically.
 
@@ -5943,7 +6124,7 @@ argument for asking for it.
 
 ## 2026-08-26 — the admin account, and what the signup form was hiding
 
-**The waitlist chain is closed and proven.** Felipe registered `felipe@tumtum.cc`,
+**The waitlist chain is closed and proven.** Felipe registered his work address (`[e-mail — fora do repositório]`),
 pointed `WAITLIST_ADMIN_EMAILS` at it, and `/admin/waitlist` renders the list.
 His personal account still gets the 403, which is what he wanted: **the
 contact details of other people sit behind an account that is not his
@@ -5955,7 +6136,7 @@ Two things surfaced while checking that the account could even be created.
 
 **1. Registration and login compare the address exactly as typed.** No
 normalisation anywhere in `auth.py`, and the `users.email` column is a plain
-`String`. So `Felipe@tumtum.cc` and `felipe@tumtum.cc` are two different
+`String`. So `Fulano@exemplo.com` and `fulano@exemplo.com` are two different
 accounts, and an Android keyboard capitalises the first letter by default. The
 same trap `services/waitlist.py` was written to avoid, still wide open one
 table over. The admin gate itself is safe — it lowercases both sides — so the
