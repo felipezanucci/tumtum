@@ -20,8 +20,9 @@ class WearableConnection(Base):
     provider: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # apple_health | google_fit | garmin | fitbit
-    access_token: Mapped[str | None] = mapped_column(String(1000))
-    refresh_token: Mapped[str | None] = mapped_column(String(1000))
+    # No provider tokens (26/09): nothing ever read them, and an unused
+    # credential for somebody's health account is only a liability. The
+    # columns are dropped by migration 022.
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="active"

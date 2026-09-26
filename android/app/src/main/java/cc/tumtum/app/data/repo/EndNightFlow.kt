@@ -8,8 +8,8 @@ import cc.tumtum.app.R
 import cc.tumtum.app.service.Reminders
 
 /**
- * The end of a night, once a source is chosen: save on the phone, offer to the
- * server, forget the transient state. One place for it, because two screens
+ * The end of a night, once a source is chosen: save on the phone, drop the
+ * raw capture, forget the transient state. One place for it, because two screens
  * finish a night — the capture itself when only one source has data (the
  * strap, in the pilot), and "Trazer do meu relógio" when there is a choice.
  * Returns the night id, or null when the source had no sample at all.
@@ -31,8 +31,16 @@ suspend fun AppContainer.saveEndedNight(event: EventSession, measurement: Source
             appContext.getString(R.string.remind_reveal_text, event.name),
         )
     }
-    // Etapa 2: saved on the phone first, then offered to the server. A failure costs a retry, never the night.
-    sync.uploadLater(nightId)
+    // Nothing goes to the server from here (26/09). The night is saved on the
+    // phone; it goes up only when its owner taps "Guardar minha noite na
+    // TumTum" on the reveal, with the "guardar a noite" consent on. Until
+    // then this line was an automatic upload, under a screen that promised
+    // "Nada deixa seu aparelho sem você mandar".
+    //
+    // And the raw capture of the event goes now: the night keeps its beats
+    // and moments; the per-packet readings, R-R, motion and connection log
+    // have done their job.
+    runCatching { nights.dropRawCapture(event.id) }
     endNight.clear()
     return nightId
 }

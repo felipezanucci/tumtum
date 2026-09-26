@@ -3,6 +3,16 @@ package cc.tumtum.app.ui.screens.account
 import android.util.Patterns
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.ui.Alignment
+import cc.tumtum.app.domain.ConsentText
+import cc.tumtum.app.ui.components.WheelBirthDateField
+import cc.tumtum.app.ui.screens.consent.LinkText
+import cc.tumtum.app.ui.screens.consent.openLink
+import java.time.LocalDate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -87,6 +97,11 @@ fun CreateAccountScreen(nav: NavHostController) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var tribes by rememberSaveable { mutableStateOf(setOf<String>()) }
+    // 26/09: the birth date, chosen on the wheels (a date is never typed),
+    // and the person's own tick on the Terms and the Privacy Policy.
+    var birthEpochDay by rememberSaveable { mutableStateOf<Long?>(null) }
+    val birthDate = birthEpochDay?.let { LocalDate.ofEpochDay(it) }
+    var termsAccepted by rememberSaveable { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
@@ -106,16 +121,24 @@ fun CreateAccountScreen(nav: NavHostController) {
     val usernameTaken = usernameClean in TAKEN
     val emailLooksWhole = Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
     val valid = name.isNotBlank() && usernameClean.length >= 3 && !usernameTaken &&
-        emailLooksWhole && password.length >= 8
+        emailLooksWhole && password.length >= 8 && birthDate != null && termsAccepted
 
     /** Ask the server to mail a code: the first time, and on "Mandar outro código". */
     fun sendCode(again: Boolean) {
+        val birth = birthDate ?: return
         saving = true
         error = null
         notice = null
         scope.launch {
             try {
-                val started = container.api.signupStart(email = email.trim(), name = name.trim(), password = password)
+                val started = container.api.signupStart(
+                    email = email.trim(),
+                    name = name.trim(),
+                    password = password,
+                    birthDate = birth,
+                    termsAccepted = termsAccepted,
+                    readHeartRate = false,
+                )
                 codeSentTo = started.email
                 codeMinutes = started.expiresInMinutes
                 code = ""
@@ -186,7 +209,10 @@ fun CreateAccountScreen(nav: NavHostController) {
                             }
                             runCatching { container.api.me() }
                             container.afterSignIn()
-                            nav.navigate(Routes.Permission)
+                            // The consent screen before the Health Connect dialog (26/09):
+                            // the Terms came with the account; reading and the optional
+                            // purposes are chosen there, one switch each.
+                            nav.navigate(Routes.consent())
                         } catch (e: Exception) {
                             error = AuthErrors.messageFor(e, context)
                         } finally {
@@ -243,7 +269,14 @@ fun CreateAccountScreen(nav: NavHostController) {
                     keyboardType = KeyboardType.Email,
                 )
                 TTField(stringResource(R.string.account_password_label), password, { password = it }, isPassword = true)
+                WheelBirthDateField(
+                    label = stringResource(R.string.account_birth_label),
+                    value = birthDate,
+                    onChange = { birthEpochDay = it.toEpochDay(); error = null },
+                )
             }
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.consent_birth_note), style = TTType.Footnote, color = TT.Gray45)
 
             Spacer(Modifier.height(22.dp))
             Row {
@@ -263,7 +296,34 @@ fun CreateAccountScreen(nav: NavHostController) {
             }
 
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
+            // The Terms and the Privacy Policy, ticked by the person (26/09):
+            // never pre-ticked, and both one tap away before the tick.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = termsAccepted,
+                    onCheckedChange = { termsAccepted = it; error = null },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = TT.Ink,
+                        uncheckedColor = TT.Gray45,
+                        checkmarkColor = TT.Paper,
+                    ),
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    stringResource(R.string.account_terms_check),
+                    style = TTType.BodySmall,
+                    color = TT.Ink,
+                    modifier = Modifier.weight(1f).clickable { termsAccepted = !termsAccepted; error = null },
+                )
+            }
+            Row(Modifier.padding(start = 48.dp)) {
+                LinkText(stringResource(R.string.consent_link_terms), TT.Ink) { openLink(context, ConsentText.TERMS_URL) }
+                Spacer(Modifier.width(18.dp))
+                LinkText(stringResource(R.string.consent_link_privacy), TT.Ink) { openLink(context, ConsentText.PRIVACY_URL) }
+            }
+
+            Spacer(Modifier.height(24.dp))
             // The tap sends a code and creates nothing yet (#64): said before it.
             Text(stringResource(R.string.account_code_explained), style = TTType.Footnote, color = TT.Gray45)
             Spacer(Modifier.height(10.dp))
@@ -282,7 +342,9 @@ fun CreateAccountScreen(nav: NavHostController) {
                                 !email.contains("@") -> R.string.form_email_without_at
                                 !emailLooksWhole -> R.string.form_email_incomplete
                                 password.isEmpty() -> R.string.form_missing_password
-                                else -> R.string.form_short_password
+                                password.length < 8 -> R.string.form_short_password
+                                birthDate == null -> R.string.form_missing_birth
+                                else -> R.string.form_missing_terms
                             },
                         )
                     }

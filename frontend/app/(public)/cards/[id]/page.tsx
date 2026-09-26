@@ -13,7 +13,14 @@ import { cards, type PublicCardData } from '@/lib/api'
  *
  * Public by design and narrow by design — it shows exactly what the image
  * shows, because sharing a card publishes one moment, not a person.
+ *
+ * Since 26/09 it exists only while the card is published (the API answers
+ * 404 otherwise, and "Despublicar" takes it down), and it asks search
+ * engines to stay out: a link someone shared with friends is not an entry
+ * in a search index with their name and their heartbeat on it.
  */
+
+const NOINDEX: Metadata['robots'] = { index: false, follow: false }
 
 async function loadCard(id: string): Promise<PublicCardData | null> {
   try {
@@ -30,7 +37,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const card = await loadCard(params.id)
   if (!card) {
-    return { title: 'Card não encontrado — TumTum' }
+    return { title: 'Card não encontrado — TumTum', robots: NOINDEX }
   }
 
   const moment = card.moment_label ? ` durante "${card.moment_label}"` : ''
@@ -42,6 +49,7 @@ export async function generateMetadata({
   return {
     title: `${title} — TumTum`,
     description,
+    robots: NOINDEX,
     openGraph: {
       type: 'article',
       title,
@@ -85,7 +93,7 @@ export default async function SharedCardPage({ params }: { params: { id: string 
           <div className="mt-16 text-center">
             <p className="text-lg text-tumtum-white">Esse momento não está mais aqui.</p>
             <p className="mt-2 text-sm text-tumtum-muted">
-              O link pode ter expirado ou o card foi apagado.
+              Quem compartilhou pode ter despublicado ou apagado o card.
             </p>
             <Link href="/" className="mt-8 inline-block">
               <span className="rounded-lg bg-tumtum-pink px-8 py-3 text-lg font-label text-tumtum-black">

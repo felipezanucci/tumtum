@@ -54,6 +54,7 @@ import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import kotlinx.coroutines.launch
 import cc.tumtum.app.data.repo.NightSync
+import cc.tumtum.app.data.repo.SendRequest
 import cc.tumtum.app.ui.components.revealWhen
 
 /**
@@ -106,6 +107,8 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
     // was right here, waiting for the next app start.
     var unsent by remember(eventId) { mutableStateOf<NightEntity?>(null) }
     var sending by remember(eventId) { mutableStateOf(false) }
+    // What asking to keep the night came to, when it did not send (26/09).
+    var sendNote by remember(eventId) { mutableStateOf<Int?>(null) }
 
     // Report and block (#36): which post's menu is open, and the sentence a
     // block leaves at the top of the feed once its author's posts are gone.
@@ -264,13 +267,23 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
                                 enabled = !sending,
                                 onClick = {
                                     sending = true
+                                    sendNote = null
                                     scope.launch {
-                                        container.sync.upload(waiting.id)
+                                        // The same ask as the reveal's (26/09): the
+                                        // keep_night consent first, then the upload.
+                                        when (val r = container.sync.requestSend(waiting.id, start = false)) {
+                                            SendRequest.Started -> container.sync.upload(waiting.id)
+                                            is SendRequest.NeedsConsent -> nav.navigate(Routes.consent(r.purpose, waiting.id))
+                                            SendRequest.SignedOut -> sendNote = R.string.keep_signed_out
+                                            SendRequest.Offline -> sendNote = R.string.sync_failed_offline
+                                            is SendRequest.Failed -> sendNote = R.string.event_feed_send_failed
+                                        }
                                         sending = false
                                         tick++
                                     }
                                 },
                             )
+                            sendNote?.let { Note(stringResource(it)) }
                             // What the last attempt came to, in the night's own words.
                             waiting.uploadError?.let { err ->
                                 if (!sending && err != NightSync.ERR_NO_SESSION) {
@@ -452,11 +465,14 @@ private fun crowdText(crowd: ServerCrowd): String? {
     // small crowd it is a fact about each person in it. Say how few, never a
     // zero — an empty state is a claim.
     // Plurals (25/09): "1 NOITES" was on the first feed with one night in it.
-    if (!crowd.enough) {
-        return pluralStringResource(R.plurals.crowd_too_few, crowd.measuredNights, crowd.measuredNights)
+    // Since 26/09 the server names no count below its floor (measured_nights
+    // is null) and publishes people as a band ("10+"), never an exact number.
+    val nights = crowd.measuredNights
+    if (!crowd.enough || nights == null) {
+        return stringResource(R.string.crowd_too_few_band)
     }
-    val top = crowd.top ?: return pluralStringResource(R.plurals.crowd_nights, crowd.measuredNights, crowd.measuredNights)
-    return stringResource(R.string.crowd_top, top.people, Fmt.hour(top.at))
+    val top = crowd.top ?: return pluralStringResource(R.plurals.crowd_nights, nights, nights)
+    return stringResource(R.string.crowd_top, top.peopleBand, Fmt.hour(top.at))
 }
 
 @Composable

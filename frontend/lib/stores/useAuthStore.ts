@@ -5,6 +5,7 @@ import {
   auth,
   clearTokens,
   storeTokens,
+  type SignupStartData,
   type SignupStarted,
   type UserResponse,
 } from '@/lib/api'
@@ -15,7 +16,7 @@ interface AuthState {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   /** Sends the code (#64); creates nothing. */
-  startSignup: (email: string, name: string, password: string) => Promise<SignupStarted>
+  startSignup: (data: SignupStartData) => Promise<SignupStarted>
   /** The code came back: the account is made and signed in. */
   confirmSignup: (email: string, code: string) => Promise<void>
   logout: () => void
@@ -40,10 +41,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  startSignup: async (email, name, password) => {
+  startSignup: async (data) => {
     set({ loading: true })
     try {
-      return await auth.signupStart(email, name, password)
+      return await auth.signupStart(data)
     } finally {
       set({ loading: false })
     }

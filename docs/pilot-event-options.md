@@ -371,15 +371,17 @@ Fan bases are run by volunteer admins who organise projects — banners, fan
 chants, cup projects — and are used to being approached. The routes that work
 are the DM on X, the DM on Instagram, and the e-mail in the bio, in that order.
 Handles below were collected from public listings on 2026-09-17 and should be
-confirmed before writing; accounts change hands.
+confirmed before writing; accounts change hands. **26/09 (LGPD audit, C8):**
+the e-mail addresses and personal handles of volunteer admins were taken out
+of this public repository; they live with Felipe, outside it.
 
 | Artist | Fan base | Route |
 |---|---|---|
 | **BTS** | BTS ⟭⟬ Brasil (`@btsxbrazil` on X, `@oficialbtsxbr` on Instagram) — the first Brazilian fan base dedicated to BTS coverage | DM |
-| | BTS Brasil ON / BBO (`@btsbrasil_on`) | `btsbrasilon@gmail.com` |
-| | Bangtan News Brasil (`@BTSNewsBrasil`, Instagram `@BTSNewsBrasilOficial`) | `contact.btsnewsbr@gmail.com` |
+| | BTS Brasil ON / BBO ([contato — fora do repositório]) | [contato — fora do repositório] |
+| | Bangtan News Brasil ([contato — fora do repositório], Instagram [contato — fora do repositório]) | [contato — fora do repositório] |
 | | Bangtan Brasil — runs the Brazilian BTS fan club at `bangtan.com.br/faclube/` | site form |
-| **Hayley Williams / Paramore** | Paramore Brasil (`@paramorebrasil` on X) — the largest Brazilian Paramore portal since 2005 | `paramore.brasil@gmail.com` |
+| **Hayley Williams / Paramore** | Paramore Brasil ([contato — fora do repositório] on X) — the largest Brazilian Paramore portal since 2005 | [contato — fora do repositório] |
 | | Paramore BR (`@paramorebr`) | DM |
 | **TAEMIN** | TAEMIN Brasil (`@TaeminBrasil_`) — the fandom's name is TAEMate | DM |
 | **KARD** | KARD Brasil (`@KDMBrasil`) | DM |

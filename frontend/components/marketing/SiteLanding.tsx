@@ -449,7 +449,12 @@ export function SiteLanding({ copy }: { copy: SiteCopy }) {
             <Link href={copy.footer.termsHref} className="text-[#8A8A8A] underline underline-offset-2 transition-colors hover:text-tumtum-pink motion-reduce:transition-none">
               {copy.footer.termsLink}
             </Link>
+            {' · '}
+            <Link href={copy.footer.deleteHref} className="text-[#8A8A8A] underline underline-offset-2 transition-colors hover:text-tumtum-pink motion-reduce:transition-none">
+              {copy.footer.deleteLink}
+            </Link>
           </p>
+          <p className="mt-3 max-w-[420px] text-xs leading-relaxed text-[#8A8A8A]">{copy.footer.medical}</p>
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 text-xs text-[#4A4A4A]">
             <span>{copy.footer.line}</span>
             <Link href="/login" className="text-[#8A8A8A] transition-colors hover:text-tumtum-pink motion-reduce:transition-none">

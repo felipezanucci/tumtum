@@ -23,6 +23,11 @@ export function PrivacyPage({ copy }: { copy: PrivacyCopy }) {
       <main className="mx-auto max-w-[680px] px-6 py-14 md:px-0 md:py-20">
         <h1 className="text-[40px] font-bold leading-none tracking-tight md:text-[56px]">{copy.title}</h1>
         <p className="mt-6 text-lg leading-relaxed text-tumtum-muted">{copy.intro}</p>
+        {copy.disclaimer && (
+          <p className="mt-6 border-l-2 border-tumtum-pink pl-4 text-base font-medium leading-relaxed text-tumtum-white">
+            {copy.disclaimer}
+          </p>
+        )}
         <p className="mt-3 text-xs text-tumtum-faint">{copy.updated}</p>
 
         <div className="mt-14 space-y-12">
@@ -51,7 +56,9 @@ export function PrivacyPage({ copy }: { copy: PrivacyCopy }) {
         <section className="mt-16 border-t border-[#1E1E1E] pt-10">
           <p className="leading-relaxed text-[#CFCFCF]">{copy.contact.lead}</p>
           <a
-            href={`mailto:${copy.contact.email}`}
+            href={`mailto:${copy.contact.email}${
+              copy.contact.subject ? `?subject=${encodeURIComponent(copy.contact.subject)}` : ''
+            }`}
             className="mt-3 inline-block text-lg font-semibold text-tumtum-pink underline-offset-4 hover:underline"
           >
             {copy.contact.email}

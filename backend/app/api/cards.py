@@ -1,8 +1,9 @@
 import uuid
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import Response
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
@@ -18,8 +19,10 @@ from app.schemas.card import (
     PublicCardResponse,
     ShareRequest,
     ShareResponse,
+    UnpublishResponse,
 )
-from app.services import card_curve
+from app.services import card_cache, card_curve
+from app.services.access_log import record_access
 from app.services.card_generator import generate_moment_card
 from app.services.local_time import format_moment_time
 
@@ -164,7 +167,9 @@ async def create_card(
             "event_date": event_date,
             "matched_label": matched_label,
             "moment_time": moment_time,
-            "user_name": user.name,
+            # No `user_name` since 26/09: the name is read from the account
+            # when the card is shown (LGPD audit, AL-7), so a renamed or
+            # deleted person is not kept alive inside a JSON blob.
             "image_size": len(image_bytes),
             # The card is a snapshot, not a live view: it stores the curve it
             # drew rather than re-reading a session that may since have been
@@ -182,8 +187,8 @@ async def create_card(
         from app.core.redis import redis_client
 
         await redis_client.set(
-            f"card:image:{card.id}", image_bytes, ex=86400 * 7
-        )  # 7 days TTL
+            card_cache.cache_key(card.id), image_bytes, ex=card_cache.TTL_SECONDS
+        )
         card.image_url = f"/api/cards/{card.id}/image"
         await db.flush()
     except Exception as e:
@@ -194,18 +199,22 @@ async def create_card(
 
 @router.get("", response_model=list[CardResponse])
 async def list_cards(
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
         select(Card).where(Card.user_id == user.id).order_by(Card.created_at.desc())
     )
-    return result.scalars().all()
+    cards = result.scalars().all()
+    await record_access(db, user, user, "cards", None, "list", request)
+    return cards
 
 
 @router.get("/{card_id}", response_model=CardResponse)
 async def get_card(
     card_id: uuid.UUID,
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -217,24 +226,44 @@ async def get_card(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Card não encontrado"
         )
+    await record_access(db, user, user, "card", card_id, "read", request)
     return card
+
+
+NOT_FOUND = "Card não encontrado"
+
+
+async def _published(db: AsyncSession, card_id: uuid.UUID) -> tuple[Card, str]:
+    """A published card and its owner's name as it reads today — or a 404.
+
+    One 404 for "no such card" and "not published": telling them apart would
+    confirm to a stranger holding a link that a private card exists.
+    """
+    row = (
+        await db.execute(
+            select(Card, User.name)
+            .join(User, User.id == Card.user_id, isouter=True)
+            .where(Card.id == card_id)
+        )
+    ).first()
+    if row is None or row[0].published_at is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=NOT_FOUND)
+    card, name = row
+    # Cards made before 26/09 carried the name inside their metadata; it is
+    # the fallback only when the account's own name cannot be read.
+    return card, (name or (card.metadata_ or {}).get("user_name") or "alguém")
 
 
 @router.get("/{card_id}/public", response_model=PublicCardResponse)
 async def get_public_card(card_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
-    """Read a shared card without signing in.
+    """Read a shared card without signing in — only once it was shared.
 
-    Sharing a card is an explicit act, and the link carries an unguessable id.
-    This returns strictly what the image already shows to whoever opens it —
-    no owner id, no session, no other reading. Anything beyond that would leak
-    health data the person did not choose to publish.
+    Sharing is the explicit act that publishes a card (`published_at`, set by
+    `/share`), and until then this is a 404 (LGPD audit, AL-3). It returns
+    strictly what the image already shows — no owner id, no session, no
+    other reading — and the name as the account reads now, never a copy.
     """
-    result = await db.execute(select(Card).where(Card.id == card_id))
-    card = result.scalar_one_or_none()
-    if not card:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Card não encontrado"
-        )
+    card, user_name = await _published(db, card_id)
     meta = card.metadata_ or {}
     return PublicCardResponse(
         id=card.id,
@@ -243,7 +272,7 @@ async def get_public_card(card_id: uuid.UUID, db: AsyncSession = Depends(get_db)
         peak_bpm=meta.get("peak_bpm", 0),
         moment_label=meta.get("matched_label"),
         moment_time=meta.get("moment_time"),
-        user_name=meta.get("user_name", "alguém"),
+        user_name=user_name,
     )
 
 
@@ -255,31 +284,35 @@ async def get_card_image(
 ):
     """Serve the card image, public so a shared link can render a preview.
 
+    Only for a published card, and **the database is asked before the
+    cache**: until 26/09 the cache came first, so a deleted or unshared
+    card's image kept being served for up to seven days (LGPD audit, AL-3).
+
     `format=og` returns the landscape variant built for link previews. The
     stored 9:16 card is what people post; a preview slot crops it, so the two
     are cached separately rather than one standing in for the other.
     """
-    cache_key = f"card:image:{card_id}" + (f":{format}" if format else "")
+    card, user_name = await _published(db, card_id)
+    return Response(
+        content=await _render(card, user_name, format), media_type="image/png"
+    )
+
+
+async def _render(card: Card, user_name: str, format: str | None) -> bytes:
+    """The card's PNG, from the cache when it is there, drawn when it is not."""
+    cache_key = card_cache.cache_key(card.id, format)
     try:
         from app.core.redis import redis_client
 
         image_bytes = await redis_client.get(cache_key)
         if image_bytes:
-            return Response(content=image_bytes, media_type="image/png")
+            return image_bytes
     except Exception:
         pass
 
-    # Regenerate the image from card metadata
-    result = await db.execute(select(Card).where(Card.id == card_id))
-    card = result.scalar_one_or_none()
-    if not card:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Card não encontrado"
-        )
-
     meta = card.metadata_ or {}
     image_bytes = generate_moment_card(
-        user_name=meta.get("user_name", "alguém"),
+        user_name=user_name,
         event_name=meta.get("event_name", "Evento"),
         event_date=meta.get("event_date", ""),
         peak_bpm=meta.get("peak_bpm", 100),
@@ -293,10 +326,35 @@ async def get_card_image(
     try:
         from app.core.redis import redis_client
 
-        await redis_client.set(cache_key, image_bytes, ex=86400 * 7)
+        await redis_client.set(cache_key, image_bytes, ex=card_cache.TTL_SECONDS)
     except Exception:
         pass
-    return Response(content=image_bytes, media_type="image/png")
+    return image_bytes
+
+
+@router.get("/{card_id}/preview")
+async def get_card_preview(
+    card_id: uuid.UUID,
+    format: str | None = None,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """The owner's own card, published or not.
+
+    `/image` is public and answers only for a published card, and an `<img>`
+    tag cannot carry a bearer token — so without this route a person could
+    not see a card they had not yet chosen to share. Owner only, same
+    picture, same cache.
+    """
+    row = (
+        await db.execute(
+            select(Card).where(Card.id == card_id, Card.user_id == user.id)
+        )
+    ).scalar_one_or_none()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=NOT_FOUND)
+    name = user.name or (row.metadata_ or {}).get("user_name") or "alguém"
+    return Response(content=await _render(row, name, format), media_type="image/png")
 
 
 @router.delete("/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -313,7 +371,38 @@ async def delete_card(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Card não encontrado"
         )
-    await db.delete(card)
+    # Shares first, in SQL: the ORM would otherwise try to set their
+    # `card_id` to NULL, which the column refuses — so a card anybody had
+    # shared could not be deleted at all.
+    await db.execute(delete(Share).where(Share.card_id == card_id))
+    await db.execute(delete(Card).where(Card.id == card_id))
+    await db.flush()
+    # "Sai na hora" is what the privacy page says; the cached image goes too.
+    await card_cache.forget([card_id])
+
+
+@router.post("/{card_id}/unpublish", response_model=UnpublishResponse)
+async def unpublish_card(
+    card_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Take a shared card back: its link and its image answer 404 from now.
+
+    What was already posted elsewhere is out of TumTum's reach and the screen
+    says so; what TumTum serves stops here, cache included.
+    """
+    card = (
+        await db.execute(
+            select(Card).where(Card.id == card_id, Card.user_id == user.id)
+        )
+    ).scalar_one_or_none()
+    if card is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=NOT_FOUND)
+    card.published_at = None
+    await db.flush()
+    await card_cache.forget([card_id])
+    return UnpublishResponse(published_at=None)
 
 
 # --- Shares ---
@@ -330,7 +419,7 @@ async def track_share(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Track when a card is shared on a platform."""
+    """Record a share, and publish the card if it was not yet (26/09)."""
     result = await db.execute(
         select(Card).where(Card.id == card_id, Card.user_id == user.id)
     )
@@ -340,6 +429,9 @@ async def track_share(
             status_code=status.HTTP_404_NOT_FOUND, detail="Card não encontrado"
         )
 
+    # Sharing is what publishes a card: from here its link and image answer.
+    if card.published_at is None:
+        card.published_at = datetime.now(UTC)
     share = Share(card_id=card_id, platform=body.platform)
     db.add(share)
     await db.flush()

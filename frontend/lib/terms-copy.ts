@@ -6,27 +6,42 @@ import type { PrivacyCopy } from '@/lib/privacy-copy'
  * Asked for by TikTok's developer portal before Share Kit, and by Meta before
  * an app goes Live. Same rule as the privacy page: every sentence describes
  * what the product does today, in the brand's quiet voice, and both languages
- * are required by the type. A draft written for Felipe's review — it names
- * no company or CNPJ, which he adds once TumTum has one to name.
+ * are required by the type. A draft written for Felipe's review — the
+ * controller's legal name and CNPJ are a visible bracketed placeholder until
+ * TumTum has one to name.
+ *
+ * 26/09 (LGPD remediation): acceptance is an explicit, unticked checkbox at
+ * sign-up, recorded with its text version; 18+ is checked against the birth
+ * date; and "not a medical device" is a clause of its own.
  */
 export const TERMS_PT: PrivacyCopy = {
   lang: 'pt-BR',
   title: 'Termos de uso',
   intro:
-    'As regras de usar a TumTum, curtas. Ao criar uma conta ou usar o app, você concorda com elas.',
-  updated: 'Atualizados em 24 de setembro de 2026.',
+    'As regras de usar a TumTum, curtas. Você aceita estes termos marcando a caixa "Li e aceito" no cadastro; sem esse aceite não existe conta.',
+  disclaimer: 'A TumTum não é um dispositivo médico e não interpreta saúde.',
+  updated: 'Atualizados em 26 de setembro de 2026.',
   sections: [
     {
       heading: 'O que a TumTum é',
       paragraphs: [
         'Um app que mostra como seu coração reagiu em shows, jogos e festivais: a curva da sua noite, os momentos em que ele subiu, e um card para compartilhar.',
-        'A TumTum é entretenimento, não saúde. Nada aqui é diagnóstico, alerta, avaliação médica ou conselho de saúde. As leituras vêm do seu relógio ou da sua cinta e podem ter erro — não use a TumTum para decidir nada sobre o seu corpo.',
+        'Quem oferece a TumTum: TumTum (Felipe Zanucci, São Paulo, SP) — [CONTROLADOR — preencher razão social e CNPJ].',
+      ],
+    },
+    {
+      heading: 'Não é dispositivo médico',
+      paragraphs: [
+        'A TumTum não é um dispositivo médico e não interpreta saúde. É entretenimento: nada aqui é diagnóstico, alerta, avaliação médica ou conselho de saúde.',
+        'As leituras vêm do seu relógio ou da sua cinta e podem ter erro. Não use a TumTum para decidir nada sobre o seu corpo. Se algo te preocupar, procure um profissional de saúde.',
       ],
     },
     {
       heading: 'Sua conta',
       paragraphs: [
-        'Você precisa ter 18 anos ou mais para usar a TumTum.',
+        'Você precisa ter 18 anos ou mais para usar a TumTum. O cadastro pede sua data de nascimento, e o servidor recusa quem tem menos. Uma conta de alguém com menos de 18 anos é encerrada e apagada.',
+        'Pra criar a conta, você marca a caixa "Li e aceito os Termos de Uso e a Política de Privacidade". Ela começa desmarcada, e o aceite fica registrado com a data e a versão do texto.',
+        'Ler seus batimentos é um sim separado, que você dá no cadastro ou depois, e retira quando quiser. Os detalhes estão na Política de Privacidade.',
         'A conta é sua e pessoal: use um e-mail seu e guarde sua senha. O que acontece na sua conta é responsabilidade sua.',
       ],
     },
@@ -81,7 +96,7 @@ export const TERMS_PT: PrivacyCopy = {
     {
       heading: 'Sair',
       paragraphs: [
-        'Você pode apagar sua conta quando quiser, em Configurações → Apagar minha conta. O que acontece com seus dados está na Política de privacidade.',
+        'Você pode apagar sua conta quando quiser: no app, em Configurações → Apagar minha conta, ou no site, em Perfil → Privacidade → Apagar minha conta, com sua senha. O que acontece com seus dados está na Política de Privacidade.',
       ],
     },
     {
@@ -107,20 +122,30 @@ export const TERMS_EN: PrivacyCopy = {
   lang: 'en',
   title: 'Terms of use',
   intro:
-    'The rules for using TumTum, kept short. By creating an account or using the app, you agree to them.',
-  updated: 'Updated 24 September 2026.',
+    'The rules for using TumTum, kept short. You accept these terms by ticking the "Li e aceito" (I have read and accept) box at sign-up; without it there is no account.',
+  disclaimer: 'TumTum is not a medical device and does not interpret health.',
+  updated: 'Updated 26 September 2026.',
   sections: [
     {
       heading: 'What TumTum is',
       paragraphs: [
         'An app that shows how your heart reacted at concerts, matches and festivals: the curve of your night, the moments it rose, and a card to share.',
-        'TumTum is entertainment, not health. Nothing here is a diagnosis, an alert, a medical assessment or health advice. Readings come from your watch or strap and can be wrong — do not use TumTum to decide anything about your body.',
+        'Who provides TumTum: TumTum (Felipe Zanucci, São Paulo, Brazil) — [CONTROLADOR — preencher razão social e CNPJ].',
+      ],
+    },
+    {
+      heading: 'Not a medical device',
+      paragraphs: [
+        'TumTum is not a medical device and does not interpret health. It is entertainment: nothing here is a diagnosis, an alert, a medical assessment or health advice.',
+        'Readings come from your watch or strap and can be wrong. Do not use TumTum to decide anything about your body. If something worries you, see a health professional.',
       ],
     },
     {
       heading: 'Your account',
       paragraphs: [
-        'You must be 18 or older to use TumTum.',
+        'You must be 18 or older to use TumTum. Sign-up asks for your date of birth, and the server refuses anyone younger. An account belonging to someone under 18 is closed and deleted.',
+        'To create the account, you tick the box "I have read and accept the Terms of Use and the Privacy Policy". It starts unticked, and the acceptance is recorded with the date and the text version.',
+        'Reading your heartbeat is a separate yes, which you give at sign-up or later, and withdraw whenever you like. The details are in the Privacy Policy.',
         'Your account is yours and personal: use your own email and keep your password safe. What happens in your account is your responsibility.',
       ],
     },
@@ -175,7 +200,7 @@ export const TERMS_EN: PrivacyCopy = {
     {
       heading: 'Leaving',
       paragraphs: [
-        'You can delete your account whenever you want, in Settings → Delete my account. What happens to your data is in the Privacy policy.',
+        'You can delete your account whenever you want: in the app, under Settings → Delete my account, or on the site, under Profile → Privacidade → Apagar minha conta, with your password. What happens to your data is in the Privacy Policy.',
       ],
     },
     {

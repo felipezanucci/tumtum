@@ -1,6 +1,7 @@
 import uuid
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +20,7 @@ from app.schemas.event import (
     TimelineEntryResponse,
 )
 from app.services import data_quality
+from app.services.access_log import record_access
 from app.services.display_downsample import downsample_for_display
 from app.services.event_correlator import correlate_peaks_to_timeline, is_tentative
 from app.services.peak_detection import detect_peaks
@@ -29,6 +31,7 @@ router = APIRouter(prefix="/api/experience", tags=["experience"])
 @router.post("/{session_id}/analyze", response_model=list[PeakResponse])
 async def analyze_session(
     session_id: uuid.UUID,
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -110,7 +113,12 @@ async def analyze_session(
         db.add(peak)
         peak_models.append(peak)
 
+    # The retention clock of the raw series starts here: the moments now
+    # exist, and `raw_readings_retention_days` later the readings they were
+    # made from are deleted (services/maintenance.py).
+    session.analyzed_at = datetime.now(UTC)
     await db.flush()
+    await record_access(db, user, user, "experience", session_id, "analyze", request)
 
     # Build response with matched labels
     responses = []
@@ -143,6 +151,7 @@ def split_timeline(entries) -> tuple[list[dict], list[dict]]:
 @router.get("/{session_id}", response_model=ExperienceResponse)
 async def get_experience(
     session_id: uuid.UUID,
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -157,6 +166,8 @@ async def get_experience(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Sessão não encontrada"
         )
+
+    await record_access(db, user, user, "experience", session_id, "read", request)
 
     # Fetch peaks
     peaks_result = await db.execute(

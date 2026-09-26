@@ -45,6 +45,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.CardPhotoStore
+import cc.tumtum.app.data.LocalFiles
+import cc.tumtum.app.domain.CardCopy
+import cc.tumtum.app.ui.components.cardTitleText
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import cc.tumtum.app.data.api.ServerSeries
 import cc.tumtum.app.data.repo.PostResult
 import cc.tumtum.app.domain.Night
@@ -125,7 +130,17 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val hasSnapchat = remember { ShareTargets.installed(context, ShareTargets.SNAPCHAT) }
     val tiktok = remember { ShareTargets.tiktok(context) }
     val whatsapp = remember { ShareTargets.whatsapp(context) }
-    val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { cameBack = true }
+    val shareLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        cameBack = true
+        // The receiving app has had its read (26/09): cards, stickers and
+        // videos older than an hour leave the share cache.
+        scope.launch(Dispatchers.IO) { LocalFiles.pruneShareCache(context) }
+    }
+    // What the card shows (26/09): the peak, its hour, the event — each can
+    // be taken off before sharing, and the number can go to the ten below.
+    var showHour by remember { mutableStateOf(true) }
+    var showEvent by remember { mutableStateOf(true) }
+    var exactBpm by remember { mutableStateOf(true) }
     val nights by container.nights.nights().collectAsStateWithLifecycle(initialValue = emptyList())
     var media by remember { mutableStateOf<CardMedia?>(null) }
     var loadingMedia by remember { mutableStateOf(false) }
@@ -180,10 +195,24 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         photoRestored = true
     }
 
-    val cardTitle = stringResource(R.string.reveal_default_title)
-    val cardMeta = stringResource(R.string.reveal_bpm) + " " + stringResource(R.string.reveal_at, Fmt.hour(n.peakAt))
+    // The title the night's numbers prove (26/09) — with no hour in it when
+    // the hour is hidden, or the switch would be a lie.
+    val cardTitle = cardTitleText(
+        CardCopy.title(
+            n.peakBpm,
+            CardCopy.averageBpm(n.samples),
+            if (showHour) Fmt.hour(n.peakAt) else null,
+            hasMoments = n.moments.isNotEmpty(),
+        ),
+    )
+    val cardMeta = if (showHour) {
+        stringResource(R.string.reveal_bpm) + " " + stringResource(R.string.reveal_at, Fmt.hour(n.peakAt))
+    } else {
+        stringResource(R.string.reveal_bpm)
+    }
     // The event only — the hour is already in "bpm às 22h12" beside it (A2).
-    val cardChip = n.eventName.uppercase()
+    val cardChip = if (showEvent) n.eventName.uppercase() else null
+    val cardBpm = CardCopy.bpmLabel(n.peakBpm, exactBpm)
     val video = media as? CardMedia.Video
     val busy = sharing || loadingMedia
 
@@ -201,7 +230,10 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     }
 
     fun render(photo: Bitmap? = null, sticker: Boolean = false, bare: Boolean = false): Bitmap =
-        CardRenderer.render(context, n, skin, cardTitle, cardMeta, cardChip, photo = photo, sticker = sticker, bare = bare)
+        CardRenderer.render(
+            context, n, skin, cardTitle, cardMeta, cardChip,
+            photo = photo, sticker = sticker, bare = bare, bpmLabel = cardBpm,
+        )
 
     /**
      * The card alone: on black, a sticker cut to its own block with no wash
@@ -319,7 +351,10 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                         // that the person came back.
                         intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         runCatching { context.startActivity(intent) }
-                            .onSuccess { cameBack = true }
+                            .onSuccess {
+                                cameBack = true
+                                scope.launch(Dispatchers.IO) { LocalFiles.pruneShareCache(context) }
+                            }
                             .onFailure { failure = refused }
                     } else {
                         runCatching { shareLauncher.launch(intent) }
@@ -416,6 +451,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 curveSamples = if (skin == Skin.BLACK) n.samples else null,
                 curveWindow = if (skin == Skin.BLACK) n.startAt to n.endAt else null,
                 photo = media?.preview?.asImageBitmap(),
+                bpmLabel = cardBpm,
             )
         }
         // While the destinations are open the photo/video choice is made, and
@@ -521,6 +557,17 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 },
             )
         } else {
+            // What goes out, said before it goes (26/09): one line, and a
+            // switch for each thing the card shows about the night.
+            CardShows(
+                showHour = showHour,
+                showEvent = showEvent,
+                exactBpm = exactBpm,
+                onHour = { showHour = it },
+                onEvent = { showEvent = it },
+                onExact = { exactBpm = it },
+            )
+            Spacer(Modifier.height(10.dp))
             // Compartilhar é sempre ativo (§1): abre os destinos (#60).
             TTButton(
                 stringResource(R.string.card_share),
@@ -533,6 +580,49 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             )
         }
         Spacer(Modifier.height(2.dp))
+    }
+}
+
+/**
+ * "Esse card mostra seu pico, a hora e o evento." — and a switch for each
+ * (26/09). The person sees what a card says about them before it leaves,
+ * and can take the hour or the event off, or show the number only to the ten.
+ */
+@Composable
+private fun CardShows(
+    showHour: Boolean,
+    showEvent: Boolean,
+    exactBpm: Boolean,
+    onHour: (Boolean) -> Unit,
+    onEvent: (Boolean) -> Unit,
+    onExact: (Boolean) -> Unit,
+) {
+    Text(stringResource(R.string.card_shows), style = TTType.BodySmall, color = TT.Gray45)
+    Spacer(Modifier.height(4.dp))
+    CardShowRow(stringResource(R.string.card_show_hour), showHour, onHour)
+    CardShowRow(stringResource(R.string.card_show_event), showEvent, onEvent)
+    CardShowRow(stringResource(R.string.card_show_exact), exactBpm, onExact)
+}
+
+@Composable
+private fun CardShowRow(label: String, on: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(40.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, style = TTType.BodySmall, color = TT.Paper, modifier = Modifier.weight(1f))
+        Switch(
+            checked = on,
+            onCheckedChange = onChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = TT.Ink,
+                checkedTrackColor = TT.Rose,
+                checkedBorderColor = TT.Rose,
+                uncheckedThumbColor = TT.Gray45,
+                uncheckedTrackColor = TT.Ink700,
+                uncheckedBorderColor = TT.Ink600,
+            ),
+        )
     }
 }
 

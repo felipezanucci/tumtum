@@ -111,6 +111,9 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://user:password@localhost/tumtum_test
       REDIS_URL: redis://localhost:6379
       SECRET_KEY: test-secret-key
+      # The placeholder key is fine for tests; the server refuses it anywhere
+      # this is not set (app/config.py, secret_key_problem).
+      ALLOW_WEAK_SECRET_KEY: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -124,3 +127,71 @@ jobs:
       # No `|| echo`: a swallowed failure is a green check that means nothing,
       # which is how the frontend job stayed green while it was broken.
       - run: pytest tests/ -v --tb=short
+
+  # LGPD audit C8 (26/09/2026): real personal data reached this public
+  # repository twice — a founder's export in a test fixture, and contacts of
+  # third parties in docs. This job keeps new cases out. It needs no secrets
+  # and reads only the checkout. It fails with the offending lines.
+  #
+  # The secret patterns are assembled from pieces so this file never contains
+  # them literally (it would otherwise flag itself). docs/decision-log.md is
+  # skipped as history; its addresses were scrubbed by hand on 26/09.
+  privacy-scan:
+    name: Privacy Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No personal e-mails, secrets or Android backups in the tree
+        shell: bash
+        run: |
+          set -uo pipefail
+          EXCLUDES=(-I -r -n -E
+            --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=build
+            --exclude-dir=.gradle --exclude-dir=.next
+            --exclude=package-lock.json --exclude='*.class'
+            --exclude=decision-log.md)
+          fail=0
+
+          # 1. E-mail addresses outside the allowlist. Company role addresses
+          #    (oi@, privacidade@ — the encarregado's channel, docs/dpo.md) and
+          #    reserved test domains only; a real person's address never goes in.
+          EMAIL='[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+          ALLOW='^(oi@tumtum\.cc|oi@mail\.tumtum\.cc|privacidade@tumtum\.cc|noreply@anthropic\.com|[^@]+@(example\.com|exemplo\.com|teste\.com|x\.cc|email\.com|b\.com|d\.com|dominio\.com\.br))$'
+          export ALLOW
+          hits=$(grep "${EXCLUDES[@]}" -o "$EMAIL" . \
+            | awk '{
+                allow = ENVIRON["ALLOW"];
+                n = index($0, ":"); rest = substr($0, n + 1);
+                m = index(rest, ":"); addr = substr(rest, m + 1);
+                if (tolower(addr) !~ allow) print
+              }')
+          if [ -n "$hits" ]; then
+            echo "::error::E-mail addresses outside the allowlist (use @exemplo.com in tests, never a real one):"
+            echo "$hits"
+            fail=1
+          fi
+
+          # 2. Literal secrets.
+          AWS='AKIA''[0-9A-Z]{16}'
+          STRIPE='sk_''live_'
+          RESEND='\bre_''[A-Za-z0-9]{20,}'
+          PEM='-----BEG''IN .* PRIV''ATE KEY'
+          hits=$(grep "${EXCLUDES[@]}" -e "$AWS" -e "$STRIPE" -e "$RESEND" -e "$PEM" . || true)
+          if [ -n "$hits" ]; then
+            echo "::error::Something that looks like a secret is committed:"
+            echo "$hits"
+            fail=1
+          fi
+
+          # 3. Android backup of health data (audit AL-2): the app's database
+          #    and tokens must never go to Google's backup.
+          BACKUP='allowBackup="''true"'
+          hits=$(grep -r -n --include=AndroidManifest.xml -F "$BACKUP" android/ || true)
+          if [ -n "$hits" ]; then
+            echo "::error::android:allowBackup must be false:"
+            echo "$hits"
+            fail=1
+          fi
+
+          [ "$fail" -eq 0 ] && echo "Privacy scan: clean."
+          exit "$fail"

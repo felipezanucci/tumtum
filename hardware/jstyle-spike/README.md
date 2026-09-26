@@ -8,6 +8,16 @@ firmware HR algorithm whose motion gating blocks our stationary-peak use case
 Full step-by-step guide (PT-BR): see the "Guia do Spike PPG" artifact linked in
 the project notes.
 
+> **Never distribute the spike APK** (LGPD audit B2, 26/09/2026). The
+> vendor demo's manifest (`v8test/app/src/main/AndroidManifest.xml`) asks
+> for **location, camera, `BODY_SENSORS` and storage**, none of which TumTum
+> needs, and the APK is signed with a debug key. It is for the bench phone
+> that runs this spike and nobody else: not a participant, not a fan, not a
+> friend helping out. `build-spike-apk.yml` publishes it as a **prerelease**
+> for that reason. The CSVs it writes to `Downloads/tumtum_spike/` are raw
+> physiological data: they stay off this repository and are deleted when the
+> spike's analysis is done.
+
 ## Contents
 
 | File | Purpose |

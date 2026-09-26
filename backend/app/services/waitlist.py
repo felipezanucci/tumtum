@@ -8,8 +8,8 @@ def normalize_email(raw: str) -> str:
     """The form in which an address is stored and compared.
 
     Addresses arrive from a phone keyboard, which capitalises the first letter
-    by default and is generous with trailing spaces. `Felipe@Gmail.com ` and
-    `felipe@gmail.com` are one person, and the unique index can only know that
+    by default and is generous with trailing spaces. `Ana@Exemplo.com ` and
+    `ana@exemplo.com` are one person, and the unique index can only know that
     if both reach it in the same shape.
 
     Only case and surrounding whitespace are touched. The local part of an

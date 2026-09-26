@@ -1,0 +1,37 @@
+# TumTum — https://tumtum.cc
+#
+# Shared cards and personal profile pages carry a person's name next to
+# heartbeat numbers. They also send `noindex, nofollow` in their own meta
+# tags, which is what actually keeps them out of an index; these lines keep
+# polite crawlers from fetching them at all.
+#
+# A personal profile lives at a single path segment (/<id>) that robots.txt
+# cannot tell apart from /privacidade or /termos, so that route is covered by
+# its noindex meta tag only.
+
+User-agent: *
+Disallow: /cards/
+Disallow: /profile
+Disallow: /sessions
+Disallow: /experience
+Disallow: /consentimento
+Disallow: /admin/
+
+# Link previews. A shared card is meant to unfurl when someone pastes its
+# link into a chat or a post, and some preview fetchers (X's, notably) obey
+# robots.txt: blocked, the card arrives as a bare URL. These agents fetch a
+# page only when a person shares its link, and index nothing.
+User-agent: Twitterbot
+User-agent: facebookexternalhit
+User-agent: Facebot
+User-agent: WhatsApp
+User-agent: TelegramBot
+User-agent: Slackbot
+User-agent: LinkedInBot
+User-agent: Discordbot
+Allow: /cards/
+Disallow: /profile
+Disallow: /sessions
+Disallow: /experience
+Disallow: /consentimento
+Disallow: /admin/

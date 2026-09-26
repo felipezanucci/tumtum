@@ -22,6 +22,8 @@ class CardResponse(BaseModel):
     status: str
     metadata_: dict | None = Field(None, alias="metadata_")
     created_at: datetime
+    # When the person shared it; null while it is private (26/09).
+    published_at: datetime | None = None
 
     model_config = {"from_attributes": True, "populate_by_name": True}
 
@@ -56,3 +58,9 @@ class PublicCardResponse(BaseModel):
     moment_label: str | None = None
     moment_time: str | None = None
     user_name: str
+
+
+class UnpublishResponse(BaseModel):
+    """The card is private again: its link and image answer 404."""
+
+    published_at: datetime | None = None

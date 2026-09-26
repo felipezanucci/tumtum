@@ -134,18 +134,22 @@ data class ServerFeed(
  *
  * [enough] false is neither an error nor emptiness: it is the server refusing
  * to publish a figure computed over too few people, because below its floor a
- * collective number is a fact about each person in it. [measuredNights] comes
- * back anyway so the screen can say *"ainda somos poucos aqui"* instead of
- * drawing a zero — a zero is a claim about the world.
+ * collective number is a fact about each person in it. The screen says
+ * *"ainda somos poucos aqui"* instead of drawing a zero — a zero is a claim
+ * about the world.
+ *
+ * Since 26/09 (LGPD remediation) [measuredNights] is null below the floor —
+ * even the count is not published — and a moment's people come as a band
+ * ("10+", "25+", "50+", "100+", "250+"), never an exact number.
  */
 data class ServerCrowd(
-    val measuredNights: Int,
+    val measuredNights: Int?,
     val enough: Boolean,
     val sharedCount: Int,
     val moments: List<CrowdMoment>,
     val top: CrowdMoment?,
 ) {
-    data class CrowdMoment(val at: Instant, val people: Int, val label: String?)
+    data class CrowdMoment(val at: Instant, val peopleBand: String, val label: String?)
 
     /** Reads `GET /api/events/{id}/crowd`. Pure, tested. */
     companion object {
@@ -153,7 +157,7 @@ data class ServerCrowd(
             val o = JSONObject(json)
             val array = o.optJSONArray("moments") ?: JSONArray()
             return ServerCrowd(
-                measuredNights = o.optInt("measured_nights", 0),
+                measuredNights = if (o.isNull("measured_nights")) null else o.optInt("measured_nights"),
                 enough = o.optBoolean("enough", false),
                 sharedCount = o.optInt("shared_count", 0),
                 moments = (0 until array.length()).map { i ->
@@ -165,7 +169,7 @@ data class ServerCrowd(
 
         private fun moment(o: JSONObject) = CrowdMoment(
             at = Json.instant(o.getString("at")),
-            people = o.optInt("people", 0),
+            peopleBand = Json.text(o, "people_band") ?: "",
             label = Json.text(o, "label"),
         )
     }

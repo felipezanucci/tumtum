@@ -1,4 +1,13 @@
+import { CONSENT_TEXT_VERSION, type ConsentPurpose } from './consent-copy'
+import type { RequestKind, RequestStatus } from './privacy-requests'
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+/**
+ * Who is asking, on every request (26/09 contract). The server writes it next
+ * to each consent, so a "yes" can be traced to the screen that asked for it.
+ */
+export const CLIENT_HEADER = { 'X-Tumtum-Client': 'web/site' } as const
 
 export class ApiError extends Error {
   constructor(
@@ -7,6 +16,21 @@ export class ApiError extends Error {
   ) {
     super(detail)
     this.name = 'ApiError'
+  }
+}
+
+/**
+ * The server refused because a consent is missing (403, `consent_required`).
+ * The page that catches this opens the consent screen on `purpose` — never
+ * retries in silence (26/09 contract).
+ */
+export class ConsentRequiredError extends ApiError {
+  constructor(
+    detail: string,
+    public purpose: ConsentPurpose | string,
+  ) {
+    super(403, detail)
+    this.name = 'ConsentRequiredError'
   }
 }
 
@@ -64,7 +88,7 @@ async function renew(spent: string | null): Promise<boolean> {
     try {
       const response = await fetch(`${API_BASE}/api/auth/refresh`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...CLIENT_HEADER },
         body: JSON.stringify({ refresh_token: refresh }),
       })
       if (!response.ok) {
@@ -81,11 +105,15 @@ async function renew(spent: string | null): Promise<boolean> {
   })
 }
 
-async function request<T>(
+/**
+ * Send one request and return the response only when it succeeded. Every
+ * failure becomes an ApiError with a sentence a person can read.
+ */
+async function send(
   path: string,
   options: RequestInit = {},
   retried = false,
-): Promise<T> {
+): Promise<Response> {
   const token = stored(ACCESS_KEY)
   const refreshHeld = stored(REFRESH_KEY)
 
@@ -95,6 +123,7 @@ async function request<T>(
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...CLIENT_HEADER,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
@@ -111,7 +140,7 @@ async function request<T>(
   // ask again. Only a request that carried a token is retried — a 401 on
   // /login is a wrong password, not an expired session.
   if (response.status === 401 && token && !retried && (await renew(refreshHeld))) {
-    return request<T>(path, options, true)
+    return send(path, options, true)
   }
 
   if (!response.ok) {
@@ -126,6 +155,12 @@ async function request<T>(
     if (response.status === 401 && isGenericAuthFailure(body.detail)) {
       throw new ApiError(401, 'Sua sessão expirou. Entre na sua conta para continuar.')
     }
+    if (response.status === 403 && body.code === 'consent_required') {
+      throw new ConsentRequiredError(
+        typeof body.detail === 'string' ? body.detail : 'Falta o seu consentimento para isso.',
+        typeof body.purpose === 'string' ? body.purpose : '',
+      )
+    }
     // A 422 from Pydantic carries a list of field problems, not a sentence;
     // passed through, it reached a screen as "[object Object]" or crashed it.
     const detail =
@@ -137,8 +172,70 @@ async function request<T>(
     throw new ApiError(response.status, detail)
   }
 
+  return response
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await send(path, options)
   if (response.status === 204) return undefined as T
+  // 202 ("the code is on its way") may carry no body at all.
+  if (response.status === 202) return (await response.json().catch(() => undefined)) as T
   return response.json()
+}
+
+/**
+ * The file name a response names in its Content-Disposition, or the fallback
+ * when it names none. Reads the RFC 5987 `filename*=UTF-8''…` form first (it
+ * is the one that can carry an accent), then plain `filename=`, quoted or not.
+ * The header is readable cross-origin only because the API exposes it.
+ */
+export function filenameFromDisposition(disposition: string | null, fallback: string): string {
+  if (!disposition) return fallback
+  const extended = /filename\*\s*=\s*(?:[\w-]+)?'[^']*'([^;]+)/i.exec(disposition)?.[1]
+  if (extended) {
+    try {
+      const decoded = decodeURIComponent(extended.trim().replace(/^"|"$/g, ''))
+      if (decoded) return decoded
+    } catch {
+      // A malformed escape falls through to the plain form.
+    }
+  }
+  const plain = /filename\s*=\s*(?:"([^"]*)"|([^;]+))/i.exec(disposition)
+  const name = (plain?.[1] ?? plain?.[2] ?? '').trim()
+  return name || fallback
+}
+
+/**
+ * Fetch a file the API serves behind the session. A plain link or an `<img>`
+ * cannot carry the token, so the bytes come through here.
+ */
+async function fetchFile(path: string, fallbackName: string): Promise<{ blob: Blob; name: string }> {
+  const response = await send(path)
+  const blob = await response.blob()
+  const name = filenameFromDisposition(response.headers.get('Content-Disposition'), fallbackName)
+  return { blob, name }
+}
+
+/** Hand a blob to the browser as a download under the given name. */
+function saveBlob(blob: Blob, name: string): void {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = name
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
+/**
+ * Fetch a file behind the session and save it as a download. Returns the
+ * name it was saved under, so the screen can say which file landed.
+ */
+async function download(path: string, fallbackName: string): Promise<string> {
+  const { blob, name } = await fetchFile(path, fallbackName)
+  saveBlob(blob, name)
+  return name
 }
 
 // --- Auth ---
@@ -156,6 +253,8 @@ export interface UserResponse {
   avatar_url: string | null
   auth_provider: string
   created_at: string
+  /** `YYYY-MM-DD`, or null for an account made before 26/09 (it is asked once). */
+  birth_date: string | null
   /**
    * Whether this account operates the platform — registers events, attaches
    * a match or a setlist. Decided by the server's `admin_emails`; the site
@@ -171,16 +270,38 @@ export interface SignupStarted {
   resend_after_seconds: number
 }
 
+/**
+ * What sign-up sends (26/09): the birth date is checked against 18 by the
+ * server, and the Terms and the heart-rate reading are two separate yeses.
+ */
+export interface SignupStartData {
+  email: string
+  name: string
+  password: string
+  /** `YYYY-MM-DD` */
+  birth_date: string
+  terms_accepted: boolean
+  read_heart_rate: boolean
+}
+
 export const auth = {
   /**
    * Step one of an account (#64, 24/09): the server mails a 6-digit code to
    * the address and creates nothing. The account exists only after
    * `signupConfirm`, so an address nobody reads never becomes one.
    */
-  signupStart: (email: string, name: string, password: string) =>
+  signupStart: (data: SignupStartData) =>
     request<SignupStarted>('/api/auth/register/start', {
       method: 'POST',
-      body: JSON.stringify({ email, name, password }),
+      body: JSON.stringify({
+        email: data.email,
+        name: data.name,
+        password: data.password,
+        birth_date: data.birth_date,
+        terms_accepted: data.terms_accepted,
+        consent_text_version: CONSENT_TEXT_VERSION,
+        read_heart_rate: data.read_heart_rate,
+      }),
     }),
 
   /** Step two: the code came back, and the account is made and signed in. */
@@ -203,7 +324,7 @@ export const auth = {
     if (!refresh) return
     await fetch(`${API_BASE}/api/auth/logout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...CLIENT_HEADER },
       body: JSON.stringify({ refresh_token: refresh }),
     }).catch(() => undefined)
   },
@@ -265,11 +386,10 @@ export interface WearableConnection {
   created_at: string
 }
 
+/** R-R intervals and motion are neither sent nor returned since 26/09. */
 export interface HRDataPoint {
   time: string
   bpm: number
-  rr_interval_ms: number | null
-  motion_level: number | null
   source: string | null
 }
 
@@ -315,8 +435,6 @@ export const health = {
     data_points: Array<{
       time: string
       bpm: number
-      rr_interval_ms?: number
-      motion_level?: number
       source?: string
     }>
   }) =>
@@ -330,6 +448,12 @@ export const health = {
   getSession: (sessionId: string) =>
     request<HRSessionDetail>(`/api/health/sessions/${sessionId}`),
 
+  /**
+   * "Apagar esta noite": the readings, the moments, the cards and any feed
+   * post of this night go with it. The account stays.
+   */
+  deleteSession: (sessionId: string) =>
+    request<void>(`/api/health/sessions/${sessionId}`, { method: 'DELETE' }),
 }
 
 // --- Events ---
@@ -579,6 +703,11 @@ export interface CardData {
   status: string
   metadata: Record<string, unknown> | null
   created_at: string
+  /**
+   * When the card became public — set by sharing it, cleared by
+   * "Despublicar". Null means its page and image answer 404 to everyone.
+   */
+  published_at: string | null
 }
 
 export interface ShareData {
@@ -596,6 +725,16 @@ export interface PublicCardData {
   moment_label: string | null
   moment_time: string | null
   user_name: string
+}
+
+export type CardImageFormat = 'story' | 'og'
+
+function cardPreviewPath(cardId: string, format: CardImageFormat): string {
+  return `/api/cards/${encodeURIComponent(cardId)}/preview?format=${format}`
+}
+
+function cardFileName(cardId: string): string {
+  return `tumtum-${cardId.slice(0, 8)}.png`
 }
 
 export const cards = {
@@ -620,6 +759,27 @@ export const cards = {
   getPreviewImageUrl: (cardId: string) =>
     `${API_BASE}/api/cards/${cardId}/image?format=og`,
 
+  /**
+   * The owner's own card image, published or not (26/09). `/image` is public
+   * and answers only once the card is shared, and an `<img>` cannot carry the
+   * token, so the PNG comes through the session and is handed back as an
+   * object URL. Whoever asks for one owns it: release it with
+   * `revokePreviewUrl` when the image leaves the screen.
+   */
+  previewBlobUrl: async (cardId: string, format: CardImageFormat = 'story'): Promise<string> => {
+    const { blob } = await fetchFile(cardPreviewPath(cardId, format), cardFileName(cardId))
+    return URL.createObjectURL(blob)
+  },
+
+  revokePreviewUrl: (url: string) => URL.revokeObjectURL(url),
+
+  /**
+   * Save the owner's card as a PNG — no need to publish it first: a file on
+   * the person's own phone is not a public page. Returns the saved name.
+   */
+  downloadPreview: (cardId: string, format: CardImageFormat = 'story') =>
+    download(cardPreviewPath(cardId, format), cardFileName(cardId)),
+
   /** Read a shared card without signing in. Returns only what the image shows. */
   getPublic: (cardId: string) =>
     request<PublicCardData>(`/api/cards/${cardId}/public`),
@@ -627,11 +787,16 @@ export const cards = {
   delete: (cardId: string) =>
     request<void>(`/api/cards/${cardId}`, { method: 'DELETE' }),
 
+  /** Sharing is the act that publishes: the public page exists from here on. */
   trackShare: (cardId: string, platform: string) =>
     request<ShareData>(`/api/cards/${cardId}/share`, {
       method: 'POST',
       body: JSON.stringify({ platform }),
     }),
+
+  /** Take the public page and image down. The card stays in the collection. */
+  unpublish: (cardId: string) =>
+    request<{ published_at: null }>(`/api/cards/${cardId}/unpublish`, { method: 'POST' }),
 }
 
 // --- Users ---
@@ -647,6 +812,8 @@ export interface UserProfile {
   total_events: number
   total_cards: number
   highest_bpm: number | null
+  /** `YYYY-MM-DD`, or null until it is asked once. */
+  birth_date: string | null
 }
 
 export interface PublicProfile {
@@ -671,8 +838,6 @@ export const demo = {
       method: 'POST',
     }),
 }
-
-// --- Users ---
 
 // --- Waitlist ---
 
@@ -711,7 +876,8 @@ export interface WaitlistEntry {
 export const users = {
   getProfile: () => request<UserProfile>('/api/users/me'),
 
-  updateProfile: (data: { name?: string; avatar_url?: string }) =>
+  /** `birth_date` is accepted once, only while it is still empty. */
+  updateProfile: (data: { name?: string; avatar_url?: string; birth_date?: string }) =>
     request<UserProfile>('/api/users/me', {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -719,6 +885,109 @@ export const users = {
 
   getPublicProfile: (userId: string) =>
     request<PublicProfile>(`/api/users/${userId}`),
+
+  /** Everything the account holds except the readings themselves (LGPD art. 18 II). */
+  data: () => request<MyData>('/api/users/me/data'),
+
+  /** The same, with every reading, as a JSON file. Resolves to the file name. */
+  exportJson: () => download('/api/users/me/export', 'tumtum-export.json'),
+
+  /** Every reading as `session_id,time,bpm`. Resolves to the file name. */
+  exportCsv: () => download('/api/users/me/export.csv', 'tumtum-export.csv'),
+
+  /** Step one: a 6-digit code goes to the NEW address. 401 wrong password, 409 taken. */
+  changeEmail: (email: string, password: string) =>
+    request<SignupStarted | undefined>('/api/users/me/email', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+
+  /** Step two: the code came back, and the account's e-mail is the new one. */
+  confirmEmail: (code: string) =>
+    request<UserProfile>('/api/users/me/email/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+
+  /** Deletes the account and everything in it. 401 when the password is wrong. */
+  deleteAccount: (password: string) =>
+    request<void>('/api/users/me/delete', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    }),
+
+  /** Requests to the encarregado: answered within 15 days (`due_at`). */
+  requests: {
+    create: (kind: RequestKind, message: string) =>
+      request<DataSubjectRequest>('/api/users/me/requests', {
+        method: 'POST',
+        body: JSON.stringify({ kind, message }),
+      }),
+
+    list: () => request<DataSubjectRequest[]>('/api/users/me/requests'),
+  },
+}
+
+// --- Consents (26/09): one yes per purpose, recorded with its text version ---
+
+export type ConsentMeans = 'tap' | 'checkbox' | 'button' | 'form'
+
+export interface ConsentEntry {
+  purpose: ConsentPurpose
+  granted: boolean
+  granted_at: string | null
+  revoked_at: string | null
+  text_version: string | null
+}
+
+export interface ConsentsResponse {
+  text_version: string
+  /** Always all seven, `granted: false` when never given or revoked. */
+  consents: ConsentEntry[]
+}
+
+export const consents = {
+  get: () => request<ConsentsResponse>('/api/consents'),
+
+  /** Only the purposes present change. Answers with the whole state again. */
+  put: (
+    purposes: Partial<Record<ConsentPurpose, boolean>>,
+    means: ConsentMeans,
+    textVersion: string = CONSENT_TEXT_VERSION,
+  ) =>
+    request<ConsentsResponse>('/api/consents', {
+      method: 'PUT',
+      body: JSON.stringify({ text_version: textVersion, means, purposes }),
+    }),
+}
+
+// --- Data-subject rights (26/09) ---
+
+export interface DataSubjectRequest {
+  id: string
+  kind: RequestKind
+  message: string
+  status: RequestStatus
+  opened_at: string
+  due_at: string
+  answered_at: string | null
+  answer: string | null
+}
+
+/** `GET /api/users/me/data`. Loosely typed below the top level on purpose. */
+export interface MyData {
+  user: Record<string, unknown>
+  birth_date: string | null
+  consents: ConsentEntry[]
+  sessions: Array<Record<string, unknown>>
+  peaks: Array<Record<string, unknown>>
+  cards: Array<Record<string, unknown>>
+  posts: Array<Record<string, unknown>>
+  reactions: Array<Record<string, unknown>>
+  shares: Array<Record<string, unknown>>
+  blocks: Array<Record<string, unknown>>
+  reports_filed: Array<Record<string, unknown>>
+  requests: DataSubjectRequest[]
 }
 
 // --- Moderation: the operator's queue of reported posts (#36, 22/09) ---

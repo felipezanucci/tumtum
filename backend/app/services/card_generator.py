@@ -5,7 +5,11 @@ Cards are designed for Instagram Stories (1080x1920) and feed (1080x1080).
 
 Card types:
 - Solo: user's HR curve + peak moment + event info
-- Comparison: user's HR vs artist's HR (future feature)
+
+"Na mesma vibe" (card 05) is deliberately NOT here. A placeholder that
+compared two people's absolute BPM was removed on 2026-09-26: the artist
+card needs the artist's own recorded consent and a similarity score, never
+one heart rate printed next to another (RELATORIO-AUDITORIA-LGPD.md, G9).
 """
 
 import io
@@ -551,120 +555,6 @@ def generate_solo_card(
     draw.line([(60, stats_y - 30), (w - 60, stats_y - 30)], fill=TUMTUM_BORDER, width=2)
 
     # Output
-    buffer = io.BytesIO()
-    img.save(buffer, format="PNG", quality=95)
-    return buffer.getvalue()
-
-
-def generate_comparison_card(
-    user_name: str,
-    artist_name: str,
-    event_name: str,
-    event_date: str,
-    user_peak_bpm: int,
-    artist_peak_bpm: int,
-    sync_percentage: int,
-    format: str = "story",
-) -> bytes:
-    """Generate a comparison share card (user vs artist HR).
-
-    This is a future feature placeholder — artists will share their HR data
-    so fans can compare their heartbeats.
-    """
-    size = STORY_SIZE if format == "story" else FEED_SIZE
-    img = Image.new("RGB", size, TUMTUM_BLACK)
-    draw = ImageDraw.Draw(img)
-
-    w, h = size
-
-    font_large = _font("hero", 120)
-    font_medium = _font("hero", 42)
-    font_small = _font("body", 32)
-
-    # Background
-    for y in range(h):
-        alpha = y / h
-        r = int(TUMTUM_BLACK[0] * (1 - alpha * 0.2))
-        g = int(TUMTUM_BLACK[1] * (1 - alpha * 0.2))
-        b = int(TUMTUM_BLACK[2] * (1 - alpha * 0.2) + 20 * alpha * 0.1)
-        draw.line([(0, y), (w, y)], fill=(r, g, b))
-
-    # Logo
-    _paste_wordmark(img, w // 2, 72, 34)
-
-    # Event
-    draw.text(
-        (w // 2, 180), event_name, fill=TUMTUM_WHITE, font=font_medium, anchor="mt"
-    )
-    draw.text(
-        (w // 2, 240), event_date, fill=TUMTUM_MUTED, font=font_small, anchor="mt"
-    )
-
-    # Sync percentage (center)
-    center_y = h // 2
-    draw.text(
-        (w // 2, center_y - 60),
-        f"{sync_percentage}%",
-        fill=TUMTUM_WHITE,
-        font=font_large,
-        anchor="mm",
-    )
-    draw.text(
-        (w // 2, center_y + 20),
-        "em sincronia",
-        fill=TUMTUM_MUTED,
-        font=font_small,
-        anchor="mt",
-    )
-
-    # User vs Artist
-    col_left = w // 4
-    col_right = 3 * w // 4
-    vs_y = center_y + 150
-
-    draw.text(
-        (col_left, vs_y),
-        str(user_peak_bpm),
-        fill=TUMTUM_PINK,
-        font=font_large,
-        anchor="mt",
-    )
-    draw.text(
-        (col_left, vs_y + 90),
-        "Seu pico",
-        fill=TUMTUM_MUTED,
-        font=font_small,
-        anchor="mt",
-    )
-
-    draw.text(
-        (col_right, vs_y),
-        str(artist_peak_bpm),
-        fill=TUMTUM_WHITE,
-        font=font_large,
-        anchor="mt",
-    )
-    draw.text(
-        (col_right, vs_y + 90),
-        artist_name,
-        fill=TUMTUM_MUTED,
-        font=font_small,
-        anchor="mt",
-    )
-
-    draw.text(
-        (w // 2, vs_y + 40), "vs", fill=TUMTUM_MUTED, font=font_medium, anchor="mm"
-    )
-
-    # User
-    draw.text(
-        (w // 2, h - 120),
-        f"@{user_name}",
-        fill=TUMTUM_MUTED,
-        font=font_small,
-        anchor="mt",
-    )
-
     buffer = io.BytesIO()
     img.save(buffer, format="PNG", quality=95)
     return buffer.getvalue()

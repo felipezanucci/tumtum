@@ -120,7 +120,7 @@ export default function PublicProfilePage() {
         <div className="mt-12 text-center">
           <Wordmark className="h-4 w-auto text-tumtum-white" />
           <p className="mt-1 text-xs text-tumtum-muted">
-            Sinta o evento. Compartilhe a emoção.
+            Sua batida na noite. Do jeito que foi.
           </p>
         </div>
       </div>

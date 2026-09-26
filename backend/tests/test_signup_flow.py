@@ -9,7 +9,7 @@ when the mail could not leave.
 
 import re
 import uuid
-from datetime import UTC, timedelta
+from datetime import UTC, date, timedelta
 
 import pytest
 import pytest_asyncio
@@ -65,8 +65,12 @@ def _code_in(mail: dict) -> str:
     return re.search(r"\b(\d{6})\b", mail["text"]).group(1)
 
 
-async def _start(db, email="ana@x.cc", name="Ana", password="segredo123"):
-    body = SignupStartRequest(email=email, name=name, password=password)
+ADULT = date(1990, 5, 17)
+
+
+async def _start(db, email="ana@x.cc", name="Ana", password="segredo123", **extra):
+    fields = {"birth_date": ADULT, "terms_accepted": True, **extra}
+    body = SignupStartRequest(email=email, name=name, password=password, **fields)
     return await register_start(body, db)
 
 
@@ -255,3 +259,64 @@ async def test_the_reset_mail_greets_the_name_trimmed_and_escaped(db, mailbox):
     (mail,) = mailbox
     assert mail["text"].startswith("Oi, Felipe <b>Z</b>.")
     assert "Oi, Felipe &lt;b&gt;Z&lt;/b&gt;.</p>" in mail["html"]
+
+
+# --- 26/09: adults only, terms accepted, consent recorded (LGPD CR-1, CR-4) ---
+
+
+@pytest.mark.asyncio
+async def test_under_eighteen_is_refused_before_any_mail(db, mailbox):
+    from app.services.age import UNDER_AGE, today_local
+
+    today = today_local()
+    seventeen = date(today.year - 17, today.month, min(today.day, 28))
+    with pytest.raises(HTTPException) as refused:
+        await _start(db, birth_date=seventeen)
+    assert refused.value.status_code == 422
+    assert refused.value.detail == UNDER_AGE
+    assert mailbox == [] and await _pending(db) == []
+
+
+@pytest.mark.asyncio
+async def test_terms_not_accepted_is_refused_with_a_sentence(db, mailbox):
+    with pytest.raises(HTTPException) as refused:
+        await _start(db, terms_accepted=False)
+    assert refused.value.status_code == 422
+    assert refused.value.detail == auth_api.TERMS_REQUIRED
+    assert mailbox == []
+
+
+@pytest.mark.asyncio
+async def test_a_client_that_sends_no_birth_date_is_told_so(db, mailbox):
+    """Every build before 26/09 — a sentence it can show, not a list."""
+    body = SignupStartRequest(email="ana@x.cc", name="Ana", password="segredo123")
+    with pytest.raises(HTTPException) as refused:
+        await register_start(body, db)
+    assert refused.value.status_code == 422
+    assert refused.value.detail == auth_api.BIRTH_DATE_REQUIRED
+
+
+@pytest.mark.asyncio
+async def test_the_account_is_born_with_its_birth_date_and_terms_consent(db, mailbox):
+    from app.services import consents
+
+    await _start(db, consent_text_version="2026-09-26")
+    await _confirm(db, _code_in(mailbox[0]))
+    user = (await db.execute(select(User))).scalar_one()
+    assert user.birth_date == ADULT
+    states = {s.purpose: s for s in await consents.snapshot(db, user.id)}
+    assert states["terms"].granted and states["terms"].text_version == "2026-09-26"
+    # Reading the heart rate is its own tap, never implied by the terms.
+    assert not states["read_heart_rate"].granted
+    assert not any(states[p].granted for p in ("keep_night", "crowd_stats", "marketing"))
+
+
+@pytest.mark.asyncio
+async def test_read_heart_rate_granted_at_sign_up_is_recorded_too(db, mailbox):
+    from app.models.consent import Consent
+
+    await _start(db, read_heart_rate=True)
+    await _confirm(db, _code_in(mailbox[0]))
+    rows = (await db.execute(select(Consent))).scalars().all()
+    assert sorted(r.purpose for r in rows) == ["read_heart_rate", "terms"]
+    assert {r.means for r in rows} == {"checkbox"}

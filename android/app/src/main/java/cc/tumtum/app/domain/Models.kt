@@ -70,6 +70,10 @@ data class Night(
     val photoPath: String? = null,
     /** The account that uploaded it; null when unknown (before 23/09). */
     val ownerUserId: String? = null,
+    /** The person asked to keep it on the server (26/09). Without it, nothing uploads. */
+    val sendRequested: Boolean = false,
+    /** When its readings reached the server; null while they have not. */
+    val sentAt: Instant? = null,
 )
 
 /** Fonte disponível no Health Connect, com densidade real medida na janela (b4). */

@@ -4,12 +4,12 @@ from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.auth import create_access_token, get_current_user
+from app.core.auth import client_of, create_access_token, get_current_user
 from app.core.database import get_db
 from app.models.password_reset_token import PasswordResetToken
 from app.models.signup_code import SignupCode
@@ -26,8 +26,9 @@ from app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
-from app.services import refresh_tokens
+from app.services import consents, refresh_tokens
 from app.services import signup_codes as codes
+from app.services.age import UNDER_AGE, is_adult, today_local
 from app.services.email import EmailNotConfigured, send_email
 from app.services.password_reset import (
     expiry_from,
@@ -65,6 +66,8 @@ SIGNUP_RETIRED = (
 )
 
 CODE_GONE = "Esse código não vale mais. Pede um novo."
+TERMS_REQUIRED = "Você precisa aceitar os Termos e a Política de Privacidade."
+BIRTH_DATE_REQUIRED = "Coloca sua data de nascimento."
 CODE_NOT_SENT = "Não deu pra mandar o código agora. Tenta de novo em alguns minutos."
 
 
@@ -122,6 +125,22 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
     if not name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Coloca seu nome."
+        )
+    # Adults only, and only with the terms accepted (LGPD audit, CR-1 and
+    # CR-4). Checked before any mail leaves: a code for an account that can
+    # never exist is a mail nobody should get.
+    if body.birth_date is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=BIRTH_DATE_REQUIRED,
+        )
+    if not is_adult(body.birth_date, today_local()):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=UNDER_AGE
+        )
+    if not body.terms_accepted:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=TERMS_REQUIRED
         )
     if await _has_account(db, key):
         raise HTTPException(
@@ -188,6 +207,11 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
             email_key=key,
             name=name,
             hashed_password=hash_password(body.password),
+            birth_date=body.birth_date,
+            consent_text_version=(
+                body.consent_text_version or consents.CONSENT_TEXT_VERSION
+            ),
+            read_heart_rate=body.read_heart_rate,
             code_hash=codes.hash_code(key, code, settings.secret_key),
             expires_at=codes.expiry_from(now),
             created_at=now,
@@ -208,9 +232,17 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
     status_code=status.HTTP_201_CREATED,
 )
 async def register_confirm(
-    body: SignupConfirmRequest, db: AsyncSession = Depends(get_db)
+    body: SignupConfirmRequest,
+    db: AsyncSession = Depends(get_db),
+    request: Request = None,
 ):
-    """Step two: the code came back, so the address is real — make the account."""
+    """Step two: the code came back, so the address is real — make the account.
+
+    The account is born with its birth date and with the consent the person
+    gave on the sign-up screen: `terms` always (the checkbox), and
+    `read_heart_rate` when that screen carried it. Both dated when they were
+    given — the moment the code was asked for — not when it came back.
+    """
     now = datetime.now(UTC)
     key = codes.email_key(body.email)
     code = codes.clean_code(body.code)
@@ -257,9 +289,23 @@ async def register_confirm(
         name=pending.name,
         auth_provider="email",
         hashed_password=pending.hashed_password,
+        birth_date=pending.birth_date,
     )
     db.add(user)
     await db.flush()
+
+    given = {"terms": True}
+    if pending.read_heart_rate:
+        given["read_heart_rate"] = True
+    await consents.set_many(
+        db,
+        user.id,
+        given,
+        text_version=pending.consent_text_version or consents.CONSENT_TEXT_VERSION,
+        means="checkbox",
+        client=client_of(request),
+        now=codes._aware(pending.created_at) if pending.created_at else now,
+    )
 
     return await _signed_in(db, user.id)
 

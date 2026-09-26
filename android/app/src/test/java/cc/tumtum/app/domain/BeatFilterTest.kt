@@ -4,30 +4,42 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.roundToInt
 
 /**
- * Night 18 (25/09, b198): a Polar H10 worn for a minute, then taken off. Its
- * export is the fixture — every reading, in order. The strap flagged "contact
- * not supported" in all 94; what changed when it came off was the R-R.
+ * The shape of night 18 (25/09, b198): a Polar H10 worn for about a minute,
+ * then taken off. The strap flagged "contact not supported" in every packet;
+ * what changed when it came off was the R-R.
+ *
+ * The fixture **mirrors that export's shape without carrying it** (LGPD
+ * remediation, 26/09): until then it held the 67 real readings of the
+ * founder's night, in a public repository. What the rule needs is only the
+ * shape — a run on the skin where every reading carries an R-R, then the last
+ * value repeated nine times without one, then zeros until the strap gave up —
+ * so the values below are generated: a plausible resting heart drifting
+ * between the low 60s and the low 80s, the same length as the original.
  */
 class BeatFilterTest {
 
-    /** The 67 readings worn: every one carried an R-R. */
-    private val worn = listOf(
-        65, 65, 64, 63, 62, 62, 62, 62, 62, 63, 63, 64, 65, 65, 66, 67, 70, 71, 72, 73,
-        75, 75, 75, 76, 77, 78, 79, 80, 80, 80, 79, 78, 79, 79, 81, 81, 81, 80, 79, 78,
-        76, 75, 74, 73, 73, 72, 72, 72, 72, 72, 71, 71, 70, 70, 69, 68, 68, 67, 67, 66,
-        66, 67, 66, 66, 67, 69, 71,
-    )
+    /** 67 readings worn, every one with an R-R — synthetic, a slow rise and fall around 72 bpm. */
+    private val worn: List<Int> = (0 until 67).map { i ->
+        (72 + 9 * kotlin.math.sin(i / 10.0) + ((i * 7) % 3 - 1)).roundToInt()
+    }
 
     private fun night18(): List<RawReading> {
         val readings = mutableListOf<RawReading>()
         worn.forEach { readings += RawReading(readings.size * 1_000L, it, 0, hasRr = true) }
         // Off the skin: the last value, nine times, with no R-R…
-        repeat(9) { readings += RawReading(readings.size * 1_000L, 71, 0, hasRr = false) }
+        repeat(9) { readings += RawReading(readings.size * 1_000L, worn.last(), 0, hasRr = false) }
         // …then 0, eighteen times, until it disconnected on its own.
         repeat(18) { readings += RawReading(readings.size * 1_000L, 0, 0, hasRr = false) }
         return readings
+    }
+
+    @Test
+    fun `the synthetic run stays in a resting heart's range`() {
+        assertEquals(67, worn.size)
+        assertTrue(worn.all { it in 55..95 })
     }
 
     @Test

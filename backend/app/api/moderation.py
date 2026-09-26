@@ -9,7 +9,7 @@ import uuid
 from collections import defaultdict
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,16 +21,22 @@ from app.models.moderation import PostReport
 from app.models.user import User
 from app.schemas.feed import FeedAuthor, ReportedPost, ResolveReportRequest
 from app.services import moderation
+from app.services.access_log import record_access
 
 router = APIRouter(prefix="/api/admin/reports", tags=["moderation"])
 
 
 @router.get("", response_model=list[ReportedPost])
 async def open_reports(
-    _: User = Depends(require_admin),
+    request: Request,
+    admin: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Every post with a report nobody has decided on yet, oldest first."""
+    """Every post with a report nobody has decided on yet, oldest first.
+
+    Each reported post carries its author's bpm, so reading the queue is a
+    read of their health data — logged once per post (LGPD audit, AL-8).
+    """
     rows = (
         await db.execute(
             select(PostReport, EventPost, Event, User)
@@ -54,6 +60,11 @@ async def open_reports(
                 "author": author,
                 "first": report.created_at,
             },
+        )
+
+    for post_id, g in grouped.items():
+        await record_access(
+            db, admin, g["author"].id, "event_post", post_id, "moderate", request
         )
 
     out = []

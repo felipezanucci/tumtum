@@ -1,7 +1,7 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
-from sqlalchemy import DateTime, String
+from sqlalchemy import Date, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,6 +24,11 @@ class User(Base):
     )  # google | apple | email
     auth_provider_id: Mapped[str | None] = mapped_column(String(255))
     hashed_password: Mapped[str | None] = mapped_column(String(255))
+    # TumTum is for adults (LGPD audit, CR-4). Given at sign-up; null only
+    # for accounts made before 26/09, which are asked once and then it is
+    # fixed. A column on an existing table: migration 015, and the startup
+    # catch-up in `core/schema_catchup.py`.
+    birth_date: Mapped[date | None] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

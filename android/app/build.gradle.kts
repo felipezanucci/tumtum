@@ -71,6 +71,9 @@ android {
     }
     buildFeatures {
         compose = true
+        // BuildConfig.VERSION_CODE rides on every request as X-Tumtum-Client
+        // (the consent record's `client` column, 26/09).
+        buildConfig = true
     }
 }
 
@@ -99,6 +102,11 @@ dependencies {
     implementation(libs.androidx.media3.transformer)
     implementation(libs.androidx.media3.effect)
     implementation(libs.androidx.media3.common)
+    // Health data at rest (26/09): SQLCipher under Room, the key and the
+    // session tokens in EncryptedSharedPreferences (Android Keystore).
+    implementation(libs.sqlcipher.android)
+    implementation(libs.androidx.sqlite.ktx)
+    implementation(libs.androidx.security.crypto)
     testImplementation(libs.junit)
     // Android ships org.json, but the stub on the unit-test classpath throws
     // on every call. AccessToken reads a JWT payload with it. Test-only.

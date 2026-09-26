@@ -30,6 +30,8 @@ import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.ShareCardView
+import cc.tumtum.app.ui.components.cardTitleText
+import cc.tumtum.app.domain.CardCopy
 import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
@@ -41,6 +43,11 @@ fun ChooseSkinScreen(nav: NavHostController, nightId: Long) {
     val container = appContainer()
     val night by container.nights.night(nightId).collectAsStateWithLifecycle(initialValue = null)
     val n = night ?: return
+
+    // The title the night's numbers prove (26/09), the same on every skin.
+    val title = cardTitleText(
+        CardCopy.title(n.peakBpm, CardCopy.averageBpm(n.samples), Fmt.hour(n.peakAt), hasMoments = n.moments.isNotEmpty()),
+    )
 
     val skins = listOf(
         Skin.PINK to stringResource(R.string.skin_pink),
@@ -82,7 +89,7 @@ fun ChooseSkinScreen(nav: NavHostController, nightId: Long) {
                 ) {
                     ShareCardView(
                         skin = skin,
-                        title = stringResource(R.string.reveal_default_title),
+                        title = title,
                         bpm = n.peakBpm,
                         meta = stringResource(R.string.reveal_bpm) + " " + stringResource(R.string.reveal_at, Fmt.hour(n.peakAt)),
                         width = 150.dp,

@@ -68,7 +68,7 @@ import kotlinx.coroutines.launch
  *
  * States, each saying only what is true:
  * - **nothing chosen**: the watches that wrote heart rate to Health Connect in
- *   the last 24 hours, the first one in Pink; when there is none, what makes
+ *   the last hour, the first one in Pink; when there is none, what makes
  *   a watch show up, and a way to look again. Under it, "Tem uma cinta de
  *   peito?" and the sensor search;
  * - **watch chosen**: "Pronto, relógio conectado", the way home, and Trocar;
@@ -168,6 +168,9 @@ fun SetupScreen(nav: NavHostController, startSearching: Boolean = false) {
                 TTButton(stringResource(R.string.sources_skip), TTButtonStyle.OutlineOnDark, onClick = { goHome() })
                 Spacer(Modifier.height(40.dp))
                 Text(stringResource(R.string.setup_strap_section), style = TTType.Meta, color = TT.Paper)
+                Spacer(Modifier.height(8.dp))
+                // What a strap asks of the phone, said before the search (26/09).
+                Text(stringResource(R.string.setup_strap_body), style = TTType.Footnote, color = TT.Gray45)
                 Spacer(Modifier.height(10.dp))
                 TTButton(stringResource(R.string.setup_strap_search), TTButtonStyle.OutlineOnDark, onClick = { searching = true })
             }
@@ -332,9 +335,16 @@ private fun PairedStep(address: String, name: String, onHome: () -> Unit, onChan
 }
 
 /**
- * The watches that wrote heart rate to Health Connect in the last 24 hours,
- * each with its own "Usar", the first in Pink. When there is none, the one
- * thing that makes a watch show up, and a way to look again.
+ * The watches that wrote heart rate to Health Connect in the last hour, each
+ * with its own "Usar", the first in Pink. When there is none, the one thing
+ * that makes a watch show up, and a way to look again.
+ *
+ * **One hour, not 24** (LGPD remediation, 26/09). Setup is the one read made
+ * outside an event's window, and it read a whole day of someone's heart to
+ * find which watch writes it — while the permission screen promised reading
+ * "só nas janelas dos seus eventos". An hour is enough to see a watch that
+ * syncs, the screen says which hour it looked at, and nothing read here is
+ * kept or sent.
  */
 @Composable
 private fun WatchChoices(onUse: (String, String) -> Unit) {
@@ -347,7 +357,7 @@ private fun WatchChoices(onUse: (String, String) -> Unit) {
             false to null
         } else {
             val end = Instant.now()
-            val start = end.minus(Duration.ofHours(24))
+            val start = end.minus(Duration.ofMinutes(60))
             val bySource = runCatching { container.health.readWindowBySource(start, end) }.getOrDefault(emptyMap())
             true to SourceMeasurement(start, end, bySource, container.health.sourceDensities(bySource, start, end))
         }

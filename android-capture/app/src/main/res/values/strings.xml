@@ -165,7 +165,7 @@
     <string name="watch_gap_seconds">%1$d s</string>
     <string name="watch_gap_minutes">%1$d min</string>
     <string name="watch_verdict_dense">Denso o bastante: dá para procurar seus momentos.</string>
-    <string name="watch_verdict_sparse">Dá para desenhar a curva da noite, mas os momentos podem não se destacar. Da próxima vez, inicie um treino no relógio quando o show começar — aí ele grava denso.</string>
+    <string name="watch_verdict_sparse">Dá para desenhar a curva da noite, mas os momentos podem não se destacar. Da próxima vez, ligue a leitura contínua do relógio quando o show começar — aí ele grava denso.</string>
     <string name="watch_send">Enviar essas leituras</string>
     <string name="watch_sending">Enviando…</string>
 

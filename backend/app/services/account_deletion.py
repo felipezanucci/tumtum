@@ -9,12 +9,21 @@ stay. Everything owned by the person goes, children before parents because
 two of the foreign keys (``hr_sessions.user_id``, ``wearable_connections.user_id``)
 and ``hr_data.session_id`` carry no ON DELETE clause — a bulk delete in the
 wrong order is refused by the database, not silently cascaded.
+
+Since 26/09 (LGPD remediation) it also takes what sits *around* the account
+and names the person: sign-up and e-mail-change codes for the address, the
+waitlist entry for it, the consent record, the data-subject requests, the
+log of reads of their data, and the cached images of their cards. What stays
+is one row in `deletion_log` with a date and no identifier — and the access
+log, which the Marco Civil (art. 15) requires kept for six months and which
+the maintenance loop purges after that.
 """
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.card import Card, Share
+from app.models.consent import Consent
 from app.models.event_post import EventPost, EventPostReaction
 from app.models.event_series import SeriesPost
 from app.models.hr_data import HRData
@@ -22,9 +31,18 @@ from app.models.hr_session import HRSession
 from app.models.moderation import PostReport, UserBlock
 from app.models.password_reset_token import PasswordResetToken
 from app.models.peak import Peak
+from app.models.privacy import (
+    DataAccessLog,
+    DataSubjectRequest,
+    DeletionLog,
+    EmailChange,
+)
 from app.models.refresh_token import RefreshToken
+from app.models.signup_code import SignupCode
 from app.models.user import User
+from app.models.waitlist_entry import WaitlistEntry
 from app.models.wearable_connection import WearableConnection
+from app.services import card_cache
 
 # Children before parents. Tested, because the order *is* the correctness.
 #
@@ -47,12 +65,21 @@ DELETION_ORDER = (
     "wearable_connections",
     "password_reset_tokens",
     "refresh_tokens",
+    "consents",
+    "email_changes",
+    "data_subject_requests",
     "users",
 )
 
 
 async def delete_account(db: AsyncSession, user: User) -> None:
     """Remove the user and every row that belongs to them. Irreversible."""
+    email_key = user.email.strip().lower()
+    card_id_list = list(
+        (await db.execute(select(Card.id).where(Card.user_id == user.id)))
+        .scalars()
+        .all()
+    )
     session_ids = (
         select(HRSession.id).where(HRSession.user_id == user.id).scalar_subquery()
     )
@@ -94,5 +121,24 @@ async def delete_account(db: AsyncSession, user: User) -> None:
         delete(PasswordResetToken).where(PasswordResetToken.user_id == user.id)
     )
     await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
+    await db.execute(delete(Consent).where(Consent.user_id == user.id))
+    await db.execute(
+        delete(EmailChange).where(
+            (EmailChange.user_id == user.id) | (EmailChange.email_key == email_key)
+        )
+    )
+    await db.execute(
+        delete(DataSubjectRequest).where(DataSubjectRequest.user_id == user.id)
+    )
+    await db.execute(
+        delete(DataAccessLog).where(DataAccessLog.subject_user_id == user.id)
+    )
+    await db.execute(delete(SignupCode).where(SignupCode.email_key == email_key))
+    await db.execute(
+        delete(WaitlistEntry).where(func.lower(WaitlistEntry.email) == email_key)
+    )
     await db.execute(delete(User).where(User.id == user.id))
+    db.add(DeletionLog())
     await db.flush()
+
+    await card_cache.forget(card_id_list)

@@ -41,7 +41,16 @@ describe('a refusal that is a list, not a sentence', () => {
         json: async () => ({ detail: [{ loc: ['body', 'email'], msg: 'value is not a valid email address' }] }),
       })),
     )
-    await expect(auth.signupStart('a@b', 'Ana', 'segredo123')).rejects.toThrow(
+    await expect(
+      auth.signupStart({
+        email: 'a@b',
+        name: 'Ana',
+        password: 'segredo123',
+        birth_date: '1990-01-01',
+        terms_accepted: true,
+        read_heart_rate: false,
+      }),
+    ).rejects.toThrow(
       'O servidor não aceitou esses dados',
     )
   })

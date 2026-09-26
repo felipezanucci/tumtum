@@ -55,6 +55,22 @@ interface CaptureDao {
     @Query("DELETE FROM connection_events")
     suspend fun deleteAllConnectionEvents()
 
+    // Local minimisation (26/09): once a night is saved, its event's raw
+    // capture goes — the per-packet readings, the R-R intervals, the phone's
+    // motion and the connection log. The night keeps its beats (`samples`)
+    // and its moments; nothing on screen reads the raw tables after that.
+    @Query("DELETE FROM ble_samples WHERE eventId = :eventId")
+    suspend fun deleteSamplesOfEvent(eventId: Long)
+
+    @Query("DELETE FROM rr_intervals WHERE eventId = :eventId")
+    suspend fun deleteRrOfEvent(eventId: Long)
+
+    @Query("DELETE FROM motion WHERE eventId = :eventId")
+    suspend fun deleteMotionOfEvent(eventId: Long)
+
+    @Query("DELETE FROM connection_events WHERE eventId = :eventId")
+    suspend fun deleteConnectionEventsOfEvent(eventId: Long)
+
     // A deleted account's raw capture (25/09): only for events that no longer exist.
     @Query("DELETE FROM ble_samples WHERE eventId IN (:eventIds) AND eventId NOT IN (SELECT id FROM events)")
     suspend fun deleteSamplesOf(eventIds: List<Long>)

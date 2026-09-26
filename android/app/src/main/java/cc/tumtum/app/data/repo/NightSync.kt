@@ -4,6 +4,7 @@ import cc.tumtum.app.data.api.TumtumApi
 import cc.tumtum.app.data.db.MomentEntity
 import cc.tumtum.app.data.db.TumTumDatabase
 import cc.tumtum.app.data.prefs.UserPrefs
+import cc.tumtum.app.domain.ConsentText
 import cc.tumtum.app.domain.HrSample
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,9 +25,11 @@ import java.time.ZoneId
  * docs/one-app-plan.md, 2026-09-18.
  *
  * The phone stays the source of truth for the readings: a night is saved in
- * Room first, and only then offered to the server. Upload failure costs
- * nothing but a retry — on the next app start, on opening the night, or by
- * the button on the reveal. Success replaces the phone's top-N moments with
+ * Room first, and **goes to the server only when its owner asks** (26/09):
+ * the reveal's "Guardar minha noite na TumTum", with the `keep_night`
+ * consent on ([requestSend]). A night nobody asked to send is never touched
+ * here. Once asked, a failure costs nothing but a retry — on the next app
+ * start, or by the button on the reveal. Success replaces the phone's top-N moments with
  * the detector's, and the night records which it holds, so the reveal never
  * shows one while claiming the other.
  *
@@ -37,6 +40,22 @@ import java.time.ZoneId
  */
 /** The two real steps of a sync, for a screen to show the work as it happens (§5.2). */
 enum class SyncPhase { SENDING, ANALYSING }
+
+/** What asking to keep a night came to, before anything was sent (26/09). */
+sealed interface SendRequest {
+    /** Asked and started: the night is flagged and the upload is under way. */
+    data object Started : SendRequest
+
+    /** The consent to keep nights is off: the screen opens it, focused on [purpose]. */
+    data class NeedsConsent(val purpose: String) : SendRequest
+
+    data object SignedOut : SendRequest
+
+    data object Offline : SendRequest
+
+    /** The server answered something else; [detail] is its own sentence. */
+    data class Failed(val detail: String) : SendRequest
+}
 
 class NightSync(
     private val db: TumTumDatabase,
@@ -55,6 +74,39 @@ class NightSync(
 
     fun uploadLater(nightId: Long) {
         scope.launch { upload(nightId) }
+    }
+
+    /**
+     * The tap on "Guardar minha noite na TumTum" (26/09). The consent is asked
+     * of the server first — never assumed from an old answer — and only with
+     * `keep_night` granted is the night flagged and sent. Without it nothing
+     * is flagged, so no retry will ever send a night whose owner did not agree.
+     *
+     * With [start] false the caller runs [upload] itself (a screen that waits
+     * for the result); otherwise it runs here, in the background.
+     */
+    suspend fun requestSend(nightId: Long, start: Boolean = true): SendRequest {
+        val session = prefs.state.first().session
+        if (session == null || !session.isLive(System.currentTimeMillis())) return SendRequest.SignedOut
+        val consents = try {
+            api.getConsents()
+        } catch (e: TumtumApi.ApiException) {
+            return if (e.code == 401) SendRequest.SignedOut else SendRequest.Failed(e.detail)
+        } catch (e: IOException) {
+            return SendRequest.Offline
+        }
+        if (!consents.granted(ConsentText.KEEP_NIGHT)) return SendRequest.NeedsConsent(ConsentText.KEEP_NIGHT)
+        db.nightDao().setSendRequested(nightId, true)
+        if (start) uploadLater(nightId)
+        return SendRequest.Started
+    }
+
+    /** The consent screen just recorded `keep_night` for this night's sake: flag it and send it. */
+    fun sendAfterConsent(nightId: Long) {
+        scope.launch {
+            db.nightDao().setSendRequested(nightId, true)
+            upload(nightId)
+        }
     }
 
     /**
@@ -143,6 +195,8 @@ class NightSync(
         try {
             val session = prefs.state.first().session
             val night = db.nightDao().nightRow(nightId) ?: return
+            // Only a night its owner asked to keep ever leaves the phone (26/09).
+            if (!night.sendRequested) return
             // Another account's night waits for that account (25/09): sent
             // under this one, it would become this person's on the server.
             if (night.ownerUserId != null && session?.userId != null && night.ownerUserId != session.userId) return
@@ -187,7 +241,7 @@ class NightSync(
                     samples = samples,
                     serverEventId = serverEventId,
                 )
-                db.nightDao().setServerSessionId(nightId, serverId, session.userId)
+                db.nightDao().setServerSessionId(nightId, serverId, session.userId, System.currentTimeMillis())
                 db.nightDao().setUploadState(nightId, "SENT", null)
             }
 
@@ -211,6 +265,12 @@ class NightSync(
                 },
             )
             db.nightDao().setUploadState(nightId, "ANALYSED", null)
+        } catch (e: TumtumApi.ConsentRequired) {
+            // The consent was revoked between the tap and the upload (26/09).
+            // The ask is withdrawn so no retry sends it silently; the reveal
+            // says what is missing and opens the consent screen on it.
+            db.nightDao().setSendRequested(nightId, false)
+            db.nightDao().setUploadState(nightId, "FAILED", ERR_CONSENT_PREFIX + e.purpose)
         } catch (e: TumtumApi.ApiException) {
             val reason = if (e.code == 401) ERR_EXPIRED else "server:${e.code} ${e.detail}"
             db.nightDao().setUploadState(nightId, "FAILED", reason)
@@ -255,5 +315,12 @@ class NightSync(
         const val ERR_EXPIRED = "expired"
         const val ERR_OFFLINE = "offline"
         const val ERR_NOT_OPERATOR = "not_operator"
+
+        /** `consent:<purpose>` — the server refused for a missing consent. */
+        const val ERR_CONSENT_PREFIX = "consent:"
+
+        /** The purpose a failed upload is waiting on, or null. */
+        fun consentMissing(uploadError: String?): String? =
+            uploadError?.takeIf { it.startsWith(ERR_CONSENT_PREFIX) }?.removePrefix(ERR_CONSENT_PREFIX)?.ifBlank { null }
     }
 }

@@ -51,9 +51,13 @@
         <package android:name="com.whatsapp.w4b" />
     </queries>
 
+    <!-- allowBackup off (26/09): the database holds heart-rate data and the
+         encrypted preferences hold the session and the database key. A
+         backup would copy health data to Google's cloud and to the next
+         phone, and the Keystore key that opens it never travels anyway. -->
     <application
         android:name=".TumTumApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -69,7 +73,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Health Connect (< Android 14): tela de racional de permissão -->
+        </activity>
+
+        <!-- Health Connect (< Android 14): why TumTum reads heart rate (26/09).
+             Until then this filter sat on MainActivity, which ignored it. -->
+        <activity
+            android:name=".ui.screens.consent.ConsentRationaleActivity"
+            android:exported="true"
+            android:theme="@style/Theme.TumTum">
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
@@ -120,7 +131,7 @@
         <activity-alias
             android:name=".ViewPermissionUsageActivity"
             android:exported="true"
-            android:targetActivity=".MainActivity"
+            android:targetActivity=".ui.screens.consent.ConsentRationaleActivity"
             android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />

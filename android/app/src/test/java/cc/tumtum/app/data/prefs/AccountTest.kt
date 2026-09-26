@@ -10,12 +10,12 @@ import org.junit.Test
  */
 class AccountTest {
 
-    private val felipe = Account(name = "Felipe", username = "felipe", email = "Felipe@Gmail.com", tribes = setOf("SHOWS"))
+    private val felipe = Account(name = "Felipe", username = "felipe", email = "Ana@Exemplo.com", tribes = setOf("SHOWS"))
 
     @Test
     fun `the same address signing in keeps the profile, whatever the case`() {
-        assertTrue(felipe.belongsTo("felipe@gmail.com"))
-        assertTrue(felipe.belongsTo("  FELIPE@gmail.com "))
+        assertTrue(felipe.belongsTo("ana@exemplo.com"))
+        assertTrue(felipe.belongsTo("  ANA@exemplo.com "))
     }
 
     @Test

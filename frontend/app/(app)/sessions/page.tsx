@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 import { ApiError, health, type HRSession } from '@/lib/api'
-import { Badge, Card, Loading, SignInRequired } from '@/components/ui'
+import { Button, Card, Loading, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { formatDuration } from '@/lib/health/quality'
 
@@ -16,11 +16,36 @@ import { formatDuration } from '@/lib/health/quality'
  * confirm their night actually arrived: the count went up by one, silently,
  * and a number with no list is one more piece of invisible state. This page
  * is the receipt.
+ *
+ * And, since 26/09, the way out for one night: "Apagar esta noite" takes the
+ * readings, the moments, the cards and any feed post of that night, and
+ * leaves the account and every other night alone.
  */
 export default function SessionsPage() {
   const [sessions, setSessions] = useState<HRSession[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [needsSignIn, setNeedsSignIn] = useState(false)
+  // The night whose delete is waiting for the second tap, and the one going.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  async function handleDelete(sessionId: string) {
+    setDeletingId(sessionId)
+    setDeleteError(null)
+    setNotice(null)
+    try {
+      await health.deleteSession(sessionId)
+      setSessions((prev) => prev?.filter((s) => s.id !== sessionId) ?? prev)
+      setNotice('Noite apagada. As leituras, os momentos e os cards dela saíram dos servidores.')
+      setConfirmingId(null)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Não deu pra apagar essa noite.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   useEffect(() => {
     health
@@ -58,6 +83,12 @@ export default function SessionsPage() {
             </p>
           )}
 
+          {notice && (
+            <p role="status" className="mt-6 rounded-lg border border-tumtum-border bg-tumtum-surface p-3 text-sm text-tumtum-white">
+              {notice}
+            </p>
+          )}
+
           {!sessions && !error && !needsSignIn && (
             <div className="mt-10 flex justify-center">
               <Loading />
@@ -76,12 +107,8 @@ export default function SessionsPage() {
               const seconds =
                 (Date.parse(session.end_time) - Date.parse(session.start_time)) / 1000
               return (
-                <Link
-                  key={session.id}
-                  href={`/experience?session=${session.id}`}
-                  className="block"
-                >
-                  <Card className="transition-colors hover:border-tumtum-pink/50">
+                <Card key={session.id} className="transition-colors hover:border-tumtum-pink/50">
+                  <Link href={`/experience?session=${session.id}`} className="block">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-tumtum-white">
@@ -111,8 +138,54 @@ export default function SessionsPage() {
                         )}
                       </div>
                     </div>
-                  </Card>
-                </Link>
+                  </Link>
+                  <div className="mt-4 border-t border-tumtum-border pt-3">
+                    {confirmingId === session.id ? (
+                      <div>
+                        <p className="text-sm text-tumtum-white">
+                          Apagar essa noite de vez? Vão junto as leituras, os momentos, os cards e
+                          qualquer post dela no feed.
+                        </p>
+                        {deleteError && (
+                          <p role="alert" className="mt-2 text-sm text-red-400">{deleteError}</p>
+                        )}
+                        <div className="mt-3 flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            loading={deletingId === session.id}
+                            onClick={() => void handleDelete(session.id)}
+                          >
+                            Apagar de vez
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={deletingId === session.id}
+                            onClick={() => {
+                              setConfirmingId(null)
+                              setDeleteError(null)
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setConfirmingId(session.id)
+                          setDeleteError(null)
+                          setNotice(null)
+                        }}
+                        className="text-sm text-tumtum-muted underline-offset-2 hover:text-tumtum-white hover:underline"
+                      >
+                        Apagar esta noite
+                      </button>
+                    )}
+                  </div>
+                </Card>
               )
             })}
           </div>

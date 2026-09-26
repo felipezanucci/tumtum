@@ -23,25 +23,25 @@ def settings_with(**values) -> Settings:
 def test_nobody_is_admin_by_default():
     s = settings_with()
     assert s.admins == set()
-    assert not s.is_admin("felipe@tumtum.cc")
+    assert not s.is_admin("op@exemplo.com")
 
 
 def test_admin_emails_are_trimmed_and_case_insensitive():
-    s = settings_with(admin_emails=" Felipe@TumTum.cc , ops@tumtum.cc ")
-    assert s.is_admin("felipe@tumtum.cc")
-    assert s.is_admin("OPS@tumtum.cc")
+    s = settings_with(admin_emails=" Op@Exemplo.com , ops@exemplo.com ")
+    assert s.is_admin("op@exemplo.com")
+    assert s.is_admin("OPS@exemplo.com")
     assert not s.is_admin("fan@example.com")
 
 
 def test_the_waitlist_admins_operate_events_too():
-    s = settings_with(waitlist_admin_emails="felipe@tumtum.cc")
-    assert s.is_admin("felipe@tumtum.cc")
-    assert s.waitlist_admins == {"felipe@tumtum.cc"}
+    s = settings_with(waitlist_admin_emails="op@exemplo.com")
+    assert s.is_admin("op@exemplo.com")
+    assert s.waitlist_admins == {"op@exemplo.com"}
 
 
 @pytest.mark.asyncio
 async def test_require_admin_refuses_a_signed_in_fan_with_403(monkeypatch):
-    monkeypatch.setattr(auth, "settings", settings_with(admin_emails="ops@tumtum.cc"))
+    monkeypatch.setattr(auth, "settings", settings_with(admin_emails="ops@exemplo.com"))
     with pytest.raises(HTTPException) as refused:
         await auth.require_admin(SimpleNamespace(email="fan@example.com"))
     assert refused.value.status_code == 403
@@ -49,6 +49,6 @@ async def test_require_admin_refuses_a_signed_in_fan_with_403(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_require_admin_lets_the_operator_through(monkeypatch):
-    monkeypatch.setattr(auth, "settings", settings_with(admin_emails="ops@tumtum.cc"))
-    user = SimpleNamespace(email="Ops@tumtum.cc")
+    monkeypatch.setattr(auth, "settings", settings_with(admin_emails="ops@exemplo.com"))
+    user = SimpleNamespace(email="Ops@exemplo.com")
     assert await auth.require_admin(user) is user

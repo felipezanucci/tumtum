@@ -22,6 +22,7 @@ import cc.tumtum.app.ui.components.TTTab
 import cc.tumtum.app.ui.screens.account.CreateAccountScreen
 import cc.tumtum.app.ui.screens.card.CardScreen
 import cc.tumtum.app.ui.screens.choose.ChooseSkinScreen
+import cc.tumtum.app.ui.screens.consent.ConsentScreen
 import cc.tumtum.app.ui.screens.eventfeed.EventFeedScreen
 import cc.tumtum.app.ui.screens.feed.FeedScreen
 import cc.tumtum.app.ui.screens.gallery.GalleryScreen
@@ -37,12 +38,19 @@ import cc.tumtum.app.ui.screens.sources.SetupScreen
 import cc.tumtum.app.ui.screens.sources.WatchSourcesScreen
 import cc.tumtum.app.ui.screens.you.YouScreen
 import androidx.compose.runtime.LaunchedEffect
+import cc.tumtum.app.data.repo.consentGateNeeded
+import kotlinx.coroutines.flow.first
 
 object Routes {
     const val Onboarding = "onboarding"
     const val Account = "account"
     const val Login = "login"
     const val Permission = "permission"
+    /**
+     * The consent screen (26/09): before the Health Connect dialog, as the
+     * gate after a sign-in, and whenever the server asks for one purpose.
+     */
+    const val Consent = "consent?focus={focus}&send={send}"
     const val SourcesSetup = "sources_setup"
     /** The same setup screen, opened on the strap search — Configurações' way in (25/09). */
     const val SensorSearch = "sources_setup/search"
@@ -61,6 +69,15 @@ object Routes {
     const val Profile = "profile/{handle}"
 
     fun reveal(nightId: Long) = "reveal/$nightId"
+
+    /** [focus]: the purpose the app needs now; [sendNightId]: the night that goes up once `keep_night` is on. */
+    fun consent(focus: String? = null, sendNightId: Long? = null): String {
+        val args = buildList {
+            focus?.let { add("focus=${Uri.encode(it)}") }
+            sendNightId?.let { add("send=$it") }
+        }
+        return if (args.isEmpty()) "consent" else "consent?" + args.joinToString("&")
+    }
     fun choose(nightId: Long) = "choose/$nightId"
     fun card(nightId: Long, skin: Skin) = "card/$nightId/${skin.name}"
 
@@ -90,7 +107,18 @@ fun TumTumRoot(
     openLive: Boolean = false,
 ) {
     val backStack by nav.currentBackStackEntryAsState()
+    val container = appContainer()
     // A tapped reminder lands on the night it named, or on AO VIVO — only once the person is in.
+    // The consent gate (26/09): an account from before it — no birth date,
+    // or no Terms agreed — passes it before anything else. Unasked (offline),
+    // the person goes in; the server still refuses whatever needs a consent.
+    LaunchedEffect(Unit) {
+        if (startDestination != Routes.Feed) return@LaunchedEffect
+        val session = container.prefs.state.first().session
+        if (session?.isLive(System.currentTimeMillis()) == true && container.consentGateNeeded() == true) {
+            nav.navigate(Routes.consent()) { popUpTo(Routes.Feed) { inclusive = true } }
+        }
+    }
     LaunchedEffect(openNightId, openLive) {
         if (startDestination != Routes.Feed) return@LaunchedEffect
         when {
@@ -132,6 +160,26 @@ fun TumTumRoot(
             composable(Routes.Account) { CreateAccountScreen(nav) }
             composable(Routes.Login) { LoginScreen(nav) }
             composable(Routes.Permission) { PermissionScreen(nav) }
+            composable(
+                Routes.Consent,
+                arguments = listOf(
+                    navArgument("focus") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                    navArgument("send") {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    },
+                ),
+            ) { entry ->
+                ConsentScreen(
+                    nav,
+                    focus = entry.arguments?.getString("focus"),
+                    sendNightId = entry.arguments?.getLong("send")?.takeIf { it >= 0 },
+                )
+            }
             composable(Routes.SourcesSetup) { SetupScreen(nav) }
             composable(Routes.SensorSearch) { SetupScreen(nav, startSearching = true) }
 
