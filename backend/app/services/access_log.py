@@ -31,19 +31,33 @@ ACCESS_LOG_RETENTION = timedelta(days=180)
 
 
 def ip_of(request: Request | None) -> str | None:
-    """The client's address: the first hop of `X-Forwarded-For` behind a proxy.
+    """The client's address, as the proxy in front of us saw it.
 
-    Railway and Vercel sit in front of the API, so `request.client.host` is
-    the proxy's address and says nothing about who asked. The first entry of
-    `X-Forwarded-For` is the one the edge saw.
+    `X-Forwarded-For` is a list each proxy appends to, and its **first**
+    entry is whatever the client chose to send — anybody can write
+    `X-Forwarded-For: 1.2.3.4` and, until 26/09, be logged (and would have
+    been rate-limited) as 1.2.3.4. The entry we can trust is the one our
+    own edge appended: `settings.trusted_proxy_hops` places from the right.
+
+    Railway's edge appends one hop, so the default is 1. Requests to
+    `/api/auth/*` arrive through the site's rewrite on Vercel, one hop
+    further out, and with 1 their rows show Vercel's address rather than
+    the person's; `TRUSTED_PROXY_HOPS=2` reads past it. To check what a
+    deployment needs: `curl -H 'X-Forwarded-For: 1.2.3.4'` a route, then
+    read the `access_log` row — it must show your own address, never
+    1.2.3.4. With fewer entries than hops the header was not written by our
+    proxies, and the socket's peer is used instead.
     """
     if request is None:
         return None
+    from app.config import settings
+
+    hops = max(settings.trusted_proxy_hops, 0)
     forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        first = forwarded.split(",")[0].strip()
-        if first:
-            return first[:64]
+    if forwarded and hops:
+        chain = [hop.strip() for hop in forwarded.split(",")]
+        if len(chain) >= hops and chain[-hops]:
+            return chain[-hops][:64]
     client = request.client
     return client.host[:64] if client and client.host else None
 

@@ -5,7 +5,7 @@
 The API never runs Alembic (decision log, open item 16). On startup it calls
 `Base.metadata.create_all`, which creates missing **tables** and never changes
 an existing one. Since 26/09 it also runs `app/core/schema_catchup.py`, which
-adds — only adds, idempotently — the columns of 015, 016, 017 and 023, because
+adds — only adds, idempotently — the columns of 015, 016, 017, 023 and 025, because
 the models map them and every query on `users`, `hr_sessions`, `cards` and
 `consents` would fail without them. For 023 it also fills the new columns of
 the consent rows already there and then makes `legal_basis` and `proof` NOT
@@ -22,6 +22,7 @@ may run it again.
 | 017 | `cards.published_at` | yes, by the catch-up |
 | 022 | drop `wearable_connections.access_token`/`refresh_token` | **no** — destructive, needs a person |
 | 023 | `consents.legal_basis`, `scope`, `proof` (the consent ledger, v1.1 opinion §4.2), backfilled by purpose and NOT NULL | yes, by the catch-up — nothing manual |
+| 025 | `users.tokens_valid_after` (access tokens die with a reset or e-mail change); `hr_sessions.event_readings` (attendance), backfilled for nights with an event from the readings they still hold | yes, by the catch-up — nothing manual |
 
 (008–014, 018–021 and 024 only create tables: `create_all` handles them;
 024 — `deletion_tombstones` — uses `IF NOT EXISTS`, so running it after the
@@ -56,10 +57,11 @@ alembic upgrade 007             # if it still has the timezone (the likely case)
 alembic stamp 021
 
 # 4. 022 drops the unused wearable tokens; 023 finds its columns already
-#    added and filled by the catch-up, and 024 its table already created by
-#    create_all — both only record themselves.
+#    added and filled by the catch-up, 024 its table already created by
+#    create_all, and 025 its columns already there — they only record
+#    themselves.
 alembic upgrade head
-alembic current                 # → 024 (head)
+alembic current                 # → 025 (head)
 ```
 
 From then on the version table is honest, and a future migration is one

@@ -8,8 +8,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, revoke_access_tokens
 from app.core.database import get_db
+from app.core.ratelimit import by_user, limit
 from app.models.card import Card
 from app.models.hr_session import HRSession
 from app.models.moderation import UserBlock
@@ -39,6 +40,10 @@ from app.services.age import UNDER_AGE, is_adult, today_local
 from app.services.email import EmailNotConfigured, send_email
 
 router = APIRouter(prefix="/api/users", tags=["users"])
+
+# Five tries per quarter hour per account at the acts that ask for the
+# password again: a stolen access token must not be a password oracle.
+_ACCOUNT_ACT_LIMIT = Depends(limit(by_user, 5, 900))
 
 
 async def _get_user_stats(db: AsyncSession, user_id) -> dict:
@@ -112,13 +117,13 @@ async def update_profile(
             )
         if not is_adult(body.birth_date, today_local()):
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=UNDER_AGE
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=UNDER_AGE
             )
         user.birth_date = body.birth_date
     if body.name is not None:
         user.name = body.name
     if body.avatar_url is not None:
-        user.avatar_url = body.avatar_url
+        user.avatar_url = str(body.avatar_url)
     await db.flush()
     return await _profile(db, user)
 
@@ -142,7 +147,14 @@ WRONG_PASSWORD = "Senha incorreta."
 # unlocked on a table, or a stolen access token, must not be enough to erase
 # somebody's nights forever. `DELETE /me` is gone rather than kept as a way
 # around the password.
-@router.post("/me/delete", status_code=status.HTTP_204_NO_CONTENT)
+#
+# Access tokens need no cut-off here: they name an account that no longer
+# exists, and `get_current_user` refuses them for that.
+@router.post(
+    "/me/delete",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[_ACCOUNT_ACT_LIMIT],
+)
 async def delete_profile(
     body: DeleteAccountRequest,
     request: Request,
@@ -299,6 +311,7 @@ async def _address_taken(db: AsyncSession, key: str, user_id: uuid.UUID) -> bool
     "/me/email",
     response_model=EmailChangeStarted,
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[_ACCOUNT_ACT_LIMIT],
 )
 async def start_email_change(
     body: EmailChangeRequest,
@@ -389,7 +402,11 @@ async def start_email_change(
     )
 
 
-@router.post("/me/email/confirm", response_model=UserProfileResponse)
+@router.post(
+    "/me/email/confirm",
+    response_model=UserProfileResponse,
+    dependencies=[_ACCOUNT_ACT_LIMIT],
+)
 async def confirm_email_change(
     body: EmailChangeConfirm,
     user: User = Depends(get_current_user),
@@ -400,7 +417,8 @@ async def confirm_email_change(
     Every refresh token of the account is revoked with it — the same reason a
     password reset does: a change of address is what somebody does when the
     old one is no longer theirs, and a device signed in under it should not
-    carry on for 90 days.
+    carry on for 90 days. The access tokens go too (`tokens_valid_after`),
+    this device's included: it signs in again under the new address.
     """
     now = datetime.now(UTC)
     code = codes.clean_code(body.code)
@@ -442,15 +460,23 @@ async def confirm_email_change(
 
     user.email = pending.new_email
     await refresh_tokens.revoke_all(db, user.id)
+    revoke_access_tokens(user)
     await db.flush()
     return await _profile(db, user)
 
 
 @router.get("/{user_id}", response_model=PublicProfileResponse)
 async def get_public_profile(
-    user_id: str,
+    user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
+    """A name, a picture, when they joined and how many cards they made.
+
+    Not how many nights they recorded or events they went to (26/09): a
+    count of heart-rate recordings is health-adjacent, and a public page is
+    no place for it. The id is a UUID, so anything else is a 422 before the
+    database is asked.
+    """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
@@ -463,7 +489,7 @@ async def get_public_profile(
         name=user.name,
         avatar_url=user.avatar_url,
         created_at=user.created_at,
-        **stats,
+        total_cards=stats["total_cards"],
     )
 
 

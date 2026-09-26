@@ -56,11 +56,12 @@ def event_window(event: Event) -> tuple[datetime, datetime]:
     return start - SLACK, end + SLACK
 
 
-def _aware(moment: datetime) -> datetime:
+def aware(moment: datetime) -> datetime:
+    """A naive instant read as UTC — how SQLite and some clients hand it over."""
     return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
 
 
 def night_fits(event: Event, start_time: datetime, end_time: datetime) -> bool:
     """Whether a night from `start_time` to `end_time` overlaps the window."""
     low, high = event_window(event)
-    return _aware(start_time) <= high and _aware(end_time) >= low
+    return aware(start_time) <= high and aware(end_time) >= low

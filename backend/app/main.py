@@ -173,14 +173,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Tumtum API", version="0.1.0", lifespan=lifespan)
 
-# Vercel gives every branch and every commit its own preview domain, so the
-# fixed list cannot cover them. The pattern is scoped to this account's Vercel
-# org ("-felipezanuccis-projects"), which keeps it from matching anyone else's
-# deployments while letting branch previews reach the API.
-VERCEL_PREVIEW_ORIGIN = (
-    r"https://tumtum-[a-z0-9-]+-felipezanuccis-projects\.vercel\.app"
-)
-
 
 class CatchUnhandledErrors(BaseHTTPMiddleware):
     """Return unhandled errors as a normal response, from inside the CORS layer.
@@ -286,29 +278,103 @@ class NoStoreForPersonalData(BaseHTTPMiddleware):
         return response
 
 
+# A night of eight hours at 1 Hz is 28 800 readings, about 1.5 MB of JSON;
+# nothing a client sends legitimately comes near four.
+MAX_BODY_BYTES = 4 * 1024 * 1024
+BODY_TOO_LARGE = "Esse envio é grande demais. Tenta mandar em partes menores."
+
+
+class BodySizeLimit:
+    """Refuse a request body over `MAX_BODY_BYTES` before anyone parses it.
+
+    Without it a single request could make the server read gigabytes into
+    memory before pydantic ever saw the first field. A declared
+    `Content-Length` over the limit is refused at once. A chunked body is
+    counted as it streams and cut off the moment it passes the limit; the
+    route then fails to read it (FastAPI turns that into a 400), and the
+    answer that goes out is this 413 instead. Pure ASGI rather than
+    `BaseHTTPMiddleware`, because it has to wrap `receive`.
+    """
+
+    def __init__(self, app, max_bytes: int = MAX_BODY_BYTES):
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        for name, value in scope.get("headers", []):
+            if name == b"content-length":
+                try:
+                    declared = int(value)
+                except ValueError:
+                    declared = 0
+                if declared > self.max_bytes:
+                    await self._refuse(scope, receive, send)
+                    return
+
+        state = {"received": 0, "too_large": False, "refused": False}
+
+        async def counted():
+            message = await receive()
+            if message["type"] == "http.request":
+                state["received"] += len(message.get("body", b""))
+                if state["received"] > self.max_bytes:
+                    state["too_large"] = True
+                    raise BodyTooLarge
+            return message
+
+        async def guarded(message):
+            if not state["too_large"]:
+                await send(message)
+            elif not state["refused"]:
+                state["refused"] = True
+                await self._refuse(scope, receive, send)
+
+        try:
+            await self.app(scope, counted, guarded)
+        except BodyTooLarge:
+            if not state["refused"]:
+                state["refused"] = True
+                await self._refuse(scope, receive, send)
+
+    @staticmethod
+    async def _refuse(scope, receive, send):
+        response = JSONResponse(status_code=413, content={"detail": BODY_TOO_LARGE})
+        await response(scope, receive, send)
+
+
+class BodyTooLarge(Exception):
+    """Raised from `receive` when a streamed body passes the limit."""
+
+
 # Added before CORSMiddleware so CORS ends up outermost: Starlette treats the
 # most recently added middleware as the outer one. The access log sits
-# outside the error trap, so a crash is logged with the 500 it became.
+# outside the error trap, so a crash is logged with the 500 it became. The
+# body limit is innermost, so its 413 travels out through all of them.
+app.add_middleware(BodySizeLimit)
 app.add_middleware(CatchUnhandledErrors)
 # Outside the error trap, so the 500 it makes is marked no-store as well.
 app.add_middleware(NoStoreForPersonalData)
 app.add_middleware(AccessLogMiddleware)
 
+# Exact origins only (security review, 26/09). A Vercel preview pattern used
+# to sit here, `tumtum-[a-z0-9-]+-felipezanuccis-projects.vercel.app`: not
+# anchored, so `https://tumtum-x-felipezanuccis-projects.vercel.app.evil.com`
+# matched it, and any Vercel project whose name merely contained the string
+# could be registered by anybody. With `allow_credentials` that is a page on
+# somebody else's site reading a signed-in person's data. A preview that
+# needs the API goes in `CORS_EXTRA_ORIGINS` by its exact address.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://tumtum.cc",
-        "https://www.tumtum.cc",
-        "https://tumtum.vercel.app",
-        "https://tumtum-eight.vercel.app",
-    ],
-    allow_origin_regex=VERCEL_PREVIEW_ORIGIN,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    # The browser may only read a download's file name if the server says so.
-    expose_headers=["Content-Disposition"],
+    # The browser may only read a download's file name, or how long a 429
+    # asks it to wait, if the server says so.
+    expose_headers=["Content-Disposition", "Retry-After"],
 )
 
 
@@ -318,12 +384,17 @@ async def consent_required_handler(_request: Request, exc: ConsentRequired):
     return JSONResponse(status_code=exc.status_code, content=exc.body())
 
 
+DEMO_ENVIRONMENTS = frozenset({"development", "test"})
+
+
 def include_routers(target: FastAPI, environment: str) -> None:
-    """Mount every router. The demo one only outside production.
+    """Mount every router. The demo one only on a development or test server.
 
     `/api/demo/*` seeds fake events and simulates nights. In production it
     is not mounted at all (LGPD audit, AL-10) — not guarded, absent — so no
     account, operator or not, can mix a synthetic night into real ones.
+    Since 26/09 the test is an allow-list: a server whose `ENVIRONMENT` is
+    misspelt, or "staging", or empty, gets no demo either.
     """
     target.include_router(auth_router)
     target.include_router(consents_router)
@@ -336,7 +407,7 @@ def include_routers(target: FastAPI, environment: str) -> None:
     target.include_router(experience_router)
     target.include_router(cards_router)
     target.include_router(users_router)
-    if environment != "production":
+    if environment in DEMO_ENVIRONMENTS:
         target.include_router(demo_router)
     target.include_router(waitlist_router)
 

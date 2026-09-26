@@ -88,6 +88,30 @@ class Settings(BaseSettings):
     # keep. After that it is purged: it is minimal personal data too, and a
     # hash kept forever is retention without a purpose.
     tombstone_retention_days: int = 400
+    # Origins allowed to call the API from a browser, beyond tumtum.cc and
+    # www.tumtum.cc. Comma-separated, exact (`https://host`, no path, no
+    # wildcard). It replaces a Vercel preview pattern that was not anchored
+    # and matched any project whose name began with "tumtum-" — anybody can
+    # register one of those. A preview that needs the API is listed here by
+    # its exact address.
+    cors_extra_origins: str = ""
+    # How many proxies append to `X-Forwarded-For` in front of this server.
+    # The client's address is the entry that many places from the right —
+    # the one our own edge wrote — never the first, which the client itself
+    # can write (services/access_log.py, `ip_of`).
+    trusted_proxy_hops: int = 1
+    # Per-IP, per-e-mail and per-account request limits on login, sign-up,
+    # reset, account changes and the public card image (core/ratelimit.py).
+    # Off only in the tests that do not exercise it.
+    rate_limit_enabled: bool = True
+    # Scales every limit at once (2.0 doubles them all) — for an event night,
+    # when a whole venue signs in from the same few mobile-carrier addresses.
+    rate_limit_multiplier: float = 1.0
+    # A night counts as having been at an event — it opens the event's feed
+    # and joins its crowd — only with this many readings inside the event's
+    # window. One minute of a 1 Hz strap; an hour of a watch that reads once
+    # a minute. Fewer is a claim, not a night (security review, 26/09).
+    attendance_min_readings: int = 60
 
     @property
     def waitlist_admins(self) -> set[str]:
@@ -99,6 +123,23 @@ class Settings(BaseSettings):
 
     def is_admin(self, email: str) -> bool:
         return email.strip().lower() in self.admins
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Every origin a browser may call the API from, exactly.
+
+        `localhost:3000` only on a development or test server: on production
+        it would let any page served from a visitor's own machine make
+        credentialed calls to the API.
+        """
+        origins = ["https://tumtum.cc", "https://www.tumtum.cc"]
+        if self.environment in {"development", "test"}:
+            origins.append("http://localhost:3000")
+        for origin in self.cors_extra_origins.split(","):
+            origin = origin.strip().rstrip("/")
+            if origin and origin not in origins:
+                origins.append(origin)
+        return origins
 
     def secret_key_problem(self) -> str | None:
         """Why this server must not start with its `SECRET_KEY`, or None.

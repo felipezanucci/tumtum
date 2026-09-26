@@ -214,7 +214,7 @@ async def _crowd_night(db, name, event, consent=True, source="Polar H10"):
     user = await add_user(db, name)
     if consent:
         await grant(db, user, "crowd_stats")
-    night = await add_night(db, user, event, source=source, readings=1)
+    night = await add_night(db, user, event, source=source, readings=60)
     db.add(
         Peak(
             session_id=night.id,
@@ -254,9 +254,9 @@ async def test_the_crowd_counts_only_consenting_measured_nights(memdb, monkeypat
 async def test_a_simulated_night_is_not_proof_of_having_been_there(memdb):
     event = await add_event(memdb)
     user = await add_user(memdb)
-    await add_night(memdb, user, event, source="Tumtum Demo (simulado)")
+    await add_night(memdb, user, event, source="Tumtum Demo (simulado)", readings=60)
     assert await was_there(memdb, user.id, event.id) is False
-    await add_night(memdb, user, event)
+    await add_night(memdb, user, event, readings=60)
     assert await was_there(memdb, user.id, event.id) is True
 
 

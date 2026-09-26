@@ -1,8 +1,9 @@
+import uuid
 from datetime import UTC, datetime, timedelta
 
+import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,18 +21,47 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    """A signed token for `data["sub"]`, with its expiry and its issue time.
+
+    `iat` is what lets a password reset, an e-mail change or a deletion end
+    the access tokens already out there (`users.tokens_valid_after`): the
+    refresh tokens were revoked by those since #34, but an access token
+    stolen a minute before a reset kept working for the rest of its hour.
+    """
     to_encode = data.copy()
-    expire = datetime.now(UTC) + (
-        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    to_encode.update({"exp": expire})
+    now = datetime.now(UTC)
+    expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire, "iat": now})
     return jwt.encode(to_encode, settings.secret_key, algorithm=ALGORITHM)
+
+
+def revoke_access_tokens(user, now: datetime | None = None) -> None:
+    """Every access token this account was issued until now stops working.
+
+    Stored to the whole second, because `iat` is a whole second: a token
+    signed in the same request, just after — the reset that signs the person
+    straight back in — must not be refused by its own reset.
+    """
+    moment = now or datetime.now(UTC)
+    user.tokens_valid_after = moment.replace(microsecond=0)
+
+
+def _issued_before(payload: dict, valid_after: datetime | None) -> bool:
+    if valid_after is None:
+        return False
+    if valid_after.tzinfo is None:  # SQLite hands it back naive; it is UTC
+        valid_after = valid_after.replace(tzinfo=UTC)
+    issued = payload.get("iat")
+    # A token with no `iat` was signed before 26/09, before any cut-off.
+    if not isinstance(issued, int | float):
+        return True
+    return issued < valid_after.timestamp()
 
 
 def decode_access_token(token: str) -> dict:
     try:
         return jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
-    except JWTError:
+    except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido ou expirado",
@@ -44,11 +74,12 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db),
 ):
     payload = decode_access_token(token)
-    user_id: str | None = payload.get("sub")
-    if user_id is None:
+    try:
+        user_id = uuid.UUID(str(payload.get("sub")))
+    except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido"
-        )
+        ) from None
 
     from app.models.user import User
 
@@ -57,6 +88,14 @@ async def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário não encontrado"
+        )
+    # Issued before the account's last reset, e-mail change or deletion: the
+    # same answer as an expired token, so the client renews or signs in.
+    if _issued_before(payload, user.tokens_valid_after):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido ou expirado",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     return user
 

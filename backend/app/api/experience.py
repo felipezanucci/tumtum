@@ -55,7 +55,7 @@ async def analyze_session(
     data_points = data_result.scalars().all()
     if len(data_points) < 10:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Dados insuficientes para análise",
         )
 

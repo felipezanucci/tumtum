@@ -13,6 +13,9 @@ from app.models.hr_session import HRSession
 from app.models.user import User
 from app.models.wearable_connection import WearableConnection
 from app.schemas.health import (
+    END_BEFORE_START,
+    MAX_NIGHT,
+    NIGHT_TOO_LONG,
     HRSessionCreateRequest,
     HRSessionDetailResponse,
     HRSessionResponse,
@@ -21,7 +24,12 @@ from app.schemas.health import (
 )
 from app.services import data_quality
 from app.services.access_log import record_access
-from app.services.event_window import NOT_THIS_EVENT, night_fits
+from app.services.event_window import (
+    NOT_THIS_EVENT,
+    aware,
+    event_window,
+    night_fits,
+)
 from app.services.night_deletion import delete_nights
 
 router = APIRouter(prefix="/api/health", tags=["health"])
@@ -115,8 +123,21 @@ async def create_hr_session(
     The upload is the act the consent is for (LGPD audit, CR-2): without the
     row, the 403 names the purpose and the app opens that consent screen.
     """
+    # A reversed or week-long span made the quality score and the card's
+    # curve meaningless, and let one upload overlap every event of a week.
+    start, end = aware(body.start_time), aware(body.end_time)
+    if end <= start:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=END_BEFORE_START
+        )
+    if end - start > MAX_NIGHT:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=NIGHT_TOO_LONG
+        )
+
     # An event id is a claim of having been there, and it opens that event's
     # feed. The night has to have happened when the event did.
+    event = None
     if body.event_id is not None:
         event = await db.get(Event, body.event_id)
         if event is None:
@@ -125,7 +146,7 @@ async def create_hr_session(
             )
         if not night_fits(event, body.start_time, body.end_time):
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=NOT_THIS_EVENT,
             )
 
@@ -154,9 +175,18 @@ async def create_hr_session(
         body.start_time, body.end_time, (dp.time for dp in unique_points)
     )
 
+    # How much of the night was actually inside the event (`event_readings`):
+    # overlapping its window is enough to be stored against it, but the feed
+    # and the crowd ask for a minute of real readings there, not a claim.
+    event_readings = None
+    if event is not None:
+        low, high = event_window(event)
+        event_readings = sum(1 for dp in unique_points if low <= aware(dp.time) <= high)
+
     session = HRSession(
         user_id=user.id,
         event_id=body.event_id,
+        event_readings=event_readings,
         start_time=body.start_time,
         end_time=body.end_time,
         avg_bpm=avg_bpm,

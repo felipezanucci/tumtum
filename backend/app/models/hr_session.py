@@ -34,6 +34,12 @@ class HRSession(Base):
     # moments are what the night is kept for, the series what they were made
     # from. Migration 016 / schema catch-up.
     analyzed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # How many readings fell inside the event's window, counted at upload;
+    # null for a night with no event. Attendance — the event's feed and its
+    # crowd — needs `settings.attendance_min_readings` of them. Stored rather
+    # than counted on demand because the readings are deleted a week after
+    # analysis and the right to the feed is not. Migration 025.
+    event_readings: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

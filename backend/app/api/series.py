@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.feed import block, measured, render_posts, report, toggle
+from app.api.feed import attended, block, render_posts, report, toggle
 from app.core.auth import get_current_user, require_admin
 from app.core.database import get_db
 from app.models.event import Event
@@ -91,14 +91,14 @@ async def series_events(db: AsyncSession, series_id: uuid.UUID) -> list[Event]:
 async def was_at_series(
     db: AsyncSession, user_id: uuid.UUID, series_id: uuid.UUID
 ) -> bool:
-    """A measured night at any date of the series."""
+    """A night at any date of the series that proves attendance (`attended`)."""
     found = await db.execute(
         select(HRSession.id)
         .join(EventSeriesMember, EventSeriesMember.event_id == HRSession.event_id)
         .where(
             HRSession.user_id == user_id,
             EventSeriesMember.series_id == series_id,
-            measured(),
+            attended(),
         )
         .limit(1)
     )

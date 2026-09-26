@@ -222,7 +222,7 @@ tumtum-app/
 
 ```sql
 -- Users
-users: id (uuid PK), email, name, avatar_url, auth_provider, auth_provider_id, birth_date (date, 26/09 — 18+ checked by the server), created_at, updated_at
+users: id (uuid PK), email, name, avatar_url, auth_provider, auth_provider_id, birth_date (date, 26/09 — 18+ checked by the server), tokens_valid_after (27/09 — access tokens issued before it are refused; set by password reset and e-mail change), created_at, updated_at
 
 -- Wearable connections
 -- 26/09: the access_token/refresh_token columns were dropped; nothing ever held a real one
@@ -237,7 +237,7 @@ event_timeline: id (uuid PK), event_id (FK), timestamp, label, entry_type (song_
 -- HR sessions (one per user per event)
 -- analyzed_at (26/09): when the peaks were found; the raw hr_data of the session is
 -- deleted RAW_READINGS_RETENTION_DAYS (default 7, since 26/09 night) after it
-hr_sessions: id (uuid PK), user_id (FK), event_id (FK), start_time, end_time, avg_bpm, max_bpm, min_bpm, data_quality_score (0-100), source_device, analyzed_at, created_at
+hr_sessions: id (uuid PK), user_id (FK), event_id (FK), start_time, end_time, avg_bpm, max_bpm, min_bpm, data_quality_score (0-100), source_device, analyzed_at, event_readings (27/09 — readings inside the event window at upload; a night counts as attendance for the feed and the crowd only with ATTENDANCE_MIN_READINGS or more), created_at
 
 -- HR data points (TimescaleDB hypertable — partitioned by time)
 -- rr_interval_ms and motion_level: no longer accepted nor returned since 26/09 (always null)
@@ -295,6 +295,9 @@ data_access_log: id, at, actor_user_id, subject_user_id, resource, resource_id, 
 access_log: id, at, method, path, status, ip, user_id
 -- One row per deleted account, with no identifier: the proof that deletions happen
 deletion_log: id, deleted_at
+-- Hashes of a deleted account's id and e-mail, kept 400 days (27/09): a sweep at startup and in the daily
+-- maintenance deletes again whatever a restored backup brought back
+deletion_tombstones: id, subject_key, email_key, deleted_at
 ```
 
 ## Brand identity

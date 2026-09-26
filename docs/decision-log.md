@@ -916,8 +916,84 @@ the linked documents — this file is the index and the reasoning, not a diary.
     Datavalid ou Didit). Decisões de Felipe: advogado sobre o escopo (junto
     com o item 81), CNPJ para o Datavalid (item 71), tabela de preços do
     Serpro e conta de teste no Didit.
+86. **Left from the 27/09 security review.** Next.js 14 → 15 upgrade (own
+    PR; advisories fixed only in 15.5.24+); pin `softprops/action-gh-release`
+    to a commit SHA; certificate pinning in the app once there is a custom
+    API domain; a copy of `deletion_tombstones` outside the database; Sentry
+    alerting; the card cache still swallows Redis errors silently.
 
 ---
+
+## 2026-09-27 — Itens 19, 21 e 23, a revisão de segurança e o custo da verificação de idade
+
+**What was decided.** Of the "before the public launch" list (items 15–23 of
+the v1.1 follow-up), the three that are code with no outside dependency were
+built now, and a read-only security review of the whole codebase was run
+before paying anyone for a pentest (item 17). PR #107.
+
+- **Deletion tombstone (19):** `deletion_tombstones` keeps hashes of a
+  deleted account's id and e-mail for 400 days; a sweep at startup and in
+  the daily maintenance runs `delete_account` again on anything a restored
+  backup brought back, and cleans `signup_codes`, `email_changes` and
+  `waitlist_entries` by the same e-mail hash. Known gap, written in
+  `alembic/README-migrations.md`: the tombstones live in the same database,
+  so a restore of the *whole* database also restores the tombstone table to
+  the backup's state — dump the live table before restoring, load it back
+  after. A copy outside the database does not exist yet.
+- **Privacy centre (21):** `GET /api/users/me/sharing` and the profile
+  section "Com quem seus dados estão": the operators from
+  `app/services/operators.py` (single source; the policy and the ROPA cite
+  it), the person's public cards with Despublicar, their feed posts with
+  Tirar do feed, their recorded shares, and the ANPD channel.
+- **Cache (23):** the site has no service worker, so there was nothing to
+  purge; every `/api/*` response is `Cache-Control: no-store` except the card
+  image bytes.
+- **The security review** found 22 items, two of them high: the CORS regex
+  for Vercel previews was not anchored and, with the new session cookie,
+  would have let an attacker-registered Vercel project read a signed-in
+  visitor's tokens; and no route had a rate limit. Both fixed the same
+  night, with the rest: request bounds, a 4 MB body limit, the public card
+  image bounded to three formats and rendered off the event loop,
+  attendance requiring real readings inside the event window
+  (`hr_sessions.event_readings`), feed posts checked against the night,
+  access tokens refused after a password reset or e-mail change
+  (`users.tokens_valid_after`), demo routes only in development, the
+  public profile without counts of nights, story intents pinned to
+  Instagram and Facebook, device-transfer rules on Android, a read-only CI
+  token, security headers and no open image proxy on the site, and the
+  backend dependencies brought current (FastAPI 0.136, Pillow 12, Sentry
+  SDK 2, PyJWT instead of python-jose, bcrypt directly instead of passlib).
+- **Two things the review found that were simply broken:** the Redis card
+  cache had never served a single image (`decode_responses=True` cannot
+  return PNG bytes, and the error was swallowed), and deleting a shared
+  card was impossible before #105. Both fixed.
+- **Rate-limit keys:** every site request reaches the API from Vercel's few
+  addresses, so the site is never counted by IP — login, sign-up and reset
+  by e-mail, refresh by the hash of the token; the app's refresh is by
+  token too, because a stadium shares one carrier address.
+- **Age verification (15):** researched, not built. The ECA Digital (Lei
+  15.211/2025) has been in force since 17/03/2026 and forbids
+  self-declaration; the ANPD enforces the other sectors from January 2027.
+  `docs/age-assurance-options.md` compares nine providers and recommends
+  two layers: CPF checked at the Receita (cpfhub or entrar.api.br, cents
+  per check) and then Serpro Datavalid with facial biometrics against the
+  CNH base (needs the CNPJ) or Didit (500 free checks a month, data abroad).
+  Open item 85.
+
+**What it cost.** One night. Not done and recorded as pending: SHA-pinning
+the release action (this session cannot read other repositories), the
+Next.js 14 → 15 upgrade (open advisories fixed only in 15.5.24+; its own
+PR), Sentry-side alerting, certificate pinning in the app (P1), a copy of
+the tombstones outside the database.
+
+**Felipe, before merging #107:** set `ENVIRONMENT=production`,
+`CORS_EXTRA_ORIGINS=https://tumtum-eight.vercel.app` (and confirm in the
+Vercel dashboard whether `tumtum.vercel.app` is ours — it was removed from
+the list), `RATE_LIMIT_ENABLED=true`, `TRUSTED_PROXY_HOPS=1` on Railway; the
+schema catch-up adds the new columns and the tombstone table on startup.
+After the deploy: the e-mail change now signs the current device out at
+once, and a feed post must fit the night it belongs to — both to see in a
+hand.
 
 ## 2026-09-26 (noite) — Parecer v1.1 e o que dele entra agora
 

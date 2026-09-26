@@ -15,8 +15,17 @@ from app.core.auth import (
     create_access_token,
     get_current_user,
     is_web_client,
+    revoke_access_tokens,
 )
 from app.core.database import get_db
+from app.core.ratelimit import (
+    by_email,
+    by_ip,
+    by_ip_and_email,
+    by_refresh_token,
+    limit,
+    site_or_app,
+)
 from app.models.password_reset_token import PasswordResetToken
 from app.models.signup_code import SignupCode
 from app.models.user import User
@@ -52,14 +61,18 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 REFRESH_COOKIE = "tumtum_refresh"
 REFRESH_COOKIE_PATH = "/api/auth"
 REFRESH_COOKIE_MAX_AGE = refresh_tokens.REFRESH_TOKEN_DAYS * 24 * 60 * 60
-# SameSite=None because the site (tumtum.cc) and the API (Railway) are
-# different sites; Secure is what None requires; the path keeps the cookie
+# SameSite=Lax since 26/09 (security review). The site reaches `/api/auth/*`
+# through its own rewrite on tumtum.cc, so the cookie is first-party and Lax
+# is all it needs; None would also hand it to any other site's cross-site
+# POST. A page calling the API host directly, cross-site, never carried it
+# anyway: a browser that blocks third-party cookies drops it, which is why
+# the rewrite exists. Secure because it is a credential; the path keeps it
 # off every request but the auth ones.
 _COOKIE_FLAGS = {
     "path": REFRESH_COOKIE_PATH,
     "secure": True,
     "httponly": True,
-    "samesite": "none",
+    "samesite": "lax",
 }
 
 
@@ -123,12 +136,34 @@ async def _signed_in(
     return _hand_over(tokens, request, response)
 
 
+# bcrypt reads at most 72 bytes. Up to 4.0 the library cut the rest off
+# silently; bcrypt 5 raises instead. Every hash already stored was made from
+# the first 72 bytes, so cutting here — explicitly — keeps each of them
+# verifying — this is exactly what passlib did — and a long password, or one
+# in a script with multi-byte letters, cannot turn a login into a 500.
+BCRYPT_MAX_BYTES = 72
+
+
+def _secret(password: str) -> bytes:
+    return password.encode("utf-8")[:BCRYPT_MAX_BYTES]
+
+
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    return bcrypt.hashpw(_secret(password), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    try:
+        return bcrypt.checkpw(_secret(password), hashed.encode("utf-8"))
+    except ValueError:  # not a bcrypt hash: nothing it could match
+        return False
+
+
+# Checked against when the account does not exist, so a miss costs the same
+# bcrypt round as a wrong password. Without it "no such e-mail" answered in
+# a millisecond and "wrong password" in a quarter of a second, and the
+# difference told anybody which addresses have an account.
+_DUMMY_HASH = hash_password("tumtum-no-such-account")
 
 
 # The old one-step sign-up, retired by #64 (24/09). It answers every caller
@@ -187,6 +222,8 @@ def _code_mail(code: str) -> tuple[str, str, str]:
     "/register/start",
     response_model=SignupStarted,
     status_code=status.HTTP_202_ACCEPTED,
+    # The site by e-mail, the app by address (core/ratelimit.py says why).
+    dependencies=[Depends(limit(site_or_app(by_email, by_ip), 10, 3600))],
 )
 async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(get_db)):
     """Step one of an account (#64): send a code to the address, create nothing.
@@ -206,16 +243,16 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
     # never exist is a mail nobody should get.
     if body.birth_date is None:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=BIRTH_DATE_REQUIRED,
         )
     if not is_adult(body.birth_date, today_local()):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=UNDER_AGE
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=UNDER_AGE
         )
     if not body.terms_accepted:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=TERMS_REQUIRED
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=TERMS_REQUIRED
         )
     if await _has_account(db, key):
         raise HTTPException(
@@ -305,6 +342,7 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
     "/register/confirm",
     response_model=TokenResponse,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(limit(site_or_app(by_email, by_ip), 20, 3600))],
 )
 async def register_confirm(
     body: SignupConfirmRequest,
@@ -386,21 +424,39 @@ async def register_confirm(
     return await _signed_in(db, user.id, request=request, response=response)
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    dependencies=[
+        # Ten guesses at one account per quarter hour — per e-mail on the
+        # site, whose requests all arrive from Vercel's addresses; per address
+        # and e-mail from the app — and, for the app only, a hundred logins
+        # of any kind from one address: a venue's shared carrier address
+        # signs in many people, so that one is the looser.
+        Depends(limit(site_or_app(by_email, by_ip_and_email), 10, 900)),
+        Depends(limit(site_or_app(None, by_ip), 100, 900)),
+    ],
+)
 async def login(
     body: LoginRequest,
     db: AsyncSession = Depends(get_db),
     request: Request = None,
     response: Response = None,
 ):
-    result = await db.execute(select(User).where(User.email == body.email))
+    """Sign in with e-mail and password.
+
+    The address is compared case-insensitively, as sign-up and reset
+    already did (addresses were stored as typed, open item 11): "Felipe@"
+    must reach the account made as "felipe@". A miss still spends one bcrypt
+    check, so the answer takes as long whether the account exists or not.
+    """
+    email = body.email.strip().lower()
+    result = await db.execute(select(User).where(func.lower(User.email) == email))
     user = result.scalar_one_or_none()
 
-    if (
-        not user
-        or not user.hashed_password
-        or not verify_password(body.password, user.hashed_password)
-    ):
+    hashed = user.hashed_password if user and user.hashed_password else None
+    matches = verify_password(body.password, hashed or _DUMMY_HASH)
+    if hashed is None or not matches:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Email ou senha incorretos"
         )
@@ -411,7 +467,14 @@ async def login(
 SESSION_ENDED = "Sua sessão terminou. Entre de novo."
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post(
+    "/refresh",
+    response_model=TokenResponse,
+    # The site by the token it spends (hashed), the app by address.
+    dependencies=[
+        Depends(limit(site_or_app(by_refresh_token, by_refresh_token), 60, 3600))
+    ],
+)
 async def refresh(
     body: SessionTokenRequest | None = None,
     db: AsyncSession = Depends(get_db),
@@ -483,7 +546,16 @@ RESET_SENT = (
 )
 
 
-@router.post("/forgot-password", response_model=MessageResponse)
+@router.post(
+    "/forgot-password",
+    response_model=MessageResponse,
+    dependencies=[
+        # Three links an hour to one inbox: enough for a person who lost the
+        # first mail, too few to bury somebody's inbox under ours.
+        Depends(limit(by_email, 3, 3600)),
+        Depends(limit(site_or_app(None, by_ip), 20, 3600)),
+    ],
+)
 async def forgot_password(
     body: ForgotPasswordRequest,
     db: AsyncSession = Depends(get_db),
@@ -595,6 +667,9 @@ async def reset_password(
     # when they fear a break-in, and a stolen refresh token would otherwise
     # outlive the password it was issued under by up to 90 days.
     await refresh_tokens.revoke_all(db, user.id)
+    # And every access token issued before now stops working within the
+    # request, not within the hour it had left (core/auth.py).
+    revoke_access_tokens(user)
 
     # Signing them straight in: they just proved control of the mailbox and
     # chose a password. A login form here would only ask them to type it again.

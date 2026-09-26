@@ -44,11 +44,13 @@ async def memdb():
 
 
 class FakeRedis:
-    """Enough of redis.asyncio for the card cache: get, set, delete."""
+    """Enough of redis.asyncio for the card cache and the rate limiter:
+    get, set, delete, scan_iter, incr, expire."""
 
     def __init__(self):
         self.store: dict[str, bytes] = {}
         self.deleted: list[str] = []
+        self.expiries: dict[str, int] = {}
 
     async def get(self, key):
         return self.store.get(key)
@@ -62,17 +64,65 @@ class FakeRedis:
             self.store.pop(key, None)
         return len(keys)
 
+    async def scan_iter(self, match=None):
+        import fnmatch
+
+        for key in list(self.store):
+            if match is None or fnmatch.fnmatchcase(key, match):
+                yield key
+
+    async def incr(self, key):
+        self.store[key] = int(self.store.get(key, 0)) + 1
+        return self.store[key]
+
+    async def expire(self, key, seconds):
+        self.expiries[key] = seconds
+        return True
+
+
+class BrokenRedis:
+    """A Redis that cannot be reached: every call raises."""
+
+    def __getattr__(self, name):
+        async def refuse(*_args, **_kwargs):
+            raise ConnectionError("redis is down")
+
+        return refuse
+
+
+@pytest.fixture(autouse=True)
+def no_rate_limit(monkeypatch):
+    """Rate limits off in every test but the ones that switch them back on.
+
+    Otherwise the count runs across tests — every login in the suite comes
+    from the same test address — and CI's real Redis would carry it across
+    files. `tests/test_rate_limit.py` turns it on, on a clean count.
+    """
+    from app.config import settings
+    from app.core import ratelimit
+
+    monkeypatch.setattr(settings, "rate_limit_enabled", False)
+    ratelimit.reset()
+    yield
+    ratelimit.reset()
+
 
 @pytest.fixture
 def fake_redis(monkeypatch):
     from app.core import redis as redis_module
 
     fake = FakeRedis()
+    # One fake behind both clients: the text one (rate limits) and the bytes
+    # one (card images) talk to the same Redis in production too.
     monkeypatch.setattr(redis_module, "redis_client", fake)
+    monkeypatch.setattr(redis_module, "redis_bytes", fake)
     return fake
 
 
-def make_request(ip_chain: str | None = "203.0.113.9, 10.0.0.1", client=None):
+def make_request(ip_chain: str | None = "198.51.100.66, 203.0.113.9", client=None):
+    """A request as Railway hands it over: whatever the client wrote in
+    `X-Forwarded-For`, then the address Railway's edge appended — the real
+    one, 203.0.113.9 (services/access_log.py, `ip_of`)."""
     headers = []
     if ip_chain:
         headers.append((b"x-forwarded-for", ip_chain.encode()))
@@ -131,13 +181,27 @@ async def add_event(db, day=date(2026, 10, 2), start=None, end=None, name="Show"
 
 
 async def add_night(db, user, event=None, source="Polar H10", readings=20, at=AT):
+    """A night of `readings` seconds from `at`, stored as the upload stores it.
+
+    `event_readings` is counted the way `create_hr_session` counts it, so a
+    night needs `settings.attendance_min_readings` (60) readings inside the
+    event's window to count as having been there.
+    """
     from app.models.hr_data import HRData
     from app.models.hr_session import HRSession
+    from app.services.event_window import event_window
 
+    event_readings = None
+    if event is not None:
+        low, high = event_window(event)
+        event_readings = sum(
+            1 for i in range(readings) if low <= at + timedelta(seconds=i) <= high
+        )
     night = HRSession(
         id=uuid.uuid4(),
         user_id=user.id,
         event_id=event.id if event else None,
+        event_readings=event_readings,
         start_time=at,
         end_time=at + timedelta(seconds=readings),
         avg_bpm=90,

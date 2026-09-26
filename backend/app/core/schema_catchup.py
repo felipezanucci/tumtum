@@ -9,8 +9,8 @@ missing from the database is not a missing feature, it is every query on
 that table failing: `users` is loaded on every authenticated request, with
 its `hr_sessions` alongside.
 
-So this runs, after `create_all`, the *additive* part of migrations 015–017
-and 023, each statement idempotent (`ADD COLUMN IF NOT EXISTS`, PostgreSQL
+So this runs, after `create_all`, the *additive* part of migrations 015–017,
+023 and 025, each statement idempotent (`ADD COLUMN IF NOT EXISTS`, PostgreSQL
 ≥ 9.6). 023 (the consent ledger) also needs its new columns filled for the
 rows already there before they can be NOT NULL; `backfills()` does that —
 each `UPDATE` touches only rows still NULL, and `SET NOT NULL` on a column
@@ -37,6 +37,8 @@ ADDITIVE_COLUMNS = (
     ("consents", "legal_basis", "VARCHAR(40)"),
     ("consents", "scope", "VARCHAR(200)"),
     ("consents", "proof", "VARCHAR(64)"),
+    ("users", "tokens_valid_after", "TIMESTAMP WITH TIME ZONE"),  # 025
+    ("hr_sessions", "event_readings", "INTEGER"),  # 025
 )
 
 
@@ -79,6 +81,16 @@ def backfills() -> list[str]:
     ]
 
 
+# 025: nights uploaded with an event before the count existed get every
+# reading they still hold (the migration explains the approximation). Only
+# rows still NULL, so each startup touches nothing twice.
+EVENT_READINGS_BACKFILL = (
+    "UPDATE hr_sessions SET event_readings = ("
+    "SELECT count(*) FROM hr_data WHERE hr_data.session_id = hr_sessions.id"
+    ") WHERE event_readings IS NULL AND event_id IS NOT NULL"
+)
+
+
 async def catch_up(conn: AsyncConnection) -> None:
     """Add the 26/09 columns if they are missing. PostgreSQL only.
 
@@ -87,5 +99,5 @@ async def catch_up(conn: AsyncConnection) -> None:
     """
     if conn.dialect.name != "postgresql":
         return
-    for statement in statements() + backfills():
+    for statement in [*statements(), *backfills(), EVENT_READINGS_BACKFILL]:
         await conn.execute(text(statement))
