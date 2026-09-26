@@ -180,7 +180,7 @@ export const PRIVACY_PT: PrivacyCopy = {
     {
       heading: 'Seus direitos, e como exercer',
       paragraphs: [
-        'Todo pedido pode ser feito no seu Perfil (Pedidos ao encarregado), no app ou por e-mail para oi@tumtum.cc, assunto "Privacidade". A resposta vem em até 15 dias. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).',
+        'Todo pedido pode ser feito no seu Perfil (Pedidos ao encarregado), no app ou por e-mail para oi@tumtum.cc, assunto "Privacidade". A resposta vem em até 15 dias. Se não resolver com a gente, você pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD), pelo canal do titular: https://www.gov.br/anpd/pt-br/canais_atendimento/cidadao-titular-de-dados',
       ],
       items: [
         'Acesso e confirmação: Perfil → Privacidade → Baixar meus dados mostra tudo o que a TumTum tem sobre você.',
@@ -188,7 +188,7 @@ export const PRIVACY_PT: PrivacyCopy = {
         'Correção: nome e e-mail no Perfil. Qualquer outro dado, por pedido ao encarregado.',
         'Exclusão: "Apagar esta noite" em cada noite (em Suas sessões, ou no app), "Despublicar" ou apagar cada card, e "Apagar minha conta" no Perfil ou no app, com sua senha.',
         'Revogação: desligue qualquer consentimento em Perfil → Privacidade, em /consentimento ou no app.',
-        'Informação sobre compartilhamento: esta página lista todos os operadores. Pra saber mais, peça ao encarregado.',
+        'Informação sobre compartilhamento: esta página lista todos os operadores. Em Perfil → Privacidade → Com quem seus dados estão, você vê com quem seus dados estão, seus cards públicos, seus posts no feed e os compartilhamentos registrados. Pra saber mais, peça ao encarregado.',
         'Revisão: o detector de momentos é automático, mas não decide nada sobre você. Se quiser que uma pessoa olhe, peça ao encarregado.',
       ],
     },
@@ -368,7 +368,7 @@ export const PRIVACY_EN: PrivacyCopy = {
     {
       heading: 'Your rights, and how to use them',
       paragraphs: [
-        'Every request can be made on your Profile (Pedidos ao encarregado), in the app, or by email to oi@tumtum.cc, subject "Privacidade". The answer comes within 15 days. You can also complain to Brazil’s data protection authority (ANPD).',
+        'Every request can be made on your Profile (Pedidos ao encarregado), in the app, or by email to oi@tumtum.cc, subject "Privacidade". The answer comes within 15 days. If we do not resolve it, you can complain to Brazil’s data protection authority (ANPD), through its channel for data subjects: https://www.gov.br/anpd/pt-br/canais_atendimento/cidadao-titular-de-dados',
       ],
       items: [
         'Access and confirmation: Profile → Privacidade → Baixar meus dados shows everything TumTum holds about you.',
@@ -376,7 +376,7 @@ export const PRIVACY_EN: PrivacyCopy = {
         'Correction: name and email on your Profile. Any other data, by request to the data protection officer.',
         'Deletion: "Apagar esta noite" on each night (in Suas sessões, or in the app), unpublish or delete each card, and "Apagar minha conta" on your Profile or in the app, with your password.',
         'Withdrawal: turn off any consent under Profile → Privacidade, at /consentimento or in the app.',
-        'Information about sharing: this page lists every processor. To know more, ask the data protection officer.',
+        'Information about sharing: this page lists every processor. Under Profile → Privacidade → Com quem seus dados estão, you can see who holds your data, your public cards, your feed posts and the shares recorded. To know more, ask the data protection officer.',
         'Review: the moment detector is automatic, but it decides nothing about you. If you want a person to look, ask the data protection officer.',
       ],
     },

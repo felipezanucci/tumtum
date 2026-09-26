@@ -54,6 +54,8 @@ describe('the privacy policy says what the LGPD audit found missing', () => {
     ['response time', '15 dias'],
     ['minimum age', '18 anos'],
     ['not medical', 'não é um dispositivo médico'],
+    ['where to see who holds the data', 'Com quem seus dados estão'],
+    ['ANPD channel', 'https://www.gov.br/anpd/pt-br/canais_atendimento/cidadao-titular-de-dados'],
   ])('%s', (_what, phrase) => {
     expect(pt).toContain(phrase)
   })

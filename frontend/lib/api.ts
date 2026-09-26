@@ -1084,6 +1084,13 @@ export const users = {
       body: JSON.stringify({ password }),
     }),
 
+  /**
+   * "Com quem seus dados estão" (LGPD art. 18 VII): the operators that hold
+   * data on TumTum's behalf, who never gets it, and everything this person
+   * made public — cards, feed posts and the shares recorded.
+   */
+  sharing: () => request<SharingOverview>('/api/users/me/sharing'),
+
   /** Requests to the encarregado: answered within 15 days (`due_at`). */
   requests: {
     create: (kind: RequestKind, message: string) =>
@@ -1094,6 +1101,51 @@ export const users = {
 
     list: () => request<DataSubjectRequest[]>('/api/users/me/requests'),
   },
+}
+
+/** One operator under contract that holds data on TumTum's behalf. */
+export interface SharingOperator {
+  name: string
+  role: string
+  what: string
+  why: string
+  /** Where the data sits. May be the literal "[a confirmar]" until it is. */
+  where: string
+}
+
+export interface SharingPublishedCard {
+  id: string
+  event_name: string
+  published_at: string
+  public_url: string
+}
+
+/** `evento` is the one night's feed; `turnê` also reaches the tour's other dates. */
+export type SharingAudience = 'evento' | 'turnê'
+
+export interface SharingFeedPost {
+  id: string
+  event_name: string
+  created_at: string
+  audience: SharingAudience
+  reactions: number
+}
+
+export interface SharingShare {
+  card_id: string
+  platform: string
+  shared_at: string
+}
+
+/** `GET /api/users/me/sharing` (26/09). */
+export interface SharingOverview {
+  operators: SharingOperator[]
+  /** Who never receives personal data: clubs, artists, promoters… */
+  never: string[]
+  published_cards: SharingPublishedCard[]
+  feed_posts: SharingFeedPost[]
+  shares: SharingShare[]
+  anpd: { url: string; note: string }
 }
 
 // --- Consents (26/09): one yes per purpose, recorded with its text version ---
