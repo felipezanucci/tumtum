@@ -635,7 +635,7 @@
     <string name="consent_read_stops">Nenhuma noite nova é gravada. As que já estão aqui continuam.</string>
     <string name="consent_keep_title">Guardar a noite</string>
     <string name="consent_keep_body">Guardar a noite (a série de batidas e os momentos) na sua coleção, no servidor da TumTum. Sem isso, a noite fica só no seu celular.</string>
-    <string name="consent_keep_stops">Nenhuma noite nova sobe pra TumTum. Pra apagar uma que já subiu, abre a noite e toca em Apagar esta noite.</string>
+    <string name="consent_keep_stops">Nenhuma noite nova sobe pra TumTum, e as que já subiram são apagadas do servidor em até 24 horas. Elas continuam só no seu celular.</string>
     <string name="consent_crowd_title">Entrar na galera</string>
     <string name="consent_crowd_body">Sua noite, sem seu nome, entra na conta coletiva do evento (“A galera”). Só aparece em faixas, tipo “25+”, e só quando tem gente suficiente.</string>
     <string name="consent_crowd_stops">Suas noites deixam de contar na galera dos eventos.</string>

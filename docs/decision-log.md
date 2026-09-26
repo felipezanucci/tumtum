@@ -18,7 +18,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
-| **Privacidade/LGPD** | **26/09 — audited and corrected the same day.** The audit against the legal opinion (`RELATORIO-AUDITORIA-LGPD.md`, at the repository root) scored 76 items and found **six critical**: no per-purpose consent and no record of any, the night uploading with no act of the person, a pilot with no term and no discard plan, no age check of any kind, a `SECRET_KEY` with a known default and no guard, and real data in test fixtures and third-party contacts in docs. **The fix was written as one contract and built in four parallel streams** (backend, app, site, docs): seven purposes in `consents`, *Guardar minha noite* as the only road up, 18+ refused by the server, raw readings deleted after 30 days, access logs, delete one night, export everything, data-subject requests with a 15-day clock, a card public only once shared, the crowd at N ≥ 100. Governance written: `docs/ropa.md`, `docs/ripd.md`, `docs/data-retention-policy.md`, `docs/backups.md`, `docs/incident-response.md`, `docs/dpo.md`, `docs/dpa-checklist.md`, `docs/play-console-answers.md`, and the pilot's term and discard plan. **Still Felipe's (items 71–79):** the CNPJ, the Railway checks **before the merge** (the API no longer starts on a weak `SECRET_KEY`), the DPAs, the Play health category, legal review, and the term's signatures. **No participant records a night before those.** |
+| **Privacidade/LGPD** | **26/09, night — the opinion's v1.1, and what enters now.** It corrected four things (consent is not the only basis; the pre-pilot RIPD is our gate, not an automatic art. 38 duty; the founder as encarregado is a conflict; hosting in Brazil is not required, transfers need a mechanism). Adopted tonight: the ledger gains `legal_basis`, `scope`, `proof`; **raw readings 30 → 7 days**; the reveal push stops naming the event; the site's refresh token moves to an `httpOnly` cookie; the policy says *"dado individual não vai para parceiros comerciais; fornecedores contratados processam em nosso nome"*; the ROPA rewritten per operation with its basis, the RIPD with the cumulative high-risk test, an incident register (`docs/incident-register.md`), a Transfer Register. The twelve P0 gates read as GATE/DESIGN, not law: **what blocks a participant is still items 71–77 plus a signed RIPD.** New: items 80 (independent encarregado), 81 (a lawyer checks the opinion's 21–25/09 sources), 82 (the ledger's probative period). *(Morning:)* **26/09 — audited and corrected the same day.** The audit against the legal opinion (`RELATORIO-AUDITORIA-LGPD.md`, at the repository root) scored 76 items and found **six critical**: no per-purpose consent and no record of any, the night uploading with no act of the person, a pilot with no term and no discard plan, no age check of any kind, a `SECRET_KEY` with a known default and no guard, and real data in test fixtures and third-party contacts in docs. **The fix was written as one contract and built in four parallel streams** (backend, app, site, docs): seven purposes in `consents`, *Guardar minha noite* as the only road up, 18+ refused by the server, raw readings deleted after 30 days, access logs, delete one night, export everything, data-subject requests with a 15-day clock, a card public only once shared, the crowd at N ≥ 100. Governance written: `docs/ropa.md`, `docs/ripd.md`, `docs/data-retention-policy.md`, `docs/backups.md`, `docs/incident-response.md`, `docs/dpo.md`, `docs/dpa-checklist.md`, `docs/play-console-answers.md`, and the pilot's term and discard plan. **Still Felipe's (items 71–79):** the CNPJ, the Railway checks **before the merge** (the API no longer starts on a weak `SECRET_KEY`), the DPAs, the Play health category, legal review, and the term's signatures. **No participant records a night before those.** |
 | **Pilot** | **The 25/09 date is probably lost.** Felipe said on 17/09 he most likely cannot run the test at the Tasha & Tracie show. The calendar was searched and shortlisted in `docs/pilot-event-options.md`: a **football match** as the technical test (objective timestamps, a peak synchronised across every chest in the stadium, tickets that actually exist, and a kick-off that ends before midnight) and a **concert with an engaged fan base** as the product test (which card someone actually sends). Still **decoupled from the supplier decision**. The binding constraint is not the calendar: with one chest strap only one person has moments, and card 04 cannot be tested at all. |
 
 ### Open items
@@ -844,7 +844,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     and one signature per participant **before** their first night.
 78. **Four decisions the remediation left open** (`docs/ropa.md` §4):
     does revoking `keep_night` delete the nights already kept (art. 16 says
-    yes); a deleted feed post keeps its bpm under `deleted_at` (purge after
+    yes — *26/09 night: already answered by the code, 24 h after the
+    revocation, `REVOCATION_GRACE`; the docs and the pilot term had said the
+    opposite and were corrected*); a deleted feed post keeps its bpm under `deleted_at` (purge after
     30 days?); the maximum age of `data_access_log`; and whether to rewrite
     git history for the e-mails and fixtures removed on 26/09
     (`git filter-repo`) or accept them as history and say so.
@@ -855,6 +857,187 @@ the linked documents — this file is the index and the reasoning, not a diary.
     `android/app/src/main/AndroidManifest.xml`. The code workstreams of the
     same day are moving them to `@exemplo.com` and `false`; if any remain at
     merge, fix them there — do not widen the allowlist.
+80. **An independent encarregado.** `[PENDENTE — Felipe]` Felipe's
+    appointment is provisional and conflicted: he decides what the
+    encarregado oversees (Resolução CD/ANPD 18/2024; opinion v1.1 §6). Name
+    another person without incompatible decision power, or an external
+    service, against the eight criteria in `docs/dpo.md` (formal act, public
+    contact, autonomy, conflict, substitute, resources, record, training).
+    Until then every processing decision in this log says who took it.
+81. **A lawyer checks the sources the opinion cites.** `[PENDENTE —
+    jurídico]` v1.1 leans on ANPD material dated 21–25/09/2026 (RIPD page
+    updated 23/09, Agenda Regulatória updated 25/09, the Conselho Diretor's
+    21/09 decision on the high-risk guide) that nobody here could open, and
+    the article numbers written from it and from Resoluções 2/2022 and
+    15/2024 (the high-risk test, the incident risk criteria) are marked for
+    checking. The opinion is a model's output; its citations are claims
+    until a lawyer opens them. Same review: the VALIDAR bases in
+    `docs/ropa.md` §4.
+82. **The consent ledger's probative period.** `[PENDENTE — jurídico]` How
+    long `consents` must outlive the account to prove what was consented
+    (art. 8º, §2º), and the design that keeps it apart from health data
+    (purpose, basis, text version, proof and dates, behind an identifier that
+    leads nowhere else). **Today the ledger is deleted with the account** —
+    the proof goes with it.
+
+---
+
+## 2026-09-26 (noite) — Parecer v1.1 e o que dele entra agora
+
+The legal opinion came back the same evening as **v1.1**, a critical revision
+of the v1.0 the morning's audit was run against. It is a model's output
+(ChatGPT), not a lawyer's, and says so: it does not replace an OAB-registered
+lawyer. Its most useful addition is a key — every recommendation is marked
+**LEGAL** (the law), **ANPD** (the regulator), **GATE** (TumTum's own
+conservative policy), **DESIGN** (good practice) or **VALIDAR** (depends on
+interpretation) — and that key is how this entry reads it.
+
+### What v1.1 corrected
+
+1. **Consent is not the single legal basis.** The morning's `docs/ropa.md` put
+   almost every operation under consent. v1.1 asks for a matrix: consent only
+   where it really is the basis, and the right basis everywhere else —
+   contract for the account, legal obligation for logs, the ledger, requests
+   and incidents, fraud prevention (art. 11, II, g) for sessions, legitimate
+   interest for non-sensitive technical errors. Consent used as legal
+   decoration is itself a defect.
+2. **The pre-pilot RIPD is an internal gate, not an automatic art. 38
+   obligation.** The ANPD recommends it for high-risk processing and can
+   require it; its specific regulation is still being written. We keep it as
+   our gate.
+3. **The founder as encarregado needs a conflict-of-interest analysis**
+   (Resolução CD/ANPD 18/2024). Felipe decides purposes, categories,
+   retention, partners and architecture — exactly what the encarregado
+   oversees. v1.1 prefers an independent one.
+4. **Hosting in Brazil is not an LGPD requirement**, and a Brazilian region
+   does not prove there is no transfer (support, observability, CDN and
+   e-mail reach in from abroad). Each transfer needs a basis and an art. 33
+   mechanism, case by case (Resolução 19/2024).
+
+It also sharpened four things the morning had written as settled: the 30-day
+raw retention had no need behind it; every incident, communicated or not, is
+registered for five years; a minimum N is one control, not anonymisation; and
+15 days is the legal deadline for confirmation and access only — for the
+other rights it is our SLA.
+
+### What we adopt now
+
+Decided tonight, and being built in parallel by the code streams:
+
+1. **The consent ledger gains `legal_basis`, `scope` and `proof`.**
+   `consent_art11` for `read_heart_rate`, `keep_night`, `crowd_stats`,
+   `artist_compare`, `improve_detection`; `consent_art7` for `marketing`;
+   `contract_art7` for `terms`. `proof` is the sha256 of
+   `purpose:text_version`. Not adopted from the opinion's list: `status`
+   (derived from `revoked_at`) and `downstream_action` (nothing downstream
+   receives the data yet — it comes back with the first partner).
+2. **An incident register**, `docs/incident-register.md`, and the ten-step
+   runbook merged into `docs/incident-response.md`.
+3. **The ROPA per operation, with its basis** — 24 operations, the opinion's
+   fifteen columns (`docs/ropa.md`).
+4. **A neutral push.** The reveal notification said the event on the lock
+   screen; now *"Sua noite abriu"* and nothing else (`c09d1be`).
+5. **Raw readings 30 → 7 days** after the night is analysed. The moments are
+   found on arrival, in seconds; seven days cover a re-analysis after a
+   detector fix and the pilot's week of review.
+6. **The policy stops promising the absolute.** *"Dado individual não vai
+   para parceiros comerciais; fornecedores contratados processam em nosso
+   nome"* replaces wording that said nothing reaches a third party — which
+   Railway, strictly, is.
+7. **The site's refresh token moves to an `httpOnly` cookie.** In
+   `localStorage` any script on the page could read 90 days of access to
+   someone's heart.
+8. **The RIPD restructured** to the opinion's §5.3, with the cumulative
+   high-risk test of Resolução 2/2022 written out: specific criterion,
+   sensitive health data; general criterion, the potential to significantly
+   affect fundamental rights — identifiable health data, tied to a place and
+   an hour, published on cards, aggregated over a crowd (`docs/ripd.md` §5).
+9. **The opinion's engineering checklist (§24) becomes the test list** for
+   every privacy change; the code streams write the ones code can prove
+   (revoke, delete, retention, push text, log scan, public URL).
+
+The governance documents followed: `docs/dpo.md` (the conflict, and the eight
+criteria for a definitive appointment), `docs/data-retention-policy.md` (7
+days and why; the ledger's own probative period; incidents 5 years; backup
+TTL and tombstone), `docs/dpa-checklist.md` (the Transfer Register, the
+questions per kind of vendor, the eleven minimum DPA clauses), and the pilot
+term's retention line.
+
+### What waits for the public launch (P1)
+
+Age assurance by a provider that returns only an 18+ signal; MFA on every
+production panel and a secrets manager; a pentest; identity in its own schema
+with an opaque `subject_id` on the health tables; backup TTL and a deletion
+tombstone; policy and Terms reviewed by a lawyer; the rest of the privacy
+centre (who received what, a channel to contest, propagation to operators);
+training for anyone with access; a PWA and cache review (today there is a
+manifest and no service worker); the Transfer Register complete.
+
+### What waits for the feature
+
+**A galera** (P2): an anonymisation method, re-identification tests against
+the recipient's own context (singling-out, linkability, inference,
+differencing), a query budget, a release review, and a B2B contract that
+forbids re-identification — before any crowd figure leaves the event's own
+feed. **Na mesma vibe** (P3): its own opinion, the performer's consent and a
+contract.
+
+### What we consciously do not treat as blocking
+
+The opinion asks for **all twelve P0 gates before the next pilot**. Read with
+its own key, most of them are GATE or DESIGN. We do not treat the twelve as a
+legal wall; which of them hold the pilot is our decision, recorded here:
+
+| Gate | Where it stands | Holds the pilot? |
+|---|---|---|
+| P0.1 data map + ROPA · P0.2 bases | Written tonight | — |
+| P0.3 RIPD | Draft; signed with the residual risk accepted | **Yes** (our gate) |
+| P0.4 consent | Built 26/09; ledger fields tonight | — |
+| P0.5 age | Birth date, refused under 18 | — |
+| P0.6 encarregado | Provisional and conflicted (item 80) | No |
+| P0.7 security | Partial: TLS, hashes, SQLCipher, key guard; MFA and secrets manager P1 | No |
+| P0.8 analytics/logs | No analytics SDK; Sentry scrubbed; `privacy-scan` | — |
+| P0.9 retention | Daily job; 7 days | — |
+| P0.10 incident | Runbook and register; tabletop pending | No |
+| P0.11 vendors | DPAs not downloaded (item 75) | **Yes** (LEGAL: operators under contract) |
+| P0.12 AI/dev | Synthetic only, by rule and by CI | — |
+
+So what blocks a participant is what the morning's entry already said —
+**items 71–77** — plus the signed RIPD. The difference is the reason, now
+written down.
+
+### What it cost, and what writing it found
+
+One documentation session, and three of the morning's documents rewritten
+rather than edited (ROPA, RIPD, and the DPA checklist grown into a register).
+Writing against the opinion found five things the morning had not:
+
+- **The incident plan gave containment to AI sessions**, which would put
+  production rows — e-mails, heart rates — into an AI tool (opinion §19). Now
+  the query runs on Felipe's side and only counts come back.
+- **The consent ledger is deleted with the account**, destroying the proof it
+  exists for (art. 8º, §2º puts the burden on us). Item 82.
+- **A restored backup cannot know whom to delete again**: `deletion_log` has no
+  identifier by design, and the person's requests leave with the account.
+  That is what the tombstone is for.
+- **The docs contradicted the code on revocation.** The morning's ROPA,
+  retention policy and pilot term said revoking `keep_night` keeps the old
+  nights; `services/maintenance.py` has deleted them 24 h after a revocation
+  since #105. A participant who unticked item C would have lost the nights
+  the term promised to keep. Corrected in all four documents (item 78).
+- **Raw data outside the 7 days:** a night never kept keeps its R-R and motion
+  on the phone until the person deletes it; the pilot's operator ZIPs keep the
+  raw series 30 days (added to `docs/ropa.md` §4). And the consent screen
+  itself (text version `2026-09-26`, `docs/consent-texts.md`) still tells the
+  person *30 dias* — stricter in practice, false in words; changing it is a
+  new text version, not an edit.
+
+And one that the opinion cannot settle by itself: it cites ANPD sources dated
+**21–25/09/2026** — the RIPD page updated 23/09, the Agenda Regulatória
+updated 25/09, a Conselho Diretor decision of 21/09 rejecting the high-risk
+guide — which nobody here could open. A model citing last week is exactly
+where a citation can be invented. Item 81. `CLAUDE.md` still says the
+retention default is 30 days; it changes with the code.
 
 ---
 

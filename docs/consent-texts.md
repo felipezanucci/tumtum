@@ -29,6 +29,11 @@ novos carregam esta versão; os antigos guardam a `2026-09-26`.
 - `consent_intro_retention`: "…a série de batidas fica no servidor por
   **7 dias** depois do momento…" (era 30). Acompanha
   `RAW_READINGS_RETENTION_DAYS=7`.
+- `consent_keep_stops`: "Nenhuma noite nova sobe pra TumTum, e as que já
+  subiram são apagadas do servidor em até 24 horas. Elas continuam só no seu
+  celular." (era "…Pra apagar uma que já subiu, abre a noite e toca em Apagar
+  esta noite.", que contradizia `services/maintenance.py`: revogar apaga as
+  noites guardadas depois de 24 h de carência).
 - `consent_intro_nobody`: "Seu dado cardíaco individual não vai para
   clubes, artistas, produtoras, festivais ou anunciantes. Fornecedores
   contratados processam dados só em nome da TumTum." (era "Nada vai para

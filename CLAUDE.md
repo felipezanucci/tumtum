@@ -233,7 +233,7 @@ event_timeline: id (uuid PK), event_id (FK), timestamp, label, entry_type (song_
 
 -- HR sessions (one per user per event)
 -- analyzed_at (26/09): when the peaks were found; the raw hr_data of the session is
--- deleted RAW_READINGS_RETENTION_DAYS (default 30) after it
+-- deleted RAW_READINGS_RETENTION_DAYS (default 7, since 26/09 night) after it
 hr_sessions: id (uuid PK), user_id (FK), event_id (FK), start_time, end_time, avg_bpm, max_bpm, min_bpm, data_quality_score (0-100), source_device, analyzed_at, created_at
 
 -- HR data points (TimescaleDB hypertable — partitioned by time)
