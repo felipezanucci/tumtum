@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { cards, users, type SharingOverview } from '@/lib/api'
+import { cards, feed, users, type SharingOverview } from '@/lib/api'
 import {
   audienceLabel,
   neverLine,
@@ -28,6 +28,9 @@ export default function SharingView() {
   const [unpublishing, setUnpublishing] = useState<string | null>(null)
   const [cardNotice, setCardNotice] = useState<string | null>(null)
   const [cardError, setCardError] = useState<{ id: string; message: string } | null>(null)
+  const [removingPost, setRemovingPost] = useState<string | null>(null)
+  const [postNotice, setPostNotice] = useState<string | null>(null)
+  const [postError, setPostError] = useState<{ id: string; message: string } | null>(null)
 
   const load = useCallback(async () => {
     setLoadError(null)
@@ -63,6 +66,34 @@ export default function SharingView() {
     )
     setCardNotice('Card despublicado. O link público parou de funcionar; o card continua na sua coleção.')
     setUnpublishing(null)
+    try {
+      setData(await users.sharing())
+    } catch {
+      setRefreshError('Não consegui atualizar a lista agora. Recarregue a página pra ver tudo de novo.')
+    }
+  }
+
+  async function handleRemovePost(eventId: string, postId: string) {
+    setRemovingPost(postId)
+    setPostNotice(null)
+    setPostError(null)
+    setRefreshError(null)
+    try {
+      await feed.deletePost(eventId, postId)
+    } catch (err) {
+      setPostError({
+        id: postId,
+        message: err instanceof Error ? err.message : 'Não deu pra tirar do feed. Tenta de novo.',
+      })
+      setRemovingPost(null)
+      return
+    }
+    // The server said yes: the post leaves the list now, whatever the refresh does.
+    setData((prev) =>
+      prev ? { ...prev, feed_posts: prev.feed_posts.filter((p) => p.id !== postId) } : prev,
+    )
+    setPostNotice('Post tirado do feed. Ninguém mais vê, nem nas outras datas da turnê.')
+    setRemovingPost(null)
     try {
       setData(await users.sharing())
     } catch {
@@ -178,19 +209,36 @@ export default function SharingView() {
       <div>
         <p className="text-sm font-medium text-tumtum-white">Posts no feed</p>
         <p className="mt-1 text-sm text-tumtum-muted">
-          Só vê quem gravou a noite no mesmo evento. Pra tirar um post do feed, abra o feed do evento no app.
+          Só vê quem gravou a noite no mesmo evento. Tirar do feed tira o post do ar pra todo mundo na hora.
         </p>
+        {postNotice && <p role="status" className="mt-2 text-sm text-tumtum-white">{postNotice}</p>}
         {data.feed_posts.length === 0 ? (
           <p className="mt-2 text-sm text-tumtum-muted">Nenhum post no feed.</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {data.feed_posts.map((post) => (
               <li key={post.id} className="rounded-lg border border-tumtum-border p-3">
-                <p className="text-sm font-medium text-tumtum-white">{post.event_name}</p>
-                <p className="mt-0.5 text-xs text-tumtum-muted">
-                  {sharingDate(post.created_at)} · {audienceLabel(post.audience)} ·{' '}
-                  {reactionsLabel(post.reactions)}
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-tumtum-white">{post.event_name}</p>
+                    <p className="mt-0.5 text-xs text-tumtum-muted">
+                      {sharingDate(post.created_at)} · {audienceLabel(post.audience)} ·{' '}
+                      {reactionsLabel(post.reactions)}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    loading={removingPost === post.id}
+                    disabled={removingPost !== null}
+                    onClick={() => void handleRemovePost(post.event_id, post.id)}
+                  >
+                    Tirar do feed
+                  </Button>
+                </div>
+                {postError?.id === post.id && (
+                  <p role="alert" className="mt-2 text-sm text-red-400">{postError.message}</p>
+                )}
               </li>
             ))}
           </ul>

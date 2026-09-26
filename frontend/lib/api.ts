@@ -993,6 +993,20 @@ export interface PublicProfile {
   total_cards: number
 }
 
+// --- Event feed ---
+
+export const feed = {
+  /**
+   * Take one of the person's own posts out of the feed (and out of the tour's
+   * other dates with it). Answers 204; 404 when it is not theirs or is gone.
+   */
+  deletePost: (eventId: string, postId: string) =>
+    request<void>(
+      `/api/events/${encodeURIComponent(eventId)}/feed/${encodeURIComponent(postId)}`,
+      { method: 'DELETE' },
+    ),
+}
+
 // --- Demo ---
 
 export const demo = {
@@ -1125,6 +1139,7 @@ export type SharingAudience = 'evento' | 'turnê'
 
 export interface SharingFeedPost {
   id: string
+  event_id: string
   event_name: string
   created_at: string
   audience: SharingAudience

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { clearTokens, storeTokens, users, type SharingOverview } from './api'
+import { clearTokens, feed, storeTokens, users, type SharingOverview } from './api'
 
 type Call = [string, RequestInit]
 
@@ -38,5 +38,26 @@ describe('users.sharing()', () => {
     expect(headers.Authorization).toBe('Bearer token-abc')
     expect(headers['X-Tumtum-Client']).toBe('web/site')
     expect(result).toEqual(OVERVIEW)
+  })
+})
+
+describe('feed.deletePost()', () => {
+  it('sends DELETE /api/events/{event}/feed/{post} with the bearer token and takes the 204', async () => {
+    const fetchMock = vi.fn(async (..._args: unknown[]) => ({
+      ok: true,
+      status: 204,
+      json: async () => {
+        throw new Error('a 204 has no body')
+      },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    storeTokens({ access_token: 'token-abc' })
+
+    await expect(feed.deletePost('event-1', 'post-2')).resolves.toBeUndefined()
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as Call
+    expect(url).toMatch(/\/api\/events\/event-1\/feed\/post-2$/)
+    expect(init.method).toBe('DELETE')
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer token-abc')
   })
 })
