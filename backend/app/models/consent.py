@@ -21,6 +21,12 @@ class Consent(Base):
     `purpose` is one of `services.consents.PURPOSES`; `means` is how the
     person expressed it (tap, checkbox, button, form); `client` is the
     `X-Tumtum-Client` header of the request that recorded it.
+
+    The ledger fields (v1.1 opinion, §4.2, migration 023): `legal_basis`
+    (`consent_art11`, `consent_art7`, or `contract_art7` for the terms),
+    `scope` (one fixed line per purpose) and `proof` (SHA-256 of
+    `"{purpose}:{text_version}"`, the fingerprint of the text shown, whose
+    words are in `docs/consent-texts.md`). Set by `services.consents`.
     """
 
     __tablename__ = "consents"
@@ -41,6 +47,9 @@ class Consent(Base):
         DateTime(timezone=True), nullable=False
     )
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    legal_basis: Mapped[str] = mapped_column(String(40), nullable=False)
+    scope: Mapped[str | None] = mapped_column(String(200))
+    proof: Mapped[str] = mapped_column(String(64), nullable=False)
     means: Mapped[str] = mapped_column(String(20), nullable=False)
     client: Mapped[str | None] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(

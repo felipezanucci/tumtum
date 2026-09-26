@@ -1,5 +1,6 @@
 """Who read whose data, and every API request (AL-8)."""
 
+import re
 import uuid
 
 import pytest
@@ -12,7 +13,7 @@ from app.core.auth import create_access_token
 from app.main import AccessLogMiddleware
 from app.models.privacy import AccessLog, DataAccessLog
 from app.services.access_log import ip_of, record_access
-from tests.conftest import add_user, make_request
+from tests.conftest import add_user, grant, make_request, night_body
 
 
 def test_the_ip_is_the_first_forwarded_hop():
@@ -100,3 +101,37 @@ async def test_a_logging_failure_never_costs_the_answer(monkeypatch):
     ) as client:
         response = await client.get("/api/ping")
     assert response.status_code == 200
+
+
+# Readings no status code, port or address in these tests can collide with.
+SCAN_BPMS = (187, 176, 163, 158, 149)
+
+
+def _serialised(rows) -> str:
+    return "\n".join(
+        " ".join(f"{c.key}={getattr(row, c.key)}" for c in row.__table__.columns)
+        for row in rows
+    )
+
+
+@pytest.mark.asyncio
+async def test_log_scan_finds_no_heartbeat_in_either_log(memdb, api):
+    """A night goes up and is read back through the real app; neither log
+    may then hold the word bpm or any of the night's values (v1.1 §24)."""
+    user = await add_user(memdb)
+    await grant(memdb, user, "keep_night")
+    client = api(user)
+
+    sent = await client.post("/api/health/sessions", json=night_body(bpms=SCAN_BPMS))
+    assert sent.status_code == 201
+    read = await client.get(f"/api/health/sessions/{sent.json()['id']}")
+    assert [p["bpm"] for p in read.json()["data_points"]] == list(SCAN_BPMS)
+    await client.get("/api/health/sessions")
+
+    access = (await memdb.execute(select(AccessLog))).scalars().all()
+    reads = (await memdb.execute(select(DataAccessLog))).scalars().all()
+    assert len(access) == 3 and reads  # the scan is not of empty tables
+    dump = _serialised(access) + "\n" + _serialised(reads)
+    assert "bpm" not in dump.lower()
+    for bpm in SCAN_BPMS:
+        assert not re.search(rf"\b{bpm}\b", dump), bpm

@@ -19,7 +19,7 @@ package cc.tumtum.app.domain
  * Kotlin that a JVM test can load.
  */
 object ConsentText {
-    const val VERSION = "2026-09-26"
+    const val VERSION = "2026-09-26.1"
 
     const val TERMS = "terms"
     const val READ_HEART_RATE = "read_heart_rate"

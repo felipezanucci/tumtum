@@ -77,7 +77,10 @@ class Settings(BaseSettings):
     # the night's summary and its cards stay while `keep_night` does; the
     # second-by-second readings are what the moments were made from, and
     # after this many days they go (contract: raw readings retention).
-    raw_readings_retention_days: int = 30
+    # A week: the moment is computed within hours and the card keeps the
+    # downsampled curve, so seven days cover re-analysis and QA; anything
+    # longer is retention without a purpose (v1.1 opinion, §11).
+    raw_readings_retention_days: int = 7
 
     @property
     def waitlist_admins(self) -> set[str]:

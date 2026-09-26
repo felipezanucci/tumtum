@@ -167,6 +167,9 @@ async def collect(
                 revoked_at=c.revoked_at,
                 means=c.means,
                 client=c.client,
+                legal_basis=c.legal_basis,
+                scope=c.scope,
+                proof=c.proof,
             )
             for c in await consents.history(db, user.id)
         ],

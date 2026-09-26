@@ -5,9 +5,12 @@
 The API never runs Alembic (decision log, open item 16). On startup it calls
 `Base.metadata.create_all`, which creates missing **tables** and never changes
 an existing one. Since 26/09 it also runs `app/core/schema_catchup.py`, which
-adds — only adds, idempotently — the columns of 015, 016 and 017, because the
-models map them and every query on `users`, `hr_sessions` and `cards` would
-fail without them.
+adds — only adds, idempotently — the columns of 015, 016, 017 and 023, because
+the models map them and every query on `users`, `hr_sessions`, `cards` and
+`consents` would fail without them. For 023 it also fills the new columns of
+the consent rows already there and then makes `legal_basis` and `proof` NOT
+NULL — every statement touches only what is still missing, so each startup
+may run it again.
 
 ## Migrations since 007 that `create_all` cannot apply
 
@@ -18,6 +21,7 @@ fail without them.
 | 016 | `hr_sessions.analyzed_at` | yes, by the catch-up |
 | 017 | `cards.published_at` | yes, by the catch-up |
 | 022 | drop `wearable_connections.access_token`/`refresh_token` | **no** — destructive, needs a person |
+| 023 | `consents.legal_basis`, `scope`, `proof` (the consent ledger, v1.1 opinion §4.2), backfilled by purpose and NOT NULL | yes, by the catch-up — nothing manual |
 
 (008–014 and 018–021 only create tables: `create_all` handles them. 005,
 before this range, added `waitlist_entries.first_name`/`last_name` and is in
@@ -49,9 +53,10 @@ alembic upgrade 007             # if it still has the timezone (the likely case)
 #    the startup catch-up already added.
 alembic stamp 021
 
-# 4. 022 drops the unused wearable tokens.
+# 4. 022 drops the unused wearable tokens; 023 finds its columns already
+#    added and filled by the catch-up, and only records itself.
 alembic upgrade head
-alembic current                 # → 022 (head)
+alembic current                 # → 023 (head)
 ```
 
 From then on the version table is honest, and a future migration is one
@@ -60,7 +65,8 @@ From then on the version table is honest, and a future migration is one
 ## Optional, a person's decision
 
 - **Start the raw-series clock for nights analysed before 26/09** (their
-  readings will be deleted on the next maintenance pass if older than 30 days):
+  readings will be deleted on the next maintenance pass if older than
+  `RAW_READINGS_RETENTION_DAYS`, 7 by default since 26/09):
   `UPDATE hr_sessions SET analyzed_at = created_at WHERE analyzed_at IS NULL AND EXISTS (SELECT 1 FROM peaks WHERE peaks.session_id = hr_sessions.id);`
 - **Keep public the cards that were already shared** (017 leaves every
   existing card unpublished):
