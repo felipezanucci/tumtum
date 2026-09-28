@@ -17,7 +17,6 @@ from app.schemas.user import UserUpdateRequest
 from app.services import usernames
 from tests.conftest import add_user
 from tests.test_signup_flow import (  # noqa: F401 — fixtures
-    _age,
     _code_in,
     _confirm,
     _start,
@@ -56,14 +55,19 @@ async def test_a_second_account_cannot_take_an_at_already_held(db, mailbox):
 
 
 @pytest.mark.asyncio
-async def test_a_pending_sign_up_holds_its_at_but_not_against_itself(db, mailbox):
+async def test_only_an_account_holds_an_at_and_the_second_to_confirm_is_told(
+    db, mailbox
+):
+    """A pending code holds nothing: correcting a mistyped address must not
+    turn the person's own @ into "já tem dono" (site stream, 28/09). Two
+    people with the same free @ both get a code; the first to confirm keeps it."""
     await _start(db, email="ana@x.cc", username="fezanu")
-    with pytest.raises(HTTPException):
-        await _start(db, email="bia@x.cc", name="Bia", username="fezanu")
-    assert (await check_username("fezanu", db)).available is False
-    # The same address asking again keeps the name it asked for.
-    await _age(db, 61)
-    await _start(db, email="ana@x.cc", username="fezanu")
+    assert (await check_username("fezanu", db)).available is True
+    await _start(db, email="ana.certo@x.cc", username="fezanu")  # the corrected address
+    await _confirm(db, _code_in(mailbox[1]), email="ana.certo@x.cc")
+    with pytest.raises(HTTPException) as late:
+        await _confirm(db, _code_in(mailbox[0]), email="ana@x.cc")
+    assert (late.value.status_code, late.value.detail) == (409, usernames.TAKEN)
 
 
 @pytest.mark.asyncio

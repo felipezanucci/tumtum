@@ -8,19 +8,20 @@ index on its lower-case form, checked while the person types
 for, and a last time when the account is made.
 
 What a name may be: 3 to 20 characters, lower-case letters, digits and
-underscore. A pending sign-up holds its @ for as long as its code is open,
-so two people typing the same name at once do not both receive a code for
-it. A handful of names are the platform's and never anybody's.
+underscore. Only an account holds an @: a sign-up still waiting for its code
+does not, because the person correcting a mistyped address would then be
+told their own name "já tem dono" (found by the site's stream, 28/09). Two
+people typing the same free name at once both get a code, and the second to
+confirm is told at that moment. A handful of names are the platform's and
+never anybody's.
 """
 
 import re
 import uuid
-from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.signup_code import SignupCode
 from app.models.user import User
 
 MIN_LENGTH = 3
@@ -74,31 +75,16 @@ async def taken(
     db: AsyncSession,
     name: str,
     *,
-    now: datetime,
-    except_email_key: str | None = None,
     except_user_id: uuid.UUID | None = None,
 ) -> bool:
-    """Whether an account, or a sign-up still waiting for its code, holds it.
-
-    A sign-up of the same address is not a rival: the person asking for a
-    new code keeps the name they asked for the first time.
-    """
+    """Whether an account already holds it, whatever the case."""
     owner = select(User.id).where(func.lower(User.username) == name)
     if except_user_id is not None:
         owner = owner.where(User.id != except_user_id)
-    if (await db.execute(owner.limit(1))).first() is not None:
-        return True
-    pending = select(SignupCode.id).where(
-        func.lower(SignupCode.username) == name,
-        SignupCode.used_at.is_(None),
-        SignupCode.expires_at > now,
-    )
-    if except_email_key is not None:
-        pending = pending.where(SignupCode.email_key != except_email_key)
-    return (await db.execute(pending.limit(1))).first() is not None
+    return (await db.execute(owner.limit(1))).first() is not None
 
 
-async def free_from(db: AsyncSession, seed: str, *, now: datetime) -> str:
+async def free_from(db: AsyncSession, seed: str) -> str:
     """A free @ made from a name or an address, for a client that sent none.
 
     The site's sign-up asks for one since 28/09; a build from before it does
@@ -109,7 +95,7 @@ async def free_from(db: AsyncSession, seed: str, *, now: datetime) -> str:
         base = (base + "fa")[:MIN_LENGTH].ljust(MIN_LENGTH, "x")
     candidate = base
     for n in range(2, 10_000):
-        if candidate not in RESERVED and not await taken(db, candidate, now=now):
+        if candidate not in RESERVED and not await taken(db, candidate):
             return candidate
         candidate = f"{base}{n}"
     return f"{base}{uuid.uuid4().hex[:4]}"

@@ -5,9 +5,11 @@ import { Wordmark } from '@/components/brand'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
-import { BirthDatePicker, Button, Input, PasswordInput } from '@/components/ui'
+import { BirthDatePicker, Button, Input, PasswordInput, UsernameField } from '@/components/ui'
 import { codeDigits, isCompleteCode, secondsUntil } from '@/lib/signup-code'
 import { isAdult, signupReady, UNDER_AGE_MESSAGE } from '@/lib/consent'
+import { useUsernameCheck } from '@/lib/hooks/useUsernameCheck'
+import { isUsernameSentence } from '@/lib/username'
 
 /**
  * Criar conta, in two steps since 24/09 (#64). Test 7 made an account with
@@ -25,11 +27,19 @@ import { isAdult, signupReady, UNDER_AGE_MESSAGE } from '@/lib/consent'
  * because the LGPD wants the health-data one as its own act — and the birth
  * date is three lists in pt-BR order instead of the browser's date field,
  * which drew mm/dd/yyyy on Felipe's machine.
+ *
+ * 28/09: the @ is chosen here, once, and the server owns it — unique across
+ * accounts. The line under the field is always about the name on screen, and
+ * the code is not sent until the server has said that name is free.
  */
 export default function SignupPage() {
   const router = useRouter()
   const { startSignup, confirmSignup, loading } = useAuthStore()
   const [name, setName] = useState('')
+  // The @, cleaned as typed (lib/username.ts).
+  const [username, setUsername] = useState('')
+  const usernameCheck = useUsernameCheck(username)
+  const usernameConfirmed = usernameCheck.status.kind === 'available'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
@@ -70,6 +80,7 @@ export default function SignupPage() {
         birth_date: birthDate,
         terms_accepted: termsAccepted,
         read_heart_rate: readHeartRate,
+        username,
       })
       setSentTo(started.email)
       setMinutes(Math.ceil(started.expires_in_seconds / 60))
@@ -78,8 +89,20 @@ export default function SignupPage() {
       setNow(Date.now())
       if (again) setNotice(`Código novo a caminho de ${started.email}. Só o mais novo vale.`)
     } catch (err: any) {
-      setError(err?.detail || err?.message || 'Não deu pra mandar o código.')
+      const message: string = err?.detail || err?.message || 'Não deu pra mandar o código.'
+      if (isUsernameSentence(message)) {
+        // About the @: said under the @ field, on the form that has it.
+        refuseUsername(message)
+        return
+      }
+      setError(message)
     }
+  }
+
+  /** The server refused the @ after all: back to the form, its sentence under the field. */
+  function refuseUsername(message: string) {
+    usernameCheck.reject(username, message)
+    setSentTo(null)
   }
 
   async function handleStart(e: React.FormEvent) {
@@ -93,6 +116,10 @@ export default function SignupPage() {
     }
     if (!termsAccepted || !readHeartRate) {
       setError('Pra criar a conta, marque as duas caixas: os Termos e a leitura da sua batida.')
+      return
+    }
+    if (!usernameConfirmed) {
+      // The button waits for it too; the line under the field says why.
       return
     }
     if (isAdult(birthDate) === false) {
@@ -116,7 +143,13 @@ export default function SignupPage() {
       await confirmSignup(sentTo, code)
       router.push('/onboarding')
     } catch (err: any) {
-      setError(err?.detail || err?.message || 'Não deu pra confirmar o código.')
+      const message: string = err?.detail || err?.message || 'Não deu pra confirmar o código.'
+      // Taken between the code and its confirmation: the @ has to change.
+      if (isUsernameSentence(message)) {
+        refuseUsername(message)
+        return
+      }
+      setError(message)
     }
   }
 
@@ -189,6 +222,12 @@ export default function SignupPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+            />
+            <UsernameField
+              value={username}
+              onChange={setUsername}
+              status={usernameCheck.status}
+              onRetry={usernameCheck.retry}
             />
             <Input
               label="Email"
@@ -270,7 +309,11 @@ export default function SignupPage() {
             <Button
               type="submit"
               loading={loading}
-              disabled={mismatch || !signupReady({ birthDate, termsAccepted, readHeartRate })}
+              disabled={
+                mismatch ||
+                !usernameConfirmed ||
+                !signupReady({ birthDate, termsAccepted, readHeartRate })
+              }
               className="w-full"
             >
               Mandar o código

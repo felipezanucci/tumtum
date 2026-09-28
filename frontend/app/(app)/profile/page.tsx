@@ -10,6 +10,8 @@ import { ApiError, users, cards, type UserProfile, type CardData } from '@/lib/a
 import { Avatar, Button, Card, Input, Loading, Badge } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { OwnerCardImage } from '@/components/cards'
+import UsernameChooser from '@/components/profile/UsernameChooser'
+import { USERNAME_FIXED } from '@/lib/username'
 import {
   ConsentSettings,
   DataDownload,
@@ -21,7 +23,7 @@ import {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { logout } = useAuthStore()
+  const { logout, loadUser } = useAuthStore()
   const resetConsents = useConsentStore((s) => s.reset)
   const { connections, loadConnections } = useHRStore()
 
@@ -32,6 +34,8 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [deleted, setDeleted] = useState(false)
+  // True right after the @ was chosen here, so the save is said where it happened.
+  const [usernameJustSaved, setUsernameJustSaved] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -68,6 +72,13 @@ export default function ProfilePage() {
     const updated = await users.updateProfile({ name: editName.trim() })
     setProfile(updated)
     setEditing(false)
+  }
+
+  function handleUsernameSaved(updated: UserProfile, savedHere: boolean) {
+    setProfile(updated)
+    setUsernameJustSaved(savedHere)
+    // The store's copy of the account carries the @ too.
+    loadUser().catch(() => undefined)
   }
 
   function handleLogout() {
@@ -161,7 +172,18 @@ export default function ProfilePage() {
                   <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>Editar</Button>
                 </div>
               )}
-              <p className="text-sm text-tumtum-muted">{profile.email}</p>
+              {profile.username ? (
+                // Fixed: no edit button, and the line says why (28/09).
+                <div>
+                  <p className="text-tumtum-white">@{profile.username}</p>
+                  <p className="text-xs text-tumtum-muted">
+                    {usernameJustSaved ? `Salvo. ${USERNAME_FIXED}` : USERNAME_FIXED}
+                  </p>
+                </div>
+              ) : (
+                <UsernameChooser onSaved={handleUsernameSaved} />
+              )}
+              <p className="mt-2 text-sm text-tumtum-muted">{profile.email}</p>
               <p className="text-xs text-tumtum-muted">Membro desde {memberSince}</p>
             </div>
           </div>

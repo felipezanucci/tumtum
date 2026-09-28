@@ -261,10 +261,10 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Email já cadastrado"
         )
-    # The @ (28/09): checked before any mail leaves, and held by this code
-    # while it is open. A client that sends none gets a free one.
+    # The @ (28/09): checked before any mail leaves, and again when the code
+    # comes back. A client that sends none gets a free one.
     if body.username is None:
-        username = await usernames.free_from(db, name, now=now)
+        username = await usernames.free_from(db, name)
     else:
         username = usernames.clean(body.username)
         wrong = usernames.problem(username)
@@ -272,7 +272,7 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=wrong
             )
-        if await usernames.taken(db, username, now=now, except_email_key=key):
+        if await usernames.taken(db, username):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail=usernames.TAKEN
             )
@@ -417,10 +417,10 @@ async def register_confirm(
             status_code=status.HTTP_409_CONFLICT, detail="Email já cadastrado"
         )
 
-    # The @ was held while the code was open; an account made in between
-    # through another road could still have taken it (28/09).
+    # Only an account holds an @: somebody who confirmed first with the same
+    # name took it, and this person is told now (28/09).
     username = pending.username
-    if username and await usernames.taken(db, username, now=now, except_email_key=key):
+    if username and await usernames.taken(db, username):
         await db.commit()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=usernames.TAKEN
@@ -572,7 +572,7 @@ async def check_username(name: str, db: AsyncSession = Depends(get_db)):
     wrong = usernames.problem(cleaned)
     if wrong:
         return UsernameCheck(username=cleaned, available=False, reason=wrong)
-    if await usernames.taken(db, cleaned, now=datetime.now(UTC)):
+    if await usernames.taken(db, cleaned):
         return UsernameCheck(username=cleaned, available=False, reason=usernames.TAKEN)
     return UsernameCheck(username=cleaned, available=True)
 

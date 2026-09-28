@@ -138,9 +138,7 @@ async def update_profile(
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=wrong
                 )
-            if await usernames.taken(
-                db, wanted, now=datetime.now(UTC), except_user_id=user.id
-            ):
+            if await usernames.taken(db, wanted, except_user_id=user.id):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT, detail=usernames.TAKEN
                 )
