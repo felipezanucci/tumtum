@@ -1,52 +1,55 @@
 package cc.tumtum.app.ui.screens.feed
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.api.ServerEvent
+import cc.tumtum.app.data.repo.NightRepository
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.components.AccountCorner
 import cc.tumtum.app.ui.components.Wordmark
-import cc.tumtum.app.ui.nav.Routes
 import cc.tumtum.app.ui.nav.appContainer
+import cc.tumtum.app.ui.screens.eventfeed.EventFeedBody
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import java.time.Instant
 
 /**
- * b5 — a primeira tela: os rolês, e o de cada um leva ao seu feed.
+ * b5 — a primeira tela: o feed do evento de agora, e os outros numa faixa.
  *
  * **Rewritten 2026-09-22.** Until that day this was the app's start
  * destination showing `FakeSocialRepository`: a banner announcing "Hoje:
@@ -55,8 +58,15 @@ import java.time.Instant
  * measured. It had been on the Play internal testing track since 18/09.
  *
  * There is no friends feed, by decision: the feed is **per event**, so that
- * only the people who were somewhere together can talk about it. This screen
- * is therefore the list of events, and each one is a door.
+ * only the people who were somewhere together can talk about it.
+ *
+ * **Opens on the posts, 28/09.** From 22/09 this screen was the list of
+ * events — "ONDE A TUMTUM TÁ ROLANDO." — and each one a door to its feed.
+ * With b222 in his hand Felipe chose for the tab to open straight on a feed:
+ * the one rolling now, else the last one this account has a night at, else
+ * the latest. The other events became a strip of chips above it, and the
+ * strip is the navigation. The feed under it is [EventFeedBody], the same
+ * body the event's own screen draws — one feed, not two copies of one.
  */
 @Composable
 fun FeedScreen(nav: NavHostController) {
@@ -64,22 +74,32 @@ fun FeedScreen(nav: NavHostController) {
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     var events by remember { mutableStateOf<List<ServerEvent>?>(null) }
     var failed by remember { mutableStateOf(false) }
+    // The chip on, kept across a trip to another tab. [picked]: the person
+    // chose it, so a later look at their nights never moves them off it.
+    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var picked by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         // An empty list and a list that did not load are different claims,
         // and this screen has to be able to tell them apart.
         runCatching { container.api.listEvents() }
-            .onSuccess { events = it; failed = false }
+            .onSuccess { list -> events = list.sortedByDescending { it.startAt ?: Instant.EPOCH }; failed = false }
             .onFailure { events = null; failed = true }
+    }
+    val viewerId = user?.session?.userId
+    LaunchedEffect(events, viewerId) {
+        val list = events ?: return@LaunchedEffect
+        val kept = selectedId?.takeIf { id -> list.any { it.id == id } }
+        if (picked && kept != null) return@LaunchedEffect
+        selectedId = currentEvent(list, Instant.now(), container.nights, viewerId)?.id
+        picked = false
     }
 
     // #30, 22/09 — Felipe: "tá muito cinza, preta e branca… mais colorida,
     // mais viva." The manual's digital default is a black canvas with Pink as
-    // the main emphasis and Toxic Yellow as the second explosion, and this
-    // screen had neither: white page, grey rows, one yellow row when
-    // something happened to be live. Pink on black is half as loud as the old
-    // lime, so the emphasis comes from surface and scale — a full Pink block
-    // for the night that is on now, yellow doors on the rest.
+    // the main emphasis and Toxic Yellow as the second explosion: the chip of
+    // the feed on screen is Pink, and a night that is on now wears a yellow
+    // ROLANDO wherever it sits in the strip.
     Column(Modifier.fillMaxSize().background(TT.Ink).statusBarsPadding()) {
         Row(
             Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 18.dp),
@@ -91,112 +111,127 @@ fun FeedScreen(nav: NavHostController) {
             AccountCorner(user, nav, Skin.PINK)
         }
 
-        LazyColumn(
-            Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 22.dp, bottom = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            item(key = "headline") {
-                Text(
-                    buildAnnotatedString {
-                        append(stringResource(R.string.feed_headline_a))
-                        append("\n")
-                        withStyle(SpanStyle(color = TT.Rose)) {
-                            append(stringResource(R.string.feed_headline_b))
+        val list = events
+        when {
+            failed -> Status(stringResource(R.string.feed_failed))
+            list == null -> Status(stringResource(R.string.feed_loading))
+            list.isEmpty() -> Status(stringResource(R.string.feed_empty))
+            else -> {
+                val now = Instant.now()
+                val strip = rememberLazyListState()
+                // The chip the tab chose is brought into view: past three
+                // upcoming dates, the night that is on now would otherwise be
+                // Pink off the edge of the screen. A chip the person tapped is
+                // already where their finger was.
+                LaunchedEffect(selectedId, list) {
+                    val at = list.indexOfFirst { it.id == selectedId }
+                    if (at >= 0 && !picked) strip.animateScrollToItem(at)
+                }
+                LazyRow(
+                    Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 14.dp),
+                    state = strip,
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(list, key = { it.id }) { event ->
+                        EventChip(event, selected = event.id == selectedId, live = event.isLiveAt(now)) {
+                            selectedId = event.id
+                            picked = true
                         }
-                    },
-                    style = TTType.ShoutSmall.copy(fontSize = 34.sp, lineHeight = 34.sp),
-                    color = TT.Paper,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.feed_sub),
-                    style = TTType.BodySmall,
-                    color = TT.Gray45,
-                )
-                Spacer(Modifier.height(14.dp))
-            }
-
-            val list = events
-            when {
-                failed -> item(key = "failed") {
-                    Text(
-                        stringResource(R.string.feed_failed),
-                        style = TTType.BodySmall,
-                        color = TT.Gray45,
-                    )
+                    }
                 }
-
-                list == null -> item(key = "loading") {
-                    Text(
-                        stringResource(R.string.feed_loading),
-                        style = TTType.BodySmall,
-                        color = TT.Gray45,
-                    )
+                val shown = list.firstOrNull { it.id == selectedId }
+                if (shown == null) {
+                    // The events are here and which one is this account's is
+                    // still being asked of the phone — a moment, and said. Not
+                    // "Carregando os eventos…": those are on screen already.
+                    Status(stringResource(R.string.event_feed_loading))
+                } else {
+                    // A fresh body per event: its state, its scroll, its
+                    // sentences all belong to the feed they were about.
+                    key(shown.id) {
+                        EventFeedBody(
+                            nav,
+                            eventId = shown.id,
+                            eventName = shown.name,
+                            embedded = true,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
-
-                list.isEmpty() -> item(key = "empty") {
-                    Text(
-                        stringResource(R.string.feed_empty),
-                        style = TTType.BodySmall,
-                        color = TT.Gray45,
-                    )
-                }
-
-                else -> eventRows(list, nav)
             }
         }
     }
 }
 
-private fun LazyListScope.eventRows(list: List<ServerEvent>, nav: NavHostController) {
-    val now = Instant.now()
-    list.sortedByDescending { it.startAt ?: Instant.EPOCH }.forEach { event ->
-        item(key = event.id) { EventRow(event, now, nav) }
-    }
+/**
+ * The feed the tab opens on: the event rolling now; else the latest this
+ * account has a night at on this phone, sent or not; else the latest that has
+ * begun, and the latest of all only when every one is still to come. [list]
+ * is newest first.
+ */
+private suspend fun currentEvent(
+    list: List<ServerEvent>,
+    now: Instant,
+    nights: NightRepository,
+    viewerId: String?,
+): ServerEvent? {
+    list.firstOrNull { it.isLiveAt(now) }?.let { return it }
+    list.firstOrNull { event ->
+        nights.uploadedNightAt(event.id, viewerId) != null || nights.unsentNightAt(event.id) != null
+    }?.let { return it }
+    return list.firstOrNull { !it.isUpcomingAt(now) } ?: list.firstOrNull()
 }
 
+/** What the tab has instead of a strip: loading, failed, or truly none. */
 @Composable
-private fun EventRow(event: ServerEvent, now: Instant, nav: NavHostController) {
-    val live = event.isLiveAt(now)
-    // Live: the whole row is Pink, black type on it (7.93:1; never white on
-    // Pink). The rest: dark cards whose door is Toxic Yellow.
-    val surface = if (live) TT.Rose else TT.Ink800
-    val title = if (live) TT.Ink else TT.Paper
-    val meta = if (live) TT.Ink.copy(alpha = 0.7f) else TT.Gray45
+private fun Status(text: String) {
+    Text(
+        text,
+        style = TTType.BodySmall,
+        color = TT.Gray45,
+        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 22.dp),
+    )
+}
+
+/**
+ * An event in the strip. The one on screen is Pink with black type on it
+ * (7.93:1; never white on Pink); the rest are outlined on the black. A night
+ * that is on now says ROLANDO in Toxic Yellow — on the Pink chip as a black
+ * pill with yellow type, on an outlined one as a yellow pill with black type.
+ */
+@Composable
+private fun EventChip(event: ServerEvent, selected: Boolean, live: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(999.dp)
     Row(
         Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(surface)
-            .clickable { nav.navigate(Routes.eventFeed(event.id, event.name)) }
-            .padding(horizontal = 18.dp, vertical = if (live) 22.dp else 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .clip(shape)
+            .background(if (selected) TT.Rose else TT.Ink)
+            .border(1.dp, if (selected) TT.Rose else TT.Ink600, shape)
+            .clickable(onClick = onClick)
+            .padding(start = 16.dp, end = if (live) 6.dp else 16.dp)
+            .height(40.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f).padding(end = 12.dp)) {
-            Text(
-                event.name,
-                style = TTType.ItemSub.copy(
-                    fontSize = if (live) 20.sp else 16.sp,
-                    lineHeight = if (live) 22.sp else 19.sp,
-                    fontWeight = FontWeight.Bold,
-                ),
-                color = title,
-            )
-            event.details?.let {
-                Spacer(Modifier.height(3.dp))
-                Text(it, style = TTType.ItemSub.copy(fontSize = 12.sp), color = meta)
-            }
-        }
         Text(
-            stringResource(if (live) R.string.feed_row_live else R.string.feed_row_open),
-            style = TTType.MetaSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
-            color = if (live) TT.Acid else TT.Ink,
-            modifier = Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(if (live) TT.Ink else TT.Acid)
-                .padding(horizontal = 12.dp, vertical = 7.dp),
+            event.name,
+            style = TTType.ItemSub.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+            color = if (selected) TT.Ink else TT.Paper,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = 220.dp),
         )
+        if (live) {
+            Text(
+                stringResource(R.string.feed_row_live),
+                style = TTType.MetaSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                color = if (selected) TT.Acid else TT.Ink,
+                modifier = Modifier
+                    .clip(shape)
+                    .background(if (selected) TT.Ink else TT.Acid)
+                    .padding(horizontal = 9.dp, vertical = 5.dp),
+            )
+        }
     }
 }

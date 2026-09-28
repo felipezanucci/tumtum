@@ -79,6 +79,28 @@ import cc.tumtum.app.ui.components.revealWhen
  */
 @Composable
 fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? = null) {
+    EventFeedBody(nav, eventId, eventName, embedded = false)
+}
+
+/**
+ * The feed of one event, **once** (28/09). Felipe, with b222 in his hand,
+ * chose for the FEED tab to open straight on the posts instead of on a list
+ * of events to tap through, so the feed now lives in two places: this
+ * screen, which deep links still open (the night's "Ver o feed do evento",
+ * the return from [Routes.ShowToFeed], a notification), and the tab itself,
+ * under its strip of events. Both are this body. [embedded] drops what the
+ * tab already has — the yellow header with the event's name and "← FEED" —
+ * and keeps everything that is the feed's own: where it is, the tour, the
+ * crowd line, the night filter, and every sentence below.
+ */
+@Composable
+fun EventFeedBody(
+    nav: NavHostController,
+    eventId: String,
+    eventName: String? = null,
+    embedded: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
     val title = eventName
     val feed = FeedTarget(eventId)
     val container = appContainer()
@@ -186,62 +208,42 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
     }
 
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .background(TT.Paper)
             .verticalScroll(rememberScrollState())
-            .navigationBarsPadding(),
+            // In the tab, the tab bar is what sits on the system's bar.
+            .let { if (embedded) it else it.navigationBarsPadding() },
     ) {
         val ready = state as? FeedState.Ready
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .background(TT.Acid)
-                .statusBarsPadding()
-                .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 22.dp),
-        ) {
-            Text(
-                stringResource(R.string.event_feed_back),
-                style = TTType.Meta.copy(letterSpacing = 0.04.em),
-                color = TT.Ink.copy(alpha = 0.6f),
-                modifier = Modifier.clickable { nav.popBackStack() },
-            )
-            Spacer(Modifier.height(14.dp))
-            Text(
-                ready?.eventName?.takeIf { it.isNotBlank() } ?: knownName
-                    ?: stringResource(R.string.event_feed_title_fallback),
-                style = TTType.ShoutSmall.copy(fontSize = 26.sp, lineHeight = 26.5.sp),
-                color = TT.Ink,
-            )
-            ready?.venue?.takeIf { it.isNotBlank() }?.let {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    it,
-                    style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
-                    color = TT.Ink.copy(alpha = 0.65f),
-                )
+        if (embedded) {
+            // The strip above already names the event; what it does not say
+            // is said here, on the feed's own white.
+            Column(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 8.dp)) {
+                FeedFacts(ready, crowd, onlyMine) { onlyMine = it }
             }
-            // The tour whose feed this is, only when it spans several dates —
-            // a tour of one date is just this show, and "1 datas" was a
-            // sentence the app should never have said (#66).
-            val tour = ready?.takeIf { it.spansDates }
-            val tourName = tour?.series?.name
-            if (tour != null && tourName != null) {
-                Spacer(Modifier.height(6.dp))
+        } else {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(TT.Acid)
+                    .statusBarsPadding()
+                    .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 22.dp),
+            ) {
                 Text(
-                    stringResource(R.string.feed_tour_line, tourName, tour.dates.size),
-                    style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
-                    color = TT.Ink.copy(alpha = 0.7f),
+                    stringResource(R.string.event_feed_back),
+                    style = TTType.Meta.copy(letterSpacing = 0.04.em),
+                    color = TT.Ink.copy(alpha = 0.6f),
+                    modifier = Modifier.clickable { nav.popBackStack() },
                 )
-            }
-            Spacer(Modifier.height(16.dp))
-            CrowdLine(crowd)
-            if (ready?.spansDates == true) {
                 Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    NightChip(stringResource(R.string.feed_filter_all), selected = !onlyMine) { onlyMine = false }
-                    NightChip(stringResource(R.string.feed_filter_mine), selected = onlyMine) { onlyMine = true }
-                }
+                Text(
+                    ready?.eventName?.takeIf { it.isNotBlank() } ?: knownName
+                        ?: stringResource(R.string.event_feed_title_fallback),
+                    style = TTType.ShoutSmall.copy(fontSize = 26.sp, lineHeight = 26.5.sp),
+                    color = TT.Ink,
+                )
+                FeedFacts(ready, crowd, onlyMine) { onlyMine = it }
             }
         }
 
@@ -427,6 +429,50 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * What the feed says about itself above its posts: where it is, the tour it
+ * belongs to, the crowd line, and the night filter. Drawn in ink tints, so it
+ * reads the same on the yellow header and on the tab's white.
+ */
+@Composable
+private fun FeedFacts(
+    ready: FeedState.Ready?,
+    crowd: CrowdState,
+    onlyMine: Boolean,
+    onOnlyMine: (Boolean) -> Unit,
+) {
+    ready?.venue?.takeIf { it.isNotBlank() }?.let {
+        Spacer(Modifier.height(6.dp))
+        Text(
+            it,
+            style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
+            color = TT.Ink.copy(alpha = 0.65f),
+        )
+    }
+    // The tour whose feed this is, only when it spans several dates —
+    // a tour of one date is just this show, and "1 datas" was a
+    // sentence the app should never have said (#66).
+    val tour = ready?.takeIf { it.spansDates }
+    val tourName = tour?.series?.name
+    if (tour != null && tourName != null) {
+        Spacer(Modifier.height(6.dp))
+        Text(
+            stringResource(R.string.feed_tour_line, tourName, tour.dates.size),
+            style = TTType.BodySmall.copy(fontWeight = FontWeight.Medium),
+            color = TT.Ink.copy(alpha = 0.7f),
+        )
+    }
+    Spacer(Modifier.height(16.dp))
+    CrowdLine(crowd)
+    if (ready?.spansDates == true) {
+        Spacer(Modifier.height(14.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            NightChip(stringResource(R.string.feed_filter_all), selected = !onlyMine) { onOnlyMine(false) }
+            NightChip(stringResource(R.string.feed_filter_mine), selected = onlyMine) { onOnlyMine(true) }
         }
     }
 }
