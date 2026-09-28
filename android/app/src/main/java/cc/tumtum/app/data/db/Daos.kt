@@ -183,6 +183,9 @@ interface NightDao {
     @Query("UPDATE nights SET serverSessionId = :serverSessionId, ownerUserId = :ownerUserId, sentAt = :sentAt WHERE id = :id")
     suspend fun setServerSessionId(id: Long, serverSessionId: String, ownerUserId: String?, sentAt: Long)
 
+    @Query("UPDATE nights SET eventReadings = :eventReadings WHERE id = :id")
+    suspend fun setEventReadings(id: Long, eventReadings: Int?)
+
     @Query("UPDATE nights SET uploadState = :state, uploadError = :error WHERE id = :id")
     suspend fun setUploadState(id: Long, state: String, error: String?)
 

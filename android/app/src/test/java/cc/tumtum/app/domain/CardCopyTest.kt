@@ -40,8 +40,12 @@ class CardCopyTest {
     }
 
     @Test
-    fun `a night with no moment says so, and nothing about a mood`() {
-        assertEquals(CardCopy.Title.NoMoments, CardCopy.title(90, 80, "22h00", hasMoments = false))
+    fun `a night with no moment is its average, until its top — never a mood`() {
+        // 28/09: one headline before and after the server looked (item 22).
+        assertEquals(CardCopy.Title.AboveAverage(80, "22H00"), CardCopy.title(90, 80, "22h00", hasMoments = false))
+        assertEquals(CardCopy.Title.AboveAverage(84, "16H48"), CardCopy.title(84, 84, "16h48", hasMoments = false))
+        assertEquals(CardCopy.Title.AboveAverage(80, null), CardCopy.title(90, 80, null, hasMoments = false))
+        assertEquals(CardCopy.Title.HeartAt("22H00"), CardCopy.title(90, null, "22h00", hasMoments = false))
     }
 
     @Test

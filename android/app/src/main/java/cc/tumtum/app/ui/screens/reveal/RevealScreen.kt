@@ -69,6 +69,11 @@ import androidx.compose.ui.text.font.FontWeight
 import java.io.IOException
 import kotlinx.coroutines.flow.first
 import cc.tumtum.app.ui.components.revealWhen
+import cc.tumtum.app.ui.components.serverDeadline
+import cc.tumtum.app.domain.ConsentText
+import cc.tumtum.app.domain.FeedGate
+import cc.tumtum.app.domain.StopReason
+import androidx.compose.ui.res.pluralStringResource
 import androidx.core.app.NotificationManagerCompat
 
 /**
@@ -173,6 +178,13 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
             Text(n.eventName, style = TTType.ItemSub.copy(fontSize = 14.sp), color = TT.Paper)
             Text(" · ${Fmt.date(n.date)}", style = TTType.ItemSub.copy(fontSize = 14.sp), color = TT.Gray55)
         }
+        // Why this night ended before its "Encerrar" (28/09, item 21): the
+        // capture stops the moment "Ler sua batida" goes off, and a short
+        // night with no reason reads as the app losing it.
+        if (n.stopReason == StopReason.READING_REVOKED) {
+            Spacer(Modifier.height(10.dp))
+            Text(stringResource(R.string.night_stopped_reading), style = TTType.BodySmall, color = TT.Rose)
+        }
         Spacer(Modifier.height(22.dp))
         Text(
             // The title the night's numbers prove (26/09, the backend's
@@ -240,8 +252,11 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
         SyncStatus(
             n = n,
             sync = container.sync,
+            keepingNights = user?.granted(ConsentText.KEEP_NIGHT),
+            keepRevokedAt = user?.consents?.consents?.firstOrNull { it.purpose == ConsentText.KEEP_NIGHT }?.revokedAt,
             onConsent = { purpose -> nav.navigate(Routes.consent(purpose, n.id)) },
             onSignIn = { nav.navigate(Routes.Login) },
+            onFeed = { eventId -> nav.navigate(Routes.eventFeed(eventId, n.eventName)) },
         )
         Spacer(Modifier.height(14.dp))
 
@@ -340,10 +355,21 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
 private fun SyncStatus(
     n: Night,
     sync: NightSync,
+    /** "Guardar a noite" as last heard for this account; null when unknown. */
+    keepingNights: Boolean?,
+    /** When it was turned off, when the server said. */
+    keepRevokedAt: java.time.Instant?,
     onConsent: (String) -> Unit,
     onSignIn: () -> Unit,
+    onFeed: (serverEventId: String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val container = appContainer()
+    // The night's event on the server, for "Ver o feed do evento" (28/09).
+    var feedEventId by remember(n.id) { mutableStateOf<String?>(null) }
+    LaunchedEffect(n.id, n.serverSessionId) {
+        feedEventId = if (n.serverSessionId != null) container.nights.serverEventIdFor(n.id) else null
+    }
     val uploading by sync.uploading.collectAsStateWithLifecycle()
     val phases by sync.phase.collectAsStateWithLifecycle()
     val phase = phases[n.id]
@@ -389,7 +415,15 @@ private fun SyncStatus(
 
         // The server refused for a missing consent: the way to give it, never a silent retry.
         consentMissing != null && n.serverSessionId == null -> {
-            Text(stringResource(R.string.keep_needs_consent), style = TTType.MetaSmall, color = TT.Rose)
+            // Which key, in its own name (28/09): the server now takes a night
+            // only with "Ler sua batida" and "Guardar a noite" both on.
+            Text(
+                stringResource(
+                    if (consentMissing == ConsentText.READ_HEART_RATE) R.string.keep_needs_consent_read else R.string.keep_needs_consent,
+                ),
+                style = TTType.MetaSmall,
+                color = TT.Rose,
+            )
             Spacer(Modifier.height(10.dp))
             TTButton(
                 stringResource(R.string.keep_give_consent),
@@ -427,9 +461,25 @@ private fun SyncStatus(
         else -> {
             val analysed = n.uploadState == UploadState.ANALYSED
             val failed = n.uploadError != null && n.uploadError != NightSync.ERR_NO_SESSION
-            // Kept, and when — said once the readings are there.
+            // Kept, and when — said once the readings are there. Unless
+            // "Guardar a noite" is off (28/09, item 24): then the night is on
+            // its way out of the server, and the line says until when. Turned
+            // back on, "Guardada" comes back.
             val sentAt = n.sentAt
-            if (sentAt != null) {
+            if (n.serverSessionId != null && keepingNights == false) {
+                val deadline = keepRevokedAt?.plus(ConsentText.SERVER_DELETION_DELAY)
+                Text(
+                    when {
+                        deadline != null && deadline.isAfter(java.time.Instant.now()) ->
+                            stringResource(R.string.night_leaves_server_until, serverDeadline(deadline))
+                        deadline != null -> stringResource(R.string.night_left_server)
+                        else -> stringResource(R.string.night_leaves_server)
+                    },
+                    style = TTType.MetaSmall,
+                    color = TT.Paper,
+                )
+                Spacer(Modifier.height(4.dp))
+            } else if (sentAt != null) {
                 Text(stringResource(R.string.keep_done_at, revealWhen(sentAt)), style = TTType.MetaSmall, color = TT.Acid)
                 Spacer(Modifier.height(4.dp))
             } else if (n.serverSessionId != null) {
@@ -461,6 +511,29 @@ private fun SyncStatus(
                     color = TT.Acid,
                     modifier = Modifier.clickable { sync.uploadLater(n.id) }.padding(vertical = 6.dp),
                 )
+            }
+            // The feed, from the night that is in it (28/09, items 28 and 31):
+            // a quiet link while the night is on the server — and, when the
+            // server counted too few beats inside the event, how many and how
+            // many it takes, instead of a door that would only say no.
+            val eventId = feedEventId
+            if (n.serverSessionId != null && keepingNights != false && eventId != null) {
+                val readings = n.eventReadings
+                if (readings != null && readings < FeedGate.MIN_EVENT_READINGS) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        pluralStringResource(R.plurals.night_feed_few_readings, readings, readings),
+                        style = TTType.MetaSmall,
+                        color = TT.Gray55,
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.night_feed_link),
+                        style = TTType.MetaSmall,
+                        color = TT.Paper,
+                        modifier = Modifier.clickable { onFeed(eventId) }.padding(vertical = 6.dp),
+                    )
+                }
             }
         }
     }

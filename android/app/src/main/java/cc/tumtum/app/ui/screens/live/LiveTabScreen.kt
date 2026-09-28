@@ -51,7 +51,9 @@ import cc.tumtum.app.R
 import cc.tumtum.app.data.api.ServerEvent
 import cc.tumtum.app.data.api.ServerEvents
 import cc.tumtum.app.data.prefs.UpcomingEvent
+import cc.tumtum.app.data.repo.readingGranted
 import cc.tumtum.app.data.repo.registerEvent
+import cc.tumtum.app.service.CaptureBus
 import cc.tumtum.app.domain.EventTimes
 import cc.tumtum.app.domain.NewEvent
 import cc.tumtum.app.domain.Skin
@@ -164,13 +166,11 @@ fun LiveTabScreen(nav: NavHostController) {
     // and a tap on it started recording. Now a row opens this sheet, which
     // says what will record — or what is missing — where the tap was.
     var startSheet by remember { mutableStateOf<StartRequest?>(null) }
-    fun startCapture(request: StartRequest) {
-        if (!signedIn) {
-            // Said at the tap, never below the fold (25/09: the refusal sat
-            // under the list, behind the tab bar, and read as "nothing").
-            startSheet = request
-            return
-        }
+    // What the "Ler sua batida" check found at the last tap (28/09), said in
+    // the start sheet — where the tap was — and never silently.
+    var readingBlock by remember { mutableStateOf<ReadingBlock?>(null) }
+
+    fun proceedCapture(request: StartRequest) {
         val paired = state.sensorPaired
         val address = state.bleAddress
         if (paired && !BatteryExemption.isExempt(context)) {
@@ -180,6 +180,7 @@ fun LiveTabScreen(nav: NavHostController) {
         }
         val up = request.event
         scope.launch {
+            CaptureBus.forcedStop.value = null
             val eventId = container.nights.startEvent(up.name, up.venue, up.eventType, up.serverEventId)
             if (paired && address != null) {
                 container.prefs.setActiveCapture(eventId)
@@ -188,6 +189,38 @@ fun LiveTabScreen(nav: NavHostController) {
             if (request.clearsMark) {
                 Reminders.cancelEvent(context)
                 container.prefs.clearUpcoming()
+            }
+        }
+    }
+
+    /**
+     * Every capture start comes through here — the fan's and the operator's.
+     * **No capture without "Ler sua batida"** (28/09, item 21): on 27/09 a
+     * phone with a Polar already paired started recording on a new account
+     * that had never granted it, because the consent was only asked on the
+     * way to connecting a device.
+     */
+    fun startCapture(request: StartRequest) {
+        if (!signedIn) {
+            // Said at the tap, never below the fold (25/09: the refusal sat
+            // under the list, behind the tab bar, and read as "nothing").
+            startSheet = request
+            return
+        }
+        scope.launch {
+            when (container.readingGranted()) {
+                true -> {
+                    readingBlock = null
+                    proceedCapture(request)
+                }
+                false -> {
+                    readingBlock = ReadingBlock.Off
+                    startSheet = request
+                }
+                null -> {
+                    readingBlock = ReadingBlock.Unknown
+                    startSheet = request
+                }
             }
         }
     }
@@ -419,15 +452,31 @@ fun LiveTabScreen(nav: NavHostController) {
             request = request,
             signedIn = signedIn,
             expired = state.session != null,
+            // Said before the tap too, when the phone already knows it is off.
+            reading = readingBlock
+                ?: ReadingBlock.Off.takeIf { state.granted(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE) == false },
             source = when {
                 state.sensorPaired -> state.bleName
                 state.watchConnected -> state.sourceLabel
                 else -> null
             },
-            onDismiss = { startSheet = null },
+            onDismiss = {
+                startSheet = null
+                readingBlock = null
+            },
             onSignIn = {
                 startSheet = null
                 nav.navigate(Routes.Login)
+            },
+            onReading = {
+                startSheet = null
+                readingBlock = null
+                nav.navigate(Routes.consent(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE))
+            },
+            onRetry = {
+                startSheet = null
+                readingBlock = null
+                startCapture(request)
             },
             onConnect = {
                 startSheet = null
@@ -457,6 +506,9 @@ fun LiveTabScreen(nav: NavHostController) {
 /** A capture about to start, and whether it is the marked event's own start. */
 private data class StartRequest(val event: UpcomingEvent, val clearsMark: Boolean)
 
+/** Why a capture did not start for "Ler sua batida" (28/09): it is off, or nobody could say. */
+private enum class ReadingBlock { Off, Unknown }
+
 /**
  * Before a night starts recording (25/09): the event, what will record it,
  * and one Pink action — or, when something is missing, what it is and the
@@ -472,9 +524,12 @@ private fun StartSheet(
     request: StartRequest,
     signedIn: Boolean,
     expired: Boolean,
+    reading: ReadingBlock?,
     source: String?,
     onDismiss: () -> Unit,
     onSignIn: () -> Unit,
+    onReading: () -> Unit,
+    onRetry: () -> Unit,
     onConnect: () -> Unit,
     onStart: () -> Unit,
 ) {
@@ -499,6 +554,17 @@ private fun StartSheet(
                     )
                     Spacer(Modifier.height(22.dp))
                     TTButton(stringResource(R.string.settings_sign_in), TTButtonStyle.Rose, onClick = onSignIn)
+                }
+                // "Ler sua batida" off: nothing records, and the way to it is here.
+                reading == ReadingBlock.Off -> {
+                    Text(stringResource(R.string.capture_reading_off), style = TTType.Body, color = TT.Ink)
+                    Spacer(Modifier.height(22.dp))
+                    TTButton(stringResource(R.string.capture_reading_turn_on), TTButtonStyle.Rose, onClick = onReading)
+                }
+                reading == ReadingBlock.Unknown -> {
+                    Text(stringResource(R.string.capture_reading_unknown), style = TTType.Body, color = TT.Ink)
+                    Spacer(Modifier.height(22.dp))
+                    TTButton(stringResource(R.string.events_retry), TTButtonStyle.Rose, onClick = onRetry)
                 }
                 source == null -> {
                     Text(stringResource(R.string.start_needs_watch), style = TTType.Body, color = TT.Ink)

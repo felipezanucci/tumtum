@@ -28,6 +28,7 @@ import cc.tumtum.app.data.db.BleSampleEntity
 import cc.tumtum.app.data.db.ConnectionEventEntity
 import cc.tumtum.app.data.db.MotionEntity
 import cc.tumtum.app.data.db.RrIntervalEntity
+import cc.tumtum.app.domain.ConsentText
 import cc.tumtum.app.domain.MotionAggregator
 import cc.tumtum.app.domain.OnSkinTracker
 import java.util.concurrent.Executors
@@ -39,6 +40,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -66,6 +68,9 @@ class CaptureService : Service() {
 
     private var eventId: Long = -1
     private var sampleCount: Long = 0
+
+    /** When the strap last sent anything (elapsedRealtime): ten seconds of nothing is "sensor longe" (28/09). */
+    @Volatile private var lastPacketMs: Long = 0
 
     /** Whether the sensor is on a person; fed from [persistDispatcher], replaced per session. */
     @Volatile private var onSkin = OnSkinTracker()
@@ -117,6 +122,28 @@ class CaptureService : Service() {
 
     private suspend fun attach(id: Long, address: String, restartReason: String?) {
         if (attached && eventId == id) return
+        // The last line of defence (28/09, item 21): no heartbeat is read for
+        // an account that has not granted "Ler sua batida". AO VIVO checks
+        // before it gets here; this holds when something else starts us. A
+        // restart after the process died keeps a capture the person already
+        // began — unless the phone knows the consent is off.
+        val reading = container.prefs.state.first().granted(ConsentText.READ_HEART_RATE)
+        if (reading == false || (reading == null && restartReason == null)) {
+            if (attached) detachSources()
+            container.db.captureDao().insertConnectionEvent(
+                ConnectionEventEntity(
+                    eventId = id,
+                    wallClockMs = System.currentTimeMillis(),
+                    elapsedRealtimeMs = SystemClock.elapsedRealtime(),
+                    type = "CONSENT_REFUSED",
+                    detail = "read_heart_rate não concedido; nada foi lido",
+                ),
+            )
+            container.prefs.clearActiveCapture()
+            CaptureBus.status.value = CaptureStatus(eventId = id, refusedReading = true)
+            kotlinx.coroutines.withContext(Dispatchers.Main) { stopSelfQuietly() }
+            return
+        }
         if (attached) detachSources()
         attached = true
         eventId = id
@@ -132,6 +159,7 @@ class CaptureService : Service() {
         // a strap on the table kept it climbing for twenty seconds.
         sampleCount = container.nights.beatCount(id)
         onSkin = OnSkinTracker()
+        lastPacketMs = SystemClock.elapsedRealtime()
         CaptureBus.status.value = CaptureStatus(
             active = true,
             eventId = id,
@@ -161,10 +189,19 @@ class CaptureService : Service() {
     private fun onBleEvent(event: BleEvent) {
         val id = eventId
         if (id <= 0) return
+        if (event is BleEvent.Sample) lastPacketMs = event.elapsedRealtimeMs
         scope.launch(persistDispatcher) {
             when (event) {
                 is BleEvent.Sample -> {
                     val m = event.measurement
+                    // The strap is back after a silence: said for a few seconds,
+                    // and written down with how long it was gone.
+                    val wasSilent = CaptureBus.status.value.sensorSilent
+                    if (wasSilent) {
+                        CaptureBus.status.update { it.copy(sensorSilent = false, backAtMs = event.elapsedRealtimeMs) }
+                        recordConnection("SENSOR_BACK", "pacotes voltaram")
+                        updateNotification()
+                    }
                     // Amostra crua, imediatamente em disco (§1.4, §4.2).
                     container.db.captureDao().insertSample(
                         BleSampleEntity(
@@ -189,11 +226,13 @@ class CaptureService : Service() {
                     }
                     val beat = onSkin.accept(m.bpm, m.contactStatus, m.rrIntervalsMs.isNotEmpty())
                     if (beat) sampleCount += 1
-                    CaptureBus.status.value = CaptureBus.status.value.copy(
-                        samplesWritten = sampleCount,
-                        lastBpm = m.bpm,
-                        onSkin = beat,
-                    )
+                    CaptureBus.status.update {
+                        it.copy(
+                            samplesWritten = sampleCount,
+                            lastBpm = m.bpm,
+                            onSkin = beat,
+                        )
+                    }
                 }
                 is BleEvent.Battery -> {
                     recordConnection("BATTERY", "nível ${event.levelPct}%")
@@ -245,12 +284,41 @@ class CaptureService : Service() {
                 delay(15_000)
             }
         }
+        // Sensor longe (28/09): on 27/09 a strap dropped for two minutes and the
+        // capture screen went on showing its last number, connected and all.
+        scope.launch {
+            while (attached) {
+                delay(1_000)
+                checkSilence()
+            }
+        }
         // Bateria do sensor a cada 30min (§3.2).
         scope.launch {
             while (attached) {
                 delay(30 * 60_000L)
                 ble?.refreshBattery()
             }
+        }
+    }
+
+    /**
+     * Ten seconds without a packet from the strap is "sensor longe", whatever
+     * the radio says: Android can hold a connection for half a minute after
+     * the strap is gone. A strap that talks but is off the skin is not this —
+     * it still sends, and the screen says SEM CONTATO for it. "Voltou." stays
+     * [BACK_SHOWN_MS] after the packets return.
+     */
+    private suspend fun checkSilence() {
+        val now = SystemClock.elapsedRealtime()
+        val current = CaptureBus.status.value
+        if (!current.active) return
+        if (!current.sensorSilent && now - lastPacketMs > SILENCE_MS) {
+            CaptureBus.status.update { it.copy(sensorSilent = true, backAtMs = null) }
+            recordConnection("SENSOR_SILENT", "nenhum pacote há ${SILENCE_MS / 1000}s")
+            updateNotification()
+        } else if (current.backAtMs != null && now - current.backAtMs > BACK_SHOWN_MS) {
+            CaptureBus.status.update { it.copy(backAtMs = null) }
+            updateNotification()
         }
     }
 
@@ -349,6 +417,11 @@ class CaptureService : Service() {
         // número muda o número. A notificação diz só que está funcionando.
         val text = if (!status.active) {
             getString(R.string.capture_notif_starting)
+        } else if (status.sensorSilent) {
+            // Where the person will look with the phone in a pocket (28/09).
+            getString(R.string.capture_sensor_far)
+        } else if (status.backAtMs != null) {
+            getString(R.string.capture_sensor_back)
         } else {
             buildString {
                 append(
@@ -400,6 +473,12 @@ class CaptureService : Service() {
         private const val EXTRA_EVENT_ID = "eventId"
         private const val EXTRA_ADDRESS = "address"
         private const val EXTRA_RESTART_REASON = "restartReason"
+
+        /** No packet for this long and the strap is "longe" (28/09). */
+        const val SILENCE_MS = 10_000L
+
+        /** How long "Voltou." stays once the packets are back. */
+        const val BACK_SHOWN_MS = 5_000L
 
         /** Best effort: em background o Android 12+ pode recusar — quem chama decide o fallback. */
         fun start(context: Context, eventId: Long, address: String, restartReason: String? = null): Boolean =

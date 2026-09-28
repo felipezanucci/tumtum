@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,12 +17,14 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
@@ -47,12 +51,12 @@ import cc.tumtum.app.R
 import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.data.LocalFiles
 import cc.tumtum.app.domain.CardCopy
+import cc.tumtum.app.domain.ConsentText
+import cc.tumtum.app.domain.FeedGate
 import cc.tumtum.app.ui.components.cardTitleText
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import cc.tumtum.app.data.api.ServerSeries
-import cc.tumtum.app.data.repo.PostResult
-import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
 import cc.tumtum.app.export.CardSticker
@@ -62,7 +66,8 @@ import cc.tumtum.app.export.VideoCard
 import cc.tumtum.app.export.VideoFrame
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.BackArrow
-import cc.tumtum.app.ui.components.ShareCardView
+import cc.tumtum.app.ui.components.feedClosedText
+import cc.tumtum.app.ui.components.skinColor
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.nav.Routes
@@ -216,6 +221,28 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
     val video = media as? CardMedia.Video
     val busy = sharing || loadingMedia
 
+    // The event's feed, for "Feed do evento" and the done screen (28/09, item
+    // 31): looked up once, and no reason is given before it has been.
+    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
+    var feedEventId by remember(nightId) { mutableStateOf<String?>(null) }
+    var feedSeries by remember(nightId) { mutableStateOf<ServerSeries?>(null) }
+    var feedLooked by remember(nightId) { mutableStateOf(false) }
+    LaunchedEffect(nightId) {
+        feedEventId = container.nights.serverEventIdFor(nightId)
+        feedEventId?.let { feedSeries = container.social.seriesOf(it) }
+        feedLooked = true
+    }
+    val feedClosed = FeedGate.closed(
+        serverSessionId = n.serverSessionId,
+        serverEventId = feedEventId,
+        eventReadings = n.eventReadings,
+        ownerUserId = n.ownerUserId,
+        viewerId = user?.session?.userId,
+        keepingNights = user?.granted(ConsentText.KEEP_NIGHT),
+    )
+    // What goes to the feed is decided on its own screen — the quiet kind (28/09).
+    val openFeedPost = { nav.navigate(Routes.showToFeed(n.id, skin)) }
+
     /** The night keeps what its last shared card looked like: a photo, or a video's first frame and its address. */
     suspend fun publish(chosen: CardMedia?) {
         val photoPath = if (skin == Skin.BLACK && chosen != null) {
@@ -234,6 +261,18 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             context, n, skin, cardTitle, cardMeta, cardChip,
             photo = photo, sticker = sticker, bare = bare, bpmLabel = cardBpm,
         )
+
+    // The preview is the card that goes out (28/09, items 27 and 29): the
+    // same renderer, the same title, hour, event and number, drawn once per
+    // change and shown scaled. The Compose copy of the layout had its own
+    // minimum type sizes, so at preview scale the event box was squeezed to
+    // "T…" over a card that printed "TESTE". Over a video it is the first
+    // frame under the card — what the sticker is burned onto.
+    var preview by remember { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(skin, cardTitle, cardMeta, cardChip, cardBpm, media, n.id, n.samples.size, n.peakBpm) {
+        val chosen = media
+        preview = withContext(Dispatchers.Default) { runCatching { render(photo = chosen?.preview) }.getOrNull() }
+    }
 
     /**
      * The card alone: on black, a sticker cut to its own block with no wash
@@ -441,18 +480,18 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             Modifier.weight(1f).fillMaxWidth().padding(vertical = 14.dp),
             contentAlignment = Alignment.Center,
         ) {
-            ShareCardView(
-                skin = skin,
-                title = cardTitle,
-                bpm = n.peakBpm,
-                meta = cardMeta,
-                chip = cardChip,
-                width = minOf(214.dp, maxHeight * (9f / 16f), maxWidth),
-                curveSamples = if (skin == Skin.BLACK) n.samples else null,
-                curveWindow = if (skin == Skin.BLACK) n.startAt to n.endAt else null,
-                photo = media?.preview?.asImageBitmap(),
-                bpmLabel = cardBpm,
-            )
+            val previewWidth = minOf(214.dp, maxHeight * (9f / 16f), maxWidth)
+            val shown = preview
+            if (shown != null) {
+                Image(
+                    bitmap = shown.asImageBitmap(),
+                    contentDescription = cardTitle,
+                    modifier = Modifier.width(previewWidth).aspectRatio(9f / 16f),
+                )
+            } else {
+                // A skin-coloured card while the first drawing is made, never a blank.
+                Box(Modifier.width(previewWidth).aspectRatio(9f / 16f).background(skinColor(skin)))
+            }
         }
         // While the destinations are open the photo/video choice is made, and
         // its buttons give the room to the destinations.
@@ -520,17 +559,24 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             Spacer(Modifier.height(4.dp))
             val year = java.time.Year.now().value
             val nightsThisYear = nights.count { it.date.atZone(java.time.ZoneId.systemDefault()).year == year }
+            val momentsTotal = nights.sumOf { it.momentCount }
+            // Plurals (28/09, item 33): "1 momentos" was on the first done screen.
             Text(
-                stringResource(R.string.card_done_stats, nightsThisYear, year, nights.sumOf { it.momentCount }),
+                stringResource(
+                    R.string.card_done_stats,
+                    pluralStringResource(R.plurals.card_done_nights, nightsThisYear, nightsThisYear, year),
+                    pluralStringResource(R.plurals.card_done_moments, momentsTotal, momentsTotal),
+                ),
                 style = TTType.BodySmall,
                 color = TT.Gray45,
             )
             Spacer(Modifier.height(14.dp))
             DoneActions(
                 nav = nav,
-                nightId = n.id,
-                night = n,
-                skin = skin,
+                closed = feedClosed.takeIf { feedLooked },
+                looked = feedLooked,
+                toTour = feedSeries != null,
+                onFeed = openFeedPost,
                 onShareAgain = {
                     cameBack = false
                     choosing = true
@@ -538,6 +584,9 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
             )
         } else if (choosing) {
             ShareChoices(
+                feedClosed = feedClosed,
+                feedLooked = feedLooked,
+                onFeed = openFeedPost,
                 hasInstagram = hasInstagram,
                 hasFacebook = hasFacebook,
                 hasSnapchat = hasSnapchat,
@@ -627,161 +676,47 @@ private fun CardShowRow(label: String, on: Boolean, onChange: (Boolean) -> Unit)
 }
 
 /**
- * "Mostrar pra galera" — the one place a moment becomes public.
+ * The done screen's acts: the feed, the gallery, "Compartilhar de novo".
  *
- * Posting is **not** sharing. The share sheet sends a picture the person
- * controls to people they chose; this puts their heart rate, at a named
- * minute, in front of strangers who happen to have been at the same event.
- * That is health data, so:
+ * "Mostrar pra galera" — the one place a moment becomes public — **is always
+ * here** (28/09, item 31). It used to appear only when posting would work, so
+ * a night that could not post showed nothing and nobody learned there was a
+ * feed; now, when it cannot open, the reason is under it ([FeedGate]). The
+ * confirmation itself moved to its own screen ([Routes.ShowToFeed]), the same
+ * one the feed and the share screen open, and the post lands in the feed.
  *
- *  - it is asked at the moment of posting, never agreed once in a setting;
- *  - the sentence says what will be visible and to whom, in plain words;
- *  - it is undoable, and the feed shows *tirar do feed* on your own posts.
- *
- * **One question** (#65, 23/09). A show in a tour posts to the tour — the
- * people at every date — and the sentence says exactly that; a show on its
- * own posts to the people who were there. The two-way choice ("rolê e
- * turnê" / "só pro rolê") is gone with the second feed it chose between.
- *
- * It appears only when there is a feed to post to: the night must have
- * reached the server and belong to an event that exists there. Otherwise
- * there is nothing honest to offer, so nothing is offered.
+ * **One Pink button at a time** (#41, 22/09): the feed when it can open, the
+ * gallery when it cannot. Everything else is quiet: outlined, or a line of text.
  */
 @Composable
 private fun DoneActions(
     nav: NavHostController,
-    nightId: Long,
-    night: Night,
-    skin: Skin,
+    closed: FeedGate.Closed?,
+    looked: Boolean,
+    toTour: Boolean,
+    onFeed: () -> Unit,
     onShareAgain: () -> Unit,
 ) {
-    // **One Pink button at a time** (#41, 22/09). The done screen stacked five
-    // blocks with two Pink buttons in them — "Ver a galeria" and "Pode
-    // mostrar" — so the eye had no first place to land. Now the screen has
-    // one primary act, chosen by where the person is:
-    //
-    //  - the night can go to its feed → "Mostrar pra galera…";
-    //  - they are being asked       → "Pode mostrar", and nothing else;
-    //  - it is posted, or cannot be → "Ver a galeria".
-    //
-    // Everything else is quiet: outlined, or a line of text.
-    val container = appContainer()
-    val scope = rememberCoroutineScope()
-    var eventId by remember(nightId) { mutableStateOf<String?>(null) }
-    var asking by remember { mutableStateOf(false) }
-    var posting by remember { mutableStateOf(false) }
-    var posted by remember(nightId) { mutableStateOf(false) }
-    // What the last attempt got back, said in words (#58): the server's own
-    // sentence when it refused, never a generic "não deu".
-    var failure by remember { mutableStateOf<String?>(null) }
-    val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
-
-    // The tour above this night, if any (#33): it changes what "posting" can
-    // mean, so the consent has to name it.
-    var series by remember(nightId) { mutableStateOf<ServerSeries?>(null) }
-
-    LaunchedEffect(nightId) {
-        eventId = container.nights.serverEventIdFor(nightId)
-        eventId?.let { series = container.social.seriesOf(it) }
-    }
-
-    val target = eventId
-    val sessionId = night.serverSessionId
-    // A night belongs to the account that uploaded it (#58). Signed in as
-    // another, the server would refuse — so the app says so instead of
-    // offering an act that cannot succeed.
-    val signedInAs = user?.session?.userId
-    val otherAccount = night.ownerUserId != null && signedInAs != null && night.ownerUserId != signedInAs
-    val canPost = target != null && sessionId != null && !otherAccount
-    val postFailedText = stringResource(R.string.feed_post_failed)
-    val postOfflineText = stringResource(R.string.feed_post_offline)
-    val postSignedOutText = stringResource(R.string.feed_post_signed_out)
-
     val openGallery = {
         nav.navigate(Routes.Gallery) {
             popUpTo(Routes.Feed) { saveState = true }
             launchSingleTop = true
         }
     }
-
-    fun send(toSeries: Boolean) {
-        posting = true
-        scope.launch {
-            val result = container.social.post(
-                serverEventId = target!!,
-                serverSessionId = sessionId!!,
-                bpm = night.peakBpm,
-                at = night.peakAt,
-                label = night.moments.firstOrNull { it.isPeak }?.label,
-                quote = null,
-                skin = skin.name,
-                toSeries = toSeries,
-            )
-            posted = result is PostResult.Posted
-            failure = when (result) {
-                PostResult.Posted -> null
-                is PostResult.Refused -> result.detail
-                PostResult.SignedOut -> postSignedOutText
-                is PostResult.Failed -> if (result.offline) postOfflineText else postFailedText
-            }
-            asking = false
-            posting = false
-        }
-    }
-
-    val toTour = series != null
-    if (asking && canPost) {
-        Text(
-            stringResource(if (toTour) R.string.feed_post_consent_tour else R.string.feed_post_consent),
-            style = TTType.BodySmall,
-            color = TT.Gray45,
-        )
-        Spacer(Modifier.height(12.dp))
-        TTButton(
-            stringResource(if (posting) R.string.feed_post_running else R.string.feed_post_confirm),
-            TTButtonStyle.Rose,
-            enabled = !posting,
-            onClick = { send(toSeries = toTour) },
-        )
-        Spacer(Modifier.height(8.dp))
-        TTButton(
-            stringResource(R.string.feed_post_cancel),
-            TTButtonStyle.OutlineOnDark,
-            enabled = !posting,
-            onClick = { asking = false },
-        )
-        return
-    }
-
-    if (canPost && !posted) {
-        TTButton(
-            stringResource(if (toTour) R.string.feed_post_cta_tour else R.string.feed_post_cta),
-            TTButtonStyle.Rose,
-            onClick = { asking = true; failure = null },
-        )
-        failure?.let {
-            Spacer(Modifier.height(6.dp))
-            Text(it, style = TTType.BodySmall, color = TT.Rose)
-        }
+    val feedLabel = stringResource(if (toTour) R.string.feed_post_cta_tour else R.string.feed_post_cta)
+    if (looked && closed == null) {
+        TTButton(feedLabel, TTButtonStyle.Rose, onClick = onFeed)
         Spacer(Modifier.height(10.dp))
-        TTButton(
-            stringResource(R.string.card_done_gallery),
-            TTButtonStyle.OutlineOnDark,
-            onClick = openGallery,
-        )
+        TTButton(stringResource(R.string.card_done_gallery), TTButtonStyle.OutlineOnDark, onClick = openGallery)
     } else {
-        if (posted) {
-            Text(stringResource(R.string.feed_post_done), style = TTType.BodySmall, color = TT.Acid)
-            Spacer(Modifier.height(12.dp))
-        } else if (otherAccount) {
-            Text(stringResource(R.string.feed_post_other_account), style = TTType.BodySmall, color = TT.Gray45)
-            Spacer(Modifier.height(12.dp))
+        // Shut, and saying why under it — the tap is swallowed, never ignored silently.
+        TTButton(feedLabel, TTButtonStyle.OutlineOnDark, enabled = false, onClick = onFeed)
+        if (closed != null) {
+            Spacer(Modifier.height(6.dp))
+            Text(feedClosedText(closed), style = TTType.BodySmall, color = TT.Gray45)
         }
-        TTButton(
-            stringResource(R.string.card_done_gallery),
-            TTButtonStyle.Rose,
-            onClick = openGallery,
-        )
+        Spacer(Modifier.height(12.dp))
+        TTButton(stringResource(R.string.card_done_gallery), TTButtonStyle.Rose, onClick = openGallery)
     }
     Spacer(Modifier.height(4.dp))
     Text(
@@ -805,6 +740,9 @@ private fun DoneActions(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ShareChoices(
+    feedClosed: FeedGate.Closed?,
+    feedLooked: Boolean,
+    onFeed: () -> Unit,
     hasInstagram: Boolean,
     hasFacebook: Boolean,
     hasSnapchat: Boolean,
@@ -817,6 +755,20 @@ private fun ShareChoices(
     onBack: () -> Unit,
 ) {
     Text(stringResource(R.string.card_share_to), style = TTType.MetaSmall, color = TT.Acid)
+    Spacer(Modifier.height(8.dp))
+    // The event's feed first (28/09, item 31): the one place here that is
+    // TumTum's own, and the one the founder could not find. Always shown; when
+    // this night cannot go there, the button stays and says why under it.
+    TTButton(
+        stringResource(R.string.card_share_feed),
+        TTButtonStyle.Rose,
+        enabled = !busy && feedLooked && feedClosed == null,
+        onClick = onFeed,
+    )
+    if (feedLooked && feedClosed != null) {
+        Spacer(Modifier.height(6.dp))
+        Text(feedClosedText(feedClosed), style = TTType.BodySmall, color = TT.Gray45)
+    }
     Spacer(Modifier.height(8.dp))
     // The networks on this phone. Status comes right after WhatsApp (#63), so
     // on most phones the two share a row.

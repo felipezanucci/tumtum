@@ -7,7 +7,9 @@ import cc.tumtum.app.domain.CardCopy
 
 /**
  * The card's two lines, in words (26/09): [CardCopy] decides which sentence
- * the night's numbers can prove, strings.xml holds the sentence.
+ * the night's numbers can prove, strings.xml holds the sentence. Every card
+ * surface — the reveal, the skin chooser, the card, the bitmap that is
+ * shared, the video it is burned into — gets its title from here (28/09).
  */
 @Composable
 fun cardTitleText(title: CardCopy.Title): String = when (title) {
@@ -29,5 +31,4 @@ fun cardTitleText(title: CardCopy.Title): String = when (title) {
         }
         "$first\n$second"
     }
-    CardCopy.Title.NoMoments -> stringResource(R.string.card_title_no_moments)
 }

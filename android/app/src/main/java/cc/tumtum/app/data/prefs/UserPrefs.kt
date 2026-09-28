@@ -127,6 +127,15 @@ data class UserState(
     val operatorUserId: String? = null,
     /** How the last session ended, and when — so the next "why am I out?" answers itself (25/09). */
     val sessionEnded: SessionEnd? = null,
+    /**
+     * The signed-in account's consents as the server last answered them
+     * (28/09), or null when the phone has no answer for **this** account. A
+     * capture starts only with `read_heart_rate` granted here, and a venue has
+     * no signal: the check has to work from the last answer. Another
+     * account's answer never counts — it is read only when its owner is the
+     * signed-in one.
+     */
+    val consents: cc.tumtum.app.data.api.ConsentSnapshot? = null,
 ) {
     val watchConnected: Boolean get() = sourcePackage != null
     val sensorPaired: Boolean get() = bleAddress != null
@@ -137,6 +146,9 @@ data class UserState(
     /** True only while the signed-in account is the one the server called an operator. */
     val isOperator: Boolean
         get() = operatorUserId != null && operatorUserId == session?.userId
+
+    /** Whether the signed-in account granted [purpose], as last heard; null when the phone never heard. */
+    fun granted(purpose: String): Boolean? = consents?.granted(purpose)
 
     /** The GOL · MÚSICA · MOMENTO taps: switched on here, and granted by the server. */
     val marksOn: Boolean get() = operatorMarks && isOperator
@@ -208,6 +220,9 @@ class UserPrefs(private val context: Context) {
         val operatorUserId = stringPreferencesKey("operator_user_id")
         val sessionEndedReason = stringPreferencesKey("session_ended_reason")
         val sessionEndedAt = longPreferencesKey("session_ended_at")
+        /** The last GET/PUT /api/consents body, and the account it was about (28/09). */
+        val consentsJson = stringPreferencesKey("consents_json")
+        val consentsUserId = stringPreferencesKey("consents_user_id")
     }
 
     val state: Flow<UserState> = combine(context.dataStore.data, secure.tokens) { p, secureTokens ->
@@ -253,7 +268,31 @@ class UserPrefs(private val context: Context) {
             sessionEnded = p[Keys.sessionEndedReason]?.let { reason ->
                 p[Keys.sessionEndedAt]?.let { SessionEnd(reason, java.time.Instant.ofEpochMilli(it)) }
             },
+            consents = p[Keys.consentsJson]
+                ?.takeIf { p[Keys.userId] != null && p[Keys.consentsUserId] == p[Keys.userId] }
+                ?.let { runCatching { cc.tumtum.app.data.api.ConsentSnapshot.parse(it) }.getOrNull() },
         )
+    }
+
+    /** What the server just said about [userId]'s consents — the body as it came (28/09). */
+    suspend fun setConsents(userId: String?, json: String) {
+        context.dataStore.edit { p ->
+            if (userId == null) {
+                p.remove(Keys.consentsJson)
+                p.remove(Keys.consentsUserId)
+            } else {
+                p[Keys.consentsJson] = json
+                p[Keys.consentsUserId] = userId
+            }
+        }
+    }
+
+    /** A fresh sign-in or a Sair: the phone forgets what it heard, and asks again. */
+    suspend fun clearConsents() {
+        context.dataStore.edit { p ->
+            p.remove(Keys.consentsJson)
+            p.remove(Keys.consentsUserId)
+        }
     }
 
     suspend fun setSession(session: Session) {
@@ -279,6 +318,9 @@ class UserPrefs(private val context: Context) {
             p.remove(Keys.accessToken)
             p.remove(Keys.userId)
             p.remove(Keys.refreshToken)
+            // Signed out, the phone holds nobody's consents (28/09).
+            p.remove(Keys.consentsJson)
+            p.remove(Keys.consentsUserId)
             p[Keys.sessionEndedReason] = reason
             p[Keys.sessionEndedAt] = System.currentTimeMillis()
         }

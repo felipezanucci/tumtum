@@ -14,19 +14,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -49,9 +54,25 @@ fun TTField(
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false,
     trailing: (@Composable () -> Unit)? = null,
+    /**
+     * A field that saves itself (28/09): called when it loses focus, and the
+     * keyboard's Done takes the focus away — so a Done is a save too.
+     */
+    onCommit: (() -> Unit)? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
+    val focusManager = LocalFocusManager.current
+    val commit by rememberUpdatedState(onCommit)
+    var wasFocused by remember { mutableStateOf(false) }
+    LaunchedEffect(focused) {
+        if (focused) {
+            wasFocused = true
+        } else if (wasFocused) {
+            wasFocused = false
+            commit?.invoke()
+        }
+    }
     val shape = RoundedCornerShape(4.dp)
     // The eye (#62, Felipe 23/09): a password typed blind on a phone keyboard
     // is a password typed wrong, and the only feedback was the server's
@@ -80,7 +101,11 @@ fun TTField(
                     value = value,
                     onValueChange = onValueChange,
                     textStyle = TTType.Body.copy(color = TT.Ink),
-                    keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else keyboardType),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = if (isPassword) KeyboardType.Password else keyboardType,
+                        imeAction = if (onCommit != null) ImeAction.Done else ImeAction.Default,
+                    ),
+                    keyboardActions = KeyboardActions(onDone = { if (onCommit != null) focusManager.clearFocus() }),
                     visualTransformation = if (isPassword && !revealed) {
                         PasswordVisualTransformation()
                     } else {

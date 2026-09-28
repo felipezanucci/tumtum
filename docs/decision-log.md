@@ -5,12 +5,12 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
-## Where things stand — 2026-09-26
+## Where things stand — 2026-09-28
 
 | Track | Status |
 |---|---|
 | **Hardware supplier** | J-Style **broke their own MOQ.** Arena's 2026-08-28 reply offers **10–50 units** of the customized raw-PPG V8 at USD 80/unit — the pilot batch Draft 4 argued for — with **NRE USD 30,000** (double the previous 15k, and the rebate ladder gone). She accepts our Polar protocol as the objective acceptance test, proposes agreeing criteria before development, and says explicitly there is no need to rush until Phase 0 results. **Draft 5 written, not sent:** bank the concession, decide nothing, plant three structural questions for after 25/09. Still no NRE and no volume before the pilot. *(History: pilot batch refused; MOQ 5,000 → 3,000; NRE 15k with a rebate ladder paying back only from 10,000 units — declined on timing. Arena then asked for "more vision"; Draft 4 went out 2026-08-26.)* |
-| **Android app (native)** | **25/09, late afternoon — b198 in a hand: five of seven passed, one was half seen, and the strap filter failed.** Night 18's raw export showed why: the Polar H10 never sets the skin-contact flag, and off the skin it repeats its last value with no R-R, then sends 0. The R-R is now the proof (`BeatFilter`, tested on those 94 readings). The sealed night was seen at last (item 68), and said "10h00" at 14h20 without the day. Setup moved to black at Felipe's ask; the permission screen stays quiet. **b201** builds it all (#102, merged), and in his hand the same afternoon the sealed night named its day and **setup said "sem contato" for the strap on the table and "Pronto" only worn**, and the capture said SEM CONTATO with no number; the strap road's yellow went back to white at his word. **The night still bridged a 50 s silence with a straight line** (the gap threshold was a watch's minute); it now follows the source — **b204**. On b204, Configurações turned out to pair the strap through its own old sheet, with no proof of a person; **one road now**, whichever door it starts from. The night with the strap off for a minute broke its line in a hand (item 69 closed), and the axis stopped labelling its end with the peak's time. *(Afternoon:)* **25/09, afternoon — b196 in a hand: all seven tests passed, and a second batch (b198).** Found: signed out, the app still showed Felipe's avatar, name and nights; a refusal said off screen; a Polar lying on a table "measured" a heart rate (the skin-contact flag was never read, also in the capture); two device rows; a list row that started recording. Decided the same afternoon: the fan's device is a watch (setup leads with it), and a live event opens a start sheet. b198 builds all of it; waiting on Felipe's hand. *(Morning:)* **25/09 — the test round on b195, and one batch for everything it found.** Tests 1 (the sign-up code, phone and site), 8 (marks without a night) and 9 (the reveal lock, notification included) passed in a hand; Instagram took the saved card and the copied one. The round found another account's night fully open on the phone, reveal notifications for deleted nights opening a blank screen, a night recorded signed out, a setup screen that showed the previous person's sensor, and a site welcome that faked a watch connection. **Built together:** nights belong to the account that recorded them (hidden, never deleted), capture needs an account, the operator tools follow the server's `is_admin` (item 52), the phone remembers how a session ended, setup rebuilt around a real search and a real beat, the sealed night's way home, the site's welcome made true — **b196**, green on the first build. Waiting on Felipe's hand. *(24/09:)* **24/09, evening — the share menu reworked (items 61–63, #96) and confirmed on b189.** The networks are TumTum Pink, two to a row, and never beside a hole; *Status do WhatsApp* opened Status on Felipe's phone, the post went up and was seen from another phone. **One finding: *Salvar card* went to a folder only the Files app shows**, not the camera roll; the fix (DCIM/Camera, pending write, date taken) is on its way to a hand. **An account now needs a 6-digit code sent to its e-mail (#64, Felipe's call)**, in the app, on the site and on the server, which refuses the old one-step sign-up; `RESEND_API_KEY` was missing from Railway since 26/08 (password recovery had never sent a mail); Felipe set it the same evening and the first reset mail arrived. **Test 7a passed**; 7b and 7c could not run, because the steps sent for them were wrong and creating the test account wiped the phone's nights (entry "test 7 in a hand"). Tests 8–9 still to run. *(earlier 24/09:)* **24/09 — sharing proved on five networks (b187).** Instagram and Facebook Stories with a movable card over the person's video, Snapchat at full width with the video playing, TikTok and WhatsApp with the finished video. Snap and TikTok are **in review**; their production IDs replace the staging/sandbox ones on approval. The day's bug: a card over a video came back, on the next visit, as a photo of its first frame. Handoff: `docs/handoff-2026-09-24.md`. *(23/09:)* **23/09 — the 23/09 test round, built in one batch (b173).** Felipe tested b169 (PR #85) block by block, and his call on the tour — *"essa experiência muito confusa… o que é rolê? o que é turnê?"* — became **one feed per event**, the tour's when there is one, with the night as a filter. Also built: the server watches a match live and measures both whistles itself (API-Football's periods turned out to be null), posting keeps the server's own reason and nights belong to the account that sent them, the card's line is averaged and finer, the password field has an eye, sign-in goes to the feed, the admin has its own menu. **Still to run: tests 6–10** (session persistence, refusal with a nightless account, marks without a night, the reveal lock, and the show operator on a phone, which passed 23/09). *(22/09 evening:)* **22/09 evening — the night's test findings, all nineteen, built in five waves (b164–b168):** the app stops describing itself falsely (the button that faded, the error that was a cancellation, the SENTI that threw its answer away), a session lasts as long as the phone is used (refresh tokens, 90 days), the feed has colour, the card is A2, report and block exist, and the tour sits above the rolê. Waiting on Felipe's merge and hand. *(earlier 22/09:)* **b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
+| **Android app (native)** | *(28/09:)* **b217 in a hand — the site's tests passed, the app's first hour found the worst defect since the audit:** a paired Polar recorded a night on a new account that had never granted "Ler sua batida" (the consent screen only opened when no sensor was set up). Thirty-three findings in the day, seven of them the app stating something false about itself (the feed's "sua noite não chegou aqui" to a night that had; "Guardada na TumTum" after the switch went off; "SEM MOMENTOS NESSA NOITE" printed on the Instagram card; an export header claiming 0 samples). All built the same day, in one PR, with the phone's detector replaced by a port of the server's and the Room schema at v10 — entry of 28/09; waiting on CI (nothing here compiles Android) and Felipe's hand. **25/09, late afternoon — b198 in a hand: five of seven passed, one was half seen, and the strap filter failed.** Night 18's raw export showed why: the Polar H10 never sets the skin-contact flag, and off the skin it repeats its last value with no R-R, then sends 0. The R-R is now the proof (`BeatFilter`, tested on those 94 readings). The sealed night was seen at last (item 68), and said "10h00" at 14h20 without the day. Setup moved to black at Felipe's ask; the permission screen stays quiet. **b201** builds it all (#102, merged), and in his hand the same afternoon the sealed night named its day and **setup said "sem contato" for the strap on the table and "Pronto" only worn**, and the capture said SEM CONTATO with no number; the strap road's yellow went back to white at his word. **The night still bridged a 50 s silence with a straight line** (the gap threshold was a watch's minute); it now follows the source — **b204**. On b204, Configurações turned out to pair the strap through its own old sheet, with no proof of a person; **one road now**, whichever door it starts from. The night with the strap off for a minute broke its line in a hand (item 69 closed), and the axis stopped labelling its end with the peak's time. *(Afternoon:)* **25/09, afternoon — b196 in a hand: all seven tests passed, and a second batch (b198).** Found: signed out, the app still showed Felipe's avatar, name and nights; a refusal said off screen; a Polar lying on a table "measured" a heart rate (the skin-contact flag was never read, also in the capture); two device rows; a list row that started recording. Decided the same afternoon: the fan's device is a watch (setup leads with it), and a live event opens a start sheet. b198 builds all of it; waiting on Felipe's hand. *(Morning:)* **25/09 — the test round on b195, and one batch for everything it found.** Tests 1 (the sign-up code, phone and site), 8 (marks without a night) and 9 (the reveal lock, notification included) passed in a hand; Instagram took the saved card and the copied one. The round found another account's night fully open on the phone, reveal notifications for deleted nights opening a blank screen, a night recorded signed out, a setup screen that showed the previous person's sensor, and a site welcome that faked a watch connection. **Built together:** nights belong to the account that recorded them (hidden, never deleted), capture needs an account, the operator tools follow the server's `is_admin` (item 52), the phone remembers how a session ended, setup rebuilt around a real search and a real beat, the sealed night's way home, the site's welcome made true — **b196**, green on the first build. Waiting on Felipe's hand. *(24/09:)* **24/09, evening — the share menu reworked (items 61–63, #96) and confirmed on b189.** The networks are TumTum Pink, two to a row, and never beside a hole; *Status do WhatsApp* opened Status on Felipe's phone, the post went up and was seen from another phone. **One finding: *Salvar card* went to a folder only the Files app shows**, not the camera roll; the fix (DCIM/Camera, pending write, date taken) is on its way to a hand. **An account now needs a 6-digit code sent to its e-mail (#64, Felipe's call)**, in the app, on the site and on the server, which refuses the old one-step sign-up; `RESEND_API_KEY` was missing from Railway since 26/08 (password recovery had never sent a mail); Felipe set it the same evening and the first reset mail arrived. **Test 7a passed**; 7b and 7c could not run, because the steps sent for them were wrong and creating the test account wiped the phone's nights (entry "test 7 in a hand"). Tests 8–9 still to run. *(earlier 24/09:)* **24/09 — sharing proved on five networks (b187).** Instagram and Facebook Stories with a movable card over the person's video, Snapchat at full width with the video playing, TikTok and WhatsApp with the finished video. Snap and TikTok are **in review**; their production IDs replace the staging/sandbox ones on approval. The day's bug: a card over a video came back, on the next visit, as a photo of its first frame. Handoff: `docs/handoff-2026-09-24.md`. *(23/09:)* **23/09 — the 23/09 test round, built in one batch (b173).** Felipe tested b169 (PR #85) block by block, and his call on the tour — *"essa experiência muito confusa… o que é rolê? o que é turnê?"* — became **one feed per event**, the tour's when there is one, with the night as a filter. Also built: the server watches a match live and measures both whistles itself (API-Football's periods turned out to be null), posting keeps the server's own reason and nights belong to the account that sent them, the card's line is averaged and finer, the password field has an eye, sign-in goes to the feed, the admin has its own menu. **Still to run: tests 6–10** (session persistence, refusal with a nightless account, marks without a night, the reveal lock, and the show operator on a phone, which passed 23/09). *(22/09 evening:)* **22/09 evening — the night's test findings, all nineteen, built in five waves (b164–b168):** the app stops describing itself falsely (the button that faded, the error that was a cancellation, the SENTI that threw its answer away), a session lasts as long as the phone is used (refresh tokens, 90 days), the feed has colour, the card is A2, report and block exist, and the tour sits above the rolê. Waiting on Felipe's merge and hand. *(earlier 22/09:)* **b149 in Felipe's hands: Bloco B passed six of six, and nine findings came back.** The two football anchors show their own clock on the button, a repeated anchor is refused, a show never shows APITO — the match clock works in a hand. Everything else the morning found became one batch: **the card is now burned into the person's own video** and leaves through the system share sheet, so it posts to Instagram, X, TikTok, Snap, WhatsApp or the gallery alike; marks reach the server without waiting for a night; a failed event registration is said on the screen the operator is actually looking at; and every `<select>` on the site was white-on-white and unreadable. *(earlier 22/09:)* **four items in one PR (#77)** — the match clock with two operator anchors, the guess list under an unnamed moment, the web admin that replaces the operator sheet, and video on the card through Instagram's Story editor; none yet in a hand. **22/09, b145: the loop is closed end to end, in a real hand.** teste7 — 240 readings captured on the Polar, uploaded, the two sync steps visible under the curve, `Momentos encontrados pelo servidor`, and the peak at 22h35 named **GOL** by a mark tapped during the capture. Item 41 answered: the night does reach the server. Eight of eight findings from 21/09 confirmed fixed; the Compose wheels roll. *(earlier 22/09:)* b142 in Felipe's hands the same night — three of the eight fixes confirmed on the phone (the operator door, the gallery photo, the battery row), the Android date/time wheels came up **blank on One UI** and were rebuilt in Compose, and the past-night flow was **cut at his word**; b143 on its way. *(21/09:)* b140 met Felipe's hands. Blocos 1–6 of the test list run; no crash, eight findings — two product rules, three "the app said nothing about its own state" bugs, one layout that overflowed on the one screen used in the dark, one photo the gallery dropped, and a night whose upload nobody could see happen. All eight built the same session (entry of 21/09) and waiting for the next build; Bloco 8 (the reveal lock, before 10h) still to run. **Two apps existed; on 18/09 the designed one, `cc.tumtum.app`, became *the* app — `docs/one-app-plan.md` brings the proven pipeline into it in five stages, and Etapas 0–3 were built, merged and *proved on a phone* the same day.** Four rehearsals with the Polar on 18/09 (`app-b111` → `app-b120`): capture at 1 Hz with no gap, upload, the server's detector, a moment **named GOL** by a mark tapped during the capture, the card, the share sheet. Fourteen defects of the "app unclear about its own state" class found and fixed across the four; one backend 500 that had waited since the timeline endpoint was written. **Next: Etapa 4, Play.** The rest of this row describes `cc.tumtum.capture`, now the reference: proven at a real six-hour event, 29/08. The Realness capture ran 21:11→03:17 with the strap, uploaded, analysed, and opened as a night with **20 moments**. Not a WebView shell: Sign-in that knows its own token's expiry, an event chosen before capturing, a retry that retries, a native night (curve + moments, drawn on a Canvas) and a native card with the system share sheet. Capture itself is untouched: 26,999/27,000 readings overnight, screen off, 7% battery, upload at quality 100%. Every build is now signed with a committed key, so the app updates in place instead of demanding an uninstall. **Health Connect is built to the screen (v0.2, Etapas 1–3)** — what remains is a watch in a hand: the device test, and the density measurement the screen itself now performs. **0.1 stays on Felipe's phone until after the festival.** |
 | **Path 2 — fans' own watches** | **Etapa 0 closed, 30/08.** Samsung writes heart rate to Health Connect all night, no gap — but at **1/min in background and 1 per ~32 s inside a workout**, and the two live in *different records*. The decisive number came from the strap: the twenty moments it found last 8–22 s (median 13), so **every one of them is shorter than the interval between two Fit3 readings**. The watch path delivers *the curve of the night*; the moments need the strap. Cross-validated the same night: strap 116 bpm and Fit3 115 bpm, both at 01:24. **Untested: Xiaomi Mi Band 9** (bought, one night away) and Apple Watch. **Qualified 17/09:** that verdict is about a concert. A goal lasts minutes, and in simulation a watch at 1 per 32 s recovers 4 goals in 5 — at 1 per minute, 1 in 5. Opening the Mi Band answers both this and item 23 for nothing. |
 | **Detection** | **Validated against a second device in the field.** 20 moments at Realness, durations 8–22 s; the night's max agreed with an independent optical sensor to within 1 bpm, at the same minute. The quality score, which read a flat 100% over a 79-minute hole, now measures **continuity** — the share of 5-second slots holding a reading — and puts Realness at **78**. Old sessions are restated the next time their night is analysed. **Rebuilt 17/09.** Simulation showed the 300 s rolling *mean* could not see an emotion longer than ~90 s — a goal celebration dropped, a favourite song sung for four minutes invisible, only the 8–22 s spikes inside them reported, which is exactly the Realness signature. Now a rolling **median** over 1200 s with an IQR spread, hysteresis and a 10 bpm minimum rise; peaks carry the bounds of their region; the correlator names a moment by its **cause** (latest entry between region start and peak) instead of the nearest entry to the peak. Match 5/5, show 3/3 songs + 3/3 spikes, Realness-shaped night 20/20, zero on a quiet night, 0.05 s for six hours. 19 tests. **In production since 18/09 (#49).** Confirmation on real data is one tap: "Procurar meus momentos" on the Realness night — item 29. |
 | **Backend** | Live on Railway and **carrying the quality fix and the new card since 01/09**. Deploys from `main` via Railway's own git integration. |
@@ -18,7 +18,7 @@ the linked documents — this file is the index and the reasoning, not a diary.
 | **Brand** | **Manual v0.4 (31/08) is adopted and shipped.** TumTum Pink `#FF6F91` replaced Acid Lime everywhere — 70 usages, three codebases, live since 01/09. `docs/design-brief.md` is the self-contained handoff for design tools. Mutation skins still parked. |
 | **Share loop** | Card 01 built to the manual, at Story size and inside the safe areas, generated from a real capture, and sharing opens the system sheet **with the image attached** — the plumbing is done. **The card itself is not.** Felipe's verdict on the Realness card, 30/08: it does not create any desire to post. It leads with a number nobody is impressed by (92, because ranking is by magnitude, not bpm), carries a headline that is identical on every card ever made, and has no evidence of the night on it. **Half fixed 31/08:** the card leads with the highest peak (116, not 92), the copy is generated from the night's own numbers, and the curve is on it as evidence — the gap in a capture is drawn as a gap. **The surface is still the base one**, and which card people actually post is now an open research question for the pilot. |
 | **Polar as fallback** | **Working end to end.** A real Polar Flow export imports; the average it computes matches the one Polar wrote into the file. Beat → Flow sync is manual — pull down and hold. **This is now the only fallback** — the browser capture path was retired 2026-08-26. |
-| **Privacidade/LGPD** | *(27/09:)* **The two checklists that are Felipe's clicks, written:** `docs/security-baseline.md` (2FA, secrets, rotation and the quarterly access review, system by system — item 83) and `docs/confidentiality-and-training.md` (the term, the 45-minute training, joiner/mover/leaver — item 84). **26/09, night — the opinion's v1.1, and what enters now.** It corrected four things (consent is not the only basis; the pre-pilot RIPD is our gate, not an automatic art. 38 duty; the founder as encarregado is a conflict; hosting in Brazil is not required, transfers need a mechanism). Adopted tonight: the ledger gains `legal_basis`, `scope`, `proof`; **raw readings 30 → 7 days**; the reveal push stops naming the event; the site's refresh token moves to an `httpOnly` cookie; the policy says *"dado individual não vai para parceiros comerciais; fornecedores contratados processam em nosso nome"*; the ROPA rewritten per operation with its basis, the RIPD with the cumulative high-risk test, an incident register (`docs/incident-register.md`), a Transfer Register. The twelve P0 gates read as GATE/DESIGN, not law: **what blocks a participant is still items 71–77 plus a signed RIPD.** New: items 80 (independent encarregado), 81 (a lawyer checks the opinion's 21–25/09 sources), 82 (the ledger's probative period). *(Morning:)* **26/09 — audited and corrected the same day.** The audit against the legal opinion (`RELATORIO-AUDITORIA-LGPD.md`, at the repository root) scored 76 items and found **six critical**: no per-purpose consent and no record of any, the night uploading with no act of the person, a pilot with no term and no discard plan, no age check of any kind, a `SECRET_KEY` with a known default and no guard, and real data in test fixtures and third-party contacts in docs. **The fix was written as one contract and built in four parallel streams** (backend, app, site, docs): seven purposes in `consents`, *Guardar minha noite* as the only road up, 18+ refused by the server, raw readings deleted after 30 days, access logs, delete one night, export everything, data-subject requests with a 15-day clock, a card public only once shared, the crowd at N ≥ 100. Governance written: `docs/ropa.md`, `docs/ripd.md`, `docs/data-retention-policy.md`, `docs/backups.md`, `docs/incident-response.md`, `docs/dpo.md`, `docs/dpa-checklist.md`, `docs/play-console-answers.md`, and the pilot's term and discard plan. **Still Felipe's (items 71–79):** the CNPJ, the Railway checks **before the merge** (the API no longer starts on a weak `SECRET_KEY`), the DPAs, the Play health category, legal review, and the term's signatures. **No participant records a night before those.** |
+| **Privacidade/LGPD** | *(28/09:)* **Railway, Vercel and the site verified in production with Felipe, step by step** — `SECRET_KEY`, `ENVIRONMENT`, TLS to the (public) database, CORS, the forged-IP test, the five cards republished, the account deletion leaving `users` 0 / `deletion_log` 1 / `deletion_tombstones` 1. **New product rule: a paired strap is not a consent** — nothing records without `read_heart_rate`, the server keeps a night only with `read_heart_rate` and `keep_night`, sign-up needs both; `keep_night` stays optional (Felipe asked for all three mandatory; the necessity principle and the 26/09 documents won). The pages stop claiming what is false (controller, photos, access log, waitlist, Sentry, what survives a deletion); the maintenance loop is hourly so "em até 24 horas" is true; a request to the encarregado mails the operators. Items 87–90. *(27/09:)* **The two checklists that are Felipe's clicks, written:** `docs/security-baseline.md` (2FA, secrets, rotation and the quarterly access review, system by system — item 83) and `docs/confidentiality-and-training.md` (the term, the 45-minute training, joiner/mover/leaver — item 84). **26/09, night — the opinion's v1.1, and what enters now.** It corrected four things (consent is not the only basis; the pre-pilot RIPD is our gate, not an automatic art. 38 duty; the founder as encarregado is a conflict; hosting in Brazil is not required, transfers need a mechanism). Adopted tonight: the ledger gains `legal_basis`, `scope`, `proof`; **raw readings 30 → 7 days**; the reveal push stops naming the event; the site's refresh token moves to an `httpOnly` cookie; the policy says *"dado individual não vai para parceiros comerciais; fornecedores contratados processam em nosso nome"*; the ROPA rewritten per operation with its basis, the RIPD with the cumulative high-risk test, an incident register (`docs/incident-register.md`), a Transfer Register. The twelve P0 gates read as GATE/DESIGN, not law: **what blocks a participant is still items 71–77 plus a signed RIPD.** New: items 80 (independent encarregado), 81 (a lawyer checks the opinion's 21–25/09 sources), 82 (the ledger's probative period). *(Morning:)* **26/09 — audited and corrected the same day.** The audit against the legal opinion (`RELATORIO-AUDITORIA-LGPD.md`, at the repository root) scored 76 items and found **six critical**: no per-purpose consent and no record of any, the night uploading with no act of the person, a pilot with no term and no discard plan, no age check of any kind, a `SECRET_KEY` with a known default and no guard, and real data in test fixtures and third-party contacts in docs. **The fix was written as one contract and built in four parallel streams** (backend, app, site, docs): seven purposes in `consents`, *Guardar minha noite* as the only road up, 18+ refused by the server, raw readings deleted after 30 days, access logs, delete one night, export everything, data-subject requests with a 15-day clock, a card public only once shared, the crowd at N ≥ 100. Governance written: `docs/ropa.md`, `docs/ripd.md`, `docs/data-retention-policy.md`, `docs/backups.md`, `docs/incident-response.md`, `docs/dpo.md`, `docs/dpa-checklist.md`, `docs/play-console-answers.md`, and the pilot's term and discard plan. **Still Felipe's (items 71–79):** the CNPJ, the Railway checks **before the merge** (the API no longer starts on a weak `SECRET_KEY`), the DPAs, the Play health category, legal review, and the term's signatures. **No participant records a night before those.** |
 | **Pilot** | **The 25/09 date is probably lost.** Felipe said on 17/09 he most likely cannot run the test at the Tasha & Tracie show. The calendar was searched and shortlisted in `docs/pilot-event-options.md`: a **football match** as the technical test (objective timestamps, a peak synchronised across every chest in the stadium, tickets that actually exist, and a kick-off that ends before midnight) and a **concert with an engaged fan base** as the product test (which card someone actually sends). Still **decoupled from the supplier decision**. The binding constraint is not the calendar: with one chest strap only one person has moments, and card 04 cannot be tested at all. |
 
 ### Open items
@@ -921,6 +921,202 @@ the linked documents — this file is the index and the reasoning, not a diary.
     to a commit SHA; certificate pinning in the app once there is a custom
     API domain; a copy of `deletion_tombstones` outside the database; Sentry
     alerting; the card cache still swallows Redis errors silently.
+87. **The 28/09 round's leftovers that are Felipe's.** `[PENDENTE — Felipe]`
+    The `felipe@tumtum.com` account (the domain is not his): rename it with
+    the CTE from the chat to `felipezanucci+apagar@gmail.com`, reset the
+    password at tumtum.cc/esqueci-senha, delete it in Perfil → Privacidade.
+    Regenerate the Railway recovery codes (the ones from this morning were
+    pasted into a chat and count as burned). The iPhone/Safari session test.
+    Sections F, G and H of the Monday checklist (entry of 28/09).
+88. **Auto-post to the feed as an eighth purpose (Strava-style).**
+    `[PENDENTE — jurídico, then build]` Asked once at the end of the first
+    night, off by default, "Tirar do feed" beside every automatic post; see
+    the 28/09 entry for why it is a consent and not a default. Changes the
+    ledger, the policy, the RIPD and the pilot term with it.
+89. **Two migrations of the Railway database, together with Felipe.**
+    `[PENDENTE — Felipe + assistant]` The Alembic stamp sequence to 025
+    (`backend/alembic/README-migrations.md`) and `DATABASE_URL` from the
+    public proxy to `RAILWAY_PRIVATE_DOMAIN` (egress is billed on the public
+    one; `DATABASE_SSL` can then go back to false). Each with `/health` open
+    and a way back.
+90. **The phone's analyser and the server's are two implementations of one
+    algorithm.** The deviation guards were ported on 28/09 after the phone
+    found a moment in 17 seconds; the rest (median window, hysteresis,
+    merge) should be checked against `backend/tests/test_peak_detection.py`
+    with the same fixtures, so that a night's headline cannot change on
+    upload again.
+
+---
+
+## 2026-09-28 — A segunda de testes: Railway e Vercel conferidos, o site fechado, o b217 na mão, e as trinta e três correções
+
+**What happened.** The Monday the 26/09 remediation was to be verified in
+production, step by step with Felipe at the keyboard. Railway first: the
+server was up, `SECRET_KEY` strong, `ENVIRONMENT=production` (the demo
+routes answer 404), `CORS_EXTRA_ORIGINS` set, the logs clean, the database
+reached over TLS — the `DATABASE_URL` points at the **public** proxy
+(`interchange.proxy.rlwy.net`), so `DATABASE_SSL=true` was set the same
+morning, and moving to the private network is a later, careful step (Railway
+warns it bills egress on the public one). A forged `X-Forwarded-For: 1.2.3.4`
+was refused and the real address logged. The five cards Felipe had shared
+before 26/09 were republished with `published_at = min(shared_at)` (the
+README's backfill, as a CTE because Railway's table view appends `LIMIT`);
+the sixteen old nights are all his, and their raw readings stay by his
+choice until he decides. `ADMIN_EMAILS` carries two addresses, so a report
+on the feed does reach a person. Vercel: `NEXT_PUBLIC_API_URL` right, the
+security headers live, the `/api/auth/*` rewrite working, the PostHog
+variables removed, 2FA on. Then the site in his hands, end to end: sign-up
+with the birth date and the two separate yeses, the code by mail, the seven
+switches with their history, session persistence on a computer and on
+Android, the JSON and CSV exports (read here — a fresh account, no night),
+a request to the encarregado with its 13/10 deadline, the e-mail change
+that signs every device out, and the account deletion (`users` 0,
+`deletion_log` 1, `deletion_tombstones` 1). Every page's text was read
+against the code: Privacidade, Termos, Apagar conta, the footer.
+
+**Then the app, b217, in his hand — and the first hour found the worst
+defect of the audit's aftermath.** A phone with a Polar already paired
+**recorded a night on a brand-new account that had never granted
+"Ler sua batida"**: the app only sent people to the consent screen when no
+sensor was set up, and the upload asked the server for `keep_night` alone.
+Nothing left the phone (keep_night was off), but reading heart rate without
+its consent is processing of sensitive data with no basis, and the pairing
+lives on the phone, not on the account. In the same hour: "Continuar" let
+the first consent pass end with the reading switch off, and skipped the
+Health Connect step silently; the feed said *"sua noite não chegou aqui"*
+to a night that had arrived and was only too short to count (fewer than 60
+readings inside the event window — the 27/09 attendance rule, working, but
+not said); "Guardada na TumTum" stayed on screen after *Guardar a noite*
+was turned off, and the switch itself said nothing when turned off (the
+note was written at the tap and lost on the next visit); the maintenance
+loop ran once a day after a 24-hour grace, so "em até 24 horas" could be
+48; **the card that went to Instagram and WhatsApp printed "SEM MOMENTOS
+NESSA NOITE."** — the night screen's own footnote leaking into the one
+thing meant to be posted; the phone's analyser found a "moment" (71 over
+69) in a 17-second night the server, rightly, found nothing in, so the
+headline changed on upload; the share screen's thumbnail said "bpm às —";
+the feed's "Mostrar a minha" led to Instagram, and the only way to the
+TumTum feed was to share to another network first and come back; two
+exports of a night with a 2-minute Bluetooth dropout carried no connection
+event, no R-R, and a header claiming 0 samples and 35 % coverage over 122
+rows; "1 momentos". What worked: the birth-date wheel, the terms off by
+default with both links, the optional purposes off, "Ela só sai daqui se
+você guardar", the upload only on the tap and said with its time, the gap
+drawn as a gap, "Ligado." under a granted switch, Instagram Stories and
+WhatsApp with the person's own video, the bpm range (100+) and the event
+badge toggles, "AINDA SOMOS POUCOS AQUI" with one night, "Apagar esta
+noite" with the honest dialogue. The dropout itself was Felipe's trip to the
+intercom: two floors of concrete, 120.3 s without a packet, reconnected on
+its own when he came back.
+
+**What was decided.**
+
+- **A paired strap is not a consent** (product rule, CLAUDE.md). Nothing
+  records without `read_heart_rate` on the account — the fan's start, the
+  operator's, the service — and the app says *"Pra gravar, liga 'Ler sua
+  batida'"*; the server keeps a night only with `read_heart_rate` **and**
+  `keep_night` (`require_consents`, the 403 naming the first one missing,
+  read from the router by a test); sign-up on both clients does not
+  continue until `terms` and `read_heart_rate` are on. **Felipe first asked
+  for all three to be mandatory**, `keep_night` included — *"essa é toda a
+  experiência da TumTum"*. The answer that won: the night, the moment and
+  the card work without the server (the screen proved it that afternoon),
+  so the LGPD's necessity principle does not allow demanding an upload the
+  product does not need, and the 26/09 opinion, the policy, the RIPD and
+  the pilot term all rest on "nada sobe sem guardar a noite". `keep_night`
+  stays optional and off, explained at sign-up ("Pra sua noite ficar na sua
+  coleção, entrar no feed do evento e não sumir se você trocar de
+  celular") and asked again at the end of the night.
+- **Auto-post to the feed, Strava-style, is item 30, not a default.**
+  Felipe's question — *"por que não fazer igual ao Strava e publicar
+  direto?"* — has an honest yes with one condition: an eighth purpose,
+  *"Postar minhas noites no feed do evento"*, asked once at the end of the
+  first night ("Sim, sempre" / "Eu escolho cada vez"), off by default,
+  with "Tirar do feed" beside every automatic post. Publishing is a new use
+  of sensitive data (art. 11: specific, highlighted consent; art. 46:
+  protective defaults), the Strava precedent is the one to learn from, not
+  copy, and the public stays "quem estava lá". It changes the ledger, the
+  policy, the RIPD and the pilot term, so it waits for the lawyer and comes
+  after the critical fixes. A side benefit: the "Sim, sempre" rate is a
+  direct measurement of Phase 0's hypothesis.
+- **Every sentence about a state is recomputed from the state.** The class
+  behind five of today's findings: a note written at the tap, a headline
+  chosen at upload, a footnote reused as a title. Now in CLAUDE.md next to
+  the twelve of 21/09.
+- **A queue nobody is told about is a queue nobody reads.** A data-subject
+  request mails every `ADMIN_EMAILS` address with the 15-day deadline and
+  the link to the new `/admin/pedidos`; the old address is told when the
+  account's e-mail changes; the report mail moved to one helper
+  (`services/operator_mail.py`) both use.
+- **The maintenance loop is hourly, the revocation grace 23 h**, so "em até
+  24 horas" is true on a clock, and a test pins `grace + interval ≤ 24 h`.
+- **The controller is Felipe, pessoa física, until there is a CNPJ**, in
+  those words on the three pages, instead of a bracketed placeholder on a
+  live site (lawyer to confirm, item 81). The Terms stop claiming TumTum
+  stores photos and videos (it receives none); the policy stops claiming
+  every access is logged (direct database queries are not), that the
+  waitlist holds only e-mails, that Sentry is on, and that nothing
+  identifying survives a deletion — the access log (180 days) and the
+  tombstone (400 days) do, on purpose, and now the pages say so.
+
+**What was built** (one PR, three streams in parallel; numbers are the
+day's pending list):
+*Server* — 21 both consents on upload; 25 hourly loop; 9 request mail +
+`/api/admin/requests` already existed, the page did not; 11 old-address
+notice; 5 one space between words in a name; 28 two feed refusals
+("não chegou" vs "chegou, mas tem pouca batida medida"). 391 tests.
+*Site* — 2 signed-out profile is one line; 3 an own pt-BR birth-date
+picker (three lists, shared component, also on `/consentimento`); 4 the
+switch says what happened and keeps saying it while off; 7 the operator
+table out of the profile, one line to the policy; 8, 13–19 the texts above;
+9 `/admin/pedidos`; 10 e-mail change ends at `/login?motivo=email`; 12 a
+session that ends goes to `/login?motivo=sessao` with "Sua sessão terminou.
+Entra de novo." and "Token inválido ou expirado" is never rendered; 20 both
+mandatory boxes before the code. 196 tests, build green.
+*App* — 21 the capture gate on the account's consent, cached for offline,
+in every start and in the service, and a running capture ends when the
+consent is withdrawn; 20 the first pass needs both, "O que falta" frames
+every missing core purpose; 23 no "Salvar" (the name saves itself), "Cada
+chave vale na hora em que você toca", notes that persist; 24 "Sai do
+servidor até amanhã, 16h50" on the night; 22/26 one headline —
+"{média} A NOITE INTEIRA. ATÉ {hora}." — before and after, on the screen
+and on the card, and the phone's analyser given the server's deviation
+guards; 27/29 the preview and the thumbnail are the card; 31 "Feed do
+evento" first on the share screen, "Mostrar a minha" posts, the button
+present and disabled with its reason when it cannot; 28 the server's
+sentence on the feed's 403 and the reading count on the night; 32 "Sensor
+longe. Chega o celular perto da cinta." / "Voltou." and an export with
+connection events, R-R, and a header computed from the rows; 6 `source_device`
+without the serial; 8 the backups line; 33 plurals.
+Two things the app's stream found on the way: `NightAnalyzer.moments()` was
+**a different algorithm** from the server's (the highest readings at least
+ten minutes apart) and is now a line-by-line port of `detect_peaks()`,
+its tests checked against the backend on the same data (so item 22's
+"aligned guards" became the whole detector); and the empty
+`connection_events.csv` was the app deleting the connection log when a
+night was saved — it now stays with the night. Room goes to version 10
+(`eventReadings`, `stopReason`). One small leftover: the operator's "Começa
+agora" registers the event on the server before the consent check runs.
+
+**What it cost.** The morning and the afternoon, with Felipe at every
+step — and the test round is the point: **thirty-three findings from a
+site and an app that were "done" on Friday**, seven of them the app
+stating something false about itself, one of them a consent gap that no
+test had caught because every test granted the consent it was testing.
+Two things the round could not do: nothing here compiles Android (the SDK
+download is blocked by the environment's network policy), so the app's
+changes meet a compiler in CI first; and the Polar's raw rows are deleted
+when a night is saved, so the first export could not say why its 25 s gap
+existed — the second, exported before saving, could (the intercom).
+
+**Still Felipe's.** (1) the `felipe@tumtum.com` account — the domain is not
+his; the CTE in the chat renames it to `felipezanucci+apagar@gmail.com`,
+then a reset and a deletion through the site; the Railway recovery codes he
+pasted into the chat are burned — regenerate them; the migrations (stamp
+sequence to 025) together, later; `DATABASE_URL` to the private network
+together, later; the iPhone/Safari session test; sections F (the `.aab` on
+Play), G (2FA on the rest, branch protection, DNS and mailbox), H (legal and
+administrative, items 71–86); and the lawyer's word on items 17 and 30.
 
 ---
 

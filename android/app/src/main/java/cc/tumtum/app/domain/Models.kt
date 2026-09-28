@@ -74,7 +74,17 @@ data class Night(
     val sendRequested: Boolean = false,
     /** When its readings reached the server; null while they have not. */
     val sentAt: Instant? = null,
+    /** The server's count of its readings inside the event's window (28/09); null when unknown. */
+    val eventReadings: Int? = null,
+    /** Why the capture ended when the person did not end it ([StopReason]); null for an ordinary end. */
+    val stopReason: String? = null,
 )
+
+/** Why a capture ended without the person's "Encerrar" (28/09). */
+object StopReason {
+    /** "Ler sua batida" was turned off while it recorded. */
+    const val READING_REVOKED = "reading_revoked"
+}
 
 /** Fonte disponível no Health Connect, com densidade real medida na janela (b4). */
 data class WatchSource(

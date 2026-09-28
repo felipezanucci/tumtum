@@ -32,4 +32,19 @@ class ConsentTextTest {
         assertFalse(start.getValue("read_heart_rate"))
         assertTrue(ConsentText.PURPOSES.filter { ConsentText.isOptional(it) }.none { start.getValue(it) })
     }
+
+    @Test
+    fun `what is missing frames every core key that is off, not only the one asked for`() {
+        // 27/09: a night waiting for keep_night, on an account with read_heart_rate off.
+        val granted = mapOf("terms" to true, "read_heart_rate" to false, "keep_night" to false)
+        assertEquals(listOf("keep_night", "read_heart_rate"), ConsentText.missingFor("keep_night", granted))
+        assertEquals(listOf("keep_night"), ConsentText.missingFor("keep_night", granted + ("read_heart_rate" to true)))
+    }
+
+    @Test
+    fun `a night waiting to go up needs both keys the server takes it with`() {
+        val granted = mapOf("terms" to true, "read_heart_rate" to true, "keep_night" to false)
+        assertEquals(listOf("read_heart_rate", "keep_night"), ConsentText.missingFor("read_heart_rate", granted, keepingNight = true))
+        assertEquals(listOf("read_heart_rate"), ConsentText.missingFor("read_heart_rate", granted))
+    }
 }

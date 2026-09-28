@@ -120,10 +120,14 @@ fun ShareCardView(
                 style = TextStyle(
                     fontFamily = InstrumentSans,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = maxOf(8f, w * 0.048f).sp,
+                    // Exactly the renderer's proportion (52 px of 1080), no floor
+                    // (28/09): a floor made the meta bigger than the card's at
+                    // preview scale, and it squeezed the event box to "T…".
+                    fontSize = (w * 0.048f).sp,
                 ),
                 color = fg,
                 maxLines = 1,
+                softWrap = false,
             )
         }
         val wordmark: @Composable () -> Unit = { Wordmark(width = (w * 0.185f).dp, onDark = skin == Skin.BLACK) }
@@ -158,7 +162,13 @@ fun ShareCardView(
     }
 }
 
-/** The event's name in its box: acid with black type, or black on the skins acid would vanish into. */
+/**
+ * The event's name in its box: acid with black type, or black on the skins
+ * acid would vanish into. Same proportions as [cc.tumtum.app.export.CardRenderer]
+ * and no floor under them (28/09, item 27), so a name that fits on the card
+ * fits here: beside the meta it is never cut; on its own row it gets the
+ * renderer's two lines.
+ */
 @Composable
 private fun EventBox(event: String, skin: Skin, w: Float, modifier: Modifier = Modifier, maxLines: Int = 1) {
     val dark = skin == Skin.YELLOW || skin == Skin.WHITE
@@ -167,7 +177,7 @@ private fun EventBox(event: String, skin: Skin, w: Float, modifier: Modifier = M
         style = TextStyle(
             fontFamily = InstrumentSans,
             fontWeight = FontWeight.SemiBold,
-            fontSize = maxOf(7f, w * 0.038f).sp,
+            fontSize = (w * 0.038f).sp,
             letterSpacing = 0.1.em,
         ),
         color = when (skin) {
@@ -176,7 +186,8 @@ private fun EventBox(event: String, skin: Skin, w: Float, modifier: Modifier = M
             else -> TT.Ink
         },
         maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
+        softWrap = maxLines > 1,
+        overflow = if (maxLines > 1) TextOverflow.Ellipsis else TextOverflow.Visible,
         modifier = modifier
             .background(if (dark) TT.Ink else TT.Acid)
             .padding(horizontal = (w * 0.035f).dp, vertical = (w * 0.024f).dp),

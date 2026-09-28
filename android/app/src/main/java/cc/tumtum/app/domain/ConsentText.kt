@@ -43,6 +43,12 @@ object ConsentText {
     const val MEANS_TAP = "tap"
     const val MEANS_CHECKBOX = "checkbox"
 
+    /**
+     * How long the server keeps a night after "Guardar a noite" is turned off
+     * (the policy's "em até 24 horas"): what the screens count the deadline by.
+     */
+    val SERVER_DELETION_DELAY: java.time.Duration = java.time.Duration.ofHours(24)
+
     const val TERMS_URL = "https://tumtum.cc/termos"
     const val PRIVACY_URL = "https://tumtum.cc/privacidade"
     /** Where the person downloads everything the server holds about them. */
@@ -57,4 +63,16 @@ object ConsentText {
      */
     fun startingSwitches(granted: Map<String, Boolean>): Map<String, Boolean> =
         PURPOSES.associateWith { granted[it] == true }
+
+    /**
+     * The rows of "O QUE FALTA" (28/09): the purpose the app asked for, every
+     * core one that is off, and — when a night is waiting to go up — both keys
+     * the server takes a night with ("Ler sua batida" and "Guardar a noite").
+     * In the screens' order, the asked-for one first.
+     */
+    fun missingFor(focus: String, granted: Map<String, Boolean>, keepingNight: Boolean = false): List<String> {
+        val needed = CORE + if (keepingNight) setOf(READ_HEART_RATE, KEEP_NIGHT) else emptySet<String>()
+        val others = PURPOSES.filter { it != focus && it in needed && granted[it] != true }
+        return listOf(focus) + others
+    }
 }

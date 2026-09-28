@@ -25,15 +25,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import cc.tumtum.app.R
+import cc.tumtum.app.data.api.ConsentSnapshot
 import cc.tumtum.app.domain.ConsentText
+import cc.tumtum.app.ui.components.serverDeadline
+import java.time.Instant
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 
-/** The sentences of one purpose: what it is, what it does, and what stops when it is turned off. */
+/**
+ * The sentences of one purpose: what it is, what it does, what stops when it
+ * is turned off — and, for a key that starts off and is worth turning on,
+ * why ([why], 28/09).
+ */
 data class PurposeCopy(
     @StringRes val title: Int,
     @StringRes val body: Int,
     @StringRes val stops: Int,
+    @StringRes val why: Int? = null,
 )
 
 /**
@@ -45,13 +53,46 @@ object ConsentCopy {
     fun of(purpose: String): PurposeCopy? = when (purpose) {
         ConsentText.TERMS -> PurposeCopy(R.string.consent_terms_title, R.string.consent_terms_body, R.string.consent_terms_stops)
         ConsentText.READ_HEART_RATE -> PurposeCopy(R.string.consent_read_title, R.string.consent_read_body, R.string.consent_read_stops)
-        ConsentText.KEEP_NIGHT -> PurposeCopy(R.string.consent_keep_title, R.string.consent_keep_body, R.string.consent_keep_stops)
+        ConsentText.KEEP_NIGHT -> PurposeCopy(
+            R.string.consent_keep_title, R.string.consent_keep_body, R.string.consent_keep_stops,
+            why = R.string.consent_keep_why,
+        )
         ConsentText.CROWD_STATS -> PurposeCopy(R.string.consent_crowd_title, R.string.consent_crowd_body, R.string.consent_crowd_stops)
         ConsentText.ARTIST_COMPARE -> PurposeCopy(R.string.consent_artist_title, R.string.consent_artist_body, R.string.consent_artist_stops)
         ConsentText.IMPROVE_DETECTION -> PurposeCopy(R.string.consent_improve_title, R.string.consent_improve_body, R.string.consent_improve_stops)
         ConsentText.MARKETING -> PurposeCopy(R.string.consent_marketing_title, R.string.consent_marketing_body, R.string.consent_marketing_stops)
         else -> null
     }
+}
+
+/**
+ * What a switch that is off says under it (28/09, items 4 and 23): what
+ * stopped, in words — the same on the consent screen and in Configurações,
+ * and it stays while the switch is off, not only right after the tap.
+ *
+ * "Guardar a noite" says when the nights leave the server: 24 hours after the
+ * revocation ([entry]'s `revoked_at`), as a date and an hour when the server
+ * gave one; once that has passed, or when nothing was ever kept, that they
+ * are only on this phone. [wasGranted] is for a switch turned off on this
+ * screen and not yet sent, which has no `revoked_at` of its own yet.
+ */
+@Composable
+fun consentOffNote(
+    purpose: String,
+    entry: ConsentSnapshot.Entry?,
+    wasGranted: Boolean = entry?.grantedAt != null,
+    now: Instant = Instant.now(),
+): String? {
+    if (purpose == ConsentText.KEEP_NIGHT) {
+        val deadline = entry?.revokedAt?.plus(ConsentText.SERVER_DELETION_DELAY)
+        return when {
+            deadline != null && deadline.isAfter(now) -> stringResource(R.string.settings_keep_off_until, serverDeadline(deadline, now))
+            deadline != null -> stringResource(R.string.settings_keep_off_local)
+            wasGranted -> stringResource(R.string.settings_keep_off)
+            else -> stringResource(R.string.settings_keep_off_local)
+        }
+    }
+    return ConsentCopy.of(purpose)?.let { stringResource(it.stops) }
 }
 
 /** Opens a page of tumtum.cc in the browser. Nothing happens when no browser can take it. */
@@ -168,6 +209,10 @@ fun ConsentRow(
         }
         Spacer(Modifier.height(4.dp))
         Text(stringResource(copy.body), style = TTType.BodySmall, color = if (onDark) TT.Gray45 else TT.Gray70)
+        copy.why?.let {
+            Spacer(Modifier.height(4.dp))
+            Text(stringResource(it), style = TTType.BodySmall, color = if (onDark) TT.Paper else TT.Ink)
+        }
         note?.let {
             Spacer(Modifier.height(6.dp))
             Text(it, style = TTType.BodySmall, color = if (onDark) TT.Acid else TT.Ink)

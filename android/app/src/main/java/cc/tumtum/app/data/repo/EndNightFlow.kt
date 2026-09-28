@@ -14,7 +14,12 @@ import cc.tumtum.app.service.Reminders
  * strap, in the pilot), and "Trazer do meu relógio" when there is a choice.
  * Returns the night id, or null when the source had no sample at all.
  */
-suspend fun AppContainer.saveEndedNight(event: EventSession, measurement: SourceMeasurement, sourcePackage: String): Long? {
+suspend fun AppContainer.saveEndedNight(
+    event: EventSession,
+    measurement: SourceMeasurement,
+    sourcePackage: String,
+    stopReason: String? = null,
+): Long? {
     // Trava da revela (protocolo): com o modo ligado, a noite só abre às 10h
     // da manhã seguinte — o cartão cego vem antes.
     val state = prefs.state.first()
@@ -22,7 +27,10 @@ suspend fun AppContainer.saveEndedNight(event: EventSession, measurement: Source
     // The night is the recording account's from the first second (25/09) —
     // the one signed in, or the last one that was if the session died mid-show.
     val owner = state.session?.userId ?: state.lastUserId
-    val nightId = nights.saveNight(event, measurement, sourcePackage, revealAt, ownerUserId = owner) ?: return null
+    val nightId = nights.saveNight(
+        event, measurement, sourcePackage, revealAt,
+        ownerUserId = owner, sensorName = state.bleName, stopReason = stopReason,
+    ) ?: return null
     // "A gente te avisa" is only said when this exists (§5.4).
     if (revealAt != null) {
         Reminders.scheduleReveal(
@@ -38,8 +46,8 @@ suspend fun AppContainer.saveEndedNight(event: EventSession, measurement: Source
     // "Nada deixa seu aparelho sem você mandar".
     //
     // And the raw capture of the event goes now: the night keeps its beats
-    // and moments; the per-packet readings, R-R, motion and connection log
-    // have done their job.
+    // and moments; the per-packet readings, R-R and motion have done their
+    // job. The connection log stays with the night (28/09, see dropRawCapture).
     runCatching { nights.dropRawCapture(event.id) }
     endNight.clear()
     return nightId

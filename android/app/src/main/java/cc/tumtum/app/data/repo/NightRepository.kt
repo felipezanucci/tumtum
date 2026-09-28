@@ -9,6 +9,7 @@ import cc.tumtum.app.data.db.SampleEntity
 import cc.tumtum.app.data.db.TumTumDatabase
 import cc.tumtum.app.data.health.HealthConnectSource
 import cc.tumtum.app.domain.BeatFilter
+import cc.tumtum.app.domain.DeviceName
 import cc.tumtum.app.domain.EventSession
 import cc.tumtum.app.domain.Gap
 import cc.tumtum.app.domain.GalleryNight
@@ -214,12 +215,24 @@ class NightRepository(
      * margem virou "30 MIN SEM DADO" e "10% da noite coberta" em cima de uma
      * captura sem um segundo de buraco.
      */
-    suspend fun measureSources(event: EventSession, end: Instant = Instant.now()): SourceMeasurement {
+    suspend fun measureSources(
+        event: EventSession,
+        end: Instant = Instant.now(),
+        /**
+         * False once "Ler sua batida" is off (28/09): the night keeps what the
+         * strap wrote while the consent stood, and the watch is not read again.
+         */
+        readHealthConnect: Boolean = true,
+    ): SourceMeasurement {
         val closedAt = (event.endAt ?: end).coerceAtMost(Instant.now())
         val ble = bleSamplesIn(event.id, event.startAt.minus(margin), closedAt.plus(margin))
         val windowStart = if (ble.isNotEmpty()) event.startAt else event.startAt.minus(margin)
         val windowEnd = if (ble.isNotEmpty()) closedAt else closedAt.plus(margin).coerceAtMost(Instant.now())
-        val bySource = health.readWindowBySource(windowStart, windowEnd).toMutableMap()
+        val bySource = if (readHealthConnect) {
+            health.readWindowBySource(windowStart, windowEnd).toMutableMap()
+        } else {
+            mutableMapOf()
+        }
         if (ble.isNotEmpty()) bySource[HrSource.ID_BLE] = ble.filter { it.time >= windowStart && it.time <= windowEnd }
         return SourceMeasurement(
             windowStart = windowStart,
@@ -239,6 +252,9 @@ class NightRepository(
         sourcePackage: String,
         revealAt: Instant? = null,
         ownerUserId: String? = null,
+        /** The paired strap's name, for a strap night: kept as its model only ([DeviceName]). */
+        sensorName: String? = null,
+        stopReason: String? = null,
     ): Long? {
         val samples = measurement.bySource[sourcePackage].orEmpty()
         if (samples.isEmpty()) return null
@@ -257,12 +273,19 @@ class NightRepository(
                 coveragePct = NightAnalyzer.coveragePct(samples, measurement.windowStart, measurement.windowEnd),
                 momentCount = moments.size,
                 sourcePackage = sourcePackage,
-                sourceLabel = HealthConnectSource.sourceLabel(sourcePackage),
+                // A strap night says which strap — the model, never its serial
+                // (28/09): this is the night's source_device on the server.
+                sourceLabel = if (sourcePackage == HrSource.ID_BLE) {
+                    DeviceName.model(sensorName) ?: HealthConnectSource.sourceLabel(sourcePackage)
+                } else {
+                    HealthConnectSource.sourceLabel(sourcePackage)
+                },
                 clockOffsetStartMs = eventRow?.clockOffsetStartMs,
                 clockOffsetEndMs = eventRow?.clockOffsetEndMs,
                 revealAt = revealAt?.toEpochMilli(),
                 // Owned from the moment it exists (25/09), not from its upload.
                 ownerUserId = ownerUserId,
+                stopReason = stopReason,
             ),
         )
         db.nightDao().insertSamples(samples.map { SampleEntity(nightId = nightId, time = it.time.toEpochMilli(), bpm = it.bpm) })
@@ -370,15 +393,20 @@ class NightRepository(
 
     /**
      * Local minimisation (26/09): the night is saved, so the event's raw
-     * capture — per-packet readings, R-R intervals, the phone's motion, the
-     * connection log — is no longer needed by anything the person sees, and
-     * goes. The night's beats and moments stay.
+     * capture — per-packet readings, R-R intervals, the phone's motion — is
+     * no longer needed by anything the person sees, and goes. The night's
+     * beats and moments stay.
+     *
+     * **The connection log stays** (28/09) and goes with the night. It holds
+     * no heartbeat — when the strap connected, dropped, came back, at what
+     * signal — and it is the only thing that explains a hole in the curve:
+     * the export of a night with a two-minute dropout came back with an empty
+     * connection_events.csv, because this had already deleted it.
      */
     suspend fun dropRawCapture(eventId: Long) {
         capture.deleteSamplesOfEvent(eventId)
         capture.deleteRrOfEvent(eventId)
         capture.deleteMotionOfEvent(eventId)
-        capture.deleteConnectionEventsOfEvent(eventId)
     }
 
     private fun NightWithData.toDomain(): Night {
@@ -418,6 +446,8 @@ class NightRepository(
             ownerUserId = night.ownerUserId,
             sendRequested = night.sendRequested,
             sentAt = night.sentAt?.let(Instant::ofEpochMilli),
+            eventReadings = night.eventReadings,
+            stopReason = night.stopReason,
         )
     }
 

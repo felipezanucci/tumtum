@@ -56,6 +56,7 @@ import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import java.time.Duration
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import cc.tumtum.app.data.repo.NightSync
 
@@ -85,9 +86,35 @@ fun CaptureScreen(nav: NavHostController) {
     val bus by CaptureBus.status.collectAsStateWithLifecycle()
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     val lastMark by vm.lastMark.collectAsStateWithLifecycle()
+    val forced by CaptureBus.forcedStop.collectAsStateWithLifecycle()
+
+    // The capture ended without "Encerrar" (28/09): "Ler sua batida" went off.
+    // The screen goes to the night it left, which says why — or back to AO
+    // VIVO when nothing had been written. Taken once, so it is not replayed.
+    LaunchedEffect(forced) {
+        val stop = forced ?: return@LaunchedEffect
+        if (container.nights.activeEvent.first() != null) return@LaunchedEffect
+        CaptureBus.forcedStop.value = null
+        val nightId = stop.nightId
+        if (nightId != null) {
+            nav.navigate(Routes.reveal(nightId)) { popUpTo(Routes.Feed) }
+        } else {
+            nav.navigate(Routes.Live) { popUpTo(Routes.Feed) }
+        }
+    }
 
     val e = event ?: return
     val bleActive = bus.active && bus.eventId == e.id
+    // Refused for "Ler sua batida", and now it is on (the person came back
+    // from turning it on): the strap starts, and the block goes with it —
+    // a refusal left on screen after its cause is gone is a false state.
+    val readingOn = user?.granted(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE) == true
+    LaunchedEffect(bus.refusedReading, readingOn, e.id) {
+        if (!bus.refusedReading || bus.eventId != e.id || !readingOn) return@LaunchedEffect
+        val address = container.prefs.state.first().bleAddress ?: return@LaunchedEffect
+        container.prefs.setActiveCapture(e.id)
+        CaptureService.start(context, e.id, address)
+    }
     // What kind of night this is decides more than the mark buttons: a match
     // is not "tocando" and nobody at one is at a "show" (22/09).
     val sports = e.eventType == "sports"
@@ -118,7 +145,10 @@ fun CaptureScreen(nav: NavHostController) {
                 Spacer(Modifier.weight(1f))
                 if (bleActive) {
                     val sensor = (bus.deviceName ?: "SENSOR").uppercase()
-                    val connLabel = when (bus.connection) {
+                    val connLabel = if (bus.sensorSilent) {
+                        // Ten seconds of nothing (28/09): never "OK" over a strap that went quiet.
+                        stringResource(R.string.capture_disconnected).uppercase()
+                    } else when (bus.connection) {
                         // Connected is not on the skin (25/09): a strap taken off
                         // stays connected and keeps sending its last number, then 0.
                         is BleConnectionState.Connected -> when (bus.onSkin) {
@@ -132,7 +162,7 @@ fun CaptureScreen(nav: NavHostController) {
                     Text(
                         connLabel,
                         style = TTType.MetaSmall.copy(letterSpacing = 0.06.em),
-                        color = if (bus.connection is BleConnectionState.Connected && bus.onSkin != false) {
+                        color = if (bus.connection is BleConnectionState.Connected && bus.onSkin != false && !bus.sensorSilent) {
                             TT.Gray55
                         } else {
                             TT.Rose
@@ -199,7 +229,19 @@ fun CaptureScreen(nav: NavHostController) {
                 )
             }
 
-            if (revoked && !bleActive) {
+            if (bus.refusedReading && bus.eventId == e.id && !bleActive) {
+                // The service would not read (28/09): "Ler sua batida" is off
+                // for this account. Said where the number would be, with the way.
+                Spacer(Modifier.height(40.dp))
+                Text(stringResource(R.string.capture_reading_off), style = TTType.TitleSmall, color = TT.Paper)
+                Spacer(Modifier.height(24.dp))
+                TTButton(
+                    stringResource(R.string.capture_reading_turn_on),
+                    TTButtonStyle.Rose,
+                    onClick = { nav.navigate(Routes.consent(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE)) },
+                )
+                Spacer(Modifier.weight(1f))
+            } else if (revoked && !bleActive) {
                 // §7 — permissão revogada: nova captura bloqueada, com explicação honesta.
                 Spacer(Modifier.height(40.dp))
                 Text(stringResource(R.string.live_blocked_title), style = TTType.TitleSmall, color = TT.Paper)
@@ -227,8 +269,11 @@ fun CaptureScreen(nav: NavHostController) {
                 // fica registrada no log; a captura não muda por ele estar visível.
                 val bpmNow = if (bleActive) {
                     // Only a beat, and only while the sensor is there: a number
-                    // left over from before a drop is not "agora".
-                    bus.lastBpm?.takeIf { bus.onSkin == true && bus.connection is BleConnectionState.Connected }
+                    // left over from before a drop is not "agora" — nor one
+                    // from before ten seconds of silence (28/09).
+                    bus.lastBpm?.takeIf {
+                        bus.onSkin == true && bus.connection is BleConnectionState.Connected && !bus.sensorSilent
+                    }
                 } else {
                     snapshot?.currentBpm
                 }
@@ -243,6 +288,27 @@ fun CaptureScreen(nav: NavHostController) {
                         color = TT.Gray45,
                         modifier = Modifier.padding(bottom = 10.dp),
                     )
+                }
+                // Where the number is (28/09): the strap has gone quiet, or
+                // just came back. The line keeps its height either way, so
+                // nothing under it jumps.
+                if (bleActive) {
+                    Box(Modifier.fillMaxWidth().height(40.dp), contentAlignment = Alignment.CenterStart) {
+                        when {
+                            bus.sensorSilent -> Text(
+                                stringResource(R.string.capture_sensor_far),
+                                style = TTType.BodySmall,
+                                color = TT.Rose,
+                                maxLines = 2,
+                            )
+                            bus.backAtMs != null -> Text(
+                                stringResource(R.string.capture_sensor_back),
+                                style = TTType.BodySmall,
+                                color = TT.Acid,
+                                maxLines = 1,
+                            )
+                        }
+                    }
                 }
                 Spacer(Modifier.height(gap))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

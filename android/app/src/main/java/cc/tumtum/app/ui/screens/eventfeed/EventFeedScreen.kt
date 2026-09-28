@@ -257,7 +257,10 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
                 is FeedState.NotThere -> {
                     val waiting = unsent
                     if (waiting == null) {
-                        Note(stringResource(R.string.event_feed_not_there))
+                        // The server's sentence (28/09): "your night never got
+                        // here" and "it did, with too few beats inside the
+                        // event" are different, and only the server knows which.
+                        Note(s.detail ?: stringResource(R.string.event_feed_not_there))
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             Note(stringResource(R.string.event_feed_not_sent))
@@ -496,10 +499,13 @@ private fun EmptyFeed(night: NightEntity?, nav: NavHostController) {
         night != null && (night.revealAt == null || night.revealAt <= now) ->
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Note(stringResource(R.string.event_feed_empty))
+                // Straight to posting (28/09, item 31): this sent people to
+                // the skin chooser, and from there to a share sheet — the
+                // founder never found the way into the feed from the feed.
                 TTButton(
                     stringResource(R.string.event_feed_show_mine),
                     TTButtonStyle.Rose,
-                    onClick = { nav.navigate(Routes.choose(night.id)) },
+                    onClick = { nav.navigate(Routes.showToFeed(night.id)) },
                 )
             }
 

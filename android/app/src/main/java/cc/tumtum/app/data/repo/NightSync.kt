@@ -5,6 +5,7 @@ import cc.tumtum.app.data.db.MomentEntity
 import cc.tumtum.app.data.db.TumTumDatabase
 import cc.tumtum.app.data.prefs.UserPrefs
 import cc.tumtum.app.domain.ConsentText
+import cc.tumtum.app.domain.DeviceName
 import cc.tumtum.app.domain.HrSample
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -95,6 +96,8 @@ class NightSync(
         } catch (e: IOException) {
             return SendRequest.Offline
         }
+        // The server takes a night only with both (28/09): reading it, and keeping it.
+        if (!consents.granted(ConsentText.READ_HEART_RATE)) return SendRequest.NeedsConsent(ConsentText.READ_HEART_RATE)
         if (!consents.granted(ConsentText.KEEP_NIGHT)) return SendRequest.NeedsConsent(ConsentText.KEEP_NIGHT)
         db.nightDao().setSendRequested(nightId, true)
         if (start) uploadLater(nightId)
@@ -234,14 +237,18 @@ class NightSync(
             if (serverId == null) {
                 val samples = db.nightDao().samplesOf(nightId)
                     .map { HrSample(Instant.ofEpochMilli(it.time), it.bpm) }
-                serverId = api.createSession(
+                val created = api.createSession(
                     startAt = Instant.ofEpochMilli(night.startAt),
                     endAt = Instant.ofEpochMilli(night.endAt),
-                    sourceDevice = night.sourceLabel,
+                    // The model, never the unit's serial (28/09): the Play Data
+                    // Safety form says no device ID leaves the phone.
+                    sourceDevice = DeviceName.model(night.sourceLabel) ?: night.sourceLabel,
                     samples = samples,
                     serverEventId = serverEventId,
                 )
-                db.nightDao().setServerSessionId(nightId, serverId, session.userId, System.currentTimeMillis())
+                serverId = created.id
+                db.nightDao().setServerSessionId(nightId, created.id, session.userId, System.currentTimeMillis())
+                db.nightDao().setEventReadings(nightId, created.eventReadings)
                 db.nightDao().setUploadState(nightId, "SENT", null)
             }
 
