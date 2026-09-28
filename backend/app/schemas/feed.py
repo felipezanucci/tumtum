@@ -25,13 +25,17 @@ class FeedAuthor(BaseModel):
 
     name: str
     initials: str
+    # The @ (28/09), when the account has one.
+    username: str | None = None
 
     @classmethod
     def of(cls, user) -> "FeedAuthor":
         name = (user.name or "").strip() or "Alguém"
         parts = [p for p in name.split() if p]
         initials = "".join(p[0] for p in parts[:2]).upper() or "TT"
-        return cls(name=name, initials=initials)
+        return cls(
+            name=name, initials=initials, username=getattr(user, "username", None)
+        )
 
 
 class FeedPostCreate(BaseModel):

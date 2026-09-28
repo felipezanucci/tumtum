@@ -358,7 +358,8 @@ async def test_a_public_profile_counts_no_nights(memdb, api):
     client = api()
     answer = await client.get(f"/api/users/{ana.id}")
     assert answer.status_code == 200
-    assert set(answer.json()) == {"name", "avatar_url", "created_at", "total_cards"}
+    # The @ is public by nature (28/09): it is what the feed shows.
+    assert set(answer.json()) == {"name", "username", "avatar_url", "created_at", "total_cards"}
     assert (await client.get("/api/users/not-a-uuid")).status_code == 422
 
 

@@ -32,7 +32,7 @@ from app.schemas.user import (
     UserProfileResponse,
     UserUpdateRequest,
 )
-from app.services import refresh_tokens, sharing, subject_data
+from app.services import refresh_tokens, sharing, subject_data, usernames
 from app.services import signup_codes as codes
 from app.services.access_log import record_access
 from app.services.account_deletion import delete_account
@@ -89,6 +89,7 @@ async def _profile(db: AsyncSession, user: User) -> UserProfileResponse:
         auth_provider=user.auth_provider,
         created_at=user.created_at,
         birth_date=user.birth_date,
+        username=user.username,
         **stats,
     )
 
@@ -124,6 +125,26 @@ async def update_profile(
     if body.name is not None:
         # One space between words, none around them — as at sign-up.
         user.name = " ".join(body.name.split()) or user.name
+    if body.username is not None:
+        # Once, for an account made before the @ lived on the server (28/09).
+        wanted = usernames.clean(body.username)
+        if user.username is not None and wanted != user.username:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail=USERNAME_FIXED
+            )
+        if user.username is None:
+            wrong = usernames.problem(wanted)
+            if wrong:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=wrong
+                )
+            if await usernames.taken(
+                db, wanted, now=datetime.now(UTC), except_user_id=user.id
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT, detail=usernames.TAKEN
+                )
+            user.username = wanted
     if body.avatar_url is not None:
         user.avatar_url = str(body.avatar_url)
     await db.flush()
@@ -234,6 +255,7 @@ async def my_sharing(
 # The controller answers within 15 days (art. 19, II, for the complete
 # statement; used for every kind, so no request waits longer than the
 # longest the law allows).
+USERNAME_FIXED = "O @ é fixo: escolhido uma vez, não muda."
 REQUEST_DUE = timedelta(days=15)
 # How a kind reads in a mail to the operators.
 REQUEST_KIND_NAMES = {
@@ -538,6 +560,7 @@ async def get_public_profile(
     stats = await _get_user_stats(db, user.id)
     return PublicProfileResponse(
         name=user.name,
+        username=user.username,
         avatar_url=user.avatar_url,
         created_at=user.created_at,
         total_cards=stats["total_cards"],

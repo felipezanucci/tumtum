@@ -38,9 +38,10 @@ from app.schemas.auth import (
     SignupStarted,
     SignupStartRequest,
     TokenResponse,
+    UsernameCheck,
     UserResponse,
 )
-from app.services import consents, refresh_tokens
+from app.services import consents, refresh_tokens, usernames
 from app.services import signup_codes as codes
 from app.services.age import UNDER_AGE, is_adult, today_local
 from app.services.email import EmailNotConfigured, send_email
@@ -260,6 +261,21 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Email já cadastrado"
         )
+    # The @ (28/09): checked before any mail leaves, and held by this code
+    # while it is open. A client that sends none gets a free one.
+    if body.username is None:
+        username = await usernames.free_from(db, name, now=now)
+    else:
+        username = usernames.clean(body.username)
+        wrong = usernames.problem(username)
+        if wrong:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=wrong
+            )
+        if await usernames.taken(db, username, now=now, except_email_key=key):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail=usernames.TAKEN
+            )
 
     # A sign-up nobody confirmed is somebody's address, name and password
     # hash with no account attached. After a day, anyone's goes.
@@ -320,6 +336,7 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
             email=body.email.strip(),
             email_key=key,
             name=name,
+            username=username,
             hashed_password=hash_password(body.password),
             birth_date=body.birth_date,
             consent_text_version=(
@@ -400,9 +417,19 @@ async def register_confirm(
             status_code=status.HTTP_409_CONFLICT, detail="Email já cadastrado"
         )
 
+    # The @ was held while the code was open; an account made in between
+    # through another road could still have taken it (28/09).
+    username = pending.username
+    if username and await usernames.taken(db, username, now=now, except_email_key=key):
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=usernames.TAKEN
+        )
+
     user = User(
         email=pending.email,
         name=pending.name,
+        username=username,
         auth_provider="email",
         hashed_password=pending.hashed_password,
         birth_date=pending.birth_date,
@@ -530,6 +557,24 @@ async def logout(
         await refresh_tokens.revoke(db, raw)
     if response is not None and is_web_client(request):
         response.delete_cookie(REFRESH_COOKIE, **_COOKIE_FLAGS)
+
+
+@router.get(
+    "/username/{name}",
+    response_model=UsernameCheck,
+    # Asked while typing: generous, but not a way to list every @ at speed.
+    dependencies=[Depends(limit(site_or_app(None, by_ip), 120, 600))],
+)
+async def check_username(name: str, db: AsyncSession = Depends(get_db)):
+    """Whether this @ can be had (28/09). An @ is public by nature — it is
+    what the feed shows — so saying it is taken reveals nothing private."""
+    cleaned = usernames.clean(name)
+    wrong = usernames.problem(cleaned)
+    if wrong:
+        return UsernameCheck(username=cleaned, available=False, reason=wrong)
+    if await usernames.taken(db, cleaned, now=datetime.now(UTC)):
+        return UsernameCheck(username=cleaned, available=False, reason=usernames.TAKEN)
+    return UsernameCheck(username=cleaned, available=True)
 
 
 @router.get("/me", response_model=UserResponse)

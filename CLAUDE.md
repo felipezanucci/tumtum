@@ -234,7 +234,7 @@ tumtum-app/
 
 ```sql
 -- Users
-users: id (uuid PK), email, name, avatar_url, auth_provider, auth_provider_id, birth_date (date, 26/09 — 18+ checked by the server), tokens_valid_after (27/09 — access tokens issued before it are refused; set by password reset and e-mail change), created_at, updated_at
+users: id (uuid PK), email, name, username (28/09 — the @, unique on lower(username), 3–20 [a-z0-9_], chosen once; null only for accounts made before it), avatar_url, auth_provider, auth_provider_id, birth_date (date, 26/09 — 18+ checked by the server), tokens_valid_after (27/09 — access tokens issued before it are refused; set by password reset and e-mail change), created_at, updated_at
 
 -- Wearable connections
 -- 26/09: the access_token/refresh_token columns were dropped; nothing ever held a real one
@@ -286,7 +286,7 @@ refresh_tokens: id, user_id (FK), family_id, parent_id, token_hash, expires_at, 
 -- Sign-up codes (24/09, #64): an account exists only once its e-mail is proved.
 -- What the account will be waits here until the 6-digit code comes back; the
 -- code is stored only as a keyed hash; unconfirmed rows are deleted after a day.
-signup_codes: id, email, email_key, name, hashed_password, code_hash, attempts, expires_at, used_at, created_at
+signup_codes: id, email, email_key, name, username (28/09 — held while the code is open), hashed_password, code_hash, attempts, expires_at, used_at, created_at
 
 -- Public waitlist (landing page). E-mail plus an optional first and last name
 -- (migration 005); the privacy policy says so since 26/09. Kept until the person

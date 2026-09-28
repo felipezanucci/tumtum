@@ -18,6 +18,7 @@ class UserProfileResponse(BaseModel):
     auth_provider: str
     created_at: datetime
     birth_date: date | None = None
+    username: str | None = None
     total_sessions: int = 0
     total_events: int = 0
     total_cards: int = 0
@@ -34,6 +35,9 @@ class UserUpdateRequest(BaseModel):
     avatar_url: AvatarUrl | None = None
     # Accepted once, while the account has none (accounts made before 26/09).
     birth_date: date | None = None
+    # Accepted once too, while the account has none (accounts made before
+    # the @ existed on the server, 28/09). "O @ é fixo" is a promise.
+    username: str | None = Field(None, max_length=40)
 
 
 class EmailChangeRequest(BaseModel):
@@ -62,6 +66,7 @@ class PublicProfileResponse(BaseModel):
     how often somebody records their heart is health-adjacent (26/09)."""
 
     name: str
+    username: str | None = None
     avatar_url: str | None
     created_at: datetime
     total_cards: int = 0

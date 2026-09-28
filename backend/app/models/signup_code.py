@@ -32,6 +32,8 @@ class SignupCode(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     email_key: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    # The @ asked for (28/09), held while the code is open.
+    username: Mapped[str | None] = mapped_column(String(20))
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     # What the account will be born with (26/09): the birth date, the version
     # of the terms the person ticked, and whether they also granted reading
