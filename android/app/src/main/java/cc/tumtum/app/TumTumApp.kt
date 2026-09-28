@@ -18,6 +18,7 @@ import cc.tumtum.app.data.repo.NightRepository
 import cc.tumtum.app.data.repo.NightSync
 import cc.tumtum.app.data.repo.SocialRepository
 import cc.tumtum.app.data.repo.SourceMeasurement
+import cc.tumtum.app.data.repo.stopCaptureForReadingRevoked
 import cc.tumtum.app.domain.EventSession
 import cc.tumtum.app.export.SessionExporter
 
@@ -70,8 +71,14 @@ class TumTumApp : Application() {
             // the encrypted store first (26/09).
             runCatching { container.prefs.migrateLegacyTokens() }
             val session = container.prefs.state.first().session
-            if (session?.isLive(System.currentTimeMillis()) == true) runCatching { container.api.me() }
+            if (session?.isLive(System.currentTimeMillis()) == true) {
+                runCatching { container.api.me() }
+                // And the consents (28/09): a key turned off on the web reaches
+                // the phone here, and the capture check reads this answer offline.
+                runCatching { container.api.getConsents() }
+            }
         }
+        watchReadingConsent()
         // Reminders do not survive an update; set again from what the phone knows.
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
             runCatching { cc.tumtum.app.service.Reminders.rescheduleAll(this@TumTumApp, container) }
@@ -97,6 +104,23 @@ class TumTumApp : Application() {
                 }
                 container.prefs.setProfile(fixedName, fixed)
             }
+        }
+    }
+
+    /**
+     * "Ler sua batida" off ends the capture that is running (28/09, item 21).
+     * Watched here, once for the process, because it can go off from three
+     * places — Configurações, the consent screen, the web (heard on the next
+     * start) — and whichever it is, nothing more may be read after it.
+     */
+    private fun watchReadingConsent() {
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            container.prefs.state
+                .map { it.granted(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE) }
+                .distinctUntilChanged()
+                .collect { granted ->
+                    if (granted == false) runCatching { container.stopCaptureForReadingRevoked() }
+                }
         }
     }
 

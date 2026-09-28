@@ -24,6 +24,7 @@ import cc.tumtum.app.ui.screens.card.CardScreen
 import cc.tumtum.app.ui.screens.choose.ChooseSkinScreen
 import cc.tumtum.app.ui.screens.consent.ConsentScreen
 import cc.tumtum.app.ui.screens.eventfeed.EventFeedScreen
+import cc.tumtum.app.ui.screens.eventfeed.ShowToFeedScreen
 import cc.tumtum.app.ui.screens.feed.FeedScreen
 import cc.tumtum.app.ui.screens.gallery.GalleryScreen
 import cc.tumtum.app.ui.screens.live.CaptureScreen
@@ -67,6 +68,8 @@ object Routes {
     const val Choose = "choose/{nightId}"
     const val Card = "card/{nightId}/{skin}"
     const val Profile = "profile/{handle}"
+    /** "Mostrar pra galera" as its own step (28/09): [skin] is the card's, when there is one. */
+    const val ShowToFeed = "show_to_feed/{nightId}?skin={skin}"
 
     fun reveal(nightId: Long) = "reveal/$nightId"
 
@@ -84,6 +87,8 @@ object Routes {
     fun eventFeed(eventId: String, name: String? = null) =
         "event_feed/$eventId" + (name?.takeIf { it.isNotBlank() }?.let { "?name=${Uri.encode(it)}" } ?: "")
     fun profile(handle: String) = "profile/$handle"
+    fun showToFeed(nightId: Long, skin: Skin? = null) =
+        "show_to_feed/$nightId" + (skin?.let { "?skin=${it.name}" } ?: "")
 }
 
 @Composable
@@ -232,6 +237,23 @@ fun TumTumRoot(
                     nav,
                     eventId = entry.arguments!!.getString("eventId").orEmpty(),
                     eventName = entry.arguments?.getString("name"),
+                )
+            }
+            composable(
+                Routes.ShowToFeed,
+                arguments = listOf(
+                    navArgument("nightId") { type = NavType.LongType },
+                    navArgument("skin") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
+            ) { entry ->
+                ShowToFeedScreen(
+                    nav,
+                    nightId = entry.arguments!!.getLong("nightId"),
+                    skin = entry.arguments?.getString("skin")?.let { s -> runCatching { Skin.valueOf(s) }.getOrNull() },
                 )
             }
             composable(

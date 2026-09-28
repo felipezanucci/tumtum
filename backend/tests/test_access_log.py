@@ -136,6 +136,7 @@ async def test_log_scan_finds_no_heartbeat_in_either_log(memdb, api):
     """A night goes up and is read back through the real app; neither log
     may then hold the word bpm or any of the night's values (v1.1 §24)."""
     user = await add_user(memdb)
+    await grant(memdb, user, "read_heart_rate")
     await grant(memdb, user, "keep_night")
     client = api(user)
 

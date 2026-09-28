@@ -1,11 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Wordmark } from '@/components/brand'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Button, Input, PasswordInput } from '@/components/ui'
+
+/**
+ * Why the person landed here, when the site sent them (28/09): the e-mail
+ * change ended every session, or the session ended by itself. Said above the
+ * form, where the eye already is, so a login screen out of nowhere is never
+ * read as a bug.
+ */
+const REASONS: Record<string, string> = {
+  email: 'E-mail trocado. Entra de novo com o e-mail novo.',
+  sessao: 'Sua sessão terminou. Entra de novo.',
+}
+
+function ReasonLine() {
+  const reason = REASONS[useSearchParams().get('motivo') ?? '']
+  if (!reason) return null
+  return (
+    <p role="status" className="mb-4 rounded-lg border border-tumtum-border bg-tumtum-surface p-3 text-sm text-tumtum-white">
+      {reason}
+    </p>
+  )
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -32,6 +53,11 @@ export default function LoginPage() {
           <Wordmark className="h-8 w-auto text-tumtum-white" />
           <p className="mt-2 text-tumtum-muted">Faça login para continuar</p>
         </div>
+
+        {/* useSearchParams needs a Suspense boundary to prerender. */}
+        <Suspense fallback={null}>
+          <ReasonLine />
+        </Suspense>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input

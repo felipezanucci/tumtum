@@ -14,7 +14,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         EventEntity::class, NightEntity::class, SampleEntity::class, MomentEntity::class, MarkEntity::class,
         BleSampleEntity::class, RrIntervalEntity::class, MotionEntity::class, ConnectionEventEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = false,
 )
 abstract class TumTumDatabase : RoomDatabase() {
@@ -137,6 +137,19 @@ abstract class TumTumDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v9 → v10 (28/09): a night keeps the server's count of its readings
+         * inside the event (`event_readings`, what the feed opens on), and why
+         * its capture stopped when the person did not stop it — a revoked
+         * "Ler sua batida" ends a capture, and the night says so.
+         */
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE nights ADD COLUMN eventReadings INTEGER")
+                db.execSQL("ALTER TABLE nights ADD COLUMN stopReason TEXT")
+            }
+        }
+
         private const val NAME = "tumtum.db"
 
         /**
@@ -153,7 +166,7 @@ abstract class TumTumDatabase : RoomDatabase() {
                 .openHelperFactory(SupportOpenHelperFactory(passphrase.toByteArray(Charsets.UTF_8)))
                 .addMigrations(
                     MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,
-                    MIGRATION_7_8, MIGRATION_8_9,
+                    MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10,
                 )
                 .build()
         }

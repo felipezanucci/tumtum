@@ -89,13 +89,26 @@ class TumtumApi(private val prefs: UserPrefs) {
     suspend fun signupConfirm(email: String, code: String): Session {
         val body = JSONObject().put("email", email).put("code", code)
         val response = JSONObject(request("POST", "/api/auth/register/confirm", body.toString(), token = null))
-        return storeSession(response.getString("access_token"), response.optRefresh())
+        return freshSignIn(response)
     }
 
     suspend fun login(email: String, password: String): Session {
         val body = JSONObject().put("email", email).put("password", password)
         val response = JSONObject(request("POST", "/api/auth/login", body.toString(), token = null))
-        return storeSession(response.getString("access_token"), response.optRefresh())
+        return freshSignIn(response)
+    }
+
+    /**
+     * A sign-in, as opposed to a renewal (28/09): whatever the phone had heard
+     * about consents is forgotten — it may be another account's, or older than
+     * a change made on the web — and asked again at once. Offline, the next
+     * screen that needs it asks.
+     */
+    private suspend fun freshSignIn(response: JSONObject): Session {
+        prefs.clearConsents()
+        val session = storeSession(response.getString("access_token"), response.optRefresh())
+        runCatching { getConsents() }
+        return session
     }
 
     /**
@@ -157,18 +170,27 @@ class TumtumApi(private val prefs: UserPrefs) {
 
     // --- Consent (26/09) ---
 
-    /** What this account agreed to, purpose by purpose, as the server recorded it. */
+    /**
+     * What this account agreed to, purpose by purpose, as the server recorded
+     * it. Every answer is also kept on the phone for this account (28/09), so
+     * the capture can check `read_heart_rate` where there is no signal.
+     */
     suspend fun getConsents(): ConsentSnapshot =
-        ConsentSnapshot.parse(request("GET", "/api/consents", null, token = requireToken()))
+        keepConsents(request("GET", "/api/consents", null, token = requireToken()))
 
     /**
      * Grants or revokes the purposes given, and only those. The server keeps
-     * the history append-only and answers with the state as it now stands.
+     * the history append-only and answers with the state as it now stands —
+     * which the phone keeps, like [getConsents].
      */
     suspend fun putConsents(purposes: Map<String, Boolean>, means: String = cc.tumtum.app.domain.ConsentText.MEANS_TAP): ConsentSnapshot =
-        ConsentSnapshot.parse(
-            request("PUT", "/api/consents", ConsentSnapshot.putBody(purposes, means), token = requireToken()),
-        )
+        keepConsents(request("PUT", "/api/consents", ConsentSnapshot.putBody(purposes, means), token = requireToken()))
+
+    private suspend fun keepConsents(body: String): ConsentSnapshot {
+        val snapshot = ConsentSnapshot.parse(body)
+        prefs.setConsents(prefs.state.first().session?.userId, body)
+        return snapshot
+    }
 
     /**
      * "Apagar esta noite" (26/09): the server deletes the session with its
@@ -220,17 +242,36 @@ class TumtumApi(private val prefs: UserPrefs) {
         request("POST", "/api/events/$serverEventId/timeline", body.toString(), token = requireToken())
     }
 
-    /** Uploads a night's readings; the server answers with the session id it gave them. */
+    /**
+     * A night as the server took it: its id, and how many of its readings fell
+     * inside the event's window (`event_readings`, 28/09) — the number the feed
+     * counts attendance by. Null when the server did not say (no event, or an
+     * older server).
+     */
+    data class CreatedSession(val id: String, val eventReadings: Int?)
+
+    /**
+     * Uploads a night's readings; the server answers with the session it made.
+     * Since 28/09 it takes one only with both `read_heart_rate` and
+     * `keep_night` granted, and says which is missing (a [ConsentRequired]).
+     */
     suspend fun createSession(
         startAt: java.time.Instant,
         endAt: java.time.Instant,
         sourceDevice: String,
         samples: List<cc.tumtum.app.domain.HrSample>,
         serverEventId: String? = null,
-    ): String {
+    ): CreatedSession {
         val body = SessionPayload.build(startAt, endAt, sourceDevice, samples, serverEventId)
         val response = JSONObject(request("POST", "/api/health/sessions", body.toString(), token = requireToken()))
-        return response.getString("id")
+        return CreatedSession(
+            id = response.getString("id"),
+            eventReadings = if (response.has("event_readings") && !response.isNull("event_readings")) {
+                response.optInt("event_readings")
+            } else {
+                null
+            },
+        )
     }
 
     // --- The event's feed (22/09) ---

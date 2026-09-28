@@ -4,7 +4,13 @@
  * the calls live in `api.ts`.
  */
 
-import { CONSENT_PURPOSES, isConsentPurpose, type ConsentPurpose } from './consent-copy'
+import {
+  CONSENT_PT,
+  CONSENT_PURPOSES,
+  isConsentPurpose,
+  type ConsentCopy,
+  type ConsentPurpose,
+} from './consent-copy'
 
 /** The server's own sentence for an under-18 birth date, shown as-is. */
 export const UNDER_AGE_MESSAGE = 'Você precisa ter 18 anos ou mais para usar a TumTum.'
@@ -151,7 +157,52 @@ export function consentHref(purpose?: string | null, next?: string | null): stri
   return qs ? `/consentimento?${qs}` : '/consentimento'
 }
 
-/** What the sign-up form needs before its button wakes up. */
-export function signupReady(fields: { birthDate: string; termsAccepted: boolean }): boolean {
-  return fields.termsAccepted && parts(fields.birthDate) !== null
+/**
+ * What the sign-up form needs before its button wakes up: a real birth date
+ * and both core yeses — the Terms and reading the heart rate (28/09). They
+ * stay two boxes, because the health-data yes must be its own act.
+ */
+export function signupReady(fields: {
+  birthDate: string
+  termsAccepted: boolean
+  readHeartRate: boolean
+}): boolean {
+  return fields.termsAccepted && fields.readHeartRate && parts(fields.birthDate) !== null
+}
+
+/**
+ * The line under a switch right after it was saved: what happened, not a
+ * generic "salvo" (28/09). On, "Ligado."; off, the purpose's own sentence
+ * about what stops, or a plain "Desligado." where nothing more is true.
+ */
+export function consentNotice(
+  purpose: ConsentPurpose,
+  granted: boolean,
+  copy: ConsentCopy = CONSENT_PT,
+): string {
+  if (granted) return copy.grantedNotice
+  return copy.purposes[purpose].offNotice ?? copy.revokedNotice
+}
+
+/**
+ * The lines under each switch: the purposes just saved say what happened, and
+ * a purpose whose off state has consequences (`offNotice`) keeps saying them
+ * for as long as it is off — on a fresh load too, not only after the tap.
+ */
+export function consentNotes(
+  saved: ConsentChoices,
+  justSaved: Partial<ConsentChoices>,
+  copy: ConsentCopy = CONSENT_PT,
+): Partial<Record<ConsentPurpose, string>> {
+  const notes: Partial<Record<ConsentPurpose, string>> = {}
+  for (const purpose of CONSENT_PURPOSES) {
+    const standing = copy.purposes[purpose].offNotice
+    if (!saved[purpose] && standing) notes[purpose] = standing
+    // Only what the server now holds: a change it did not keep says nothing.
+    const changed = justSaved[purpose]
+    if (changed !== undefined && changed === saved[purpose]) {
+      notes[purpose] = consentNotice(purpose, changed, copy)
+    }
+  }
+  return notes
 }

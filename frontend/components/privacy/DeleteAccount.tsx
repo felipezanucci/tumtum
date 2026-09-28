@@ -36,6 +36,10 @@ export default function DeleteAccount({ onDeleted }: { onDeleted: () => void }) 
         consentimentos e os pedidos. Cards que você já postou em outras redes ficam lá; esses são
         seus para apagar lá.
       </p>
+      <p className="mt-2 text-sm leading-relaxed text-tumtum-muted">
+        As cópias de segurança do banco expiram sozinhas, no prazo da nossa política de retenção, e
+        não são usadas pra trazer de volta o que você apagou.
+      </p>
       {!open ? (
         <Button variant="danger" size="sm" className="mt-3" onClick={() => setOpen(true)}>
           Apagar minha conta

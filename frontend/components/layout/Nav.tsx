@@ -43,6 +43,7 @@ const navLinks = [
 const operatorLinks = [
   { href: '/admin/eventos', label: 'Eventos' },
   { href: '/admin/denuncias', label: 'Denúncias' },
+  { href: '/admin/pedidos', label: 'Pedidos' },
   { href: '/events', label: 'Ver o app como fã' },
 ]
 

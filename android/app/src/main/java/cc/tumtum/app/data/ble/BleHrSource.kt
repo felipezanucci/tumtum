@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.os.Build
 import android.os.SystemClock
+import cc.tumtum.app.domain.DeviceName
 import cc.tumtum.app.domain.HrSource
 import cc.tumtum.app.domain.SourceState
 import kotlinx.coroutines.CoroutineScope
@@ -53,6 +54,9 @@ class BleHrSource(
     @Volatile private var attempt = 0
     private var reconnectJob: Job? = null
     private var watchdogJob: Job? = null
+
+    /** The signal at the last reading of it, carried on a drop (28/09): "longe" or "caiu" with a number. */
+    @Volatile private var lastRssi: Int? = null
 
     override suspend fun start(sessionId: Long) {
         val addr = address ?: return
@@ -156,19 +160,21 @@ class BleHrSource(
                 attempt = 0
                 watchdogJob?.cancel()
                 val name = runCatching { g.device.name }.getOrNull() ?: g.device.address
-                events(BleEvent.Connection("CONNECTED", "status=$status device=$name"))
+                // The log keeps the model only (28/09): it travels in the export.
+                events(BleEvent.Connection("CONNECTED", "status=$status device=${DeviceName.model(name) ?: "?"}"))
                 connection.value = BleConnectionState.Connected(name)
                 _state.value = SourceState.ACTIVE
                 runCatching { g.readRemoteRssi() }
                 runCatching { g.discoverServices() }
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                events(BleEvent.Connection("DISCONNECTED", "status=$status"))
+                events(BleEvent.Connection("DISCONNECTED", "status=$status (rssi = último lido)", rssi = lastRssi))
                 if (wanted) scheduleReconnect()
             }
         }
 
         override fun onReadRemoteRssi(g: BluetoothGatt, rssi: Int, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                lastRssi = rssi
                 events(BleEvent.Connection("RSSI", "rssi na conexão", rssi = rssi))
             }
         }

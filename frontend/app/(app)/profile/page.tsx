@@ -7,7 +7,7 @@ import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useConsentStore } from '@/lib/stores/useConsentStore'
 import { useHRStore } from '@/lib/stores/useHRStore'
 import { ApiError, users, cards, type UserProfile, type CardData } from '@/lib/api'
-import { Avatar, Button, Card, Input, Loading, Badge, SignInRequired } from '@/components/ui'
+import { Avatar, Button, Card, Input, Loading, Badge } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { OwnerCardImage } from '@/components/cards'
 import {
@@ -110,7 +110,13 @@ export default function ProfilePage() {
         <main className="min-h-screen bg-tumtum-black">
           <div className="mx-auto max-w-3xl px-4 py-8">
             {loadError instanceof ApiError && loadError.status === 401 ? (
-              <SignInRequired what="seu perfil" />
+              // Signed out, the page says one thing and offers the way in (28/09).
+              <div className="mt-6">
+                <p className="text-tumtum-white">Entra na sua conta pra ver seu perfil.</p>
+                <Link href="/login" className="mt-4 inline-block">
+                  <Button>Entrar</Button>
+                </Link>
+              </div>
             ) : (
               <p className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
                 {loadError?.message ?? 'Não deu pra carregar seu perfil.'}{' '}

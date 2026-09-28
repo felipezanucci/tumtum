@@ -15,7 +15,11 @@ import kotlin.math.roundToInt
  *
  * - a rise above the night's own average → *"78 A NOITE INTEIRA. / ATÉ 01H24."*
  * - no average, or no rise above it → *"SEU CORAÇÃO, / ÀS 01H24."*
- * - no moment at all → a plain statement that there was none.
+ * - no moment at all → the night's own average, until the peak's hour:
+ *   *"84 A NOITE INTEIRA. / ATÉ 16H48."* — the same line before the night is
+ *   saved and after the server has looked at it (28/09). "SEM MOMENTOS NESSA
+ *   NOITE." was the server's answer printed as a headline: the reveal changed
+ *   title under the person's eyes, and the card said nothing about the night.
  *
  * The words live in strings.xml; this decides which sentence and with which
  * numbers, so it is tested on the JVM without a device.
@@ -28,9 +32,6 @@ object CardCopy {
 
         /** "SEU CORAÇÃO," over "ÀS %s." — or "NAQUELE MOMENTO." without a time. */
         data class HeartAt(val at: String?) : Title
-
-        /** The night had no moment: said as a fact, never as a mood. */
-        data object NoMoments : Title
     }
 
     /**
@@ -39,8 +40,11 @@ object CardCopy {
      *   time either, or the switch would be a lie.
      */
     fun title(peakBpm: Int, averageBpm: Int?, momentTime: String?, hasMoments: Boolean = true): Title {
-        if (!hasMoments) return Title.NoMoments
         val at = momentTime?.trim()?.takeIf { it.isNotEmpty() }?.uppercase()
+        // No moment: the night itself is the fact — its average, up to its top.
+        if (!hasMoments) {
+            return if (averageBpm != null && averageBpm > 0) Title.AboveAverage(averageBpm, at) else Title.HeartAt(at)
+        }
         // "até" promises a rise; only when the data keeps it.
         if (averageBpm != null && averageBpm > 0 && peakBpm > averageBpm) {
             return Title.AboveAverage(averageBpm, at)

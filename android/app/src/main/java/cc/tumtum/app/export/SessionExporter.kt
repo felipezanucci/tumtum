@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.core.content.FileProvider
 import cc.tumtum.app.data.db.TumTumDatabase
 import cc.tumtum.app.data.prefs.UserPrefs
+import cc.tumtum.app.domain.DeviceName
 import cc.tumtum.app.domain.HrSource
 import java.io.File
 import java.util.zip.ZipEntry
@@ -44,11 +45,23 @@ class SessionExporter(
         // ZIP forwarded or left in a Downloads folder should not name anyone.
         val zipFile = File(dir, "tumtum-night$nightId.zip")
 
+        // Every figure in session.json is counted from the rows actually
+        // written (28/09, item 32). The export of 27/09 said "0 samples" and
+        // "35% coverage" over 122 beats in 250 s: it read the counts off the
+        // raw tables, which had been emptied when the night was saved, and
+        // the coverage off the night's row, measured another way.
+        var sampleRows = 0
+        var bleRows = 0
+        var rrRows = 0
+        var motionRows = 0
+        var connectionRows = 0
         ZipOutputStream(zipFile.outputStream().buffered()).use { zip ->
             zip.writeEntry("samples.csv") { sb ->
                 sb.appendLine("nightId,wallClockMs,elapsedRealtimeMs,bpm,sourceId,contactStatus")
                 bleSamples.forEach {
                     sb.appendLine("$nightId,${it.wallClockMs},${it.elapsedRealtimeMs},${it.bpm},${HrSource.ID_BLE},${it.contactStatus}")
+                    sampleRows++
+                    bleRows++
                 }
                 // The raw BLE rows go once a night is saved (26/09); then, as for
                 // a Health Connect night, the night's own beats are what there is.
@@ -56,23 +69,38 @@ class SessionExporter(
                     // A fonte escolhida foi Health Connect: amostras da noite, sem carimbo monotônico.
                     night.samples.forEach {
                         sb.appendLine("$nightId,${it.time},,${it.bpm},${csv(n.sourcePackage)},")
+                        sampleRows++
+                        if (n.sourcePackage == HrSource.ID_BLE) bleRows++
                     }
                 }
             }
+            // R-R and motion exist until the night is saved (26/09): an export
+            // made during the capture carries them; one made after, the headers.
             zip.writeEntry("rr.csv") { sb ->
                 sb.appendLine("nightId,wallClockMs,elapsedRealtimeMs,rrMs")
-                rr.forEach { sb.appendLine("$nightId,${it.wallClockMs},${it.elapsedRealtimeMs},${it.rrMs}") }
+                rr.forEach {
+                    sb.appendLine("$nightId,${it.wallClockMs},${it.elapsedRealtimeMs},${it.rrMs}")
+                    rrRows++
+                }
             }
             zip.writeEntry("motion.csv") { sb ->
                 sb.appendLine("nightId,wallClockMs,elapsedRealtimeMs,magMean,magStd")
-                motion.forEach { sb.appendLine("$nightId,${it.wallClockMs},${it.elapsedRealtimeMs},${it.magMean},${it.magStd}") }
+                motion.forEach {
+                    sb.appendLine("$nightId,${it.wallClockMs},${it.elapsedRealtimeMs},${it.magMean},${it.magStd}")
+                    motionRows++
+                }
             }
+            // Kept with the night since 28/09: every connect, drop, reconnect
+            // attempt, silence and return, with the wall clock and the signal.
             zip.writeEntry("connection_events.csv") { sb ->
                 sb.appendLine("nightId,wallClockMs,elapsedRealtimeMs,type,detail,rssi")
                 connEvents.forEach {
-                    sb.appendLine("$nightId,${it.wallClockMs},${it.elapsedRealtimeMs},${csv(it.type)},${csv(it.detail)},${it.rssi ?: ""}")
+                    val detail = ExportCounts.withoutSerial(it.detail)
+                    sb.appendLine("$nightId,${it.wallClockMs},${it.elapsedRealtimeMs},${csv(it.type)},${csv(detail)},${it.rssi ?: ""}")
+                    connectionRows++
                 }
             }
+            val beatTimes = night.samples.map { it.time }
             zip.writeEntry("session.json") { sb ->
                 sb.append(
                     JSONObject()
@@ -85,11 +113,17 @@ class SessionExporter(
                         .put("endMs", n.endAt)
                         .put("clockOffsetStartMs", n.clockOffsetStartMs ?: JSONObject.NULL)
                         .put("clockOffsetEndMs", n.clockOffsetEndMs ?: JSONObject.NULL)
-                        .put("coveragePct", n.coveragePct)
+                        // Seconds with at least one beat over the seconds of the night.
+                        .put("coveragePct", ExportCounts.coveragePct(beatTimes, n.startAt, n.endAt))
                         .put("chosenSource", n.sourcePackage)
-                        .put("bleSampleCount", bleSamples.size)
-                        .put("rrCount", rr.size)
-                        .put("sensorName", user.bleName ?: JSONObject.NULL)
+                        .put("sampleCount", sampleRows)
+                        .put("bleSampleCount", bleRows)
+                        .put("rawBleSamples", bleSamples.isNotEmpty())
+                        .put("rrCount", rrRows)
+                        .put("motionCount", motionRows)
+                        .put("connectionEventCount", connectionRows)
+                        // The model, never the strap's own serial (28/09): this file leaves the phone.
+                        .put("sensorName", DeviceName.model(user.bleName) ?: JSONObject.NULL)
                         .put("deviceManufacturer", Build.MANUFACTURER)
                         .put("deviceModel", Build.MODEL)
                         .put("androidRelease", Build.VERSION.RELEASE)

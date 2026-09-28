@@ -88,9 +88,14 @@ export default function AdminEventsPage() {
             O que a TumTum cobre. O fã escolhe daqui; ninguém além da operação cadastra.
           </p>
           {operator && (
-            <Link href="/admin/denuncias" className="mt-2 inline-block text-sm text-tumtum-pink">
-              Denúncias do feed →
-            </Link>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              <Link href="/admin/denuncias" className="text-sm text-tumtum-pink">
+                Denúncias do feed →
+              </Link>
+              <Link href="/admin/pedidos" className="text-sm text-tumtum-pink">
+                Pedidos ao encarregado →
+              </Link>
+            </div>
           )}
 
           {user && !operator && (

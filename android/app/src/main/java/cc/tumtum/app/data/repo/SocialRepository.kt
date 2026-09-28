@@ -54,8 +54,13 @@ sealed interface FeedState {
         val spansDates: Boolean get() = dates.size > 1
     }
 
-    /** The server refused: this account has no measured night at this event. */
-    data object NotThere : FeedState
+    /**
+     * The server refused: this account has no measured night at this event.
+     * [detail] is the server's own sentence (28/09) — it tells "your night
+     * never reached us" from "it did, with too few readings inside the event"
+     * — or null when it gave none.
+     */
+    data class NotThere(val detail: String? = null) : FeedState
 
     data object SignedOut : FeedState
 
@@ -130,15 +135,25 @@ sealed interface Outcome<out T> {
 class SocialRepository(private val api: TumtumApi) {
 
     suspend fun feed(serverEventId: String): FeedState = guard(
-        onRefused = FeedState.NotThere,
+        onRefused = FeedState.NotThere(),
         onSignedOut = FeedState.SignedOut,
         onFailed = { FeedState.Failed(it) },
     ) {
-        val feed = api.eventFeed(serverEventId)
-        FeedState.Ready(
-            feed.eventName, feed.venue, feed.posts, feed.series, feed.dates, feed.hiddenByBlock,
-        )
+        try {
+            val feed = api.eventFeed(serverEventId)
+            FeedState.Ready(
+                feed.eventName, feed.venue, feed.posts, feed.series, feed.dates, feed.hiddenByBlock,
+            )
+        } catch (e: TumtumApi.ApiException) {
+            // The refusal keeps its words (28/09): the screen shows the
+            // server's sentence, never a guess at which kind of "not there".
+            if (e.code == 403) FeedState.NotThere(serverSentence(e)) else throw e
+        }
     }
+
+    /** The server's own sentence, or null when all it sent was a code. */
+    private fun serverSentence(e: TumtumApi.ApiException): String? =
+        e.detail.trim().takeIf { it.isNotEmpty() && it != "Erro ${e.code}" && !it.startsWith("[") && !it.startsWith("{") }
 
     /** The series an event belongs to; null when it has none *or* the question failed. */
     suspend fun seriesOf(serverEventId: String): ServerSeries? =

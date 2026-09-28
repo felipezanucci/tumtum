@@ -32,7 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import cc.tumtum.app.data.api.ConsentSnapshot
 import cc.tumtum.app.data.api.TumtumApi
+import cc.tumtum.app.domain.StopReason
+import cc.tumtum.app.service.CaptureBus
+import cc.tumtum.app.ui.screens.consent.consentOffNote
 import kotlinx.coroutines.flow.first
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,7 +48,6 @@ import cc.tumtum.app.data.AvatarStore
 import cc.tumtum.app.data.CardPhotoStore
 import cc.tumtum.app.data.LocalFiles
 import cc.tumtum.app.domain.ConsentText
-import cc.tumtum.app.ui.screens.consent.ConsentCopy
 import cc.tumtum.app.ui.screens.consent.ConsentRow
 import cc.tumtum.app.ui.screens.consent.PolicyLinks
 import cc.tumtum.app.ui.screens.consent.mailDpo
@@ -167,34 +170,26 @@ fun SettingsScreen(nav: NavHostController) {
                 )
             }
             Spacer(Modifier.height(14.dp))
+            // The name saves itself (28/09, item 23): when the field lets go —
+            // a tap elsewhere, or the keyboard's Done — and says so under it.
+            // The big Salvar under one field was a second step nobody needed.
+            var nameNote by remember { mutableStateOf<Int?>(null) }
             TTField(
                 label = stringResource(R.string.account_name_label),
                 value = nameDraft,
-                onValueChange = { nameDraft = it },
-            )
-            Spacer(Modifier.height(8.dp))
-            // O @ é fixo: escolhido uma vez na criação da conta, não muda mais.
-            Text(
-                stringResource(R.string.settings_handle_fixed, user?.account?.username ?: ""),
-                style = TTType.Footnote,
-                color = TT.Gray45,
-            )
-            Spacer(Modifier.height(14.dp))
-            // The button used to fade once the name matched, which was the only sign
-            // a save had happened. It no longer fades (22/09), so the screen says
-            // both things out loud: that it saved, and why a tap did nothing.
-            var nameNote by remember { mutableStateOf<Int?>(null) }
-            TTButton(
-                stringResource(R.string.profile_save),
-                TTButtonStyle.Ink,
-                enabled = nameDraft.isNotBlank() && nameDraft.trim() != (user?.account?.name ?: ""),
-                onDeclined = {
-                    nameNote = if (nameDraft.isBlank()) R.string.form_missing_name else R.string.form_same_name
+                onValueChange = {
+                    nameDraft = it
+                    nameNote = null
                 },
-                onClick = {
-                    scope.launch {
-                        container.prefs.setName(nameDraft)
-                        nameNote = R.string.form_name_saved
+                onCommit = {
+                    val draft = nameDraft.trim()
+                    when {
+                        draft.isBlank() -> nameNote = R.string.form_missing_name
+                        draft == (user?.account?.name ?: "").trim() -> Unit
+                        else -> scope.launch {
+                            container.prefs.setName(draft)
+                            nameNote = R.string.form_name_saved
+                        }
                     }
                 },
             )
@@ -206,6 +201,13 @@ fun SettingsScreen(nav: NavHostController) {
                     color = if (it == R.string.form_name_saved) TT.Ink else TT.Rose,
                 )
             }
+            Spacer(Modifier.height(8.dp))
+            // O @ é fixo: escolhido uma vez na criação da conta, não muda mais.
+            Text(
+                stringResource(R.string.settings_handle_fixed, user?.account?.username ?: ""),
+                style = TTType.Footnote,
+                color = TT.Gray45,
+            )
         }
 
         Spacer(Modifier.height(40.dp))
@@ -478,24 +480,34 @@ private fun PrivacySection(signedIn: Boolean) {
     val container = appContainer()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var granted by remember { mutableStateOf<Map<String, Boolean>?>(null) }
+    var snapshot by remember { mutableStateOf<ConsentSnapshot?>(null) }
     var loadFailed by remember { mutableStateOf(false) }
     var tick by remember { mutableStateOf(0) }
     var busy by remember { mutableStateOf<String?>(null) }
-    var notes by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    // Answers to the last tap on a row: turned on just now, or a change that
+    // did not go through. The off-state sentence is not here — it is the
+    // switch's own, and stays for as long as the switch is off (28/09).
+    var justOn by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var failures by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    // A capture this screen's "Ler sua batida" ended (28/09): said under that switch.
+    val openedAt = remember { System.currentTimeMillis() }
+    val forced by CaptureBus.forcedStop.collectAsStateWithLifecycle()
 
     LaunchedEffect(tick, signedIn) {
-        granted = null
+        snapshot = null
         loadFailed = false
         if (!signedIn) return@LaunchedEffect
         runCatching { container.api.getConsents() }
-            .onSuccess { granted = ConsentText.startingSwitches(it.asMap()) }
+            .onSuccess { snapshot = it }
             .onFailure { loadFailed = true }
     }
 
     Text(stringResource(R.string.settings_privacy_section), style = TTType.Meta, color = TT.Gray70)
+    Spacer(Modifier.height(6.dp))
+    // Nothing waits for a Salvar here: each switch is sent the moment it moves.
+    Text(stringResource(R.string.settings_privacy_instant), style = TTType.Footnote, color = TT.Gray45)
     Spacer(Modifier.height(10.dp))
-    val current = granted
+    val current = snapshot?.let { ConsentText.startingSwitches(it.asMap()) }
     when {
         !signedIn -> Text(stringResource(R.string.settings_privacy_signed_out), style = TTType.Footnote, color = TT.Gray45)
         loadFailed -> {
@@ -511,27 +523,37 @@ private fun PrivacySection(signedIn: Boolean) {
         else -> ConsentText.PURPOSES.forEach { purpose ->
             val savingText = stringResource(R.string.settings_privacy_saving)
             val failedText = stringResource(R.string.settings_privacy_change_failed)
-            val grantedText = stringResource(R.string.settings_privacy_granted)
-            val stopsText = ConsentCopy.of(purpose)?.let { stringResource(it.stops) }.orEmpty()
+            val on = current[purpose] == true
+            val stoppedCapture = purpose == ConsentText.READ_HEART_RATE && !on &&
+                forced?.let { it.reason == StopReason.READING_REVOKED && it.atMs >= openedAt } == true
+            // Said as what is true now: what stopped, for as long as the switch
+            // is off; "Ligado." right after a grant; nothing under a key that
+            // is simply on — and nothing claimed that did not happen.
+            val note = when {
+                busy == purpose -> savingText
+                failures[purpose] != null -> failures[purpose]
+                on && purpose in justOn -> stringResource(R.string.settings_privacy_granted)
+                on -> null
+                stoppedCapture -> stringResource(R.string.night_stopped_reading)
+                else -> consentOffNote(purpose, snapshot?.consents?.firstOrNull { it.purpose == purpose })
+            }
             ConsentRow(
                 purpose = purpose,
-                on = current[purpose] == true,
+                on = on,
                 onDark = false,
                 busy = busy != null,
-                note = if (busy == purpose) savingText else notes[purpose],
+                note = note,
                 onToggle = { value ->
                     busy = purpose
-                    notes = notes - purpose
+                    failures = failures - purpose
+                    justOn = justOn - purpose
                     scope.launch {
                         try {
                             val saved = container.api.putConsents(mapOf(purpose to value), ConsentText.MEANS_TAP)
-                            val now = ConsentText.startingSwitches(saved.asMap())
-                            granted = now
-                            // Said as what happened: what stops on a revocation, a plain
-                            // "ligado" on a grant — and nothing claimed that did not happen.
-                            notes = notes + (purpose to if (now[purpose] == true) grantedText else stopsText)
+                            snapshot = saved
+                            if (saved.granted(purpose)) justOn = justOn + purpose
                         } catch (e: Exception) {
-                            notes = notes + (purpose to failedText)
+                            failures = failures + (purpose to failedText)
                         } finally {
                             busy = null
                         }

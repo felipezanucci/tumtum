@@ -6,9 +6,8 @@ import type { PrivacyCopy } from '@/lib/privacy-copy'
  * Asked for by TikTok's developer portal before Share Kit, and by Meta before
  * an app goes Live. Same rule as the privacy page: every sentence describes
  * what the product does today, in the brand's quiet voice, and both languages
- * are required by the type. A draft written for Felipe's review — the
- * controller's legal name and CNPJ are a visible bracketed placeholder until
- * TumTum has one to name.
+ * are required by the type. A draft written for Felipe's review. Until
+ * TumTum has a CNPJ, the controller is Felipe Zanucci as an individual (28/09).
  *
  * 26/09 (LGPD remediation): acceptance is an explicit, unticked checkbox at
  * sign-up, recorded with its text version; 18+ is checked against the birth
@@ -26,7 +25,7 @@ export const TERMS_PT: PrivacyCopy = {
       heading: 'O que a TumTum é',
       paragraphs: [
         'Um app que mostra como seu coração reagiu em shows, jogos e festivais: a curva da sua noite, os momentos em que ele subiu, e um card para compartilhar.',
-        'Quem oferece a TumTum: TumTum (Felipe Zanucci, São Paulo, SP) — [CONTROLADOR — preencher razão social e CNPJ].',
+        'Quem oferece a TumTum: Felipe Zanucci, pessoa física, São Paulo, SP. Até a TumTum ter CNPJ, ele responde como controlador.',
       ],
     },
     {
@@ -41,7 +40,7 @@ export const TERMS_PT: PrivacyCopy = {
       paragraphs: [
         'Você precisa ter 18 anos ou mais para usar a TumTum. O cadastro pede sua data de nascimento, e o servidor recusa quem tem menos. Uma conta de alguém com menos de 18 anos é encerrada e apagada.',
         'Pra criar a conta, você marca a caixa "Li e aceito os Termos de Uso e a Política de Privacidade". Ela começa desmarcada, e o aceite fica registrado com a data e a versão do texto.',
-        'Ler seus batimentos é um sim separado, que você dá no cadastro ou depois, e retira quando quiser. Os detalhes estão na Política de Privacidade.',
+        'Ler seus batimentos é um sim separado, numa caixa própria no cadastro, que você retira quando quiser. Os detalhes estão na Política de Privacidade.',
         'A conta é sua e pessoal: use um e-mail seu e guarde sua senha. O que acontece na sua conta é responsabilidade sua.',
       ],
     },
@@ -49,13 +48,12 @@ export const TERMS_PT: PrivacyCopy = {
       heading: 'O que você publica',
       paragraphs: [
         'Mostrar um momento no feed de um evento é escolha sua, feita na hora, e pode ser desfeita quando quiser. Quem vê é quem estava naquele evento; numa turnê, quem foi em qualquer data, se você escolher mostrar para a turnê.',
-        'Suas fotos, seus vídeos e seus cards continuam seus. Você dá à TumTum só a permissão necessária para guardar, processar e mostrar o que você decidiu mostrar, para quem você decidiu mostrar.',
+        'Suas fotos e seus vídeos ficam no seu celular: a TumTum não recebe nenhum. O card que você monta com eles é gerado no aparelho e vai direto pra rede que você escolher.',
         'No feed não vale:',
       ],
       items: [
         'Conteúdo ofensivo, que ataque ou assedie alguém.',
         'Fingir ser outra pessoa, ou mostrar uma noite que não é sua.',
-        'Foto ou vídeo de outra pessoa sem a permissão dela, ou que não seja seu para publicar.',
       ],
     },
     {
@@ -130,7 +128,7 @@ export const TERMS_EN: PrivacyCopy = {
       heading: 'What TumTum is',
       paragraphs: [
         'An app that shows how your heart reacted at concerts, matches and festivals: the curve of your night, the moments it rose, and a card to share.',
-        'Who provides TumTum: TumTum (Felipe Zanucci, São Paulo, Brazil) — [CONTROLADOR — preencher razão social e CNPJ].',
+        'Who provides TumTum: Felipe Zanucci, an individual, São Paulo, Brazil. Until TumTum has a CNPJ, he is the controller.',
       ],
     },
     {
@@ -145,7 +143,7 @@ export const TERMS_EN: PrivacyCopy = {
       paragraphs: [
         'You must be 18 or older to use TumTum. Sign-up asks for your date of birth, and the server refuses anyone younger. An account belonging to someone under 18 is closed and deleted.',
         'To create the account, you tick the box "I have read and accept the Terms of Use and the Privacy Policy". It starts unticked, and the acceptance is recorded with the date and the text version.',
-        'Reading your heartbeat is a separate yes, which you give at sign-up or later, and withdraw whenever you like. The details are in the Privacy Policy.',
+        'Reading your heartbeat is a separate yes, in a box of its own at sign-up, which you can withdraw whenever you like. The details are in the Privacy Policy.',
         'Your account is yours and personal: use your own email and keep your password safe. What happens in your account is your responsibility.',
       ],
     },
@@ -153,13 +151,12 @@ export const TERMS_EN: PrivacyCopy = {
       heading: 'What you post',
       paragraphs: [
         'Showing a moment in an event feed is your choice, made at that moment, and can be undone whenever you like. It is seen by the people who were at that event; on a tour, by anyone at any date, if you choose to show it to the tour.',
-        'Your photos, videos and cards stay yours. You give TumTum only the permission it needs to store, process and show what you decided to show, to whom you decided to show it.',
+        'Your photos and videos stay on your phone: TumTum receives none of them. The card you make with them is generated on the device and goes straight to the network you choose.',
         'Not allowed in the feed:',
       ],
       items: [
         'Offensive content, or anything that attacks or harasses someone.',
         'Pretending to be someone else, or showing a night that is not yours.',
-        'Someone else’s photo or video without their permission, or anything that is not yours to post.',
       ],
     },
     {

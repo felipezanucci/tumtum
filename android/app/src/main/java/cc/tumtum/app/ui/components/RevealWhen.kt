@@ -19,3 +19,17 @@ fun revealWhen(at: Instant, now: Instant = Instant.now()): String {
         else -> stringResource(R.string.reveal_when_day, Fmt.dayMonth(at), hour)
     }
 }
+
+/**
+ * When something leaves the server (28/09): "amanhã, 16h49", "hoje, 09h10" or
+ * "30/09, 16h49" — the day always said, as [revealWhen] learned to.
+ */
+@Composable
+fun serverDeadline(at: Instant, now: Instant = Instant.now()): String {
+    val hour = Fmt.hour(at)
+    return when (Fmt.daysFrom(now, at)) {
+        0L -> stringResource(R.string.deadline_today, hour)
+        1L -> stringResource(R.string.deadline_tomorrow, hour)
+        else -> stringResource(R.string.deadline_day, Fmt.daySlashMonth(at), hour)
+    }
+}

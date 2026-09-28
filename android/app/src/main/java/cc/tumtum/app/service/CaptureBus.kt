@@ -21,8 +21,30 @@ data class CaptureStatus(
     val onSkin: Boolean? = null,
     val sensorBatteryPct: Int? = null,
     val deviceName: String? = null,
+    /**
+     * The strap is paired and the capture is on, but no beat has arrived for
+     * [CaptureService.SILENCE_MS] (28/09). Connected or not: a strap out of
+     * range, off the chest or asleep all look the same from here — no beat.
+     */
+    val sensorSilent: Boolean = false,
+    /** When beats came back after a silence, for "Voltou." to stay a few seconds; null otherwise. */
+    val backAtMs: Long? = null,
+    /**
+     * The service refused to record (28/09): "Ler sua batida" is not granted
+     * for the signed-in account. The capture screen says so with the way to it.
+     */
+    val refusedReading: Boolean = false,
 )
+
+/**
+ * A capture that ended without the person's "Encerrar" (28/09): why, the
+ * night it left (null when nothing had been written), and when.
+ */
+data class ForcedStop(val reason: String, val nightId: Long?, val atMs: Long)
 
 object CaptureBus {
     val status = MutableStateFlow(CaptureStatus())
+
+    /** The last forced stop, until a screen has taken it to the night it left. */
+    val forcedStop = MutableStateFlow<ForcedStop?>(null)
 }

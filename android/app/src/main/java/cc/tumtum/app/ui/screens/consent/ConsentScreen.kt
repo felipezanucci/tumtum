@@ -84,6 +84,14 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val focusKey = focus?.takeIf { it in ConsentText.PURPOSES }
+    // What the server had recorded when the screen opened: a switch turned
+    // off here that was on there is a revocation, and its row says what stops.
+    var recorded by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
+    // "O QUE FALTA" (28/09): the purpose asked for, every core one that is
+    // off, and — for a night waiting to go up — both keys the server needs to
+    // take it. Fixed when the screen loads, so a row never jumps out from
+    // under the thumb that just turned it on.
+    var focusRows by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(tick) {
         load = ConsentLoad.Loading
@@ -96,6 +104,12 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
             val consents = container.api.getConsents()
             needsBirth = me.birthDate == null
             switches = ConsentText.startingSwitches(consents.asMap())
+            recorded = switches
+            focusRows = if (focusKey == null) {
+                emptyList()
+            } else {
+                ConsentText.missingFor(focusKey, switches, keepingNight = sendNightId != null)
+            }
             ConsentLoad.Ready
         } catch (e: TumtumApi.ApiException) {
             if (e.code == 401) ConsentLoad.SignedOut else ConsentLoad.Failed(offline = false)
@@ -106,7 +120,8 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
 
     /** Where "Continuar" leads, once the server has the choices. */
     suspend fun after(granted: Map<String, Boolean>) {
-        if (sendNightId != null && granted[ConsentText.KEEP_NIGHT] == true) {
+        // Both keys, as the server takes a night with (28/09).
+        if (sendNightId != null && granted[ConsentText.KEEP_NIGHT] == true && granted[ConsentText.READ_HEART_RATE] == true) {
             container.sync.sendAfterConsent(sendNightId)
         }
         val wantsReading = granted[ConsentText.READ_HEART_RATE] == true &&
@@ -122,11 +137,29 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
             }
             // Opened on the way to connecting a watch: with reading on, the
             // way continues to the permission screen and the setup after it.
-            focusKey == ConsentText.READ_HEART_RATE && granted[ConsentText.READ_HEART_RATE] == true -> {
+            // Not for a night waiting to go up, nor for a strap already
+            // paired (28/09): those go back to where they were.
+            focusKey == ConsentText.READ_HEART_RATE && granted[ConsentText.READ_HEART_RATE] == true &&
+                sendNightId == null && wantsReading && !container.prefs.state.first().sensorPaired -> {
                 nav.popBackStack()
                 nav.navigate(Routes.Permission)
             }
             else -> if (!nav.popBackStack()) nav.navigate(Routes.Feed)
+        }
+    }
+
+    // Continuar waits for what this pass needs (28/09, item 20): on the first
+    // pass both core keys — the Terms and "Ler sua batida" — and the birth
+    // date when it is asked; opened for something missing, every row of O QUE
+    // FALTA. A tap before then is answered with what is still missing.
+    val coreOn = ConsentText.CORE.all { switches[it] == true }
+    val focusOn = focusRows.all { switches[it] == true }
+    val ready = (if (focusKey == null) coreOn else focusOn) && (!needsBirth || birth != null)
+    fun declined() {
+        error = when {
+            needsBirth && birth == null -> context.getString(R.string.consent_birth_missing)
+            focusKey == null && !coreOn -> context.getString(R.string.consent_core_hint)
+            else -> context.getString(R.string.consent_focus_hint)
         }
     }
 
@@ -229,29 +262,60 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
                     error = null
                 }
 
+                // What stops, under a key that was on and is now off — said
+                // before Continuar sends it, in the same words as Configurações
+                // (item 4, 28/09): one sentence per key, wherever its switch is.
+                val stops = ConsentText.PURPOSES.associateWith { p -> consentOffNote(p, entry = null, wasGranted = true) }
+                fun noteFor(p: String): String? = if (recorded[p] == true && switches[p] != true) stops[p] else null
+
                 if (focusKey != null) {
                     Text(stringResource(R.string.consent_section_focus), style = TTType.Meta, color = TT.Acid)
                     Spacer(Modifier.height(6.dp))
-                    ConsentRow(
-                        purpose = focusKey,
-                        on = switches[focusKey] == true,
-                        onToggle = { toggle(focusKey, it) },
-                        onDark = true,
-                        focused = true,
-                    )
-                    Spacer(Modifier.height(22.dp))
+                    // Every key missing is framed, not only the one asked for:
+                    // on 27/09 a night waiting for "Guardar a noite" could not
+                    // go up either with "Ler sua batida" off, and only one was lit.
+                    focusRows.forEach { p ->
+                        ConsentRow(
+                            purpose = p,
+                            on = switches[p] == true,
+                            onToggle = { toggle(p, it) },
+                            onDark = true,
+                            focused = p == focusKey || switches[p] != true,
+                            note = noteFor(p),
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    if (!focusOn) {
+                        Text(stringResource(R.string.consent_focus_hint), style = TTType.BodySmall, color = TT.Acid)
+                    }
+                    Spacer(Modifier.height(18.dp))
                 }
 
                 Text(stringResource(R.string.consent_section_core), style = TTType.Meta, color = TT.Gray45)
                 Spacer(Modifier.height(4.dp))
-                ConsentText.PURPOSES.filter { it in ConsentText.CORE && it != focusKey }.forEach { p ->
-                    ConsentRow(purpose = p, on = switches[p] == true, onToggle = { toggle(p, it) }, onDark = true)
+                ConsentText.PURPOSES.filter { it in ConsentText.CORE && it !in focusRows }.forEach { p ->
+                    ConsentRow(
+                        purpose = p,
+                        on = switches[p] == true,
+                        onToggle = { toggle(p, it) },
+                        onDark = true,
+                        note = noteFor(p),
+                    )
+                }
+                if (focusKey == null && !coreOn) {
+                    Text(stringResource(R.string.consent_core_hint), style = TTType.BodySmall, color = TT.Acid)
                 }
                 Spacer(Modifier.height(18.dp))
                 Text(stringResource(R.string.consent_section_optional), style = TTType.Meta, color = TT.Gray45)
                 Spacer(Modifier.height(4.dp))
-                ConsentText.PURPOSES.filter { ConsentText.isOptional(it) && it != focusKey }.forEach { p ->
-                    ConsentRow(purpose = p, on = switches[p] == true, onToggle = { toggle(p, it) }, onDark = true)
+                ConsentText.PURPOSES.filter { ConsentText.isOptional(it) && it !in focusRows }.forEach { p ->
+                    ConsentRow(
+                        purpose = p,
+                        on = switches[p] == true,
+                        onToggle = { toggle(p, it) },
+                        onDark = true,
+                        note = noteFor(p),
+                    )
                 }
 
                 Spacer(Modifier.height(14.dp))
@@ -265,7 +329,8 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
                 TTButton(
                     stringResource(if (saving) R.string.consent_saving else R.string.consent_continue),
                     TTButtonStyle.Rose,
-                    enabled = !saving,
+                    enabled = !saving && ready,
+                    onDeclined = { if (!saving) declined() },
                     onClick = { proceed() },
                 )
                 error?.let {

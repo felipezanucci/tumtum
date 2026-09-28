@@ -22,7 +22,7 @@ export const DELETE_ACCOUNT_PT: DeleteAccountCopy = {
   lang: 'pt-BR',
   title: 'Apagar sua conta',
   intro:
-    'O TumTum é feito pela TumTum Tecnologia. Esta página diz como apagar sua conta do app TumTum (cc.tumtum.app), o que some e o que fica.',
+    'A TumTum é feita por Felipe Zanucci (São Paulo, SP). Esta página diz como apagar sua conta do app TumTum (cc.tumtum.app), o que some e o que fica.',
   updated: 'Atualizada em 26 de setembro de 2026.',
   sections: [
     {
@@ -74,8 +74,8 @@ export const DELETE_ACCOUNT_PT: DeleteAccountCopy = {
       paragraphs: [
         'Os eventos em si — o show, o jogo, a data, a linha do tempo — continuam existindo, porque são de todo mundo que estava lá, não seus. Depois que sua conta some, nada neles aponta para você.',
         'Cards que você já postou no Instagram, no WhatsApp ou em qualquer outro lugar ficam onde você postou. Esses são seus para apagar lá.',
-        'Fica só um registro de que uma conta foi apagada, com a data e nada que identifique você.',
-        'Não existe conta suspensa esperando você mudar de ideia: apagou, acabou. As cópias de segurança do banco, que só servem pra recuperar o serviço num desastre, saem sozinhas quando expiram (prazo a confirmar), e não são usadas pra trazer de volta o que você apagou.',
+        'Ficam três coisas: um registro de que uma conta foi apagada, só com a data; os registros de acesso (endereço IP, data e conta), que a lei manda guardar por até 180 dias; e uma marca codificada do e-mail e do id da conta, que ninguém consegue ler, guardada por 400 dias só pra impedir que uma cópia de segurança restaurada traga a conta de volta.',
+        'Não existe conta suspensa esperando você mudar de ideia: apagou, acabou. As cópias de segurança do banco expiram sozinhas, no prazo da nossa política de retenção, e não são usadas pra trazer de volta o que você apagou.',
       ],
     },
   ],
@@ -91,7 +91,7 @@ export const DELETE_ACCOUNT_EN: DeleteAccountCopy = {
   lang: 'en',
   title: 'Delete your account',
   intro:
-    'TumTum is made by TumTum Tecnologia. This page explains how to delete your account in the TumTum app (cc.tumtum.app), what is erased and what stays.',
+    'TumTum is made by Felipe Zanucci (São Paulo, Brazil). This page explains how to delete your account in the TumTum app (cc.tumtum.app), what is erased and what stays.',
   updated: 'Updated 26 September 2026.',
   sections: [
     {
@@ -143,8 +143,8 @@ export const DELETE_ACCOUNT_EN: DeleteAccountCopy = {
       paragraphs: [
         'The events themselves — the show, the match, the date, the timeline — keep existing, because they belong to everyone who was there, not to you. Once your account is gone, nothing in them points to you.',
         'Cards you already posted on Instagram, WhatsApp or anywhere else stay where you posted them. Those are yours to delete there.',
-        'Only a record that an account was deleted remains, with the date and nothing that identifies you.',
-        'There is no suspended account waiting for you to change your mind: deleted is deleted. The database backups, which exist only to recover the service after a disaster, go by themselves when they expire (period to be confirmed), and are not used to bring back what you deleted.',
+        'Three things stay: a record that an account was deleted, with only the date; the access logs (IP address, date and account), which the law requires us to keep for up to 180 days; and an encoded mark of the email and the account id, which nobody can read, kept for 400 days only to stop a restored backup from bringing the account back.',
+        'There is no suspended account waiting for you to change your mind: deleted is deleted. Database backups expire on their own, within our retention policy, and are never used to bring back what you deleted.',
       ],
     },
   ],

@@ -84,6 +84,14 @@ data class NightEntity(
     val sendRequested: Boolean = false,
     /** When the readings reached the server (epoch ms), for the screen to say so. Null = not there. */
     val sentAt: Long? = null,
+    /**
+     * How many of its readings the server counted inside the event's window
+     * (28/09) — the feed opens at 60. Null until the server said, and for
+     * nights sent before it did.
+     */
+    val eventReadings: Int? = null,
+    /** Why the capture ended when it was not the person's "Encerrar" (28/09); null for an ordinary end. */
+    val stopReason: String? = null,
 )
 
 /** Amostras cruas da noite — guardadas como lidas. Buraco é ausência de linha. */

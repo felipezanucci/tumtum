@@ -13,10 +13,14 @@ object Fmt {
     private val date = DateTimeFormatter.ofPattern("dd.MM.yy")
 
     private val dayMonth = DateTimeFormatter.ofPattern("dd.MM")
+    private val daySlashMonth = DateTimeFormatter.ofPattern("dd/MM")
 
     fun hour(t: Instant): String = hour.format(t.atZone(zone))
     fun date(t: Instant): String = date.format(t.atZone(zone))
     fun dayMonth(t: Instant): String = dayMonth.format(t.atZone(zone))
+
+    /** "30/09" — a deadline's day, as the screens write it in a sentence. */
+    fun daySlashMonth(t: Instant): String = daySlashMonth.format(t.atZone(zone))
 
     /** Calendar days from [now] to [t] on this phone's clock: 0 today, 1 tomorrow. */
     fun daysFrom(now: Instant, t: Instant): Long =

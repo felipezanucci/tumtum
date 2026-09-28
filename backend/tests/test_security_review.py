@@ -120,6 +120,7 @@ async def _uploaded(memdb, client, event, readings: int) -> HRSession:
 async def test_a_few_readings_at_the_event_do_not_open_its_feed(memdb, api):
     event = await add_event(memdb)
     ana = await add_user(memdb, "Ana")
+    await grant(memdb, ana, "read_heart_rate")
     await grant(memdb, ana, "keep_night")
     client = api(ana)
 
@@ -136,6 +137,7 @@ async def test_a_few_readings_at_the_event_do_not_open_its_feed(memdb, api):
 async def test_readings_outside_the_event_window_do_not_count(memdb, api):
     event = await add_event(memdb)  # 02/10, all day, ±2 h
     ana = await add_user(memdb, "Ana")
+    await grant(memdb, ana, "read_heart_rate")
     await grant(memdb, ana, "keep_night")
     # From 01h59 on 03/10 (São Paulo) for two minutes; the window of an
     # all-day event closes at 02h00, so only the first minute and one second
@@ -153,6 +155,7 @@ async def test_readings_outside_the_event_window_do_not_count(memdb, api):
 async def test_a_posted_moment_must_come_from_the_night(memdb, api):
     event = await add_event(memdb)
     ana = await add_user(memdb, "Ana")
+    await grant(memdb, ana, "read_heart_rate")
     await grant(memdb, ana, "keep_night")
     client = api(ana)
     night = await _uploaded(memdb, client, event, readings=60)  # 90…139 bpm
@@ -178,6 +181,7 @@ async def test_a_night_must_end_after_it_starts_and_last_at_most_twelve_hours(
     memdb, api
 ):
     ana = await add_user(memdb, "Ana")
+    await grant(memdb, ana, "read_heart_rate")
     await grant(memdb, ana, "keep_night")
     client = api(ana)
 
@@ -362,6 +366,7 @@ async def test_a_public_profile_counts_no_nights(memdb, api):
 async def test_the_operator_mail_escapes_the_event_name(memdb, monkeypatch):
     from app.api import feed
     from app.models.event_post import EventPost
+    from app.services import operator_mail
 
     monkeypatch.setattr(settings, "admin_emails", "oi@tumtum.cc")
     sent = []
@@ -369,7 +374,7 @@ async def test_the_operator_mail_escapes_the_event_name(memdb, monkeypatch):
     async def capture(**mail):
         sent.append(mail)
 
-    monkeypatch.setattr(feed, "send_email", capture)
+    monkeypatch.setattr(operator_mail, "send_email", capture)
     event = await add_event(memdb, name='<img src=x onerror="alert(1)">')
     ana = await add_user(memdb, "Ana")
     night = await add_night(memdb, ana, event)

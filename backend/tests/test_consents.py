@@ -13,8 +13,8 @@ import pytest
 from sqlalchemy import func, select
 
 from app.api.consents import get_consents, put_consents
-from app.api.health import requires_keep_night
-from app.core.auth import ConsentRequired, require_consent
+from app.api.health import requires_night_consents
+from app.core.auth import ConsentRequired, require_consent, require_consents
 from app.main import app, consent_required_handler
 from app.models.consent import Consent
 from app.models.hr_session import HRSession
@@ -106,6 +106,7 @@ def test_an_unknown_purpose_is_refused_by_the_schema():
 @pytest.mark.asyncio
 async def test_require_consent_refuses_with_the_purpose(memdb):
     user = await add_user(memdb)
+    requires_keep_night = require_consent("keep_night")
     with pytest.raises(ConsentRequired) as refused:
         await requires_keep_night(user=user, db=memdb)
     assert refused.value.status_code == 403
@@ -122,19 +123,40 @@ async def test_require_consent_refuses_with_the_purpose(memdb):
     assert await requires_keep_night(user=user, db=memdb) is user
 
 
+@pytest.mark.asyncio
+async def test_a_night_needs_the_reading_consent_before_the_keeping_one(memdb):
+    """28/09: a night recorded on an account that never granted
+    `read_heart_rate` reached the upload with `keep_night` alone. The 403
+    names the reading first — that is the consent the readings needed."""
+    user = await add_user(memdb)
+    with pytest.raises(ConsentRequired) as refused:
+        await requires_night_consents(user=user, db=memdb)
+    assert refused.value.purpose == "read_heart_rate"
+
+    await grant(memdb, user, "read_heart_rate")
+    with pytest.raises(ConsentRequired) as refused:
+        await requires_night_consents(user=user, db=memdb)
+    assert refused.value.purpose == "keep_night"
+
+    await grant(memdb, user, "keep_night")
+    assert await requires_night_consents(user=user, db=memdb) is user
+
+
 def test_require_consent_knows_only_the_contracts_purposes():
     with pytest.raises(ValueError):
         require_consent("anything")
+    with pytest.raises(ValueError):
+        require_consents("keep_night", "anything")
 
 
-def test_keeping_a_night_on_the_server_requires_keep_night():
+def test_keeping_a_night_on_the_server_requires_both_consents():
     """Read from the router, so the guard cannot be lost in a refactor."""
     for route in app.routes:
         if getattr(route, "path", None) == "/api/health/sessions" and "POST" in (
             route.methods or set()
         ):
             names = {d.call.__name__ for d in route.dependant.dependencies}
-            assert "require_consent_keep_night" in names
+            assert "require_consents_read_heart_rate_keep_night" in names
             return
     raise AssertionError("POST /api/health/sessions is gone")
 
@@ -253,7 +275,7 @@ async def test_consent_revoke_stops_new_collection(memdb, api):
         return {
             "text_version": consents.CONSENT_TEXT_VERSION,
             "means": "tap",
-            "purposes": {"keep_night": granted},
+            "purposes": {"read_heart_rate": True, "keep_night": granted},
         }
 
     assert (await client.put("/api/consents", json=consent(True))).status_code == 200
@@ -271,8 +293,10 @@ async def test_consent_revoke_stops_new_collection(memdb, api):
     }
     nights = (await memdb.execute(select(func.count()).select_from(HRSession))).scalar()
     assert nights == 1  # only the one sent while it was granted
-    (row,) = (await memdb.execute(select(Consent))).scalars().all()
-    assert row.purpose == "keep_night" and row.revoked_at is not None
+    row = (
+        await memdb.execute(select(Consent).where(Consent.purpose == "keep_night"))
+    ).scalar_one()
+    assert row.revoked_at is not None
     assert row.legal_basis == "consent_art11"
     listed = (await client.get("/api/consents")).json()["consents"]
     entry = next(c for c in listed if c["purpose"] == "keep_night")

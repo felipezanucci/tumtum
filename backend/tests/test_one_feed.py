@@ -24,10 +24,13 @@ from sqlalchemy.ext.compiler import compiles
 
 import app.main  # noqa: F401 — registers every model
 from app.api.feed import (
+    NOT_THERE,
+    TOO_FEW_READINGS,
     block_author,
     delete_post,
     get_event_feed,
     post_moment,
+    require_attendance,
     toggle_reaction,
 )
 from app.core.database import Base
@@ -174,11 +177,23 @@ async def test_each_post_carries_its_own_night_for_the_filter(tour):
 async def test_nobody_without_a_night_gets_in(tour):
     t = tour
     with pytest.raises(HTTPException) as refused:
-        from app.api.feed import require_attendance
-
         await require_attendance(t["sp"].id, t["dani"], t["db"])
     assert refused.value.status_code == 403
-    assert "rolê" not in refused.value.detail
+    assert refused.value.detail == NOT_THERE
+
+
+@pytest.mark.asyncio
+async def test_a_night_too_short_to_count_is_told_so_and_not_told_it_never_arrived(tour):
+    """28/09: a two-minute night with a one-minute gap reached the server and
+    the feed said "sua noite não chegou aqui". It had; it was too short."""
+    t = tour
+    short = await _night(t["db"], t["dani"], t["sp"])
+    short.event_readings = 5
+    await t["db"].flush()
+    with pytest.raises(HTTPException) as refused:
+        await require_attendance(t["sp"].id, t["dani"], t["db"])
+    assert refused.value.status_code == 403
+    assert refused.value.detail == TOO_FEW_READINGS
 
 
 @pytest.mark.asyncio

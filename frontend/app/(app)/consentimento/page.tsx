@@ -10,7 +10,6 @@ import {
   changedChoices,
   choicesFrom,
   isAdult,
-  latestAdultBirthDate,
   needsConsentGate,
   safeNext,
   UNDER_AGE_MESSAGE,
@@ -19,7 +18,7 @@ import {
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useConsentStore } from '@/lib/stores/useConsentStore'
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
-import { Button, Input, Loading, SignInRequired } from '@/components/ui'
+import { BirthDatePicker, Button, Loading, SignInRequired } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { ConsentToggles } from '@/components/privacy'
 
@@ -70,7 +69,6 @@ function ConsentScreen() {
   const saved = useMemo(() => choicesFrom(entries), [entries])
   const [choices, setChoices] = useState<ConsentChoices>(saved)
   const [birthDate, setBirthDate] = useState('')
-  const [maxBirthDate] = useState(() => latestAdultBirthDate())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -159,16 +157,11 @@ function ConsentScreen() {
 
           {needsBirthDate && (
             <div className="mt-10">
-              <Input
-                id="birth-date"
+              <BirthDatePicker
                 label={copy.birthDate.label}
-                type="date"
-                value={birthDate}
-                max={maxBirthDate}
-                min="1900-01-01"
-                onChange={(e) => setBirthDate(e.target.value)}
+                hint={copy.birthDate.hint}
+                onChange={setBirthDate}
               />
-              <p className="mt-1.5 text-xs text-tumtum-muted">{copy.birthDate.hint}</p>
             </div>
           )}
 

@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { users, type UserProfile } from '@/lib/api'
+import { useAuthStore } from '@/lib/stores/useAuthStore'
+import { useConsentStore } from '@/lib/stores/useConsentStore'
 import { codeDigits, isCompleteCode } from '@/lib/signup-code'
 import { Button, Input, PasswordInput } from '@/components/ui'
 
@@ -10,6 +13,11 @@ import { Button, Input, PasswordInput } from '@/components/ui'
  * Correcting the e-mail (LGPD art. 18 III), in two steps like sign-up: the
  * password proves it is you, the code proves the new address is yours. The
  * account's e-mail changes only when the code comes back.
+ *
+ * A confirmed change revokes every session of the account (the server's
+ * rule), so this browser is signed out on the spot and sent to the login
+ * page, which says why (28/09) — rather than staying on a profile whose next
+ * request can only fail.
  */
 export default function EmailChange({
   current,
@@ -18,6 +26,9 @@ export default function EmailChange({
   current: string
   onChanged: (profile: UserProfile) => void
 }) {
+  const router = useRouter()
+  const logout = useAuthStore((s) => s.logout)
+  const resetConsents = useConsentStore((s) => s.reset)
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,7 +36,6 @@ export default function EmailChange({
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
 
   function reset() {
     setOpen(false)
@@ -39,7 +49,6 @@ export default function EmailChange({
   async function handleStart(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    setNotice(null)
     if (email.trim().toLowerCase() === current.toLowerCase()) {
       setError('Esse já é o e-mail da sua conta.')
       return
@@ -67,11 +76,12 @@ export default function EmailChange({
     try {
       const profile = await users.confirmEmail(code)
       onChanged(profile)
-      reset()
-      setNotice(`Pronto. Sua conta agora usa ${profile.email}.`)
+      // Every session of the account ended with the change, this one too.
+      logout()
+      resetConsents()
+      router.push('/login?motivo=email')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra confirmar o código.')
-    } finally {
       setBusy(false)
     }
   }
@@ -82,11 +92,6 @@ export default function EmailChange({
         <p className="text-sm text-tumtum-muted">
           E-mail da conta: <span className="text-tumtum-white">{current}</span>
         </p>
-        {notice && (
-          <p role="status" className="mt-2 text-sm text-tumtum-white">
-            {notice}
-          </p>
-        )}
         <Button size="sm" variant="secondary" className="mt-3" onClick={() => setOpen(true)}>
           Trocar e-mail
         </Button>

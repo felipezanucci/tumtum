@@ -103,6 +103,18 @@ list empty and the page announced "Nenhum evento encontrado" — then offered to
 seed demo data over the real event. Any list that can fail to load must tell
 "nothing there" apart from "I could not ask".
 
+Seven more on 28/09, in the first hour b217 was in a hand, all the same
+class: a feed that said *"sua noite não chegou aqui"* to a night that had
+arrived and was only too short to count; *"Guardada na TumTum"* still on
+screen after *Guardar a noite* was turned off; a revocation accepted with
+no word under the switch; **"SEM MOMENTOS NESSA NOITE" printed on the card
+that went to Instagram**; an export whose header said 0 samples and 35 %
+coverage over 122 rows; a feed button that existed only after sharing to
+another network; and a paired strap recording with no consent (the product
+rule at the end of this file). **When a state has a sentence, the sentence
+must be recomputed from the state every time it is shown, never written
+once at the moment of the tap.**
+
 ## Current phase
 
 **Phase 0 — MVP (no custom hardware)**. We use existing wearables (Apple Watch, Fitbit, Garmin, Galaxy Watch) via Apple HealthKit and Google Health Connect APIs. The goal is to validate the hypothesis: do people want to see and share how their heart reacted during events?
@@ -122,7 +134,7 @@ Custom hardware (Tumtum smart band) comes in Phase 1, only after Phase 0 validat
 - **Framework**: FastAPI (Python 3.11+)
 - **ORM**: SQLAlchemy (async) with Alembic migrations
 - **Auth**: JWT tokens (access 1 h, refresh 90 days, rotated) with e-mail and password, the e-mail proved by a 6-digit code. **Google and Apple sign-in (OAuth) are not implemented** — `auth_provider` exists in the schema and nothing sets it to anything but e-mail
-- **Background work**: none dispatched. Celery is in `requirements.txt` and `tasks/card_tasks.py` exists, but no worker runs and nothing is ever queued; cards are generated inside the request. The only loops are in-process `asyncio` tasks started in the lifespan: the live match watch and, since 26/09, the daily maintenance loop (`services/maintenance.py`: raw-reading retention, log purge, expired codes and tokens)
+- **Background work**: none dispatched. Celery is in `requirements.txt` and `tasks/card_tasks.py` exists, but no worker runs and nothing is ever queued; cards are generated inside the request. The only loops are in-process `asyncio` tasks started in the lifespan: the live match watch and, since 26/09, the hourly maintenance loop (`services/maintenance.py`: raw-reading retention, log purge, expired codes and tokens; hourly since 28/09 so that a revoked `keep_night` empties within the 24 h the switch promises)
 
 ### Database
 - **Primary**: PostgreSQL 16 with TimescaleDB extension
@@ -295,7 +307,7 @@ data_access_log: id, at, actor_user_id, subject_user_id, resource, resource_id, 
 access_log: id, at, method, path, status, ip, user_id
 -- One row per deleted account, with no identifier: the proof that deletions happen
 deletion_log: id, deleted_at
--- Hashes of a deleted account's id and e-mail, kept 400 days (27/09): a sweep at startup and in the daily
+-- Hashes of a deleted account's id and e-mail, kept 400 days (27/09): a sweep at startup and in the hourly
 -- maintenance deletes again whatever a restored backup brought back
 deletion_tombstones: id, subject_key, email_key, deleted_at
 ```
@@ -616,3 +628,17 @@ designed against them. The values live in `detect_peaks()` in
   (`docs/ropa.md`). Revoking is as easy as granting (Configurações →
   Privacidade), and the screens where this happens are the quiet, careful
   ones.
+- **A paired strap is not a consent.** (28/09, found in Felipe's hand on
+  b217) A phone with a Polar already paired started recording on a new
+  account that had never granted `read_heart_rate`; the upload then asked
+  only for `keep_night`. So: **nothing records without `read_heart_rate`
+  on the account** — the fan's start, the operator's, the service itself —
+  and the app says *"Pra gravar, liga 'Ler sua batida'"* where the eye is;
+  the server keeps a night only with `read_heart_rate` **and** `keep_night`
+  (`require_consents`, tested from the router); sign-up, in the app and on
+  the site, does not continue until `terms` and `read_heart_rate` are both
+  on, each its own tap. `keep_night` stays optional and off by default
+  (Felipe's call, 28/09, over making all three mandatory: the night, the
+  moment and the card work without the server, and the LGPD's necessity
+  principle does not allow demanding an upload the product does not need);
+  it is explained at sign-up and asked again at the end of the night.

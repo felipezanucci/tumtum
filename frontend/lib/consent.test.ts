@@ -4,6 +4,8 @@ import {
   changedChoices,
   choicesFrom,
   consentHref,
+  consentNotes,
+  consentNotice,
   isAdult,
   latestAdultBirthDate,
   needsConsentGate,
@@ -135,10 +137,52 @@ describe('where a refusal sends the person', () => {
 })
 
 describe('signupReady', () => {
-  it('needs the Terms ticked and a real birth date', () => {
-    expect(signupReady({ birthDate: '1990-01-01', termsAccepted: true })).toBe(true)
-    expect(signupReady({ birthDate: '1990-01-01', termsAccepted: false })).toBe(false)
-    expect(signupReady({ birthDate: '', termsAccepted: true })).toBe(false)
+  it('needs both core boxes ticked and a real birth date', () => {
+    expect(signupReady({ birthDate: '1990-01-01', termsAccepted: true, readHeartRate: true })).toBe(true)
+    expect(signupReady({ birthDate: '1990-01-01', termsAccepted: false, readHeartRate: true })).toBe(false)
+    expect(signupReady({ birthDate: '', termsAccepted: true, readHeartRate: true })).toBe(false)
+  })
+
+  it('stays asleep with the Terms alone: reading the heart rate is its own yes', () => {
+    expect(signupReady({ birthDate: '1990-01-01', termsAccepted: true, readHeartRate: false })).toBe(false)
+  })
+})
+
+describe('what a switch says after it is saved', () => {
+  const allOff = choicesFrom([])
+  const on = (purposes: Record<string, boolean>) => ({ ...allOff, terms: true, ...purposes })
+
+  it('says "Ligado." for a grant', () => {
+    expect(consentNotice('crowd_stats', true)).toBe('Ligado.')
+    expect(consentNotice('keep_night', true)).toBe('Ligado.')
+  })
+
+  it('says what stops when keep_night is turned off, in these exact words', () => {
+    expect(consentNotice('keep_night', false)).toBe(
+      'Desligado. Suas noites guardadas saem do servidor em até 24 horas e continuam no seu celular.',
+    )
+  })
+
+  it('says a plain "Desligado." where nothing more is true', () => {
+    expect(consentNotice('marketing', false)).toBe('Desligado.')
+  })
+
+  it('keeps the keep_night line under an off switch on a fresh load', () => {
+    const notes = consentNotes(on({ read_heart_rate: true }), {})
+    expect(notes.keep_night).toBe(
+      'Desligado. Suas noites guardadas saem do servidor em até 24 horas e continuam no seu celular.',
+    )
+    expect(notes.crowd_stats).toBeUndefined()
+    expect(consentNotes(on({ read_heart_rate: true, keep_night: true }), {}).keep_night).toBeUndefined()
+  })
+
+  it('says what just happened to each purpose saved, and only if the server kept it', () => {
+    const saved = on({ read_heart_rate: true, keep_night: true, marketing: false })
+    const notes = consentNotes(saved, { keep_night: true, marketing: false, crowd_stats: true })
+    expect(notes.keep_night).toBe('Ligado.')
+    expect(notes.marketing).toBe('Desligado.')
+    // Sent as on, still off on the server: no "Ligado." for it.
+    expect(notes.crowd_stats).toBeUndefined()
   })
 })
 
@@ -175,6 +219,17 @@ describe('the consent text', () => {
     // v1.1 §20.1: no absolute "nothing goes anywhere" — contracted providers exist.
     expect(text).not.toContain('Nada vai para')
     expect(text).toContain('Fornecedores contratados processam dados só em nome da TumTum')
+  })
+
+  it('puts every "without" on its own line, after a prefix, in both languages', () => {
+    expect(CONSENT_PT.withoutPrefix).toBe('Desligada:')
+    for (const copy of [CONSENT_PT, CONSENT_EN]) {
+      expect(copy.withoutPrefix.length).toBeGreaterThan(3)
+      expect(copy.grantedNotice.length).toBeGreaterThan(1)
+      for (const purpose of CONSENT_PURPOSES) {
+        expect(copy.purposes[purpose].description).not.toContain(copy.purposes[purpose].without ?? '\u0000')
+      }
+    }
   })
 
   it('says what turning off keep_night does, as the server does it (24 h)', () => {
