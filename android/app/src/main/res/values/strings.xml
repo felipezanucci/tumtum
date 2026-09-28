@@ -26,8 +26,17 @@
     <string name="account_subtitle">Leva menos que uma música.</string>
     <string name="account_name_label">SEU NOME</string>
     <string name="account_username_label">@USERNAME</string>
+    <!-- The @ (28/09): the server owns it. The line under the field is always
+         about the name on screen: a local rule, a check under way, the server's
+         yes, the server's own reason for no, or no answer at all. "disponível"
+         only on the server's yes. -->
     <string name="account_username_free">disponível</string>
-    <string name="account_username_taken">já tem alguém com esse</string>
+    <string name="username_checking">Conferindo…</string>
+    <string name="username_check_failed">Não deu pra conferir agora.</string>
+    <string name="username_too_short">O @ precisa de pelo menos 3 letras ou números.</string>
+    <string name="username_too_long">O @ pode ter até 20 caracteres.</string>
+    <string name="username_bad_chars">O @ só aceita letras sem acento, números e _.</string>
+    <string name="username_unavailable">Esse @ não dá. Tenta outro.</string>
     <string name="account_email_label">EMAIL</string>
     <string name="account_email_hint">voce@email.com</string>
     <string name="account_password_label">SENHA</string>
@@ -49,6 +58,8 @@
     <string name="account_code_resent">Código novo a caminho de %1$s. Só o mais novo vale.</string>
     <string name="account_code_fix_email">Corrigir o e-mail</string>
     <string name="account_replaces">Este aparelho já tem a conta @%1$s. Criar outra troca o perfil. As noites de @%1$s ficam guardadas aqui, escondidas, e voltam quando essa conta entrar de novo.</string>
+    <!-- The same, for an account on the phone that has no @ on the server yet (28/09). -->
+    <string name="account_replaces_unnamed">Este aparelho já tem a conta %1$s. Criar outra troca o perfil. As noites dessa conta ficam guardadas aqui, escondidas, e voltam quando ela entrar de novo.</string>
 
     <!-- b3 · Permissão — a tela quieta -->
     <string name="perm_title">Seus batimentos,\nsuas regras.</string>
@@ -462,8 +473,8 @@
     <!-- #56, 23/09: "Falta um email — com @." soou estranho. Frase simples,
          dizendo o que fazer. -->
     <string name="form_missing_name">Coloca seu nome.</string>
-    <string name="form_short_username">O @ precisa de pelo menos 3 letras.</string>
-    <string name="form_username_taken">Esse @ já tem dono. Tenta outro.</string>
+    <string name="form_username_checking">Ainda conferindo o @. Um segundo.</string>
+    <string name="form_username_unchecked">Não deu pra conferir o @. Conferindo de novo…</string>
     <string name="form_missing_email_and_password">Coloca seu e-mail e sua senha.</string>
     <string name="form_missing_email">Coloca seu e-mail.</string>
     <string name="form_email_without_at">Confere o e-mail: tá faltando o @.</string>
@@ -472,6 +483,9 @@
     <string name="form_short_password">A senha precisa de 8 caracteres ou mais.</string>
     <string name="form_same_name">Esse já é o seu nome.</string>
     <string name="form_name_saved">Salvo.</string>
+    <string name="form_name_offline">Sem internet agora. O nome não mudou.</string>
+    <string name="form_name_failed">O nome não mudou: o servidor não respondeu.</string>
+    <string name="form_name_expired">Sua sessão acabou. Entra de novo pra mudar o nome.</string>
     <string name="sources_pick_one">Escolhe uma fonte com batida dessa noite.</string>
     <!-- Settings: the server's side of the account -->
     <string name="settings_session_live">Conectada como %1$s</string>
@@ -496,6 +510,14 @@
     <string name="profile_edit_title">Editar perfil</string>
     <string name="profile_save">Salvar</string>
     <string name="settings_handle_fixed">@%1$s — o @ é fixo: escolhido uma vez, não muda.</string>
+    <!-- An account made before 28/09 whose @ the server does not hold: chosen here, once. -->
+    <string name="settings_handle_choose_title">Escolhe seu @</string>
+    <string name="settings_handle_choose_body">Sua conta é de antes do @ ficar guardado na TumTum. Escolhe agora: é uma vez só, depois ele não muda.</string>
+    <string name="settings_handle_refused">O @%1$s, que estava neste celular, não pôde ficar com a sua conta. Escolhe outro.</string>
+    <string name="settings_handle_save">Salvar @</string>
+    <string name="settings_handle_offline">Sem internet agora. O @ precisa do servidor pra ser seu — tenta de novo quando voltar.</string>
+    <string name="settings_handle_saved">Pronto: o @%1$s é seu.</string>
+    <string name="profile_handle_missing">Você ainda não tem um @. Escolhe em Configurações.</string>
 
     <!-- a5 sem criação de evento pelo participante -->
     <!-- Próximo evento e lembretes (pesquisa de 19/09, §5.4 e §5.7) -->

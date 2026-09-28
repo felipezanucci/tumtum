@@ -216,4 +216,24 @@ class ServerFeedTest {
         assertEquals(0, feed.dates.size)
         assertEquals(0, feed.hiddenByBlock)
     }
+
+    @Test
+    fun `the author's at comes with the post when the account has one`() {
+        // 28/09: the @ is unique on the server; an account from before it may have none.
+        val withAt = ServerPost.parse(
+            """{"id":"p1","author":{"name":"Felipe","initials":"FE","username":"fezanu"},
+                "bpm":150,"moment_at":"2026-10-10T22:41:00Z","skin":"BLACK"}""",
+        )
+        assertEquals("fezanu", withAt.authorUsername)
+        val without = ServerPost.parse(
+            """{"id":"p2","author":{"name":"Ana","initials":"AN","username":null},
+                "bpm":150,"moment_at":"2026-10-10T22:41:00Z","skin":"BLACK"}""",
+        )
+        assertNull(without.authorUsername)
+        val olderServer = ServerPost.parse(
+            """{"id":"p3","author":{"name":"Ana","initials":"AN"},
+                "bpm":150,"moment_at":"2026-10-10T22:41:00Z","skin":"BLACK"}""",
+        )
+        assertNull(olderServer.authorUsername)
+    }
 }

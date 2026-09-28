@@ -945,12 +945,37 @@ the linked documents — this file is the index and the reasoning, not a diary.
     merge) should be checked against `backend/tests/test_peak_detection.py`
     with the same fixtures, so that a night's headline cannot change on
     upload again.
-91. **The @ is decoration.** `[DECIDIR — Felipe]` No `users.username`, no
+91. ~~**The @ is decoration.**~~ **Built 28/09 (Felipe chose A):** `users.username`
+    unique on its lower-case form (migration 026), a live check on the site
+    and in the app, only an account holds an @ (a pending code does not, so
+    correcting an address never blocks one's own name), accounts from before
+    choose once. `[was: DECIDIR — Felipe]` No `users.username`, no
     availability check, nothing reserved: two accounts can hold the same @,
     and "disponível" is always said. Either build it (a unique column, a
     `GET /api/auth/username/{name}` check the app and the site call while
     typing, the name sent with the sign-up and shown in the feed — an
     Alembic migration and a few hours) or remove the field until then.
+
+---
+
+## 2026-09-28 (noite, 3) — O @ com dono, e o nome que só o celular sabia
+
+**Decided.** Felipe chose to build the @ for real rather than hide it
+(item 91). Server: `users.username`, 3–20 `[a-z0-9_]`, unique on
+`lower(username)`, a few names reserved; `GET /api/auth/username/{name}`
+answers while the person types; sign-up checks before any mail and again at
+the confirmation; old accounts choose once, and a set @ is fixed. Site and
+app: a status line that is recomputed from the answer for the exact name on
+screen — "disponível" only when the server said so, *"Não deu pra conferir
+agora."* when it could not ask — and the button waits for it.
+
+**Two things found on the way.** The first design held an @ for a pending
+sign-up too; both client streams found, independently, that a person
+correcting a mistyped address would then be told their own @ "já tem dono".
+Only an account holds an @ now; the second to confirm the same free name is
+told at that moment. And **the name in Configurações was saved only on the
+phone** — "Salvo." over a name the feed never saw. It now goes to the account
+first, and "Salvo." is said only after the server kept it.
 
 ---
 

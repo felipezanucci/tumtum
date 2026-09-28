@@ -535,7 +535,9 @@ private fun ServerPost.asMoment(showNight: Boolean = false): FeedMoment {
         id = id.hashCode().toLong(),
         postId = id,
         mine = mine,
-        user = SocialUser(handle = "", displayName = authorName, initials = authorInitials, avatarSkin = skinValue),
+        // The @ when the author's account has one (28/09); an account from
+        // before it may not yet, and then the name stands alone.
+        user = SocialUser(handle = authorUsername.orEmpty(), displayName = authorName, initials = authorInitials, avatarSkin = skinValue),
         eventName = if (showNight) {
             listOfNotNull(
                 eventCity ?: eventName,

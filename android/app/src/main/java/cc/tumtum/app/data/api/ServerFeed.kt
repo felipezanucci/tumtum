@@ -10,6 +10,8 @@ data class ServerPost(
     val id: String,
     val authorName: String,
     val authorInitials: String,
+    /** The author's @ (28/09), when their account has one; accounts from before it may not yet. */
+    val authorUsername: String? = null,
     val bpm: Int,
     val at: Instant,
     val label: String?,
@@ -39,6 +41,7 @@ data class ServerPost(
                 id = p.optString("id", ""),
                 authorName = author.optString("name", "Alguém"),
                 authorInitials = author.optString("initials", "TT"),
+                authorUsername = Json.text(author, "username"),
                 bpm = p.optInt("bpm", 0),
                 at = Json.instant(p.getString("moment_at")),
                 label = Json.text(p, "label"),

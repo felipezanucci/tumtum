@@ -19,10 +19,38 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 data class Account(
     val name: String,
-    val username: String,
+    /**
+     * The @ **the server holds** for this account (28/09), or null while it
+     * holds none. Until 28/09 this was whatever the phone was told at sign-up,
+     * checked against six hard-coded names, and two accounts held @fezanu.
+     * Since then only the server's answer is kept here — from the sign-up it
+     * confirmed, from `/me`, from a `PATCH` it accepted — so anything that
+     * shows it shows a name that really is this account's.
+     */
+    val username: String?,
     val email: String,
     val tribes: Set<String>,
+    /**
+     * An @ chosen on this phone before the server kept one (accounts made
+     * before 28/09), waiting to be claimed. Never shown as the account's: it
+     * may be someone else's by now. The claim is tried once the server can be
+     * asked ([cc.tumtum.app.data.api.TumtumApi.me]).
+     */
+    val pendingUsername: String? = null,
+    /**
+     * The server refused [pendingUsername] — taken, reserved or not a valid
+     * @. It is not tried again; Configurações asks the person to choose, with
+     * the refused name in the field so the line under it says why.
+     */
+    val pendingRefused: Boolean = false,
 ) {
+    /** What the profile route is keyed by: the @, or [ME] while there is none (never a real @ — too short). */
+    val profileKey: String get() = username ?: ME
+
+    companion object {
+        const val ME = "me"
+    }
+
     val initials: String
         get() = name.split(" ")
             .filter { it.isNotBlank() }
@@ -194,6 +222,13 @@ class UserPrefs(private val context: Context) {
         val onboarded = booleanPreferencesKey("onboarded")
         val name = stringPreferencesKey("name")
         val username = stringPreferencesKey("username")
+        /**
+         * Whether [username] is the server's (28/09). Absent on every install
+         * from before it: those @s were the phone's alone, and read as pending.
+         */
+        val usernameOnServer = booleanPreferencesKey("username_on_server")
+        /** The server refused the pending @; it is not claimed again. */
+        val usernameRefused = booleanPreferencesKey("username_refused")
         val email = stringPreferencesKey("email")
         val tribes = stringSetPreferencesKey("tribes")
         val sourcePackage = stringPreferencesKey("source_package")
@@ -228,15 +263,23 @@ class UserPrefs(private val context: Context) {
     val state: Flow<UserState> = combine(context.dataStore.data, secure.tokens) { p, secureTokens ->
         val tokens = secureTokens ?: p[Keys.accessToken]?.let { Tokens(it, p[Keys.refreshToken]) }
         val username = p[Keys.username]
+        val onServer = p[Keys.usernameOnServer] == true
         UserState(
             onboarded = p[Keys.onboarded] ?: false,
-            account = username?.let {
+            // A profile exists when the phone has one — an @ or an address.
+            // Since 28/09 an account may be here with no @ at all (made before
+            // the server kept one, and not chosen yet).
+            account = if (username != null || p[Keys.email] != null) {
                 Account(
                     name = p[Keys.name] ?: "",
-                    username = it,
+                    username = username?.takeIf { onServer },
                     email = p[Keys.email] ?: "",
                     tribes = p[Keys.tribes] ?: emptySet(),
+                    pendingUsername = username?.takeIf { !onServer },
+                    pendingRefused = !onServer && p[Keys.usernameRefused] == true,
                 )
+            } else {
+                null
             },
             sourcePackage = p[Keys.sourcePackage],
             sourceLabel = p[Keys.sourceLabel],
@@ -349,9 +392,52 @@ class UserPrefs(private val context: Context) {
     suspend fun createAccount(account: Account) {
         context.dataStore.edit { p ->
             p[Keys.name] = account.name
-            p[Keys.username] = account.username
+            writeUsername(p, account)
             p[Keys.email] = account.email
             p[Keys.tribes] = account.tribes
+        }
+    }
+
+    /** The @ as [account] has it: the server's, or a pending one from before 28/09, or none. */
+    private fun writeUsername(p: androidx.datastore.preferences.core.MutablePreferences, account: Account) {
+        val name = account.username ?: account.pendingUsername
+        if (name == null) p.remove(Keys.username) else p[Keys.username] = name
+        p[Keys.usernameOnServer] = account.username != null
+        if (account.username == null && account.pendingRefused) {
+            p[Keys.usernameRefused] = true
+        } else {
+            p.remove(Keys.usernameRefused)
+        }
+    }
+
+    /**
+     * What the server says the @ of the account at [email] is (28/09) — on
+     * every `/me` and after a `PATCH` it accepted. The server is the source
+     * of truth: its @ replaces whatever the phone had. Null from the server
+     * leaves a pending @ pending, and turns one the phone believed was held
+     * back into pending — it is then claimed again, never shown as held.
+     * Another account's profile on the phone is never touched.
+     */
+    suspend fun setServerUsername(email: String, username: String?) {
+        context.dataStore.edit { p ->
+            val mine = p[Keys.email]?.let { it.isNotBlank() && it.trim().equals(email.trim(), ignoreCase = true) } == true
+            if (!mine) return@edit
+            if (username != null) {
+                p[Keys.username] = username
+                p[Keys.usernameOnServer] = true
+                p.remove(Keys.usernameRefused)
+            } else if (p[Keys.usernameOnServer] == true) {
+                p[Keys.usernameOnServer] = false
+            }
+        }
+    }
+
+    /** The server refused the pending @ of the account at [email]: kept only to show why, never claimed again. */
+    suspend fun markUsernameRefused(email: String) {
+        context.dataStore.edit { p ->
+            val mine = p[Keys.email]?.let { it.isNotBlank() && it.trim().equals(email.trim(), ignoreCase = true) } == true
+            if (!mine || p[Keys.usernameOnServer] == true) return@edit
+            p[Keys.usernameRefused] = true
         }
     }
 
@@ -371,7 +457,7 @@ class UserPrefs(private val context: Context) {
         val previousPhoto = state.first().avatarPath
         context.dataStore.edit { p ->
             p[Keys.name] = account.name
-            p[Keys.username] = account.username
+            writeUsername(p, account)
             p[Keys.email] = account.email
             p[Keys.tribes] = account.tribes
             p.remove(Keys.avatarPath)
@@ -423,11 +509,14 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { p -> if (name.isNotBlank()) p[Keys.name] = name.trim() }
     }
 
-    /** Nome e @ editáveis — o @ é sempre o que a pessoa escolheu. */
+    /**
+     * The one-time repair of a pre-b9 profile (an e-mail stored as the @).
+     * It touches only a pending @ — one the server holds is the server's.
+     */
     suspend fun setProfile(name: String, username: String) {
         context.dataStore.edit { p ->
             if (name.isNotBlank()) p[Keys.name] = name.trim()
-            if (username.isNotBlank()) p[Keys.username] = username
+            if (username.isNotBlank() && p[Keys.usernameOnServer] != true) p[Keys.username] = username
         }
     }
 

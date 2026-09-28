@@ -16,7 +16,13 @@ object AuthErrors {
     fun messageFor(error: Throwable, context: Context): String = when (error) {
         is TumtumApi.ApiException -> when (error.code) {
             401 -> context.getString(R.string.auth_error_credentials)
-            409 -> context.getString(R.string.auth_error_taken)
+            // A conflict over the @ (28/09) is the server's sentence about it;
+            // any other conflict here is the address already having an account.
+            409 -> if (cc.tumtum.app.domain.Username.isAboutUsername(error.detail)) {
+                error.detail
+            } else {
+                context.getString(R.string.auth_error_taken)
+            }
             // The sign-up code's answers (#64) are sentences written for the
             // person — a wrong code with the tries left, a code gone stale,
             // a wait before another, a mail that could not leave. Shown as

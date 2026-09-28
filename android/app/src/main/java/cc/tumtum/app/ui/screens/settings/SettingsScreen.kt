@@ -34,6 +34,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import cc.tumtum.app.data.api.ConsentSnapshot
 import cc.tumtum.app.data.api.TumtumApi
+import cc.tumtum.app.domain.Username
+import cc.tumtum.app.ui.screens.account.AuthErrors
+import cc.tumtum.app.ui.screens.account.UsernameField
+import cc.tumtum.app.ui.screens.account.rememberUsernameChecker
+import cc.tumtum.app.ui.screens.account.usernameDeclined
 import cc.tumtum.app.domain.StopReason
 import cc.tumtum.app.service.CaptureBus
 import cc.tumtum.app.ui.screens.consent.consentOffNote
@@ -92,6 +97,8 @@ fun SettingsScreen(nav: NavHostController) {
     var nameDraft by remember { mutableStateOf("") }
     var draftsLoaded by remember { mutableStateOf(false) }
     var operatorOpen by remember { mutableStateOf(false) }
+    // The @ just chosen here (28/09), so the save is said where it happened.
+    var handleSaved by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(user) {
         if (!draftsLoaded && user != null) {
             nameDraft = user?.account?.name ?: ""
@@ -186,9 +193,19 @@ fun SettingsScreen(nav: NavHostController) {
                     when {
                         draft.isBlank() -> nameNote = R.string.form_missing_name
                         draft == (user?.account?.name ?: "").trim() -> Unit
+                        // "Salvo." only once the account has it (28/09): it
+                        // used to be said over a name kept on the phone alone.
                         else -> scope.launch {
-                            container.prefs.setName(draft)
-                            nameNote = R.string.form_name_saved
+                            nameNote = try {
+                                val saved = container.api.setName(draft)
+                                container.prefs.setName(saved)
+                                nameDraft = saved
+                                R.string.form_name_saved
+                            } catch (e: TumtumApi.ApiException) {
+                                if (e.code == 401) R.string.form_name_expired else R.string.form_name_failed
+                            } catch (e: java.io.IOException) {
+                                R.string.form_name_offline
+                            }
                         }
                     }
                 },
@@ -202,12 +219,29 @@ fun SettingsScreen(nav: NavHostController) {
                 )
             }
             Spacer(Modifier.height(8.dp))
-            // O @ é fixo: escolhido uma vez na criação da conta, não muda mais.
-            Text(
-                stringResource(R.string.settings_handle_fixed, user?.account?.username ?: ""),
-                style = TTType.Footnote,
-                color = TT.Gray45,
-            )
+            // O @ é fixo: escolhido uma vez, não muda mais — said since 28/09
+            // only over an @ the server holds. Until then it was said over
+            // whatever the phone kept, and two accounts held @fezanu.
+            val held = user?.account?.username
+            if (held != null) {
+                if (handleSaved == held) {
+                    Text(stringResource(R.string.settings_handle_saved, held), style = TTType.BodySmall, color = TT.Ink)
+                    Spacer(Modifier.height(4.dp))
+                }
+                Text(
+                    stringResource(R.string.settings_handle_fixed, held),
+                    style = TTType.Footnote,
+                    color = TT.Gray45,
+                )
+            } else {
+                // An account from before 28/09 whose @ the server does not
+                // hold — none on this phone, or the one here was refused.
+                ChooseUsername(
+                    pending = user?.account?.pendingUsername,
+                    refused = user?.account?.pendingRefused == true,
+                    onSaved = { handleSaved = it },
+                )
+            }
         }
 
         Spacer(Modifier.height(40.dp))
@@ -675,5 +709,81 @@ private fun BlockedPeople() {
                 }
             }
         else -> Text(stringResource(R.string.settings_blocked_failed), style = TTType.Footnote, color = TT.Gray45)
+    }
+}
+
+/**
+ * "Escolhe seu @" (28/09): once, for an account the server holds no @ for —
+ * made before the @ lived on the server, with none on this phone to claim or
+ * one the server refused. The same live check as the sign-up; "Salvar @"
+ * waits for the server's yes, and the server's refusal is said under the
+ * field in its own words. Once saved the field goes for good: a set @ is
+ * never editable.
+ */
+@Composable
+private fun ChooseUsername(pending: String?, refused: Boolean, onSaved: (String) -> Unit) {
+    val container = appContainer()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    // The refused name stays in the field, so the line under it says why.
+    var draft by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(pending.orEmpty()) }
+    val checker = rememberUsernameChecker(draft)
+    val status = Username.status(draft, checker.check)
+    var saving by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    Spacer(Modifier.height(18.dp))
+    Text(stringResource(R.string.settings_handle_choose_title), style = TTType.ItemTitle, color = TT.Ink)
+    Spacer(Modifier.height(6.dp))
+    Text(stringResource(R.string.settings_handle_choose_body), style = TTType.Footnote, color = TT.Gray45)
+    if (refused && pending != null) {
+        Spacer(Modifier.height(8.dp))
+        Text(stringResource(R.string.settings_handle_refused, pending), style = TTType.BodySmall, color = TT.Ink)
+    }
+    Spacer(Modifier.height(12.dp))
+    UsernameField(
+        value = draft,
+        onValueChange = {
+            if (it != draft) error = null
+            draft = it
+        },
+        checker = checker,
+    )
+    Spacer(Modifier.height(14.dp))
+    TTButton(
+        if (saving) stringResource(R.string.auth_working) else stringResource(R.string.settings_handle_save),
+        TTButtonStyle.Rose,
+        enabled = status == Username.Status.Available && !saving,
+        onDeclined = { if (!saving) error = usernameDeclined(status, checker, context) },
+        onClick = {
+            val name = draft
+            saving = true
+            error = null
+            scope.launch {
+                try {
+                    val held = container.api.setUsername(name)
+                    onSaved(held)
+                } catch (e: TumtumApi.ApiException) {
+                    error = when {
+                        (e.code == 409 || e.code == 422) && Username.isAboutUsername(e.detail) -> {
+                            checker.refused(name, e.detail)
+                            e.detail
+                        }
+                        e.code == 401 -> context.getString(R.string.settings_session_expired)
+                        else -> AuthErrors.messageFor(e, context)
+                    }
+                } catch (e: java.io.IOException) {
+                    error = context.getString(R.string.settings_handle_offline)
+                } catch (e: Exception) {
+                    error = AuthErrors.messageFor(e, context)
+                } finally {
+                    saving = false
+                }
+            }
+        },
+    )
+    error?.let {
+        Spacer(Modifier.height(10.dp))
+        Text(it, style = TTType.Body, color = TT.Rose)
     }
 }

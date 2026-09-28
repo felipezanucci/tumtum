@@ -93,8 +93,10 @@ class TumTumApp : Application() {
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
             runCatching {
                 val account = container.prefs.state.first().account ?: return@launch
-                if ('@' !in account.username) return@launch
-                val fixed = account.username.substringBefore('@').lowercase()
+                // Only a pending @ (28/09): one the server holds never has an '@' in it.
+                val pending = account.pendingUsername ?: return@launch
+                if ('@' !in pending) return@launch
+                val fixed = pending.substringBefore('@').lowercase()
                     .filter { it.isLetterOrDigit() || it == '_' }
                     .ifBlank { return@launch }
                 val fixedName = if ('@' in account.name) {
