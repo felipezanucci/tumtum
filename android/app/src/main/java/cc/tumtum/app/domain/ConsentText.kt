@@ -73,6 +73,8 @@ object ConsentText {
     fun missingFor(focus: String, granted: Map<String, Boolean>, keepingNight: Boolean = false): List<String> {
         val needed = CORE + if (keepingNight) setOf(READ_HEART_RATE, KEEP_NIGHT) else emptySet<String>()
         val others = PURPOSES.filter { it != focus && it in needed && granted[it] != true }
-        return listOf(focus) + others
+        // The asked-for key leads the list only when it is off: a key already
+        // on is not "o que falta" (b218, 28/09).
+        return (if (granted[focus] == true) emptyList() else listOf(focus)) + others
     }
 }

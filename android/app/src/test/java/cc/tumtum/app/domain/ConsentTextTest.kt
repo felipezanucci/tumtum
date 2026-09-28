@@ -44,7 +44,21 @@ class ConsentTextTest {
     @Test
     fun `a night waiting to go up needs both keys the server takes it with`() {
         val granted = mapOf("terms" to true, "read_heart_rate" to true, "keep_night" to false)
-        assertEquals(listOf("read_heart_rate", "keep_night"), ConsentText.missingFor("read_heart_rate", granted, keepingNight = true))
-        assertEquals(listOf("read_heart_rate"), ConsentText.missingFor("read_heart_rate", granted))
+        // "Ler sua batida" is already on, so only the keeping is missing (b218).
+        assertEquals(listOf("keep_night"), ConsentText.missingFor("read_heart_rate", granted, keepingNight = true))
+        assertEquals(
+            listOf("read_heart_rate", "keep_night"),
+            ConsentText.missingFor("read_heart_rate", granted + ("read_heart_rate" to false), keepingNight = true),
+        )
+        assertEquals(emptyList<String>(), ConsentText.missingFor("read_heart_rate", granted))
+    }
+
+    @Test
+    fun `a key already on is not what is missing`() {
+        // b218, 28/09: "Conectar meu relógio" opened the screen on a key the
+        // account had granted at sign-up, framed as "O QUE FALTA".
+        val granted = mapOf("terms" to true, "read_heart_rate" to true)
+        assertEquals(emptyList<String>(), ConsentText.missingFor("read_heart_rate", granted))
+        assertEquals(listOf("keep_night"), ConsentText.missingFor("keep_night", granted))
     }
 }
