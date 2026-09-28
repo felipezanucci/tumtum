@@ -23,9 +23,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -60,7 +64,6 @@ import cc.tumtum.app.data.api.ServerSeries
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.export.CardRenderer
 import cc.tumtum.app.export.CardSticker
-import cc.tumtum.app.export.ShareGrid
 import cc.tumtum.app.export.ShareTargets
 import cc.tumtum.app.export.VideoCard
 import cc.tumtum.app.export.VideoFrame
@@ -728,14 +731,21 @@ private fun DoneActions(
 }
 
 /**
- * The destinations (#60): the networks on this phone, each by its own best
- * road, then the card alone to copy or save, then every other app.
+ * The destinations (#60): the event's feed, the networks on this phone, each
+ * by its own best road, then the card alone to copy or save, then every other
+ * app.
  *
- * **Where does this go, first** (#62, Felipe 24/09). The networks are TumTum
- * Pink with black type, and equal among themselves — Spotify's row does not
- * rank them either. Copiar, Salvar and Mais apps sit beneath as small
- * outlined chips: they are the way out for everything else, not the answer.
- * The networks sit two to a row and never beside a hole ([ShareGrid], #61).
+ * **Where does this go, first** (#62, Felipe 24/09). Until 28/09 every network
+ * was a TumTum Pink button, two to a row (ShareGrid, #61): seven Pink
+ * buttons on one screen, which Felipe called *"muito grosseiro"* with b222 in
+ * his hand — and which broke the one-Pink-button rule (#41, 22/09) on the
+ * screen that most needs a landing point for the eye. Now the feed is the
+ * one Pink button, the only destination that is TumTum's own, and the
+ * networks are a row of their own marks — white circles, the mark in black,
+ * the name under it — the way Spotify's and Strava's share rows read.
+ * Equal among themselves, in the order they always had. Copiar, Salvar and
+ * Mais apps sit beneath as small outlined chips: the way out for everything
+ * else, not the answer.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -769,44 +779,64 @@ private fun ShareChoices(
         Spacer(Modifier.height(6.dp))
         Text(feedClosedText(feedClosed), style = TTType.BodySmall, color = TT.Gray45)
     }
-    Spacer(Modifier.height(8.dp))
-    // The networks on this phone. Status comes right after WhatsApp (#63), so
-    // on most phones the two share a row.
+    Spacer(Modifier.height(14.dp))
+    // The networks on this phone. Status comes right after WhatsApp (#63) and
+    // wears the same mark, so its name under it is what tells the two apart.
     val networks = buildList {
-        if (hasInstagram) add(ShareTo.Instagram to stringResource(R.string.card_share_instagram))
-        if (hasFacebook) add(ShareTo.Facebook to stringResource(R.string.card_share_facebook))
-        if (hasSnapchat) add(ShareTo.Snapchat to stringResource(R.string.card_share_snapchat))
-        if (hasTiktok) add(ShareTo.TikTok to stringResource(R.string.card_share_tiktok))
+        if (hasInstagram) {
+            add(ShareNetwork(ShareTo.Instagram, R.drawable.ic_brand_instagram, stringResource(R.string.card_share_instagram)))
+        }
+        if (hasFacebook) {
+            add(ShareNetwork(ShareTo.Facebook, R.drawable.ic_brand_facebook, stringResource(R.string.card_share_facebook)))
+        }
+        if (hasSnapchat) {
+            add(ShareNetwork(ShareTo.Snapchat, R.drawable.ic_brand_snapchat, stringResource(R.string.card_share_snapchat)))
+        }
+        if (hasTiktok) {
+            add(ShareNetwork(ShareTo.TikTok, R.drawable.ic_brand_tiktok, stringResource(R.string.card_share_tiktok)))
+        }
         if (hasWhatsapp) {
-            add(ShareTo.WhatsApp to stringResource(R.string.card_share_whatsapp))
-            add(ShareTo.WhatsAppStatus to stringResource(R.string.card_share_whatsapp_status))
+            add(ShareNetwork(ShareTo.WhatsApp, R.drawable.ic_brand_whatsapp, stringResource(R.string.card_share_whatsapp)))
+            add(
+                ShareNetwork(
+                    ShareTo.WhatsAppStatus,
+                    R.drawable.ic_brand_whatsapp,
+                    stringResource(R.string.card_share_status_short),
+                    spoken = stringResource(R.string.card_share_whatsapp_status),
+                ),
+            )
         }
     }
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        // Whether each label fits in half a row is measured, not guessed: a
-        // label that wrapped would sit on two lines inside a 56 dp button.
-        val measurer = rememberTextMeasurer()
-        val half = with(LocalDensity.current) { ((maxWidth - 8.dp) / 2 - 12.dp).toPx() }
-        val fits = networks.map { (_, label) -> measurer.measure(label, TTType.Button).size.width <= half }
-        Column {
-            ShareGrid.rows(fits).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    row.forEach { i ->
-                        val (target, label) = networks[i]
-                        TTButton(
-                            label,
-                            TTButtonStyle.Rose,
-                            enabled = !busy,
-                            onClick = { onPick(target) },
-                            modifier = Modifier.weight(1f),
-                        )
+    if (networks.isNotEmpty()) {
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            // One row when they fit, otherwise rows as even as the count allows
+            // (six on a narrow phone are three and three, never five and one).
+            // A cell is as wide as its widest name, measured, not guessed: a
+            // name that wrapped would sit on two lines under its mark.
+            val measurer = rememberTextMeasurer()
+            val density = LocalDensity.current
+            val widest = networks.maxOf { measurer.measure(it.label, TTType.MetaSmall).size.width }
+            val cell = maxOf(ShareIconSize, with(density) { widest.toDp() })
+            val gap = 6.dp
+            val fit = ((maxWidth + gap) / (cell + gap)).toInt().coerceIn(1, networks.size)
+            val rows = (networks.size + fit - 1) / fit
+            val perRow = (networks.size + rows - 1) / rows
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                networks.chunked(perRow).forEach { row ->
+                    Row(Modifier.fillMaxWidth()) {
+                        row.forEach { network ->
+                            ShareIcon(network, enabled = !busy, modifier = Modifier.weight(1f)) {
+                                onPick(network.target)
+                            }
+                        }
+                        // The last row keeps the columns of the one above it.
+                        repeat(perRow - row.size) { Spacer(Modifier.weight(1f)) }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
             }
         }
+        Spacer(Modifier.height(14.dp))
     }
-    Spacer(Modifier.height(4.dp))
     // The card alone, and every other app: quieter, and wrapping onto a second
     // line on a narrow phone rather than squeezing a label onto two.
     FlowRow(
@@ -859,5 +889,48 @@ private fun QuietChoice(text: String, enabled: Boolean, onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(text, style = TTType.Button.copy(fontSize = 14.sp), color = TT.Paper, maxLines = 1)
+    }
+}
+
+/** A network on the share screen: where it goes, its mark, its name, and the name said aloud. */
+private data class ShareNetwork(
+    val target: ShareTo,
+    val icon: Int,
+    val label: String,
+    val spoken: String? = null,
+)
+
+private val ShareIconSize = 56.dp
+
+/**
+ * A network as its own mark (28/09): a white circle on the black canvas, the
+ * mark in black at its own 1:1, the name under it. Like [TTButton] it never
+ * fades; while a share is being prepared a tap is swallowed, and the status
+ * line under the choices already says why.
+ */
+@Composable
+private fun ShareIcon(network: ShareNetwork, enabled: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            Modifier.size(ShareIconSize).clip(CircleShape).background(TT.Paper),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(network.icon),
+                // "Status" alone would not say whose status; the WhatsApp mark
+                // on it is not read aloud.
+                contentDescription = network.spoken,
+                tint = TT.Ink,
+                modifier = Modifier.size(26.dp),
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(network.label, style = TTType.MetaSmall, color = TT.Gray45, maxLines = 1, softWrap = false)
     }
 }

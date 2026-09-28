@@ -958,6 +958,28 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-28 (noite, 4) — Ícones no lugar de sete botões, e o FEED abre nos posts
+
+**Felipe, on b222:** *"os botões das redes sociais, eu tô achando um pouco
+grosseiro"* — seven Pink buttons on the share screen — and *"eu só consigo ver
+o feed do evento quando eu volto pro feed e clico em cima do evento"*.
+
+**Decided.** The share screen keeps **one** Pink button, "Feed do evento"
+(the 22/09 rule, #41, which the screen had been breaking sevenfold), and the
+networks become round white buttons with each brand's own mark in black —
+the official shapes from simple-icons (CC0), never redrawn or stretched,
+tinted only black or white as every one of those brands allows — with the
+name under each, because WhatsApp and its Status share a mark. Copiar,
+Salvar and Mais apps are one quiet line. And the FEED tab opens **on the
+posts** (Felipe chose this over a highlighted list): a strip of event chips
+on top, the rolling one selected — else the newest with a night of this
+account, else the newest that has started — and the event's feed under it.
+`EventFeedScreen` became `EventFeedBody(embedded)`, one implementation for
+the tab and for the deep links. Known: an embedded empty feed can put a
+Pink button under a Pink chip; to look at in a hand.
+
+---
+
 ## 2026-09-28 (noite, 3) — O @ com dono, e o nome que só o celular sabia
 
 **Decided.** Felipe chose to build the @ for real rather than hide it

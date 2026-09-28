@@ -202,17 +202,15 @@
 
     <!-- b6 · Feed do evento -->
     <string name="event_feed_back">← FEED</string>
-    <!-- b5 · A primeira tela: os rolês. Não existe feed de amigos — o feed é
-         por evento (22/09), para que só quem esteve junto converse. -->
-    <string name="feed_headline_a">ONDE A TUMTUM</string>
-    <string name="feed_headline_b">TÁ ROLANDO.</string>
-    <string name="feed_sub">Toca num evento pra ver a galera que estava lá.</string>
+    <!-- b5 · A primeira tela: o feed do evento de agora, e os outros numa
+         faixa em cima (28/09). Não existe feed de amigos — o feed é por evento
+         (22/09), para que só quem esteve junto converse. -->
     <string name="feed_loading">Carregando os eventos…</string>
     <!-- "Nada aqui" e "não consegui perguntar" são frases diferentes. -->
     <string name="feed_empty">Nenhum evento cadastrado ainda.</string>
     <string name="feed_failed">Não deu pra carregar os eventos. Confere a conexão e tenta de novo.</string>
+    <!-- O selo do evento que está rolando agora, na faixa do FEED. -->
     <string name="feed_row_live">ROLANDO</string>
-    <string name="feed_row_open">ABRIR</string>
 
     <!-- b6 · O feed do evento -->
     <string name="event_feed_title_fallback">Feed</string>
@@ -607,6 +605,8 @@
     <string name="card_share_whatsapp">WhatsApp</string>
     <!-- #63: Status by an undocumented road; the screen never claims it got there. -->
     <string name="card_share_whatsapp_status">Status do WhatsApp</string>
+    <!-- Under the WhatsApp mark on the share screen (28/09): the mark says whose, the word says which. -->
+    <string name="card_share_status_short">Status</string>
     <string name="card_share_whatsapp_status_hint">No Status do WhatsApp: se abrir a lista de conversas, toca em Meu status, lá no topo.</string>
     <string name="card_share_whatsapp_status_fallback">O WhatsApp não abriu o Status direto, então foi pras conversas. Lá, toca em Meu status, no topo.</string>
     <string name="card_share_facebook">Facebook</string>
