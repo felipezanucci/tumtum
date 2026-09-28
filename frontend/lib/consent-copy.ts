@@ -51,8 +51,16 @@ export function isConsentPurpose(value: unknown): value is ConsentPurpose {
 export interface PurposeCopy {
   title: string
   description: string
-  /** What turning it off costs, said plainly. Only where it costs something. */
+  /**
+   * What turning it off costs, said plainly. Only where it costs something.
+   * Shown as its own line under the description, after `withoutPrefix`.
+   */
   without?: string
+  /**
+   * The line under the switch once it is saved off, and for as long as it
+   * stays off: where being off has consequences a person must keep seeing.
+   */
+  offNotice?: string
 }
 
 export interface ConsentCopy {
@@ -66,6 +74,12 @@ export interface ConsentCopy {
   optionalTag: string
   /** Under the Terms once accepted: they are withdrawn by deleting the account. */
   lockedNote: string
+  /** Before the `without` line: "Desligada: …". */
+  withoutPrefix: string
+  /** Under a switch just saved on. */
+  grantedNotice: string
+  /** Under a switch just saved off, when the purpose has no `offNotice`. */
+  revokedNotice: string
   save: string
   saving: string
   saved: string
@@ -99,6 +113,7 @@ export const CONSENT_PT: ConsentCopy = {
       description:
         'A TumTum lê seus batimentos na janela dos eventos que você ativar e encontra seus momentos.',
       without: 'Sem isso, nenhuma noite é gravada.',
+      offNotice: 'Desligado. Nenhuma noite nova é gravada.',
     },
     keep_night: {
       title: 'Guardar minhas noites',
@@ -106,6 +121,8 @@ export const CONSENT_PT: ConsentCopy = {
         'Sua noite (as leituras e os momentos) fica guardada na sua coleção, nos servidores da TumTum, pra você rever e fazer cards.',
       without:
         'Nenhuma noite nova sobe pra TumTum, e as que já subiram são apagadas do servidor em até 24 horas. Elas continuam só no seu celular.',
+      offNotice:
+        'Desligado. Suas noites guardadas saem do servidor em até 24 horas e continuam no seu celular.',
     },
     crowd_stats: {
       title: 'Entrar na estatística da galera',
@@ -131,6 +148,9 @@ export const CONSENT_PT: ConsentCopy = {
   requiredTag: 'Necessário',
   optionalTag: 'Opcional',
   lockedNote: 'Aceito. Pra retirar esse aceite, apague a conta.',
+  withoutPrefix: 'Desligada:',
+  grantedNotice: 'Ligado.',
+  revokedNotice: 'Desligado.',
   save: 'Salvar minhas escolhas',
   saving: 'Salvando…',
   saved: 'Pronto. Suas escolhas estão salvas.',
@@ -167,6 +187,7 @@ export const CONSENT_EN: ConsentCopy = {
       description:
         'TumTum reads your heartbeat in the window of the events you activate and finds your moments.',
       without: 'Without this, no night is recorded.',
+      offNotice: 'Off. No new night is recorded.',
     },
     keep_night: {
       title: 'Keep my nights',
@@ -174,6 +195,7 @@ export const CONSENT_EN: ConsentCopy = {
         'Your night (the readings and the moments) is kept in your collection, on TumTum’s servers, so you can relive it and make cards.',
       without:
         'No new night is uploaded to TumTum, and the ones already uploaded are deleted from the server within 24 hours. They stay only on your phone.',
+      offNotice: 'Off. Your kept nights leave the server within 24 hours and stay on your phone.',
     },
     crowd_stats: {
       title: 'Count me in the crowd statistics',
@@ -198,6 +220,9 @@ export const CONSENT_EN: ConsentCopy = {
   requiredTag: 'Required',
   optionalTag: 'Optional',
   lockedNote: 'Accepted. To withdraw it, delete the account.',
+  withoutPrefix: 'When off:',
+  grantedNotice: 'On.',
+  revokedNotice: 'Off.',
   save: 'Save my choices',
   saving: 'Saving…',
   saved: 'Done. Your choices are saved.',

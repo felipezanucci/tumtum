@@ -205,6 +205,88 @@ describe('the web session', () => {
     expect(local).toEqual({})
   })
 
+  describe('when the session ends (28/09)', () => {
+    let assign: ReturnType<typeof vi.fn>
+
+    function onPage(pathname: string) {
+      assign = vi.fn()
+      vi.stubGlobal('window', {
+        localStorage: fakeStorage(local),
+        sessionStorage: fakeStorage(tab),
+        location: { pathname, assign },
+      })
+    }
+
+    it('signs out and goes to /login?motivo=sessao when the cookie refuses the renewal', async () => {
+      onPage('/profile')
+      const api = await freshApi()
+      api.storeTokens({ access_token: 'stale' })
+      answer(401, { detail: 'Token inválido ou expirado' })
+      answer(401, { detail: 'Sua sessão terminou. Entre de novo.' })
+
+      const failure = await api.users.getProfile().catch((err: unknown) => err)
+
+      expect(failure).toBeInstanceOf(api.ApiError)
+      expect((failure as Error).message).toBe('Sua sessão terminou. Entra de novo.')
+      expect((failure as Error).message).not.toContain('Token')
+      expect(api.currentAccessToken()).toBeNull()
+      expect(tab).toEqual({})
+      expect(assign).toHaveBeenCalledTimes(1)
+      expect(assign).toHaveBeenCalledWith('/login?motivo=sessao')
+    })
+
+    it('does the same when even the renewed token is refused', async () => {
+      onPage('/sessions')
+      const api = await freshApi()
+      api.storeTokens({ access_token: 'stale' })
+      answer(401, { detail: 'Token inválido ou expirado' })
+      answer(200, { access_token: 'fresh', token_type: 'bearer', refresh_token: null })
+      answer(401, { detail: 'Token inválido ou expirado' })
+
+      await expect(api.auth.me()).rejects.toThrow('Sua sessão terminou. Entra de novo.')
+      expect(api.currentAccessToken()).toBeNull()
+      expect(assign).toHaveBeenCalledWith('/login?motivo=sessao')
+    })
+
+    it('keeps the session when the 401 after a renewal is a wrong password', async () => {
+      onPage('/profile')
+      const api = await freshApi()
+      api.storeTokens({ access_token: 'stale' })
+      answer(401, { detail: 'Senha incorreta' })
+      answer(200, { access_token: 'fresh', token_type: 'bearer', refresh_token: null })
+      answer(401, { detail: 'Senha incorreta' })
+
+      await expect(api.users.deleteAccount('errada')).rejects.toThrow('Senha incorreta')
+      expect(api.currentAccessToken()).toBe('fresh')
+      expect(assign).not.toHaveBeenCalled()
+    })
+
+    it('never shows the raw token text when the renewal could not be asked', async () => {
+      onPage('/profile')
+      const api = await freshApi()
+      api.storeTokens({ access_token: 'stale' })
+      answer(401, { detail: 'Token inválido ou expirado' })
+      answers.push(() => {
+        throw new TypeError('offline')
+      })
+
+      const failure = await api.auth.me().catch((err: unknown) => err)
+      expect((failure as Error).message).not.toContain('Token inválido')
+      expect(assign).not.toHaveBeenCalled()
+    })
+
+    it('does not send someone already on the login page back to it', async () => {
+      onPage('/login')
+      const api = await freshApi()
+      api.storeTokens({ access_token: 'stale' })
+      answer(401, { detail: 'Token inválido ou expirado' })
+      answer(401, {})
+
+      await expect(api.auth.me()).rejects.toThrow('Sua sessão terminou. Entra de novo.')
+      expect(assign).not.toHaveBeenCalled()
+    })
+  })
+
   it('sends everything else straight to the API with the bearer token', async () => {
     const api = await freshApi()
     api.storeTokens({ access_token: 'bearer-1' })

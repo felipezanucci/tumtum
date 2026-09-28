@@ -18,7 +18,6 @@ act, never derived from a night that happens to exist, and it can be taken
 down — the undo without which the consent is not real.
 """
 
-import html
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -47,8 +46,8 @@ from app.schemas.feed import (
 )
 from app.services import consents, moderation
 from app.services.crowd import collective_moments
-from app.services.email import EmailNotConfigured, send_email
 from app.services.event_window import aware
+from app.services.operator_mail import tell_operators
 
 router = APIRouter(prefix="/api/events", tags=["feed"])
 
@@ -102,6 +101,13 @@ async def was_there(db: AsyncSession, user_id: uuid.UUID, event_id: uuid.UUID) -
     return result.scalar_one_or_none() is not None
 
 
+NOT_THERE = "Esse feed é de quem estava lá. Sua noite não chegou aqui."
+TOO_FEW_READINGS = (
+    "Sua noite chegou, mas tem pouca batida medida no horário do evento pra "
+    "abrir o feed. Precisa de pelo menos um minuto."
+)
+
+
 async def require_attendance(
     event_id: uuid.UUID,
     user: User = Depends(get_current_user),
@@ -111,13 +117,20 @@ async def require_attendance(
 
     A 403 and not a 404: the event exists and the honest answer is "not with
     this account". The screen says that in those words rather than showing an
-    empty feed, because an empty state is a claim about the world.
+    empty feed, because an empty state is a claim about the world — and so is
+    "sua noite não chegou aqui" said to someone whose night did arrive and
+    was only too short to count (28/09). The two get their own sentence.
     """
     await _event_or_404(db, event_id)
     if not await was_there(db, user.id, event_id):
+        uploaded = await db.execute(
+            select(HRSession.id)
+            .where(HRSession.user_id == user.id, HRSession.event_id == event_id)
+            .limit(1)
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Esse feed é de quem estava lá. Sua noite não chegou aqui.",
+            detail=TOO_FEW_READINGS if uploaded.scalar_one_or_none() else NOT_THERE,
         )
     return user
 
@@ -627,31 +640,12 @@ async def report(db: AsyncSession, post: EventPost, user: User, reason: str | No
 
 async def _tell_operators(db: AsyncSession, post: EventPost) -> None:
     """An e-mail to every operator, when e-mail is configured. Never blocks the report."""
-    if not settings.admins:
-        return
     event = await _event_or_404(db, post.event_id)
-    link = f"{settings.site_url}/admin/denuncias"
-    text = (
-        f"Um post no feed de “{event.name}” foi denunciado.\n\nVeja e decida em {link}"
+    await tell_operators(
+        subject="TumTum · denúncia no feed",
+        sentence=f"Um post no feed de “{event.name}” foi denunciado.",
+        path="/admin/denuncias",
     )
-    # The event's name is escaped for the HTML part: it is text an operator
-    # typed, and markup in it would otherwise be markup in the operators' mail.
-    markup = (
-        f"<p>Um post no feed de “{html.escape(event.name)}” foi denunciado.</p>"
-        f'<p>Veja e decida em <a href="{html.escape(link)}">{html.escape(link)}</a></p>'
-    )
-    for to in settings.admins:
-        try:
-            await send_email(
-                to=to,
-                subject="TumTum · denúncia no feed",
-                html=markup,
-                text=text,
-            )
-        except EmailNotConfigured:
-            return
-        except Exception:  # a mail outage must not undo a report
-            continue
 
 
 @router.post("/{event_id}/feed/{post_id}/block", status_code=status.HTTP_204_NO_CONTENT)

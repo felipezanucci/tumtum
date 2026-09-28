@@ -171,6 +171,35 @@ def require_consent(purpose: str):
     return dependency
 
 
+def require_consents(*purposes: str):
+    """A dependency: the signed-in person, if every one of `purposes` is granted.
+
+    Checked in the order given, and the 403 names the first one missing, so
+    the app opens the consent screen on the purpose the act needs first
+    (28/09: a night was recorded and offered for upload on an account that
+    had never granted `read_heart_rate` — `keep_night` alone was checked).
+    """
+    from app.services.consents import PURPOSES
+
+    for purpose in purposes:
+        if purpose not in PURPOSES:
+            raise ValueError(f"unknown consent purpose: {purpose}")
+
+    async def dependency(
+        user=Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ):
+        from app.services import consents
+
+        for purpose in purposes:
+            if not await consents.active(db, user.id, purpose):
+                raise ConsentRequired(purpose)
+        return user
+
+    dependency.__name__ = "require_consents_" + "_".join(purposes)
+    return dependency
+
+
 def client_of(request: Request | None) -> str | None:
     """The `X-Tumtum-Client` header — `android/<versionCode>` or `web/<commit>`.
 

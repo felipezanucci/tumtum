@@ -54,6 +54,49 @@ function isGenericAuthFailure(detail: unknown): boolean {
   return text === '' || text === 'not authenticated' || text === 'erro desconhecido'
 }
 
+/**
+ * Whether a 401 is the API refusing the token itself — "Token inválido ou
+ * expirado", "Token inválido", "Usuário não encontrado" (the account is gone)
+ * — rather than a reason a person can act on, like a wrong password. These
+ * texts are the server talking to itself: they are never put on a screen.
+ */
+function isTokenFailure(detail: unknown): boolean {
+  if (isGenericAuthFailure(detail)) return true
+  const text = String(detail).trim().toLowerCase()
+  return text.startsWith('token inválido') || text === 'usuário não encontrado'
+}
+
+// --- The end of a session (28/09) ---
+//
+// Felipe saw "Token inválido ou expirado" on a page: the refresh had been
+// refused, and the page printed the 401 it was left with. A session that is
+// over is now one decision, made here for every request: the tab forgets the
+// token and goes to the login page, which says why. A full navigation, not a
+// router push, so no store keeps a name, a night or a consent of the account
+// that just ended — signed out, the page is nobody's.
+
+/** What a person reads when the session is over. */
+export const SESSION_ENDED_MESSAGE = 'Sua sessão terminou. Entra de novo.'
+
+/** Where a session that ended sends the person; the login page reads `motivo`. */
+export const SESSION_ENDED_HREF = '/login?motivo=sessao'
+
+let endingSession = false
+
+/**
+ * The session is over: forget the token and go to the login page. Once per
+ * page load, however many requests fail together, and never from the login
+ * page itself.
+ */
+export function endSession(): void {
+  clearTokens()
+  if (typeof window === 'undefined' || endingSession) return
+  const location = window.location
+  if (!location || location.pathname?.startsWith('/login')) return
+  endingSession = true
+  location.assign(SESSION_ENDED_HREF)
+}
+
 // --- The session (#34, 22/09; cookie since 26/09) ---
 //
 // The access token lasts an hour; the refresh token renews it and lasts 90
@@ -198,11 +241,11 @@ async function callRefresh(legacyRefresh?: string): Promise<RefreshOutcome> {
  * one — renewed here or, while this call waited for the lock, by another
  * request of this tab.
  */
-async function renew(spent: string | null): Promise<boolean> {
+async function renew(spent: string | null): Promise<RefreshOutcome> {
   return withRenewLock(async () => {
     const held = currentAccessToken()
-    if (held && held !== spent) return true // renewed while we waited
-    return (await callRefresh()) === 'renewed'
+    if (held && held !== spent) return 'renewed' // renewed while we waited
+    return callRefresh()
   })
 }
 
@@ -307,12 +350,28 @@ async function send(
   // An hour-old access token is routine now, not an ending: renew once and
   // ask again. Only a request that carried a token is retried — a 401 on
   // /login is a wrong password, not an expired session.
-  if (response.status === 401 && token && !retried && (await renew(token))) {
-    return send(path, options, true)
+  let renewal: RefreshOutcome | null = null
+  if (response.status === 401 && token && !retried) {
+    renewal = await renew(token)
+    if (renewal === 'renewed') return send(path, options, true)
   }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ detail: 'Erro desconhecido' }))
+    // A signed-in request refused, and the refresh refused too — or the fresh
+    // token refused as well: the session is over (28/09). A wrong password
+    // after a renewal is not a token failure and falls through untouched.
+    if (response.status === 401 && token && !makesSession(path)) {
+      const refused = renewal === 'refused'
+      if (refused || (retried && isTokenFailure(body.detail))) {
+        endSession()
+        throw new ApiError(401, SESSION_ENDED_MESSAGE)
+      }
+      if (renewal === 'unreachable' && isTokenFailure(body.detail)) {
+        // The session may well be alive; the server that renews it did not answer.
+        throw new ApiError(0, 'Não deu pra renovar sua sessão agora. Tenta de novo em instantes.')
+      }
+    }
     // FastAPI answers a missing or expired token with the English string
     // "Not authenticated", which reached the user verbatim and explained
     // nothing about what to do next. Only that one gets replaced: a 401 also
@@ -320,7 +379,9 @@ async function send(
     // own "Email ou senha incorretos" with a claim about an expired session —
     // telling someone who mistyped a letter to sign in again, which they were
     // already trying to do.
-    if (response.status === 401 && isGenericAuthFailure(body.detail)) {
+    // Any other token refusal gets the same sentence: "Token inválido ou
+    // expirado" is never what a screen shows (28/09).
+    if (response.status === 401 && isTokenFailure(body.detail)) {
       throw new ApiError(401, 'Sua sessão expirou. Entre na sua conta para continuar.')
     }
     if (response.status === 403 && body.code === 'consent_required') {
@@ -1254,6 +1315,38 @@ export const moderation = {
       method: 'POST',
       body: JSON.stringify({ action }),
     }),
+}
+
+// --- The encarregado's queue: data-subject requests, operator side (28/09) ---
+
+/** A request as the operator sees it: who asked, so the answer reaches them. */
+export interface AdminDataSubjectRequest extends DataSubjectRequest {
+  user_id: string
+  /** Null when the account is gone. */
+  user_email: string | null
+  user_name: string | null
+}
+
+export interface AdminRequestUpdate {
+  status: RequestStatus
+  /** Omitted leaves the saved answer as it is. */
+  answer?: string
+}
+
+export const admin = {
+  requests: {
+    /** Every request, open ones first and the most urgent first. Operator only. */
+    list: () => request<AdminDataSubjectRequest[]>('/api/admin/requests'),
+
+    /** Answer, close or reopen one. Answers with the request as it now is. */
+    answer: (id: string, update: AdminRequestUpdate) =>
+      request<AdminDataSubjectRequest>(`/api/admin/requests/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(
+          update.answer === undefined ? { status: update.status } : { status: update.status, answer: update.answer },
+        ),
+      }),
+  },
 }
 
 // --- Series: the tour, club or championship above one event (#33, 22/09) ---

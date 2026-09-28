@@ -38,6 +38,7 @@ from app.services.access_log import record_access
 from app.services.account_deletion import delete_account
 from app.services.age import UNDER_AGE, is_adult, today_local
 from app.services.email import EmailNotConfigured, send_email
+from app.services.operator_mail import tell_operators
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -121,7 +122,8 @@ async def update_profile(
             )
         user.birth_date = body.birth_date
     if body.name is not None:
-        user.name = body.name
+        # One space between words, none around them — as at sign-up.
+        user.name = " ".join(body.name.split()) or user.name
     if body.avatar_url is not None:
         user.avatar_url = str(body.avatar_url)
     await db.flush()
@@ -233,6 +235,15 @@ async def my_sharing(
 # statement; used for every kind, so no request waits longer than the
 # longest the law allows).
 REQUEST_DUE = timedelta(days=15)
+# How a kind reads in a mail to the operators.
+REQUEST_KIND_NAMES = {
+    "access": "acesso",
+    "portability": "portabilidade",
+    "correction": "correção",
+    "deletion": "exclusão",
+    "revocation": "revogação",
+    "other": "outro tipo",
+}
 
 
 @router.post(
@@ -256,6 +267,16 @@ async def open_request(
     )
     db.add(row)
     await db.flush()
+    # The queue has a deadline the law counts (15 days); a mail is what makes
+    # somebody open it in time (28/09). The mail never blocks the request.
+    await tell_operators(
+        subject="TumTum · pedido ao encarregado",
+        sentence=(
+            f"Um pedido de {REQUEST_KIND_NAMES.get(body.kind, body.kind)} chegou "
+            f"e vence em {REQUEST_DUE.days} dias."
+        ),
+        path="/admin/pedidos",
+    )
     return row
 
 
@@ -296,6 +317,27 @@ def _email_change_mail(code: str) -> tuple[str, str, str]:
         f"Ele vale por {minutes} minutos.\n\n"
         "Se não foi você que pediu, é só ignorar este e-mail — "
         "nada muda sem o código."
+    )
+    return subject, html, text
+
+
+def _email_changed_mail(old_address: str, new_address: str) -> tuple[str, str, str]:
+    """Subject, HTML and text of the notice sent to the OLD address."""
+    subject = "O e-mail da sua conta na TumTum mudou"
+    reach = settings.email_reply_to
+    html = (
+        f"<p>O e-mail da sua conta na TumTum mudou de <b>{old_address}</b> "
+        f"para <b>{new_address}</b>.</p>"
+        "<p>Se foi você, não precisa fazer nada.</p>"
+        f"<p>Se não foi, responde este e-mail ou escreve pra {reach} com o "
+        'assunto "Privacidade", deste endereço, que a gente trava a conta.</p>'
+    )
+    text = (
+        f"O e-mail da sua conta na TumTum mudou de {old_address} para "
+        f"{new_address}.\n\n"
+        "Se foi você, não precisa fazer nada.\n\n"
+        f"Se não foi, responde este e-mail ou escreve pra {reach} com o "
+        'assunto "Privacidade", deste endereço, que a gente trava a conta.'
     )
     return subject, html, text
 
@@ -458,10 +500,19 @@ async def confirm_email_change(
         await db.commit()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=EMAIL_TAKEN)
 
+    old_address = user.email
     user.email = pending.new_email
     await refresh_tokens.revoke_all(db, user.id)
     revoke_access_tokens(user)
     await db.flush()
+    # The old address learns the change (28/09): if it was not this person,
+    # it is the one place they can still be reached. Best effort — the change
+    # is done, and a mail outage must not undo it.
+    subject, html, text = _email_changed_mail(old_address, pending.new_email)
+    try:
+        await send_email(to=old_address, subject=subject, html=html, text=text)
+    except (EmailNotConfigured, httpx.HTTPError) as error:
+        traceback.print_exception(error)
     return await _profile(db, user)
 
 

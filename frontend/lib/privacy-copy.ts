@@ -13,8 +13,8 @@
  * and the LGPD remediation contract of 26/09 — its retention windows, its
  * crowd thresholds and its list of operators are quoted here as promises.
  *
- * The controller's legal name and CNPJ do not exist yet; the bracketed
- * placeholder is deliberate and visible until Felipe fills it in.
+ * TumTum has no CNPJ yet, so the controller is named as what he is: Felipe
+ * Zanucci, an individual, until there is a company to name (28/09).
  */
 
 export interface PrivacyCopy {
@@ -42,7 +42,7 @@ export const PRIVACY_PT: PrivacyCopy = {
     {
       heading: 'Quem cuida dos seus dados',
       paragraphs: [
-        'Controlador: TumTum (Felipe Zanucci, São Paulo, SP) — [CONTROLADOR — preencher razão social e CNPJ].',
+        'Controlador: Felipe Zanucci, pessoa física, São Paulo, SP. Até a TumTum ter CNPJ, ele responde como controlador.',
         'Encarregado pelo tratamento de dados pessoais: fale pelo e-mail oi@tumtum.cc, com o assunto "Privacidade". É o canal para qualquer pedido desta página.',
       ],
     },
@@ -71,7 +71,7 @@ export const PRIVACY_PT: PrivacyCopy = {
         'Seus consentimentos: cada sim e cada não, com a data e a versão do texto que você leu.',
         'Seus pedidos ao encarregado, e as respostas.',
         'Registros de acesso: endereço IP, data e hora, e a rota pedida ao servidor.',
-        'Na lista de espera do site: só o e-mail.',
+        'Na lista de espera do site: o e-mail e, se você preencheu, nome e sobrenome.',
       ],
     },
     {
@@ -148,17 +148,17 @@ export const PRIVACY_PT: PrivacyCopy = {
         'A TumTum usa estes serviços (operadores), contratados para tratar dados estritamente em nome dela, sob as instruções dela e com obrigações de proteção de dados, para operar e proteger o serviço:',
       ],
       items: [
-        'Railway: servidores e banco de dados. Região: a confirmar.',
-        'Vercel: hospeda o site. Região: a confirmar.',
-        'Resend: envia os e-mails (código de cadastro, troca de senha e de e-mail). Região: a confirmar.',
-        'Sentry: recebe erros técnicos quando algo quebra, sem o corpo das requisições — ou seja, sem seus batimentos. Região: a confirmar.',
+        'Railway: servidores e banco de dados.',
+        'Vercel: hospeda o site.',
+        'Resend: envia os e-mails (código de cadastro, troca de senha e de e-mail).',
+        'Sentry, só quando estiver ligado (hoje não está): receberia erros técnicos quando algo quebra, sem o corpo das requisições — ou seja, sem seus batimentos.',
       ],
     },
     {
       heading: 'Dados fora do Brasil',
       paragraphs: [
-        'Seus dados podem ser hospedados fora do Brasil pelos operadores citados acima. Quando isso acontece, a transferência é feita com garantias contratuais de proteção compatíveis com a LGPD.',
-        'A equipe da TumTum acessa dados individuais só para resolver um problema que você reportou, verificar um erro técnico ou moderar uma denúncia. Cada acesso a dados de batimento fica registrado.',
+        'Seus dados podem ficar em servidores fora do Brasil, nos operadores citados acima. Quando isso acontece, a transferência se apoia nas cláusulas-padrão de transferência internacional que esses operadores publicam em seus contratos de tratamento de dados.',
+        'A equipe da TumTum acessa dados individuais só para resolver um problema que você reportou, verificar um erro técnico ou moderar uma denúncia. Cada acesso a dados de batimento feito pelo app ou pelo site fica registrado, com quem acessou e quando. Consultas diretas ao banco, que só quem administra o servidor pode fazer, não passam por esse registro.',
       ],
     },
     {
@@ -171,10 +171,10 @@ export const PRIVACY_PT: PrivacyCopy = {
         'Cadastro não confirmado: 24 horas.',
         'Lista de espera: até você pedir pra sair.',
         'Consentimentos e pedidos ao encarregado: enquanto a conta existir, pra provar o que você escolheu e o que pediu.',
-        'Cópias de segurança do banco: existem só pra recuperar o serviço num desastre e saem sozinhas quando expiram (prazo a confirmar). Não são usadas pra trazer de volta o que você apagou.',
+        'As cópias de segurança do banco expiram sozinhas, no prazo da nossa política de retenção, e não são usadas pra trazer de volta o que você apagou.',
       ],
       paragraphs: [
-        'Cada tipo de dado tem seu prazo. Apagou a conta, tudo sai do app e do servidor na hora, e das cópias de segurança quando elas expiram: fica só o registro de que uma conta foi apagada, com a data e nada que identifique você.',
+        'Cada tipo de dado tem seu prazo. Apagou a conta, tudo sai do app e do servidor na hora, e das cópias de segurança quando elas expiram. Ficam três coisas: um registro de que uma conta foi apagada, só com a data; os registros de acesso (endereço IP, data e conta), que a lei manda guardar por até 180 dias; e uma marca codificada do e-mail e do id da conta, que ninguém consegue ler, guardada por 400 dias só pra impedir que uma cópia de segurança restaurada traga a conta de volta.',
       ],
     },
     {
@@ -230,7 +230,7 @@ export const PRIVACY_EN: PrivacyCopy = {
     {
       heading: 'Who looks after your data',
       paragraphs: [
-        'Controller: TumTum (Felipe Zanucci, São Paulo, Brazil) — [CONTROLADOR — preencher razão social e CNPJ].',
+        'Controller: Felipe Zanucci, an individual, São Paulo, Brazil. Until TumTum has a CNPJ, he is the controller.',
         'Data protection officer (encarregado): write to oi@tumtum.cc with the subject "Privacidade". It is the channel for every request on this page.',
       ],
     },
@@ -259,7 +259,7 @@ export const PRIVACY_EN: PrivacyCopy = {
         'Your consents: every yes and every no, with the date and the version of the text you read.',
         'Your requests to the data protection officer, and the answers.',
         'Access logs: IP address, date and time, and the path requested from the server.',
-        'On the site waitlist: only the email.',
+        'On the site waitlist: the email and, if you filled them in, your first and last name.',
       ],
     },
     {
@@ -336,17 +336,17 @@ export const PRIVACY_EN: PrivacyCopy = {
         'TumTum uses these services (processors), contracted to handle data strictly on its behalf, under its instructions and with data-protection obligations, to operate and protect the service:',
       ],
       items: [
-        'Railway: servers and database. Region: to be confirmed.',
-        'Vercel: hosts the site. Region: to be confirmed.',
-        'Resend: sends the emails (sign-up code, password and email changes). Region: to be confirmed.',
-        'Sentry: receives technical errors when something breaks, without request bodies — that is, without your heartbeats. Region: to be confirmed.',
+        'Railway: servers and database.',
+        'Vercel: hosts the site.',
+        'Resend: sends the emails (sign-up code, password and email changes).',
+        'Sentry, only when it is switched on (today it is not): it would receive technical errors when something breaks, without request bodies — that is, without your heartbeats.',
       ],
     },
     {
       heading: 'Data outside Brazil',
       paragraphs: [
-        'Your data may be hosted outside Brazil by the processors above. When that happens, the transfer is made with contractual safeguards compatible with the LGPD.',
-        'The TumTum team looks at individual data only to solve a problem you reported, check a technical error or moderate a report. Every access to heart-rate data is logged.',
+        'Your data may sit on servers outside Brazil, with the processors named above. When that happens, the transfer relies on the standard international-transfer clauses those processors publish in their data processing agreements.',
+        'The TumTum team looks at individual data only to solve a problem you reported, check a technical error or moderate a report. Every access to heart-rate data made through the app or the site is logged, with who accessed it and when. Direct queries to the database, which only whoever runs the server can make, do not go through that log.',
       ],
     },
     {
@@ -359,10 +359,10 @@ export const PRIVACY_EN: PrivacyCopy = {
         'Unconfirmed sign-up: 24 hours.',
         'Waitlist: until you ask to leave.',
         'Consents and requests to the data protection officer: while the account exists, to prove what you chose and what you asked.',
-        'Database backups: they exist only to recover the service after a disaster and go by themselves when they expire (period to be confirmed). They are not used to bring back what you deleted.',
+        'Database backups expire on their own, within our retention policy, and are never used to bring back what you deleted.',
       ],
       paragraphs: [
-        'Each kind of data has its own window. Delete the account and all of it leaves the app and the server at once, and the backups when they expire: only a record that an account was deleted remains, with the date and nothing that identifies you.',
+        'Each kind of data has its own window. Delete the account and all of it leaves the app and the server at once, and the backups when they expire. Three things stay: a record that an account was deleted, with only the date; the access logs (IP address, date and account), which the law requires us to keep for up to 180 days; and an encoded mark of the email and the account id, which nobody can read, kept for 400 days only to stop a restored backup from bringing the account back.',
       ],
     },
     {

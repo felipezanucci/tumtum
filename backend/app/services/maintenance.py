@@ -1,4 +1,4 @@
-"""What the privacy policy promises about time, done once a day.
+"""What the privacy policy promises about time, done every hour.
 
 Every retention figure the policy states is enforced here, not by hand
 (LGPD audit, AL-9 and AL-8):
@@ -8,8 +8,10 @@ Every retention figure the policy states is enforced here, not by hand
   (`hr_sessions.analyzed_at`). The moments, the night's summary and its cards
   stay — they are what the night is kept for.
 - **A withdrawn `keep_night`**: when a person revokes keeping their nights
-  and has not granted it again for a day, their nights go, with everything
-  made from them. The day is the grace for a switch flipped by mistake.
+  and has not granted it again, their nights go, with everything made from
+  them — within the 24 hours the switch promises. The grace is for a switch
+  flipped by mistake; the hourly pass is what makes "em até 24 horas" true
+  (28/09: a daily pass after a 24-hour grace could take 48).
   Accounts that never answered the question (made before 26/09) are left
   alone: never having been asked is not a withdrawal, and deleting their
   nights is a decision for a person, not for a loop.
@@ -49,11 +51,13 @@ from app.services.night_deletion import delete_nights
 
 log = logging.getLogger(__name__)
 
-EVERY = timedelta(days=1)
+EVERY = timedelta(hours=1)
 # The first pass waits for the deploy to settle rather than competing with it.
 FIRST_RUN_AFTER = timedelta(minutes=2)
 EXPIRED_GRACE = timedelta(hours=24)
-REVOCATION_GRACE = timedelta(hours=24)
+# Grace plus one interval is the latest a revoked night can still be on the
+# server; the app and the policy say "em até 24 horas", so the two add up to it.
+REVOCATION_GRACE = timedelta(hours=23)
 
 
 @dataclass
@@ -156,8 +160,8 @@ async def run_and_commit() -> Report:
 
 
 async def run_forever() -> None:
-    """Once a day, for as long as the process lives. One bad pass is logged,
-    and the next day tries again."""
+    """Every hour, for as long as the process lives. One bad pass is logged,
+    and the next hour tries again."""
     await asyncio.sleep(FIRST_RUN_AFTER.total_seconds())
     while True:
         try:

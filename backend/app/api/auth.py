@@ -233,7 +233,9 @@ async def register_start(body: SignupStartRequest, db: AsyncSession = Depends(ge
     """
     now = datetime.now(UTC)
     key = codes.email_key(body.email)
-    name = body.name.strip()
+    # One space between words, none around them: "Felipe  Zanucci " is a name
+    # typed on a phone, not two people (28/09).
+    name = " ".join(body.name.split())
     if not name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Coloca seu nome."

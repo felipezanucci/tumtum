@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
 
 import {
+  ADMIN_REQUEST_KIND_LABELS,
   REQUEST_KINDS,
+  adminDueLine,
+  adminRequestKindLabel,
   REQUEST_KIND_LABELS,
   requestDueLine,
   requestKindLabel,
@@ -48,5 +51,36 @@ describe('requestDueLine', () => {
       NOW,
     )
     expect(line).toBe('Respondido em 30 de setembro de 2026')
+  })
+})
+
+describe('the operator queue', () => {
+  it('names every kind in one word', () => {
+    expect(ADMIN_REQUEST_KIND_LABELS).toEqual({
+      access: 'Acesso',
+      portability: 'Portabilidade',
+      correction: 'Correção',
+      deletion: 'Exclusão',
+      revocation: 'Revogação',
+      other: 'Outro',
+    })
+    expect(adminRequestKindLabel('novo')).toBe('novo')
+  })
+
+  it('counts the deadline in São Paulo calendar days', () => {
+    // NOW is 26/09 at 15h in São Paulo.
+    expect(adminDueLine('2026-09-29T12:00:00-03:00', NOW)).toBe('Vence em 3 dias')
+    expect(adminDueLine('2026-09-27T00:30:00-03:00', NOW)).toBe('Vence em 1 dia')
+    expect(adminDueLine('2026-09-26T23:59:00-03:00', NOW)).toBe('Vence hoje')
+    expect(adminDueLine('2026-09-25T23:00:00-03:00', NOW)).toBe('Atrasado há 1 dia')
+    expect(adminDueLine('2026-09-20T10:00:00-03:00', NOW)).toBe('Atrasado há 6 dias')
+  })
+
+  it('never says "Vence" about a deadline already past', () => {
+    expect(adminDueLine('2026-09-26T09:00:00-03:00', NOW)).toBe('Venceu hoje')
+  })
+
+  it('says it does not know rather than inventing a date', () => {
+    expect(adminDueLine('not a date', NOW)).toBe('Prazo desconhecido')
   })
 })

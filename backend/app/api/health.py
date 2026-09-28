@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import get_current_user, require_consent
+from app.core.auth import get_current_user, require_consents
 from app.core.database import get_db
 from app.models.event import Event
 from app.models.hr_data import HRData
@@ -34,8 +34,11 @@ from app.services.night_deletion import delete_nights
 
 router = APIRouter(prefix="/api/health", tags=["health"])
 
-# Keeping a night on the server is its own purpose (contract of 26/09).
-requires_keep_night = require_consent("keep_night")
+# Keeping a night on the server is its own purpose (contract of 26/09) — and a
+# night is made of readings, which needed `read_heart_rate` first (28/09: a
+# night reached this endpoint from an account that had never granted it).
+# Checked in that order, so the 403 names the consent the reading needed.
+requires_night_consents = require_consents("read_heart_rate", "keep_night")
 
 
 # --- Wearable Connections ---
@@ -115,10 +118,11 @@ async def disconnect_wearable(
 )
 async def create_hr_session(
     body: HRSessionCreateRequest,
-    user: User = Depends(requires_keep_night),
+    user: User = Depends(requires_night_consents),
     db: AsyncSession = Depends(get_db),
 ):
-    """Keep a night on the server — only with `keep_night` granted.
+    """Keep a night on the server — only with `read_heart_rate` and
+    `keep_night` granted.
 
     The upload is the act the consent is for (LGPD audit, CR-2): without the
     row, the 403 names the purpose and the app opens that consent screen.

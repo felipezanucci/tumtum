@@ -13,6 +13,7 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 
 from app.api import users as users_api
+from app.config import settings
 from app.api.admin_requests import answer_request, list_requests
 from app.api.users import (
     confirm_email_change,
@@ -411,6 +412,35 @@ async def test_a_request_is_open_with_a_fifteen_day_deadline(memdb):
 
 
 @pytest.mark.asyncio
+async def test_a_new_request_reaches_the_operators_by_mail(memdb, monkeypatch):
+    """A queue nobody is told about is a queue nobody reads (28/09)."""
+    from app.services import operator_mail
+
+    sent: list[dict] = []
+
+    async def fake_send(*, to, subject, html, text):
+        sent.append({"to": to, "subject": subject, "text": text})
+
+    monkeypatch.setattr(operator_mail, "send_email", fake_send)
+    monkeypatch.setattr(settings, "admin_emails", "op@x.cc, dpo@x.cc")
+    user = await add_user(memdb)
+    await open_request(DataSubjectRequestCreate(kind="deletion"), user, memdb)
+    assert sorted(m["to"] for m in sent) == ["dpo@x.cc", "op@x.cc"]
+    assert "exclusão" in sent[0]["text"] and "15 dias" in sent[0]["text"]
+    assert "/admin/pedidos" in sent[0]["text"]
+    assert user.email not in sent[0]["text"]  # who asked is on the page, not in mail
+
+
+@pytest.mark.asyncio
+async def test_a_name_is_one_space_between_words(memdb):
+    user = await add_user(memdb)
+    profile = await update_profile(
+        UserUpdateRequest(name="  Felipe   Zanucci "), user, memdb
+    )
+    assert profile.name == "Felipe Zanucci"
+
+
+@pytest.mark.asyncio
 async def test_the_operator_answers_and_the_read_is_logged(memdb):
     user = await add_user(memdb)
     admin = await add_user(memdb, "Op")
@@ -463,6 +493,11 @@ async def test_changing_the_email_needs_the_password_and_the_code(memdb, mailbox
     assert profile.email == "nova@x.cc"
     live = await _count(memdb, RefreshToken, RefreshToken.revoked_at.is_(None))
     assert live == 0  # every device signs in again
+    # The old address is told (28/09): if it was not this person, it is the
+    # one place they can still be reached.
+    assert mailbox[-1]["to"] == "ana@x.cc"
+    assert "nova@x.cc" in mailbox[-1]["text"]
+    assert "Privacidade" in mailbox[-1]["text"]
 
 
 @pytest.mark.asyncio

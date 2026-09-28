@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 
 import { cards, feed, users, type SharingOverview } from '@/lib/api'
 import {
@@ -14,9 +15,10 @@ import {
 import { Button } from '@/components/ui'
 
 /**
- * "Com quem seus dados estão" (LGPD art. 18 VII, 26/09): the operators that
- * hold data on TumTum's behalf, who never gets it, and everything the person
- * made public — with the undo next to each public card.
+ * "Com quem seus dados estão" (LGPD art. 18 VII, 26/09): who never gets the
+ * data, and everything the person made public — with the undo next to each
+ * public card. The operators are named in the privacy policy
+ * since 28/09: one place to keep true, and no "região a confirmar" here.
  *
  * An empty state is a claim: "Nenhum card público" is said only after the
  * server answered. A refused request says it could not ask.
@@ -123,33 +125,15 @@ export default function SharingView() {
 
   return (
     <div className="space-y-8">
-      {/* (a) Operators */}
+      {/* (a) Who processes it: the policy names them, and where (28/09). */}
       <div>
         <p className="text-sm leading-relaxed text-tumtum-muted">
-          Empresas contratadas que guardam ou processam dados em nome da TumTum, e só pra isso.
+          Quem processa seus dados em nome da TumTum está na{' '}
+          <Link href="/privacidade" className="text-tumtum-pink underline underline-offset-2">
+            Política de Privacidade
+          </Link>
+          .
         </p>
-        {data.operators.length === 0 ? (
-          <p className="mt-3 text-sm text-tumtum-muted">Nenhum operador listado.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-tumtum-border rounded-lg border border-tumtum-border">
-            {data.operators.map((op) => (
-              <li key={op.name} className="p-3">
-                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <p className="text-sm font-semibold text-tumtum-white">{op.name}</p>
-                  <p className="text-xs text-tumtum-muted">{op.role}</p>
-                </div>
-                <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-                  <dt className="text-tumtum-faint">Recebe</dt>
-                  <dd className="text-tumtum-muted">{op.what}</dd>
-                  <dt className="text-tumtum-faint">Por quê</dt>
-                  <dd className="text-tumtum-muted">{op.why}</dd>
-                  <dt className="text-tumtum-faint">Onde</dt>
-                  <dd className="text-tumtum-muted">{op.where}</dd>
-                </dl>
-              </li>
-            ))}
-          </ul>
-        )}
         {/* (b) Who never gets it */}
         {never && <p className="mt-3 text-sm font-medium text-tumtum-white">{never}</p>}
       </div>
@@ -292,7 +276,6 @@ function SharingSkeleton() {
   return (
     <div aria-busy="true" aria-label="Carregando com quem seus dados estão" className="animate-pulse space-y-4 motion-reduce:animate-none">
       <div className="h-4 w-3/4 rounded bg-tumtum-surface" />
-      <div className="h-24 rounded-lg bg-tumtum-surface" />
       <div className="h-4 w-1/2 rounded bg-tumtum-surface" />
       <div className="h-14 rounded-lg bg-tumtum-surface" />
       <div className="h-14 rounded-lg bg-tumtum-surface" />

@@ -91,6 +91,11 @@ async def test_a_withdrawn_keep_night_takes_the_nights_after_a_day(memdb):
     assert await memdb.get(HRSession, untouched.id) is not None
 
 
+def test_a_revoked_night_is_gone_within_the_promised_day():
+    """The switch says "em até 24 horas": the grace plus one pass must fit."""
+    assert maintenance.REVOCATION_GRACE + maintenance.EVERY <= timedelta(hours=24)
+
+
 @pytest.mark.asyncio
 async def test_access_log_is_kept_180_days(memdb):
     memdb.add_all(

@@ -45,6 +45,25 @@ Health Connect trocou `perm_dont_2` por "Seu dado cardíaco não vai para
 anunciantes, clubes ou artistas" e `perm_footnote` passou a dizer que as
 cópias de segurança expiram no prazo da política.
 
+**28/09 — linhas explicativas, não texto de consentimento (versão mantida).**
+Depois da rodada de testes no b217 (`docs/decision-log.md`, entrada de
+28/09), as telas ganharam frases *em volta* das finalidades, sem mudar a
+frase de nenhuma finalidade — por isso a versão continua `2026-09-26.1` e
+nenhum consentimento foi fechado:
+
+- Cabeçalho das duas obrigatórias, no app e no site: "Pra usar a TumTum ·
+  as duas precisam estar ligadas/marcadas", com "Liga as duas pra
+  continuar." enquanto uma estiver desligada. O botão não segue sem as
+  duas (LGPD art. 9, §3: o serviço pode depender do consentimento que ele
+  de fato precisa, dito com destaque).
+- Sob `keep_night`, uma razão para ligar (continua desligada de fábrica):
+  "Pra sua noite ficar na sua coleção, entrar no feed do evento e não
+  sumir se você trocar de celular."
+- Sob cada chave desligada, o que a revogação faz, recalculado a cada
+  exibição e não só no toque: para `keep_night`, "Desligado. Suas noites
+  guardadas saem do servidor em até 24 horas e continuam neste celular."
+  (ou o prazo exato, `revoked_at` + 24 h).
+
 ## Versão 2026-09-26
 
 ### O que a tela diz antes das chaves

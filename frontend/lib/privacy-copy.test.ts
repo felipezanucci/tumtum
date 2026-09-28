@@ -31,7 +31,7 @@ describe('the privacy policy says what the LGPD audit found missing', () => {
   it.each([
     ['legal basis', 'art. 11'],
     ['sensitive data', 'dado pessoal sensível'],
-    ['controller placeholder, visibly pending', '[CONTROLADOR — preencher razão social e CNPJ]'],
+    ['controller, named until there is a CNPJ', 'Felipe Zanucci, pessoa física, São Paulo, SP. Até a TumTum ter CNPJ, ele responde como controlador.'],
     ['officer channel', 'assunto "Privacidade"'],
     ['R-R and motion', 'Intervalos R-R'],
     ['imports', 'Samsung Health'],
@@ -77,7 +77,40 @@ describe('the privacy policy says what the LGPD audit found missing', () => {
   it('does not promise that no backup exists', () => {
     expect(all(DELETE_ACCOUNT_PT)).not.toContain('sem cópia guardada')
     expect(all(DELETE_ACCOUNT_EN)).not.toContain('no copy kept')
-    expect(pt).toContain('Cópias de segurança do banco')
+    expect(pt).toContain('As cópias de segurança do banco expiram sozinhas, no prazo da nossa política de retenção')
+  })
+
+  it('leaves no placeholder a reader would see as unfinished (28/09)', () => {
+    for (const copy of [PRIVACY_PT, PRIVACY_EN, TERMS_PT, TERMS_EN, DELETE_ACCOUNT_PT, DELETE_ACCOUNT_EN]) {
+      const text = all(copy)
+      expect(text).not.toContain('CONTROLADOR')
+      expect(text).not.toMatch(/(Região|prazo|\[) a confirmar/i)
+      expect(text).not.toContain('to be confirmed')
+      expect(text).not.toContain('TumTum Tecnologia')
+    }
+    expect(all(DELETE_ACCOUNT_PT)).toContain('A TumTum é feita por Felipe Zanucci (São Paulo, SP).')
+    expect(all(DELETE_ACCOUNT_EN)).toContain('TumTum is made by Felipe Zanucci (São Paulo, Brazil).')
+    expect(all(PRIVACY_EN)).toContain('Until TumTum has a CNPJ, he is the controller.')
+  })
+
+  it('says what stays after a deletion: three things, in both pages', () => {
+    for (const text of [pt, all(DELETE_ACCOUNT_PT)]) {
+      expect(text).toContain('Ficam três coisas')
+      expect(text).toContain('400 dias')
+      expect(text).not.toContain('Fica só um registro')
+    }
+    for (const text of [all(PRIVACY_EN), all(DELETE_ACCOUNT_EN)]) {
+      expect(text).toContain('Three things stay')
+      expect(text).toContain('400 days')
+    }
+  })
+
+  it('is honest about the access log, the transfer, the waitlist and Sentry', () => {
+    expect(pt).toContain('Consultas diretas ao banco, que só quem administra o servidor pode fazer, não passam por esse registro.')
+    expect(pt).toContain('cláusulas-padrão de transferência internacional')
+    expect(pt).not.toContain('garantias contratuais')
+    expect(pt).toContain('Na lista de espera do site: o e-mail e, se você preencheu, nome e sobrenome.')
+    expect(pt).toContain('Sentry, só quando estiver ligado (hoje não está)')
   })
 
   it('no longer claims deleting one night does not exist', () => {
@@ -91,6 +124,13 @@ describe('the terms', () => {
     expect(pt).toContain('Li e aceito')
     expect(pt).toContain('18 anos ou mais')
     expect(pt).toContain('não é um dispositivo médico')
+  })
+
+  it('say the photos and videos never leave the phone, and make no feed rule about them', () => {
+    const pt = all(TERMS_PT)
+    expect(pt).toContain('Suas fotos e seus vídeos ficam no seu celular: a TumTum não recebe nenhum.')
+    expect(pt).not.toContain('Foto ou vídeo de outra pessoa')
+    expect(all(TERMS_EN)).not.toContain('Someone else’s photo or video')
   })
 })
 

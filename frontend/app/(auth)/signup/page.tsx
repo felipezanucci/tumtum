@@ -5,9 +5,9 @@ import { Wordmark } from '@/components/brand'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
-import { Button, Input, PasswordInput } from '@/components/ui'
+import { BirthDatePicker, Button, Input, PasswordInput } from '@/components/ui'
 import { codeDigits, isCompleteCode, secondsUntil } from '@/lib/signup-code'
-import { isAdult, latestAdultBirthDate, signupReady, UNDER_AGE_MESSAGE } from '@/lib/consent'
+import { isAdult, signupReady, UNDER_AGE_MESSAGE } from '@/lib/consent'
 
 /**
  * Criar conta, in two steps since 24/09 (#64). Test 7 made an account with
@@ -20,6 +20,11 @@ import { isAdult, latestAdultBirthDate, signupReady, UNDER_AGE_MESSAGE } from '@
  * Terms and Privacy Policy, without which there is no account, and reading
  * the heart rate at the events the person activates. The server records each
  * one with the text version it was given under.
+ *
+ * 28/09: both yeses are needed before the code is sent — they stay two boxes,
+ * because the LGPD wants the health-data one as its own act — and the birth
+ * date is three lists in pt-BR order instead of the browser's date field,
+ * which drew mm/dd/yyyy on Felipe's machine.
  */
 export default function SignupPage() {
   const router = useRouter()
@@ -28,11 +33,10 @@ export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
+  // `YYYY-MM-DD` from the picker, or '' while incomplete or impossible (31 de fevereiro).
   const [birthDate, setBirthDate] = useState('')
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [readHeartRate, setReadHeartRate] = useState(false)
-  // A hint for the picker only; the server decides.
-  const [maxBirthDate] = useState(() => latestAdultBirthDate())
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -87,8 +91,8 @@ export default function SignupPage() {
       setError('As senhas não são iguais. Confere as duas antes de continuar.')
       return
     }
-    if (!termsAccepted) {
-      setError('Pra criar a conta, marque que você aceita os Termos e a Política de Privacidade.')
+    if (!termsAccepted || !readHeartRate) {
+      setError('Pra criar a conta, marque as duas caixas: os Termos e a leitura da sua batida.')
       return
     }
     if (isAdult(birthDate) === false) {
@@ -213,18 +217,10 @@ export default function SignupPage() {
               error={mismatch ? 'As senhas não são iguais.' : undefined}
             />
 
-            <Input
-              label="Data de nascimento"
-              id="birth-date"
-              type="date"
-              value={birthDate}
-              max={maxBirthDate}
-              min="1900-01-01"
-              onChange={(e) => setBirthDate(e.target.value)}
-              required
-            />
-            <p className="-mt-2 text-xs text-tumtum-muted">
-              A TumTum é só para quem tem 18 anos ou mais.
+            <BirthDatePicker onChange={setBirthDate} required />
+
+            <p className="text-[11px] font-medium uppercase tracking-wider text-tumtum-muted">
+              Pra usar a TumTum · as duas precisam estar marcadas
             </p>
 
             <label className="flex items-start gap-3 text-sm text-tumtum-white">
@@ -254,11 +250,12 @@ export default function SignupPage() {
                 checked={readHeartRate}
                 onChange={(e) => setReadHeartRate(e.target.checked)}
                 className="mt-0.5 h-5 w-5 shrink-0 accent-tumtum-pink"
+                required
               />
               <span>
                 Autorizo a TumTum a ler meus batimentos na janela dos eventos que eu ativar.
                 <span className="mt-1 block text-xs text-tumtum-muted">
-                  Batimento é dado de saúde. Dá pra decidir isso depois e mudar quando quiser.
+                  Batimento é dado de saúde. Dá pra desligar quando quiser, no seu perfil.
                 </span>
               </span>
             </label>
@@ -273,7 +270,7 @@ export default function SignupPage() {
             <Button
               type="submit"
               loading={loading}
-              disabled={mismatch || !signupReady({ birthDate, termsAccepted })}
+              disabled={mismatch || !signupReady({ birthDate, termsAccepted, readHeartRate })}
               className="w-full"
             >
               Mandar o código

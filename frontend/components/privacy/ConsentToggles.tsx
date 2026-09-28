@@ -24,6 +24,12 @@ interface ConsentTogglesProps {
    * that could only fail.
    */
   lockedWhenOn?: readonly ConsentPurpose[]
+  /**
+   * A line under a switch saying what its saved state did (28/09): "Ligado.",
+   * or what stops when it is off. Announced as a status, next to the switch
+   * the eye is already on.
+   */
+  notes?: Partial<Record<ConsentPurpose, string>>
   copy?: ConsentCopy
 }
 
@@ -41,6 +47,7 @@ export default function ConsentToggles({
   focus = null,
   disabled = false,
   lockedWhenOn = [],
+  notes = {},
   copy = CONSENT_PT,
 }: ConsentTogglesProps) {
   const focusRef = useRef<HTMLLIElement | null>(null)
@@ -74,10 +81,20 @@ export default function ConsentToggles({
                 <p id={`${id}-label`} className="mt-1 font-medium text-tumtum-white">
                   {text.title}
                 </p>
-                <p id={`${id}-desc`} className="mt-1 text-sm leading-relaxed text-tumtum-muted">
-                  {text.description}
-                  {text.without && !on ? ` ${text.without}` : ''}
-                </p>
+                <div id={`${id}-desc`}>
+                  <p className="mt-1 text-sm leading-relaxed text-tumtum-muted">{text.description}</p>
+                  {/* What off costs, on its own line, before the person decides. */}
+                  {text.without && (
+                    <p className="mt-1 text-sm leading-relaxed text-tumtum-muted">
+                      {copy.withoutPrefix} {text.without}
+                    </p>
+                  )}
+                </div>
+                {notes[purpose] && (
+                  <p role="status" className="mt-2 text-sm text-tumtum-white">
+                    {notes[purpose]}
+                  </p>
+                )}
                 {locked && (
                   <p className="mt-2 text-xs text-tumtum-muted">{copy.lockedNote}</p>
                 )}
