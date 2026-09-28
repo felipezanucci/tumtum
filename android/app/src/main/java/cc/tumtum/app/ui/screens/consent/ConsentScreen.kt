@@ -92,6 +92,12 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
     // take it. Fixed when the screen loads, so a row never jumps out from
     // under the thumb that just turned it on.
     var focusRows by remember { mutableStateOf<List<String>>(emptyList()) }
+    // Opened for something missing, each switch is saved on its tap (b220,
+    // 28/09): the key the server has, not the one the screen shows, and what
+    // the tap did is said under it.
+    var busyKey by remember { mutableStateOf<String?>(null) }
+    var savedHere by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
+    var failedHere by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     LaunchedEffect(tick) {
         load = ConsentLoad.Loading
@@ -261,16 +267,58 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
                     Spacer(Modifier.height(26.dp))
                 }
 
+                val savingText = stringResource(R.string.settings_privacy_saving)
+                val grantedText = stringResource(R.string.settings_privacy_granted)
+                val failedText = stringResource(R.string.settings_privacy_change_failed)
+                val offlineText = stringResource(R.string.consent_failed_offline)
+                val expiredText = stringResource(R.string.consent_failed_expired)
+
+                // The first pass (sign-up, the gate) keeps Continuar as the act:
+                // the account is made of those choices together. Opened for
+                // something missing, the switch IS the act, as in Configurações:
+                // b220 in a hand (28/09) — "Ligar" led here, the key was turned
+                // on, the back arrow taken, and AO VIVO still refused, because
+                // nothing reached the server until a pink button far below.
                 fun toggle(purpose: String, value: Boolean) {
                     switches = switches + (purpose to value)
                     error = null
+                    if (focusKey == null) return
+                    busyKey = purpose
+                    failedHere = null
+                    scope.launch {
+                        try {
+                            val saved = container.api.putConsents(mapOf(purpose to value), ConsentText.MEANS_TAP)
+                            val granted = saved.asMap()
+                            switches = ConsentText.startingSwitches(granted)
+                            recorded = switches
+                            savedHere = savedHere + (purpose to (switches[purpose] == true))
+                            // Everything that was missing is on: the way goes on
+                            // by itself, to where the person was going.
+                            if (focusRows.all { switches[it] == true } && !needsBirth) after(granted)
+                        } catch (e: TumtumApi.ApiException) {
+                            switches = recorded
+                            failedHere = purpose to (if (e.code == 401) expiredText else failedText)
+                        } catch (e: IOException) {
+                            switches = recorded
+                            failedHere = purpose to offlineText
+                        } finally {
+                            busyKey = null
+                        }
+                    }
                 }
 
                 // What stops, under a key that was on and is now off — said
                 // before Continuar sends it, in the same words as Configurações
                 // (item 4, 28/09): one sentence per key, wherever its switch is.
                 val stops = ConsentText.PURPOSES.associateWith { p -> consentOffNote(p, entry = null, wasGranted = true) }
-                fun noteFor(p: String): String? = if (recorded[p] == true && switches[p] != true) stops[p] else null
+                fun noteFor(p: String): String? = when {
+                    busyKey == p -> savingText
+                    failedHere?.first == p -> failedHere?.second
+                    savedHere[p] == true -> grantedText
+                    savedHere[p] == false -> stops[p]
+                    recorded[p] == true && switches[p] != true -> stops[p]
+                    else -> null
+                }
 
                 // Only what is actually missing is framed: a switch already on
                 // under "O QUE FALTA" said something false (b218, 28/09).
@@ -287,6 +335,7 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
                             onToggle = { toggle(p, it) },
                             onDark = true,
                             focused = p == focusKey || switches[p] != true,
+                            busy = busyKey != null,
                             note = noteFor(p),
                         )
                         Spacer(Modifier.height(8.dp))
@@ -305,6 +354,7 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
                         on = switches[p] == true,
                         onToggle = { toggle(p, it) },
                         onDark = true,
+                        busy = busyKey != null,
                         note = noteFor(p),
                     )
                 }
@@ -320,6 +370,7 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
                         on = switches[p] == true,
                         onToggle = { toggle(p, it) },
                         onDark = true,
+                        busy = busyKey != null,
                         note = noteFor(p),
                     )
                 }

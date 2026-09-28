@@ -945,6 +945,34 @@ the linked documents — this file is the index and the reasoning, not a diary.
     merge) should be checked against `backend/tests/test_peak_detection.py`
     with the same fixtures, so that a night's headline cannot change on
     upload again.
+91. **The @ is decoration.** `[DECIDIR — Felipe]` No `users.username`, no
+    availability check, nothing reserved: two accounts can hold the same @,
+    and "disponível" is always said. Either build it (a unique column, a
+    `GET /api/auth/username/{name}` check the app and the site call while
+    typing, the name sent with the sign-up and shown in the feed — an
+    Alembic migration and a few hours) or remove the field until then.
+
+---
+
+## 2026-09-28 (noite, 2) — b220 na mão: o bloqueio funcionou, a chave não salvava, e o @ nunca foi reservado
+
+**What passed.** With "Ler sua batida" off, AO VIVO refused to record and
+said *"Pra gravar, liga 'Ler sua batida'."* with **Ligar** — item 21, the
+critical one, closed in a hand. With it on, the strap recorded at once.
+
+**Two findings.** (1) "Ligar" opened the consent screen on that key; Felipe
+turned it on and took the back arrow, and AO VIVO refused again — the screen
+sent nothing to the server until the pink "Continuar" far below, while
+Configurações saves on the tap and says *"Cada chave vale na hora em que
+você toca"*. Two screens, two rules, and the product had promised one. Now,
+opened for something missing, each switch is saved on its tap, says
+*Salvando…* / *Ligado.* / the stop sentence (or the failure) under itself,
+and when everything missing is on the way continues by itself. Sign-up keeps
+Continuar: the account is those choices together. (2) **The @ is not
+checked because it does not exist anywhere but the phone** — a hard-coded
+list of four taken names in `CreateAccountScreen`, no column, no endpoint.
+*"disponível"* and *"o @ é fixo: escolhido uma vez, não muda"* are both
+claims the system cannot keep. Item 91.
 
 ---
 
