@@ -17,7 +17,7 @@ function respondWith(status: number, body: unknown) {
 afterEach(() => vi.unstubAllGlobals())
 
 const signup = {
-  email: 'fa@tumtum.cc',
+  email: 'fa@exemplo.com',
   name: 'Felipe',
   password: 'segredo',
   birth_date: '1990-01-01',
