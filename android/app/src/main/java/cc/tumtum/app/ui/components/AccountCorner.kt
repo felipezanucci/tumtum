@@ -34,7 +34,7 @@ fun AccountCorner(user: UserState?, nav: NavHostController, skin: Skin, modifier
             account.initials,
             skin,
             photoPath = user.avatarPath,
-            modifier = modifier.clickable { nav.navigate(Routes.profile(account.username)) },
+            modifier = modifier.clickable { nav.navigate(Routes.profile(account.profileKey)) },
         )
     } else {
         Badge(

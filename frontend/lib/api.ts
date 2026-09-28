@@ -313,6 +313,14 @@ function makesSession(path: string): boolean {
 }
 
 /**
+ * Public questions that need no session and so never wait for the cookie to
+ * be asked: the @ check runs on every pause in typing on the sign-up page.
+ */
+function needsNoSession(path: string): boolean {
+  return path.startsWith('/api/auth/username/')
+}
+
+/**
  * Send one request and return the response only when it succeeded. Every
  * failure becomes an ApiError with a sentence a person can read.
  */
@@ -324,7 +332,9 @@ async function send(
   // A new tab holds no access token yet: ask the cookie before the first
   // request, so a signed-in person is not answered as a stranger. The calls
   // that sign in or out never wait on it.
-  if (!makesSession(path) && !currentAccessToken()) await restoreSession()
+  if (!makesSession(path) && !needsNoSession(path) && !currentAccessToken()) {
+    await restoreSession()
+  }
   const token = currentAccessToken()
 
   let response: Response
@@ -485,6 +495,11 @@ export interface UserResponse {
   /** `YYYY-MM-DD`, or null for an account made before 26/09 (it is asked once). */
   birth_date: string | null
   /**
+   * The @, unique and chosen once (28/09). Null for an account made before
+   * the server held it: the profile asks for one, once.
+   */
+  username: string | null
+  /**
    * Whether this account operates the platform — registers events, attaches
    * a match or a setlist. Decided by the server's `admin_emails`; the site
    * only uses it to show the operator's doors, every endpoint checks itself.
@@ -511,6 +526,20 @@ export interface SignupStartData {
   birth_date: string
   terms_accepted: boolean
   read_heart_rate: boolean
+  /**
+   * The @ (28/09), already cleaned. Optional to the server, which then picks a
+   * free one; the site's sign-up always sends the one the person confirmed.
+   */
+  username?: string
+}
+
+/** `GET /api/auth/username/{name}`: whether an @ can be had (28/09). */
+export interface UsernameCheck {
+  /** The name as the server reads it: no @ in front, lower case, trimmed. */
+  username: string
+  available: boolean
+  /** The sentence to show when it cannot be had; null when it can. */
+  reason: string | null
 }
 
 export const auth = {
@@ -530,8 +559,16 @@ export const auth = {
         terms_accepted: data.terms_accepted,
         consent_text_version: CONSENT_TEXT_VERSION,
         read_heart_rate: data.read_heart_rate,
+        ...(data.username !== undefined ? { username: data.username } : {}),
       }),
     }),
+
+  /**
+   * Whether this @ is free, asked while the person types. Public: nobody is
+   * signed in yet on the sign-up page, and an @ is public by nature.
+   */
+  checkUsername: (name: string) =>
+    request<UsernameCheck>(`/api/auth/username/${encodeURIComponent(name)}`),
 
   /** Step two: the code came back, and the account is made and signed in. */
   signupConfirm: (email: string, code: string) =>
@@ -1043,6 +1080,8 @@ export interface UserProfile {
   highest_bpm: number | null
   /** `YYYY-MM-DD`, or null until it is asked once. */
   birth_date: string | null
+  /** The @ (28/09), or null for an account made before it: asked once. */
+  username: string | null
 }
 
 /**
@@ -1051,6 +1090,8 @@ export interface UserProfile {
  */
 export interface PublicProfile {
   name: string
+  /** The @, when the account has one (28/09). */
+  username: string | null
   avatar_url: string | null
   created_at: string
   total_cards: number
@@ -1121,8 +1162,16 @@ export interface WaitlistEntry {
 export const users = {
   getProfile: () => request<UserProfile>('/api/users/me'),
 
-  /** `birth_date` is accepted once, only while it is still empty. */
-  updateProfile: (data: { name?: string; avatar_url?: string; birth_date?: string }) =>
+  /**
+   * `birth_date` and `username` are each accepted once, only while still
+   * empty: a set @ is refused with 409 ("O @ é fixo…").
+   */
+  updateProfile: (data: {
+    name?: string
+    avatar_url?: string
+    birth_date?: string
+    username?: string
+  }) =>
     request<UserProfile>('/api/users/me', {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -1290,11 +1339,19 @@ export interface MyData {
 
 // --- Moderation: the operator's queue of reported posts (#36, 22/09) ---
 
+/** Who posted, at the resolution a feed needs: never an e-mail. */
+export interface FeedAuthor {
+  name: string
+  initials: string
+  /** The @ (28/09), when the account has one. */
+  username: string | null
+}
+
 export interface ReportedPost {
   post_id: string
   event_id: string
   event_name: string
-  author: { name: string; initials: string }
+  author: FeedAuthor
   bpm: number
   moment_at: string
   label: string | null

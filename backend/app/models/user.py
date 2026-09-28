@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, date, datetime
 
-from sqlalchemy import Date, DateTime, String
+from sqlalchemy import Date, DateTime, Index, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,6 +33,10 @@ class User(Base):
     # Set by a password reset, an e-mail change and a deletion. Migration 025
     # and the startup catch-up.
     tokens_valid_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # The @ (28/09): one owner, chosen once — unique on its lower-case form
+    # (`services/usernames.py`). Null only for accounts made before it, which
+    # are given one at their next sign-in. Migration 026 and the catch-up.
+    username: Mapped[str | None] = mapped_column(String(20))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
@@ -40,6 +44,10 @@ class User(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
+    )
+
+    __table_args__ = (
+        Index("ix_users_username_lower", func.lower(username), unique=True),
     )
 
     wearable_connections = relationship(

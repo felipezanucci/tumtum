@@ -128,7 +128,8 @@ export default function ReportsPage() {
                     <div className="min-w-0">
                       <p className="text-sm text-tumtum-muted">{post.event_name}</p>
                       <p className="mt-1 font-headline text-tumtum-white">
-                        {post.author.name} · <span className="tabular-nums">{post.bpm}</span> bpm
+                        {post.author.name}
+                        {post.author.username ? ` @${post.author.username}` : ''} · <span className="tabular-nums">{post.bpm}</span> bpm
                         {post.label ? ` · ${post.label}` : ''}
                       </p>
                       {post.quote && (

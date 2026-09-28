@@ -99,6 +99,7 @@ export default function PublicProfilePage() {
         <div className="flex flex-col items-center text-center">
           <Avatar name={profile.name} src={profile.avatar_url} size="lg" />
           <h1 className="mt-4 text-2xl font-bold text-tumtum-white">{profile.name}</h1>
+          {profile.username && <p className="text-tumtum-white">@{profile.username}</p>}
           <p className="text-sm text-tumtum-muted">Membro desde {memberSince}</p>
         </div>
 

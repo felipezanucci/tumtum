@@ -20,6 +20,9 @@ class SignupStartRequest(BaseModel):
     # The sign-up screen may also carry the heart-rate reading consent; when
     # it does, the account is born with that row too.
     read_heart_rate: bool = False
+    # The @ (28/09). Optional in the schema so a build from before it still
+    # signs up — the server then picks a free one from the name.
+    username: str | None = Field(None, max_length=40)
 
 
 class SignupStarted(BaseModel):
@@ -70,6 +73,9 @@ class UserResponse(BaseModel):
     # Null for accounts made before 26/09: the clients then show the gate
     # (birth date and terms) before anything else.
     birth_date: date | None = None
+    # The @, unique (28/09). Null for accounts made before it: the clients
+    # then ask for one, once.
+    username: str | None = None
     # Whether this account operates the platform (settings.admin_emails). The
     # site uses it only to show or hide the operator's doors; every operator
     # endpoint checks for itself.
@@ -89,3 +95,13 @@ class ResetPasswordRequest(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class UsernameCheck(BaseModel):
+    """Whether an @ can be had, asked while the person types (28/09)."""
+
+    username: str
+    available: bool
+    # The sentence to show under the field when it cannot: too short, a
+    # character it does not take, the platform's, or already somebody's.
+    reason: str | None = None

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
+import cc.tumtum.app.data.prefs.Account
 import cc.tumtum.app.ui.components.BackArrow
 import cc.tumtum.app.data.AvatarStore
 import cc.tumtum.app.domain.PublicProfile
@@ -72,13 +73,17 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
 
     // Your own profile exists only while you are signed in (25/09): signed
     // out, it said "Felipe Zanucci, Editar perfil" to whoever held the phone.
-    val isMe = user?.signedIn == true && user?.account?.username == handle
+    // "me" is the route of an account with no @ yet — and stays its own after
+    // the @ is chosen in Configurações with this screen under it (28/09).
+    val isMe = user?.signedIn == true && user?.account?.let { handle == it.profileKey || handle == Account.ME } == true
     var showEdit by remember { mutableStateOf(false) }
     val profile: PublicProfile? = if (isMe) {
         user?.account?.let { acc ->
             PublicProfile(
                 user = SocialUser(
-                    handle = acc.username,
+                    // Empty while the server holds no @ for this account (28/09):
+                    // the header then shows none rather than one nobody reserved.
+                    handle = acc.username.orEmpty(),
                     displayName = acc.name,
                     initials = acc.initials,
                     avatarSkin = Skin.PINK,
@@ -124,7 +129,7 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
     if (showEdit && isMe) {
         EditProfileSheet(
             initialName = user?.account?.name ?: "",
-            handle = user?.account?.username ?: "",
+            handle = user?.account?.username,
             onDismiss = { showEdit = false },
             onSave = { newName ->
                 screenScope.launch { container.prefs.setName(newName) }
@@ -187,11 +192,13 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
                         style = TTType.ItemTitle.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                         color = TT.Paper,
                     )
-                    Text(
-                        "@${p.user.handle}" + if (p.user.city.isNotBlank()) " · ${p.user.city}" else "",
-                        style = TTType.BodySmall,
-                        color = TT.Gray45,
-                    )
+                    val handleLine = listOfNotNull(
+                        p.user.handle.takeIf { it.isNotBlank() }?.let { "@$it" },
+                        p.user.city.takeIf { it.isNotBlank() },
+                    ).joinToString(" · ")
+                    if (handleLine.isNotEmpty()) {
+                        Text(handleLine, style = TTType.BodySmall, color = TT.Gray45)
+                    }
                 }
             }
             if (p.user.tribes.isNotEmpty()) {
@@ -282,12 +289,16 @@ private fun DarkStat(value: String, label: String, valueColor: androidx.compose.
     }
 }
 
-/** Editar o próprio perfil: o nome muda quando quiser; o @ é fixo, escolhido uma vez. */
+/**
+ * Editar o próprio perfil: o nome muda quando quiser; o @ é fixo, escolhido
+ * uma vez. Since 28/09 "fixo" is said only over an @ the server holds; an
+ * account without one is sent to Configurações, where it is chosen.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditProfileSheet(
     initialName: String,
-    handle: String,
+    handle: String?,
     onDismiss: () -> Unit,
     onSave: (String) -> Unit,
 ) {
@@ -304,7 +315,11 @@ private fun EditProfileSheet(
             TTField(stringResource(R.string.account_name_label), name, { name = it })
             Spacer(Modifier.height(10.dp))
             Text(
-                stringResource(R.string.settings_handle_fixed, handle),
+                if (handle != null) {
+                    stringResource(R.string.settings_handle_fixed, handle)
+                } else {
+                    stringResource(R.string.profile_handle_missing)
+                },
                 style = TTType.Footnote,
                 color = TT.Gray45,
             )

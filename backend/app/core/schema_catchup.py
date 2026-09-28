@@ -10,7 +10,7 @@ that table failing: `users` is loaded on every authenticated request, with
 its `hr_sessions` alongside.
 
 So this runs, after `create_all`, the *additive* part of migrations 015–017,
-023 and 025, each statement idempotent (`ADD COLUMN IF NOT EXISTS`, PostgreSQL
+023, 025 and 026, each statement idempotent (`ADD COLUMN IF NOT EXISTS`, PostgreSQL
 ≥ 9.6). 023 (the consent ledger) also needs its new columns filled for the
 rows already there before they can be NOT NULL; `backfills()` does that —
 each `UPDATE` touches only rows still NULL, and `SET NOT NULL` on a column
@@ -39,6 +39,15 @@ ADDITIVE_COLUMNS = (
     ("consents", "proof", "VARCHAR(64)"),
     ("users", "tokens_valid_after", "TIMESTAMP WITH TIME ZONE"),  # 025
     ("hr_sessions", "event_readings", "INTEGER"),  # 025
+    ("users", "username", "VARCHAR(20)"),  # 026
+    ("signup_codes", "username", "VARCHAR(20)"),  # 026
+)
+
+# 026: one owner per @, whatever its case. `IF NOT EXISTS`, so every startup
+# may run it again; NULLs never collide in a unique index.
+INDEXES = (
+    "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_username_lower "
+    "ON users (lower(username))",
 )
 
 
@@ -99,5 +108,5 @@ async def catch_up(conn: AsyncConnection) -> None:
     """
     if conn.dialect.name != "postgresql":
         return
-    for statement in [*statements(), *backfills(), EVENT_READINGS_BACKFILL]:
+    for statement in [*statements(), *backfills(), EVENT_READINGS_BACKFILL, *INDEXES]:
         await conn.execute(text(statement))

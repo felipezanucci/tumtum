@@ -53,6 +53,8 @@ class TumtumApi(private val prefs: UserPrefs) {
         val name: String,
         val isAdmin: Boolean = false,
         val birthDate: LocalDate? = null,
+        /** The @ the server holds (28/09); null for an account made before it that has not chosen one. */
+        val username: String? = null,
     )
 
     // --- Auth ---
@@ -69,6 +71,7 @@ class TumtumApi(private val prefs: UserPrefs) {
         birthDate: LocalDate,
         termsAccepted: Boolean = true,
         readHeartRate: Boolean = false,
+        username: String,
     ): SignupStarted {
         // Since 26/09 the account carries its birth date and the person's own
         // tick on the Terms and the Privacy Policy, with the text version they
@@ -81,6 +84,9 @@ class TumtumApi(private val prefs: UserPrefs) {
             .put("terms_accepted", termsAccepted)
             .put("consent_text_version", cc.tumtum.app.domain.ConsentText.VERSION)
             .put("read_heart_rate", readHeartRate)
+            // The @ (28/09): checked again by the server before any mail
+            // leaves, and held for this address while the code is open.
+            .put("username", username)
         val response = JSONObject(request("POST", "/api/auth/register/start", body.toString(), token = null))
         return SignupStarted.from(response, asked = email)
     }
@@ -124,9 +130,64 @@ class TumtumApi(private val prefs: UserPrefs) {
             name = json.getString("name"),
             isAdmin = json.optBoolean("is_admin", false),
             birthDate = Json.text(json, "birth_date")?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
+            username = Json.text(json, "username"),
         )
         prefs.setOperatorUserId(if (me.isAdmin) me.id else null)
+        // The @ is the server's (28/09): what it says replaces what the phone had.
+        prefs.setServerUsername(me.email, me.username)
+        if (me.username == null) {
+            claimPendingUsername(me.email)?.let { return me.copy(username = it) }
+        }
         return me
+    }
+
+    // --- The @ (28/09) ---
+
+    /**
+     * Whether [name] can be an @, asked while the person types. No token: an
+     * @ is public by nature. Throws when there is no answer — the screen then
+     * says it could not check, never that the name is free.
+     */
+    suspend fun checkUsername(name: String): UsernameAnswer {
+        val segment = java.net.URLEncoder.encode(name, "UTF-8").replace("+", "%20")
+        return UsernameAnswer.parse(request("GET", "/api/auth/username/$segment", null, token = null), asked = name)
+    }
+
+    /**
+     * Chooses the @ of an account that has none (`PATCH /api/users/me`), once:
+     * the server takes it only while its own is null, and answers 409 when it
+     * is taken or the account already has another, 422 when it is not an @.
+     * On success the server's answer is kept as this account's @.
+     */
+    suspend fun setUsername(name: String): String {
+        val body = JSONObject().put("username", name)
+        val response = JSONObject(request("PATCH", "/api/users/me", body.toString(), token = requireToken()))
+        val held = Json.text(response, "username") ?: name
+        val email = Json.text(response, "email") ?: prefs.state.first().account?.email.orEmpty()
+        prefs.setServerUsername(email, held)
+        return held
+    }
+
+    /**
+     * An account made before 28/09 has no @ on the server, and its phone may
+     * have one the person chose back then. That one is claimed here, once:
+     * accepted, it becomes the account's; refused (taken by now, reserved, not
+     * a valid @), it is marked so and Configurações asks for another. No
+     * answer (offline) leaves it pending, to be tried on the next `/me`.
+     * Answers with the @ now held, or null.
+     */
+    private suspend fun claimPendingUsername(email: String): String? {
+        val account = prefs.state.first().account ?: return null
+        if (!account.belongsTo(email) || account.username != null || account.pendingRefused) return null
+        val pending = account.pendingUsername ?: return null
+        return try {
+            setUsername(pending)
+        } catch (e: ApiException) {
+            if (e.code == 409 || e.code == 422) prefs.markUsernameRefused(email)
+            null
+        } catch (e: IOException) {
+            null
+        }
     }
 
     /**
@@ -163,6 +224,17 @@ class TumtumApi(private val prefs: UserPrefs) {
      * server takes a birth date only while it is null, and refuses under 18
      * with its own sentence.
      */
+    /**
+     * The name, on the account (28/09): Configurações said "Salvo." over a
+     * name kept only on the phone, while the feed showed the server's. The
+     * server's answer — one space between words — is what the phone keeps.
+     */
+    suspend fun setName(name: String): String {
+        val body = JSONObject().put("name", name)
+        val response = JSONObject(request("PATCH", "/api/users/me", body.toString(), token = requireToken()))
+        return Json.text(response, "name") ?: name
+    }
+
     suspend fun patchBirthDate(date: LocalDate) {
         val body = JSONObject().put("birth_date", date.toString())
         request("PATCH", "/api/users/me", body.toString(), token = requireToken())

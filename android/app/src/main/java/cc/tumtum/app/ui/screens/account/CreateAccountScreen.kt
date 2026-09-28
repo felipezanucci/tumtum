@@ -46,6 +46,8 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.repo.afterSignIn
 import cc.tumtum.app.data.api.SignupCode
+import cc.tumtum.app.data.api.TumtumApi
+import cc.tumtum.app.domain.Username
 import cc.tumtum.app.data.prefs.Account
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -59,17 +61,14 @@ import cc.tumtum.app.ui.theme.TTType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** Handles reservados no repositório fake — a "checagem de disponibilidade" local. */
-private val TAKEN = setOf("mariana", "rodcosta", "jureis", "pbarros", "ltoledo", "tumtum")
-
 private val TRIBES = listOf("SHOWS", "FUTEBOL", "FESTIVAIS")
 
 /**
  * b2 — Criar conta. Leva menos que uma música.
  *
  * Since 2026-09-18 (Etapa 1) the account is created on the server first and
- * kept locally second: the @ and the tribes stay on the
- * phone, the e-mail, name and password become a real account with a token.
+ * kept locally second: the tribes stay on the phone, the e-mail, name,
+ * password and — since 28/09 — the @ become a real account with a token.
  * Without the server there is no account — the screen says so instead of
  * pretending.
  *
@@ -85,6 +84,13 @@ private val TRIBES = listOf("SHOWS", "FUTEBOL", "FESTIVAIS")
  * another account is here and come back when theirs signs in. Creating an
  * account used to wipe every night on the phone — test 9's sealed nights
  * went that way, and their reveal alarms fired anyway.
+ *
+ * **Since 28/09 the @ is the server's.** It was checked against six names
+ * written into this file and every other one read "disponível"; two accounts
+ * held @fezanu. The field now asks the server as the person types, the line
+ * under it says only what is true of the name on screen, and the button waits
+ * for the server's yes. The server checks again before the code leaves and
+ * holds the name while the code is open; a refusal there is said under the @.
  */
 @Composable
 fun CreateAccountScreen(nav: NavHostController) {
@@ -117,11 +123,25 @@ fun CreateAccountScreen(nav: NavHostController) {
     var resendAt by rememberSaveable { mutableStateOf(0L) }
     var notice by remember { mutableStateOf<String?>(null) }
 
-    val usernameClean = username.trim().lowercase()
-    val usernameTaken = usernameClean in TAKEN
+    // The field already keeps only what an @ can be (Username.edit).
+    val usernameClean = username
+    val usernameCheck = rememberUsernameChecker(usernameClean)
+    val usernameStatus = Username.status(usernameClean, usernameCheck.check)
+    val usernameConfirmed = usernameStatus == Username.Status.Available
     val emailLooksWhole = Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
-    val valid = name.isNotBlank() && usernameClean.length >= 3 && !usernameTaken &&
+    val valid = name.isNotBlank() && usernameConfirmed &&
         emailLooksWhole && password.length >= 8 && birthDate != null && termsAccepted
+
+    /** A refusal about the @ goes under the @, in the server's words; anything else is the form's. */
+    fun showRefusal(e: Exception) {
+        val detail = (e as? TumtumApi.ApiException)?.takeIf { it.code == 409 || it.code == 422 }?.detail
+        if (Username.isAboutUsername(detail)) {
+            usernameCheck.refused(usernameClean, detail!!)
+            error = detail
+        } else {
+            error = AuthErrors.messageFor(e, context)
+        }
+    }
 
     /** Ask the server to mail a code: the first time, and on "Mandar outro código". */
     fun sendCode(again: Boolean) {
@@ -138,6 +158,7 @@ fun CreateAccountScreen(nav: NavHostController) {
                     birthDate = birth,
                     termsAccepted = termsAccepted,
                     readHeartRate = false,
+                    username = usernameClean,
                 )
                 codeSentTo = started.email
                 codeMinutes = started.expiresInMinutes
@@ -145,7 +166,10 @@ fun CreateAccountScreen(nav: NavHostController) {
                 resendAt = System.currentTimeMillis() + started.resendAfterSeconds * 1000L
                 if (again) notice = context.getString(R.string.account_code_resent, started.email)
             } catch (e: Exception) {
-                error = AuthErrors.messageFor(e, context)
+                // A new code asked from the code step for an @ gone meanwhile:
+                // back to the form, where the @ field says why.
+                if (Username.isAboutUsername((e as? TumtumApi.ApiException)?.detail)) codeSentTo = null
+                showRefusal(e)
             } finally {
                 saving = false
             }
@@ -177,7 +201,7 @@ fun CreateAccountScreen(nav: NavHostController) {
             CodeStep(
                 sentTo = sentTo,
                 minutes = codeMinutes,
-                replacingHandle = replacing?.username,
+                replacing = replacing,
                 code = code,
                 onCode = { code = SignupCode.digits(it) },
                 resendAt = resendAt,
@@ -197,6 +221,8 @@ fun CreateAccountScreen(nav: NavHostController) {
                         try {
                             container.api.signupConfirm(email = sentTo, code = code)
                             // Only now, with the account made, does the phone change.
+                            // The @ is the one the server just made the account with
+                            // (it checked it again at the code); /me below confirms it.
                             val account = Account(name = name.trim(), username = usernameClean, email = sentTo, tribes = tribes)
                             if (replacing != null) {
                                 // The previous person's profile, photo and sensor go;
@@ -214,7 +240,13 @@ fun CreateAccountScreen(nav: NavHostController) {
                             // purposes are chosen there, one switch each.
                             nav.navigate(Routes.consent())
                         } catch (e: Exception) {
-                            error = AuthErrors.messageFor(e, context)
+                            // The @ taken between the code and the confirmation (the
+                            // server checks once more): back to the form, said under it.
+                            if (Username.isAboutUsername((e as? TumtumApi.ApiException)?.detail)) {
+                                codeSentTo = null
+                                code = ""
+                            }
+                            showRefusal(e)
                         } finally {
                             saving = false
                         }
@@ -233,33 +265,19 @@ fun CreateAccountScreen(nav: NavHostController) {
             Text(stringResource(R.string.account_subtitle), style = TTType.Body, color = TT.Gray45)
             replacing?.let {
                 Spacer(Modifier.height(14.dp))
-                Text(
-                    stringResource(R.string.account_replaces, it.username),
-                    style = TTType.BodySmall,
-                    color = TT.Ink,
-                )
+                Text(replacesText(it), style = TTType.BodySmall, color = TT.Ink)
             }
             Spacer(Modifier.height(30.dp))
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 TTField(stringResource(R.string.account_name_label), name, { name = it })
-                TTField(
-                    stringResource(R.string.account_username_label),
-                    username,
-                    { username = it.filter { c -> c.isLetterOrDigit() || c == '_' } },
-                    trailing = {
-                        if (usernameClean.length >= 3) {
-                            Text(
-                                text = if (usernameTaken) {
-                                    stringResource(R.string.account_username_taken)
-                                } else {
-                                    stringResource(R.string.account_username_free)
-                                },
-                                style = TTType.MetaSmall,
-                                color = if (usernameTaken) TT.Gray45 else TT.Ink,
-                            )
-                        }
+                UsernameField(
+                    value = username,
+                    onValueChange = {
+                        if (it != username && error != null && Username.isAboutUsername(error)) error = null
+                        username = it
                     },
+                    checker = usernameCheck,
                 )
                 TTField(
                     stringResource(R.string.account_email_label),
@@ -333,20 +351,23 @@ fun CreateAccountScreen(nav: NavHostController) {
                 enabled = valid && !saving,
                 onDeclined = {
                     if (!saving) {
-                        error = context.getString(
-                            when {
-                                name.isBlank() -> R.string.form_missing_name
-                                usernameClean.length < 3 -> R.string.form_short_username
-                                usernameTaken -> R.string.form_username_taken
-                                email.isBlank() -> R.string.form_missing_email
-                                !email.contains("@") -> R.string.form_email_without_at
-                                !emailLooksWhole -> R.string.form_email_incomplete
-                                password.isEmpty() -> R.string.form_missing_password
-                                password.length < 8 -> R.string.form_short_password
-                                birthDate == null -> R.string.form_missing_birth
-                                else -> R.string.form_missing_terms
-                            },
-                        )
+                        error = when {
+                            name.isBlank() -> context.getString(R.string.form_missing_name)
+                            // The @ waits for the server's yes; the sentence says
+                            // what it is waiting on (and a failed check asks again).
+                            !usernameConfirmed -> usernameDeclined(usernameStatus, usernameCheck, context)
+                            else -> context.getString(
+                                when {
+                                    email.isBlank() -> R.string.form_missing_email
+                                    !email.contains("@") -> R.string.form_email_without_at
+                                    !emailLooksWhole -> R.string.form_email_incomplete
+                                    password.isEmpty() -> R.string.form_missing_password
+                                    password.length < 8 -> R.string.form_short_password
+                                    birthDate == null -> R.string.form_missing_birth
+                                    else -> R.string.form_missing_terms
+                                },
+                            )
+                        }
                     }
                 },
                 onClick = { sendCode(again = false) },
@@ -369,7 +390,7 @@ fun CreateAccountScreen(nav: NavHostController) {
 private fun CodeStep(
     sentTo: String,
     minutes: Int,
-    replacingHandle: String?,
+    replacing: Account?,
     code: String,
     onCode: (String) -> Unit,
     resendAt: Long,
@@ -396,9 +417,9 @@ private fun CodeStep(
     Text(stringResource(R.string.account_code_title), style = TTType.Title, color = TT.Ink)
     Spacer(Modifier.height(10.dp))
     Text(stringResource(R.string.account_code_body, sentTo, minutes), style = TTType.Body, color = TT.Ink)
-    replacingHandle?.let {
+    replacing?.let {
         Spacer(Modifier.height(14.dp))
-        Text(stringResource(R.string.account_replaces, it), style = TTType.BodySmall, color = TT.Ink)
+        Text(replacesText(it), style = TTType.BodySmall, color = TT.Ink)
     }
     Spacer(Modifier.height(26.dp))
     TTField(
@@ -447,3 +468,13 @@ private fun CodeStep(
         onClick = onFixEmail,
     )
 }
+
+/**
+ * The sentence about the account already on this phone (28/09): named by the
+ * @ the server holds for it, and by its address when it holds none — never
+ * by an @ the phone kept on its own, which may be someone else's by now.
+ */
+@Composable
+private fun replacesText(account: Account): String =
+    account.username?.let { stringResource(R.string.account_replaces, it) }
+        ?: stringResource(R.string.account_replaces_unnamed, account.email.ifBlank { account.name })

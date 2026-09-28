@@ -43,6 +43,7 @@ import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.screens.account.AuthErrors
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -120,20 +121,27 @@ fun LoginScreen(nav: NavHostController) {
                     try {
                         val cleanEmail = email.trim()
                         container.api.login(cleanEmail, password)
-                        // The name is the server's; the @, the tribes and the
-                        // photo are this phone's — and they are kept only when
-                        // this phone's profile is the account signing in. A
-                        // different account starts from its own (24/09: test 7
+                        // The name and — since 28/09 — the @ are the server's;
+                        // the tribes and the photo are this phone's, kept only
+                        // when this phone's profile is the account signing in.
+                        // A different account starts from its own (24/09: test 7
                         // showed Felipe's photo and @ over another account).
                         val me = runCatching { container.api.me() }.getOrNull()
                         val signedInEmail = me?.email ?: cleanEmail
-                        val existing = user?.account?.takeIf { it.belongsTo(signedInEmail) }
+                        // Read after /me: it may just have claimed this phone's
+                        // pending @, or heard it refused.
+                        val existing = container.prefs.state.first().account?.takeIf { it.belongsTo(signedInEmail) }
                         val account = Account(
                             name = me?.name?.ifBlank { null } ?: existing?.name ?: AuthErrors.handleFrom(cleanEmail)
                                 .replaceFirstChar { it.uppercase() },
-                            username = existing?.username ?: AuthErrors.handleFrom(signedInEmail),
+                            // The server's @, or none: an @ made up from the
+                            // address was never reserved for anybody (28/09).
+                            // Without an answer, whatever the phone knew stands.
+                            username = if (me != null) me.username else existing?.username,
                             email = signedInEmail,
                             tribes = existing?.tribes ?: emptySet(),
+                            pendingUsername = existing?.pendingUsername?.takeIf { me?.username == null },
+                            pendingRefused = existing?.pendingRefused == true,
                         )
                         if (existing != null) {
                             container.prefs.createAccount(account)

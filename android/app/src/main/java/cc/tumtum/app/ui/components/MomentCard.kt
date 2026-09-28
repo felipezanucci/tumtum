@@ -60,15 +60,31 @@ fun MomentCard(
         ) {
             Avatar(moment.user.initials, moment.user.avatarSkin, size = 32.dp)
             Column {
-                // A name, not a handle (22/09). The feed is per event and
-                // there are no public profiles behind it, so the server sends
-                // a display name and initials and nothing that identifies the
-                // person anywhere else.
-                Text(
-                    moment.user.displayName,
-                    style = TTType.ItemSub.copy(fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold),
-                    color = TT.Ink,
-                )
+                // A name, and since 28/09 the @ beside it when the account
+                // has one: the @ is unique on the server now, so it tells two
+                // people of the same name apart. Still nothing that finds the
+                // person outside TumTum — no e-mail, no profile link.
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        moment.user.displayName,
+                        style = TTType.ItemSub.copy(fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold),
+                        color = TT.Ink,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (moment.user.handle.isNotBlank()) {
+                        Text(
+                            "@${moment.user.handle}",
+                            style = TTType.ItemSub.copy(fontSize = 12.sp),
+                            color = TT.Gray45,
+                            maxLines = 1,
+                        )
+                    }
+                }
                 // Inside an event's own feed the event is the header above, so
                 // the line carries only the time (#31, 22/09).
                 Text(
