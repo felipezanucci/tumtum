@@ -135,14 +135,18 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
                 container.prefs.setOnboarded()
                 nav.navigate(Routes.Feed) { popUpTo(0) { inclusive = true } }
             }
-            // Opened on the way to connecting a watch: with reading on, the
-            // way continues to the permission screen and the setup after it.
-            // Not for a night waiting to go up, nor for a strap already
-            // paired (28/09): those go back to where they were.
+            // Opened on the way to connecting a watch or a strap: with reading
+            // on, the way continues — to the Health Connect dialog when the
+            // phone still needs it, straight to the setup when it does not.
+            // b218 in a hand (28/09): on a phone whose Health Connect was
+            // already granted, this went back to AO VIVO, which still said
+            // "Nada conectado" and sent the person here again — a loop.
+            // Not for a night waiting to go up, nor for an account that
+            // already has a source: those go back to where they were.
             focusKey == ConsentText.READ_HEART_RATE && granted[ConsentText.READ_HEART_RATE] == true &&
-                sendNightId == null && wantsReading && !container.prefs.state.first().sensorPaired -> {
+                sendNightId == null && !container.prefs.state.first().let { it.sensorPaired || it.watchConnected } -> {
                 nav.popBackStack()
-                nav.navigate(Routes.Permission)
+                nav.navigate(if (wantsReading) Routes.Permission else Routes.SourcesSetup)
             }
             else -> if (!nav.popBackStack()) nav.navigate(Routes.Feed)
         }
@@ -268,7 +272,9 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
                 val stops = ConsentText.PURPOSES.associateWith { p -> consentOffNote(p, entry = null, wasGranted = true) }
                 fun noteFor(p: String): String? = if (recorded[p] == true && switches[p] != true) stops[p] else null
 
-                if (focusKey != null) {
+                // Only what is actually missing is framed: a switch already on
+                // under "O QUE FALTA" said something false (b218, 28/09).
+                if (focusKey != null && focusRows.isNotEmpty()) {
                     Text(stringResource(R.string.consent_section_focus), style = TTType.Meta, color = TT.Acid)
                     Spacer(Modifier.height(6.dp))
                     // Every key missing is framed, not only the one asked for:

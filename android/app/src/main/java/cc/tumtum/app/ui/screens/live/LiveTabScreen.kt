@@ -54,6 +54,7 @@ import cc.tumtum.app.data.prefs.UpcomingEvent
 import cc.tumtum.app.data.repo.readingGranted
 import cc.tumtum.app.data.repo.registerEvent
 import cc.tumtum.app.service.CaptureBus
+import cc.tumtum.app.domain.ConsentText
 import cc.tumtum.app.domain.EventTimes
 import cc.tumtum.app.domain.NewEvent
 import cc.tumtum.app.domain.Skin
@@ -78,6 +79,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -98,6 +100,23 @@ fun LiveTabScreen(nav: NavHostController) {
     val container = appContainer()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // "Conectar meu relógio" (b218, 28/09): with "Ler sua batida" already on,
+    // the consent screen had nothing to ask — it framed a switch that was on
+    // and came back here. Now it is asked only when it is off; otherwise the
+    // way goes straight to connecting.
+    fun connectDevice() {
+        scope.launch {
+            val reading = container.prefs.state.first().granted(ConsentText.READ_HEART_RATE) == true
+            nav.navigate(
+                when {
+                    !reading -> Routes.consent(ConsentText.READ_HEART_RATE)
+                    container.health.isAvailable && !container.health.hasPermission() -> Routes.Permission
+                    else -> Routes.SourcesSetup
+                },
+            )
+        }
+    }
     val vm: LiveViewModel = viewModel { LiveViewModel(container) }
     val activeEvent by vm.activeEvent.collectAsStateWithLifecycle()
     val now by vm.now.collectAsStateWithLifecycle()
@@ -362,7 +381,7 @@ fun LiveTabScreen(nav: NavHostController) {
                     TTButton(
                         stringResource(R.string.empty_connect),
                         TTButtonStyle.Rose,
-                        onClick = { nav.navigate(Routes.consent(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE)) },
+                        onClick = { connectDevice() },
                     )
                     Spacer(Modifier.height(24.dp))
                 } else {
@@ -480,7 +499,7 @@ fun LiveTabScreen(nav: NavHostController) {
             },
             onConnect = {
                 startSheet = null
-                nav.navigate(Routes.consent(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE))
+                connectDevice()
             },
             onStart = {
                 startSheet = null

@@ -948,6 +948,34 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-09-28 (noite) — b218 na mão: "Conectar meu relógio" num laço
+
+**What happened.** The first test of b218 could not finish. A new account,
+both mandatory keys granted at sign-up, a phone whose Health Connect was
+already granted from earlier accounts: AO VIVO said "Nada conectado ainda",
+"Conectar meu relógio" opened the consent screen with "Ler sua batida" —
+already on — framed under **"O QUE FALTA"**, and "Continuar" went back to
+AO VIVO, which still said nothing was connected. A loop, with the screen
+calling a granted switch missing.
+
+**Why.** The afternoon's app stream added `wantsReading` (Health Connect
+permission still missing) to the condition that continues from the consent
+screen to connecting a device. On a phone where Health Connect was already
+granted that condition was false, so the way fell to "go back". And
+`missingFor()` always put the asked-for key first, on or off.
+
+**What was built.** (b219) Continuing from "Ler sua batida" when the account
+has no strap and no watch goes to the Health Connect dialog if the phone
+still needs it and **straight to the setup when it does not**. "Conectar meu
+relógio" skips the consent screen when the key is already on. "O QUE FALTA"
+frames only what is off, and the heading does not appear over nothing
+(`ConsentTextTest`, 6 tests). **The lesson is the one CLAUDE.md already
+carries, one level down:** the afternoon's tests were written against a fresh
+phone; the hand in the evening held a phone with history. Test a flow on the
+phone that has already been through it.
+
+---
+
 ## 2026-09-28 — A segunda de testes: Railway e Vercel conferidos, o site fechado, o b217 na mão, e as trinta e três correções
 
 **What happened.** The Monday the 26/09 remediation was to be verified in
