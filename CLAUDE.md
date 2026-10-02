@@ -283,6 +283,10 @@ series_posts: post_id (PK, FK), series_id (FK), created_at      -- the author's 
 -- Sessions (22/09): access token 1 h; refresh token 90 days from last use, rotated
 refresh_tokens: id, user_id (FK), family_id, parent_id, token_hash, expires_at, revoked_at, revoke_reason, created_at
 
+-- "Esqueci a senha": one mail, a link for the site and (02/10) a 6-digit code for the app.
+-- Both stored only as hashes; 30 minutes; five wrong codes kill the code, not the link
+password_reset_tokens: id, user_id (FK), token_hash, code_hash, attempts, expires_at, used_at, created_at
+
 -- Sign-up codes (24/09, #64): an account exists only once its e-mail is proved.
 -- What the account will be waits here until the 6-digit code comes back; the
 -- code is stored only as a keyed hash; unconfirmed rows are deleted after a day.

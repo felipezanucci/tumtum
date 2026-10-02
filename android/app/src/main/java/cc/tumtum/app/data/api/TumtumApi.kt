@@ -105,6 +105,23 @@ class TumtumApi(private val prefs: UserPrefs) {
     }
 
     /**
+     * "Esqueci a senha" (02/10): the server mails a 6-digit code (and the
+     * site's link) to [email] if it has an account, and says the same either
+     * way — the answer tells nobody whether the address has one.
+     */
+    suspend fun forgotPassword(email: String) {
+        val body = JSONObject().put("email", email)
+        request("POST", "/api/auth/forgot-password", body.toString(), token = null)
+    }
+
+    /** The code from that mail and a new password: the password changes, every other device is signed out, and this one is signed in. */
+    suspend fun resetPasswordWithCode(email: String, code: String, password: String): Session {
+        val body = JSONObject().put("email", email).put("code", code).put("password", password)
+        val response = JSONObject(request("POST", "/api/auth/reset-password/code", body.toString(), token = null))
+        return freshSignIn(response)
+    }
+
+    /**
      * A sign-in, as opposed to a renewal (28/09): whatever the phone had heard
      * about consents is forgotten — it may be another account's, or older than
      * a change made on the web — and asked again at once. Offline, the next

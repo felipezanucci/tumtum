@@ -38,6 +38,7 @@ import cc.tumtum.app.ui.screens.settings.SettingsScreen
 import cc.tumtum.app.ui.screens.sources.SetupScreen
 import cc.tumtum.app.ui.screens.sources.WatchSourcesScreen
 import cc.tumtum.app.ui.screens.you.YouScreen
+import cc.tumtum.app.ui.screens.login.ForgotPasswordScreen
 import androidx.compose.runtime.LaunchedEffect
 import cc.tumtum.app.data.repo.consentGateNeeded
 import kotlinx.coroutines.flow.first
@@ -46,6 +47,8 @@ object Routes {
     const val Onboarding = "onboarding"
     const val Account = "account"
     const val Login = "login"
+    /** "Esqueci a senha" in the app (02/10), with the address the sign-in form already had. */
+    const val ForgotPassword = "forgot_password?email={email}"
     const val Permission = "permission"
     /**
      * The consent screen (26/09): before the Health Connect dialog, as the
@@ -74,6 +77,9 @@ object Routes {
     fun reveal(nightId: Long) = "reveal/$nightId"
 
     /** [focus]: the purpose the app needs now; [sendNightId]: the night that goes up once `keep_night` is on. */
+    fun forgotPassword(email: String): String =
+        if (email.isBlank()) "forgot_password" else "forgot_password?email=${Uri.encode(email.trim())}"
+
     fun consent(focus: String? = null, sendNightId: Long? = null): String {
         val args = buildList {
             focus?.let { add("focus=${Uri.encode(it)}") }
@@ -164,6 +170,18 @@ fun TumTumRoot(
             composable(Routes.Onboarding) { OnboardingScreen(nav) }
             composable(Routes.Account) { CreateAccountScreen(nav) }
             composable(Routes.Login) { LoginScreen(nav) }
+            composable(
+                Routes.ForgotPassword,
+                arguments = listOf(
+                    navArgument("email") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
+            ) { entry ->
+                ForgotPasswordScreen(nav, initialEmail = entry.arguments?.getString("email").orEmpty())
+            }
             composable(Routes.Permission) { PermissionScreen(nav) }
             composable(
                 Routes.Consent,
