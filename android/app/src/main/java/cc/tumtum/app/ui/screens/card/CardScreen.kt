@@ -900,13 +900,20 @@ private data class ShareNetwork(
     val spoken: String? = null,
 )
 
-private val ShareIconSize = 56.dp
+private val ShareIconSize = 52.dp
 
 /**
- * A network as its own mark (28/09): a white circle on the black canvas, the
- * mark in black at its own 1:1, the name under it. Like [TTButton] it never
- * fades; while a share is being prepared a tap is swallowed, and the status
- * line under the choices already says why.
+ * A network as its own mark (28/09): a circle on the black canvas, the mark
+ * at its own 1:1, the name under it. Like [TTButton] it never fades; while a
+ * share is being prepared a tap is swallowed, and the status line under the
+ * choices already says why.
+ *
+ * **Quieter, 02/10.** The first version was six solid white discs with the
+ * marks in black, and in Felipe's hand on b227 it still read as *"um pouco
+ * grosseiro"* — six white spots louder than the one Pink button above them.
+ * The circles are now the same outlined dark as "Copiar card" below, with
+ * the mark in white (each brand allows white as well as black), so the Pink
+ * "Feed do evento" is the only loud thing on the screen.
  */
 @Composable
 private fun ShareIcon(network: ShareNetwork, enabled: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -918,7 +925,11 @@ private fun ShareIcon(network: ShareNetwork, enabled: Boolean, modifier: Modifie
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            Modifier.size(ShareIconSize).clip(CircleShape).background(TT.Paper),
+            Modifier
+                .size(ShareIconSize)
+                .clip(CircleShape)
+                .background(TT.Ink800)
+                .border(1.dp, TT.Ink600, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -926,8 +937,8 @@ private fun ShareIcon(network: ShareNetwork, enabled: Boolean, modifier: Modifie
                 // "Status" alone would not say whose status; the WhatsApp mark
                 // on it is not read aloud.
                 contentDescription = network.spoken,
-                tint = TT.Ink,
-                modifier = Modifier.size(26.dp),
+                tint = TT.Paper,
+                modifier = Modifier.size(24.dp),
             )
         }
         Spacer(Modifier.height(6.dp))
