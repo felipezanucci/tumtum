@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -821,16 +822,19 @@ private fun ShareChoices(
             val fit = ((maxWidth + gap) / (cell + gap)).toInt().coerceIn(1, networks.size)
             val rows = (networks.size + fit - 1) / fit
             val perRow = (networks.size + rows - 1) / rows
+            // Aligned to "Feed do evento" above (02/10, Felipe): the first
+            // column's circles start where the Pink button starts, the last
+            // column's end where it ends, the rest evenly between. A name is
+            // centred under its circle and may reach past the edge by a few
+            // dp — into the page margin, never into the next name.
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 networks.chunked(perRow).forEach { row ->
-                    Row(Modifier.fillMaxWidth()) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         row.forEach { network ->
-                            ShareIcon(network, enabled = !busy, modifier = Modifier.weight(1f)) {
-                                onPick(network.target)
-                            }
+                            ShareIcon(network, enabled = !busy) { onPick(network.target) }
                         }
                         // The last row keeps the columns of the one above it.
-                        repeat(perRow - row.size) { Spacer(Modifier.weight(1f)) }
+                        repeat(perRow - row.size) { Spacer(Modifier.width(ShareIconSize)) }
                     }
                 }
             }
@@ -838,9 +842,11 @@ private fun ShareChoices(
         Spacer(Modifier.height(14.dp))
     }
     // The card alone, and every other app: quieter, and wrapping onto a second
-    // line on a narrow phone rather than squeezing a label onto two.
+    // line on a narrow phone rather than squeezing a label onto two. Spread to
+    // the Pink button's edges like the circles above (02/10).
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         QuietChoice(stringResource(R.string.card_share_copy), enabled = !busy) { onPick(ShareTo.Copy) }
@@ -917,9 +923,11 @@ private val ShareIconSize = 52.dp
  */
 @Composable
 private fun ShareIcon(network: ShareNetwork, enabled: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    // As wide as the circle, so the grid can put circles on the button's
+    // edges; not clipped, so a name wider than its circle still shows whole.
     Column(
         modifier
-            .clip(RoundedCornerShape(12.dp))
+            .width(ShareIconSize)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -942,6 +950,13 @@ private fun ShareIcon(network: ShareNetwork, enabled: Boolean, modifier: Modifie
             )
         }
         Spacer(Modifier.height(6.dp))
-        Text(network.label, style = TTType.MetaSmall, color = TT.Gray45, maxLines = 1, softWrap = false)
+        Text(
+            network.label,
+            style = TTType.MetaSmall,
+            color = TT.Gray45,
+            maxLines = 1,
+            softWrap = false,
+            modifier = Modifier.wrapContentWidth(unbounded = true),
+        )
     }
 }

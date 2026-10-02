@@ -1006,7 +1006,11 @@ a vector on the platform that draws it, not in the browser that previewed
 it.** And the six solid white discs still read as *"um pouco grosseiro"*:
 they are now outlined dark circles, like "Copiar card" under them, with the
 marks in white (both colours the brands allow), so "Feed do evento" is the
-one loud thing on the screen.
+one loud thing on the screen. Seen in a preview, Felipe asked for one more
+thing: everything aligned to the Pink button — Instagram, TikTok and
+"Copiar card" on its left edge, Snapchat, Status and "Mais apps" on its
+right, the middle evenly between (the circles had sat centred in equal
+cells, so the outer ones were inset and the row looked pushed right).
 
 **Not done, and noted** (item 92): this phone holds a night attached to
 "Rihanna teste" that the server no longer has (the 403 said "não chegou",
