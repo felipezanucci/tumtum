@@ -10,6 +10,7 @@ import cc.tumtum.app.domain.FeedGate
 fun feedClosedText(closed: FeedGate.Closed): String = when (closed) {
     FeedGate.Closed.OtherAccount -> stringResource(R.string.feed_post_other_account)
     FeedGate.Closed.NotKept -> stringResource(R.string.feed_post_not_kept)
+    FeedGate.Closed.NotUploaded -> stringResource(R.string.feed_post_not_uploaded)
     FeedGate.Closed.NoEvent -> stringResource(R.string.feed_post_no_event)
     is FeedGate.Closed.FewReadings -> stringResource(R.string.feed_post_few_readings)
 }

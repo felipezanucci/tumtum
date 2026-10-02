@@ -51,7 +51,7 @@ art. 11 da LGPD). Por isso tudo aqui depende do seu consentimento.
 
 | Dado | De onde vem | Onde fica |
 |---|---|---|
-| Batimento por minuto (bpm), com data e hora de cada leitura | Do seu relógio, pelo Health Connect, **ou** de uma cinta Bluetooth emprestada pela TumTum | No seu celular; no servidor da TumTum **só se você marcar o item C abaixo** e tocar em "Guardar minha noite" |
+| Batimento por minuto (bpm), com data e hora de cada leitura | Do seu relógio, pelo Health Connect, **ou** de uma cinta Bluetooth emprestada pela TumTum | No seu celular; no servidor da TumTum **só se você marcar o item C abaixo** (aí cada noite sobe sozinha quando termina, e você pode tirar qualquer uma) |
 | O evento em que a noite foi gravada | Você ativa o evento no app | Com a noite |
 | Intervalos R-R (o tempo entre uma batida e outra) e movimento do celular | Da cinta e do acelerômetro, durante a captura | **Só no seu celular**, criptografados, e apagados quando a noite é guardada ou apagada. Nunca vão para o servidor |
 | Nome, e-mail, data de nascimento | Você, ao criar a conta | No servidor, enquanto a conta existir |
@@ -72,7 +72,7 @@ funciona sem eles. Você pode mudar qualquer um a qualquer hora.
 |---|---|---|---|
 | **A** | Aceito os **Termos de Uso** (tumtum.cc/termos) e a **Política de Privacidade** (tumtum.cc/privacidade) | Sim, para ter conta | [ ] |
 | **B** | Autorizo a TumTum a **ler meu batimento** na janela do evento e gerar os meus momentos | Sim, para gravar a noite | [ ] |
-| **C** | Autorizo **guardar a minha noite** (a série de batimentos e os momentos) na minha coleção, no servidor da TumTum | Não | [ ] |
+| **C** | Autorizo **guardar a minha noite** (a série de batimentos e os momentos) na minha coleção, no servidor da TumTum — cada noite sobe sozinha quando termina, e posso tirar qualquer uma ou desligar isto quando quiser | Não | [ ] |
 | **D** | Autorizo incluir a minha noite, **sem meu nome e junto com a de outras pessoas**, na estatística coletiva do evento ("A galera"). Ela só é mostrada com pelo menos 100 noites no evento e 10 pessoas em cada momento, em faixas ("10+"), nunca como número exato | Não | [ ] |
 | **E** | Autorizo **comparar** a minha noite com a de um artista ou atleta, quando isso existir (hoje não existe) | Não | [ ] |
 | **F** | Autorizo usar a minha noite para **melhorar o detector de momentos** da TumTum | Não | [ ] |

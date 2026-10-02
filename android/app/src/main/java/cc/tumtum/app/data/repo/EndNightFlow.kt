@@ -39,16 +39,18 @@ suspend fun AppContainer.saveEndedNight(
             appContext.getString(R.string.remind_reveal_text),
         )
     }
-    // Nothing goes to the server from here (26/09). The night is saved on the
-    // phone; it goes up only when its owner taps "Guardar minha noite na
-    // TumTum" on the reveal, with the "guardar a noite" consent on. Until
-    // then this line was an automatic upload, under a screen that promised
-    // "Nada deixa seu aparelho sem você mandar".
-    //
-    // And the raw capture of the event goes now: the night keeps its beats
-    // and moments; the per-packet readings, R-R and motion have done their
-    // job. The connection log stays with the night (28/09, see dropRawCapture).
+    // The raw capture of the event goes now: the night keeps its beats and
+    // moments; the per-packet readings, R-R and motion have done their job.
+    // The connection log stays with the night (28/09, see dropRawCapture).
     runCatching { nights.dropRawCapture(event.id) }
     endNight.clear()
+    // Up by itself **only with "Guardar a noite" on** (02/10). From 26/09 to
+    // 02/10 nothing left the phone without a tap per night, because the
+    // consent text of the time promised "ela só sai daqui se você guardar";
+    // the text of 2026-10-02.1 promises the opposite — "sobe pra sua coleção
+    // assim que termina" — and the key stays off until the person turns it
+    // on. Before that, this line was an automatic upload with no consent at
+    // all, under a screen that said "Nada deixa seu aparelho sem você mandar".
+    if (keepingGranted() == true) sync.keepAutomatically(nightId)
     return nightId
 }

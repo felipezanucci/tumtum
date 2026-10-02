@@ -54,6 +54,7 @@ import cc.tumtum.app.data.prefs.UpcomingEvent
 import cc.tumtum.app.data.repo.readingGranted
 import cc.tumtum.app.data.repo.registerEvent
 import cc.tumtum.app.service.CaptureBus
+import cc.tumtum.app.domain.CaptureWindow
 import cc.tumtum.app.domain.ConsentText
 import cc.tumtum.app.domain.EventTimes
 import cc.tumtum.app.domain.NewEvent
@@ -220,6 +221,13 @@ fun LiveTabScreen(nav: NavHostController) {
      * way to connecting a device.
      */
     fun startCapture(request: StartRequest) {
+        // Only inside the event's window (02/10): the consent text promises
+        // it, and the button already says so — this is the rule behind every
+        // door, the operator's marked override excepted.
+        if (!request.override && !CaptureWindow.isOpen(now, request.event.startAt)) {
+            notice = context.getString(R.string.upcoming_not_yet, opensAtWords(context, request.event.startAt, now))
+            return
+        }
         if (!signedIn) {
             // Said at the tap, never below the fold (25/09: the refusal sat
             // under the list, behind the tab bar, and read as "nothing").
@@ -343,7 +351,9 @@ fun LiveTabScreen(nav: NavHostController) {
                     up = up,
                     now = now,
                     notificationsOk = notificationsOk,
+                    operator = state.eventsOn,
                     onStart = { requestStart(StartRequest(up, clearsMark = true)) },
+                    onStartOverride = { requestStart(StartRequest(up, clearsMark = true, override = true)) },
                     onUnmark = {
                         scope.launch {
                             Reminders.cancelEvent(context)
@@ -469,6 +479,7 @@ fun LiveTabScreen(nav: NavHostController) {
     startSheet?.let { request ->
         StartSheet(
             request = request,
+            now = now,
             signedIn = signedIn,
             expired = state.session != null,
             // Said before the tap too, when the phone already knows it is off.
@@ -523,7 +534,8 @@ fun LiveTabScreen(nav: NavHostController) {
 }
 
 /** A capture about to start, and whether it is the marked event's own start. */
-private data class StartRequest(val event: UpcomingEvent, val clearsMark: Boolean)
+/** [override]: the operator's way around the event's window, for tests — never the fan's. */
+private data class StartRequest(val event: UpcomingEvent, val clearsMark: Boolean, val override: Boolean = false)
 
 /** Why a capture did not start for "Ler sua batida" (28/09): it is off, or nobody could say. */
 private enum class ReadingBlock { Off, Unknown }
@@ -541,6 +553,7 @@ private enum class ReadingBlock { Off, Unknown }
 @Composable
 private fun StartSheet(
     request: StartRequest,
+    now: Instant,
     signedIn: Boolean,
     expired: Boolean,
     reading: ReadingBlock?,
@@ -558,7 +571,13 @@ private fun StartSheet(
         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
     ) {
         Column(Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, bottom = 40.dp)) {
-            Text(stringResource(R.string.start_live_now), style = TTType.MetaWide, color = TT.Gray70)
+            // "ROLANDO AGORA" over an event 24 days away was false (02/10);
+            // the label is the event's state, read from the clock.
+            Text(
+                if (!now.isBefore(request.event.startAt)) stringResource(R.string.start_live_now) else beginsAtLabel(request.event.startAt, now),
+                style = TTType.MetaWide,
+                color = TT.Gray70,
+            )
             Spacer(Modifier.height(6.dp))
             Text(request.event.name, style = TTType.TitleSmall, color = TT.Ink)
             Spacer(Modifier.height(12.dp))
@@ -665,7 +684,10 @@ private fun UpcomingCard(
     up: UpcomingEvent,
     now: Instant,
     notificationsOk: Boolean,
+    /** The operator's phone: the way to record outside the window, said as a test. */
+    operator: Boolean,
     onStart: () -> Unit,
+    onStartOverride: () -> Unit,
     onUnmark: () -> Unit,
     onAllowNotifications: () -> Unit,
 ) {
@@ -706,7 +728,21 @@ private fun UpcomingCard(
             )
         }
         Spacer(Modifier.height(12.dp))
-        TTButton(stringResource(R.string.upcoming_start), TTButtonStyle.Rose, onClick = onStart)
+        // Black and saying when, until the window opens; then Pink and
+        // "Começar agora" (02/10, Felipe: "um botão preto e na hora vira rosa").
+        if (CaptureWindow.isOpen(now, up.startAt)) {
+            TTButton(stringResource(R.string.upcoming_start), TTButtonStyle.Rose, onClick = onStart)
+        } else {
+            TTButton(opensAtButton(up.startAt, now), TTButtonStyle.Ink, enabled = false, onClick = onStart)
+            if (operator) {
+                Text(
+                    stringResource(R.string.upcoming_operator_record),
+                    style = TTType.Meta,
+                    color = TT.Ink,
+                    modifier = Modifier.clickable(onClick = onStartOverride).padding(top = 10.dp, bottom = 2.dp),
+                )
+            }
+        }
         Text(
             stringResource(R.string.upcoming_unmark),
             style = TTType.Meta,
@@ -953,5 +989,39 @@ fun CreateEventSheet(
                 },
             )
         }
+    }
+}
+
+/** "dia 26/10, 21h30" / "hoje, 21h30" / "amanhã, 21h30": when the window opens, for a sentence. */
+private fun opensAtWords(context: android.content.Context, startAt: Instant, now: Instant): String {
+    val opens = CaptureWindow.opensAt(startAt)
+    val hour = Fmt.hour(opens)
+    return when (Fmt.daysFrom(now, opens)) {
+        0L -> context.getString(R.string.upcoming_opens_today, hour)
+        1L -> context.getString(R.string.upcoming_opens_tomorrow, hour)
+        else -> context.getString(R.string.upcoming_opens_at, Fmt.daySlashMonth(opens), hour)
+    }.removePrefix("Começa ")
+}
+
+/** The black button's words before the window: "Começa dia 26/10, 21h30". */
+@Composable
+private fun opensAtButton(startAt: Instant, now: Instant): String {
+    val opens = CaptureWindow.opensAt(startAt)
+    val hour = Fmt.hour(opens)
+    return when (Fmt.daysFrom(now, opens)) {
+        0L -> stringResource(R.string.upcoming_opens_today, hour)
+        1L -> stringResource(R.string.upcoming_opens_tomorrow, hour)
+        else -> stringResource(R.string.upcoming_opens_at, Fmt.daySlashMonth(opens), hour)
+    }
+}
+
+/** The start sheet's label for an event still to come: "COMEÇA DIA 26/10, 22H00". */
+@Composable
+private fun beginsAtLabel(startAt: Instant, now: Instant): String {
+    val hour = Fmt.hour(startAt).uppercase()
+    return when (Fmt.daysFrom(now, startAt)) {
+        0L -> stringResource(R.string.start_begins_today, hour)
+        1L -> stringResource(R.string.start_begins_tomorrow, hour)
+        else -> stringResource(R.string.start_begins_at, Fmt.daySlashMonth(startAt), hour)
     }
 }

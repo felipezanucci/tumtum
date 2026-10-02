@@ -54,28 +54,29 @@ internal suspend fun completeSignIn(
         container.prefs.replaceAccount(account)
     }
     container.afterSignIn()
-    // The consent gate (26/09): an account without a birth
-    // date or without the Terms agreed passes it first.
+    // The consent gate (26/09): an account without a birth date, without the
+    // Terms, or whose yes was given under words that have since changed
+    // passes it first (02/10). Otherwise straight to the feed (#57, 23/09),
+    // with the back stack cleared so "back" does not return to the form —
+    // **whether or not this phone saw the account before**. Until 02/10 a
+    // first sign-in on a phone opened the whole consent screen again, which
+    // read as the app forgetting what the account had already said.
     val gate = container.consentGateNeeded() == true
-    // Signing back in goes straight to the feed (#57, 23/09) —
-    // from Configurações it used to drop the person back on
-    // Configurações, one more step from what they came for.
-    // The back stack is cleared so "back" does not return
-    // to the sign-in form. Only a first sign-in goes on to
-    // the permissions.
-    if (onboarded && !gate) {
-        nav.navigate(Routes.Feed) {
-            popUpTo(nav.graph.id) { inclusive = true }
-            launchSingleTop = true
-        }
-    } else if (onboarded) {
+    if (gate) {
         nav.navigate(Routes.consent()) {
             popUpTo(nav.graph.id) { inclusive = true }
             launchSingleTop = true
         }
-    } else {
-        // A first sign-in: the consent screen, then the
-        // Health Connect dialog if reading was turned on.
-        nav.navigate(Routes.consent())
+        return
+    }
+    if (!onboarded) container.prefs.setOnboarded()
+    // A phone that has never read this person's watch still needs the Health
+    // Connect dialog, when reading is on: said now, not skipped silently.
+    val needsPermission = !onboarded &&
+        container.prefs.state.first().granted(cc.tumtum.app.domain.ConsentText.READ_HEART_RATE) == true &&
+        container.health.isAvailable && !container.health.hasPermission()
+    nav.navigate(if (needsPermission) Routes.Permission else Routes.Feed) {
+        popUpTo(nav.graph.id) { inclusive = true }
+        launchSingleTop = true
     }
 }

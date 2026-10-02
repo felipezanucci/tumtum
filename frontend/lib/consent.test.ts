@@ -159,20 +159,21 @@ describe('what a switch says after it is saved', () => {
 
   it('says what stops when keep_night is turned off, in these exact words', () => {
     expect(consentNotice('keep_night', false)).toBe(
-      'Desligado. Suas noites guardadas saem do servidor em até 24 horas e continuam no seu celular.',
+      'Desligado. Nenhuma noite nova sobe pra TumTum, e as que já subiram saem do servidor em até 24 horas. Elas continuam só no seu celular.',
     )
   })
 
-  it('says a plain "Desligado." where nothing more is true', () => {
-    expect(consentNotice('marketing', false)).toBe('Desligado.')
+  it('says what stops for every key, never a bare "Desligado." (02/10)', () => {
+    expect(consentNotice('marketing', false)).toBe('Desligado. A gente para de mandar e-mail de novidade.')
   })
 
   it('keeps the keep_night line under an off switch on a fresh load', () => {
     const notes = consentNotes(on({ read_heart_rate: true }), {})
     expect(notes.keep_night).toBe(
-      'Desligado. Suas noites guardadas saem do servidor em até 24 horas e continuam no seu celular.',
+      'Desligado. Nenhuma noite nova sobe pra TumTum, e as que já subiram saem do servidor em até 24 horas. Elas continuam só no seu celular.',
     )
-    expect(notes.crowd_stats).toBeUndefined()
+    // Every key that is off says what that means (02/10) — not only keep_night.
+    expect(notes.crowd_stats).toBe('Desligado. Suas noites deixam de contar na galera dos eventos.')
     expect(consentNotes(on({ read_heart_rate: true, keep_night: true }), {}).keep_night).toBeUndefined()
   })
 
@@ -180,15 +181,15 @@ describe('what a switch says after it is saved', () => {
     const saved = on({ read_heart_rate: true, keep_night: true, marketing: false })
     const notes = consentNotes(saved, { keep_night: true, marketing: false, crowd_stats: true })
     expect(notes.keep_night).toBe('Ligado.')
-    expect(notes.marketing).toBe('Desligado.')
-    // Sent as on, still off on the server: no "Ligado." for it.
-    expect(notes.crowd_stats).toBeUndefined()
+    expect(notes.marketing).toBe('Desligado. A gente para de mandar e-mail de novidade.')
+    // Sent as on, still off on the server: no "Ligado." for it — its off sentence stands.
+    expect(notes.crowd_stats).toBe('Desligado. Suas noites deixam de contar na galera dos eventos.')
   })
 })
 
 describe('the consent text', () => {
   it('carries the version every codebase shares', () => {
-    expect(CONSENT_TEXT_VERSION).toBe('2026-09-26.1')
+    expect(CONSENT_TEXT_VERSION).toBe('2026-10-02.1')
   })
 
   it('names exactly the seven purposes of the contract', () => {
@@ -202,7 +203,7 @@ describe('the consent text', () => {
     for (const copy of [CONSENT_PT, CONSENT_EN]) {
       for (const purpose of CONSENT_PURPOSES) {
         expect(copy.purposes[purpose].title.length).toBeGreaterThan(3)
-        expect(copy.purposes[purpose].description.length).toBeGreaterThan(20)
+        expect(copy.purposes[purpose].body.length).toBeGreaterThan(20)
       }
       expect(copy.facts).toHaveLength(CONSENT_PT.facts.length)
     }
@@ -221,20 +222,26 @@ describe('the consent text', () => {
     expect(text).toContain('Fornecedores contratados processam dados só em nome da TumTum')
   })
 
-  it('puts every "without" on its own line, after a prefix, in both languages', () => {
-    expect(CONSENT_PT.withoutPrefix).toBe('Desligada:')
+  it('gives every key a standing off sentence that starts with Desligado. / Off.', () => {
     for (const copy of [CONSENT_PT, CONSENT_EN]) {
-      expect(copy.withoutPrefix.length).toBeGreaterThan(3)
       expect(copy.grantedNotice.length).toBeGreaterThan(1)
       for (const purpose of CONSENT_PURPOSES) {
-        expect(copy.purposes[purpose].description).not.toContain(copy.purposes[purpose].without ?? '\u0000')
+        expect(copy.purposes[purpose].off).toMatch(copy.lang === 'pt-BR' ? /^Desligado\./ : /^Off\./)
+        expect(copy.purposes[purpose].body).not.toContain(copy.purposes[purpose].off)
       }
     }
+    // The Terms are withdrawn by deleting the account, never by a switch (02/10).
+    expect(CONSENT_PT.purposes.terms.locked).toContain('apague a conta')
   })
 
   it('says what turning off keep_night does, as the server does it (24 h)', () => {
-    expect(CONSENT_PT.purposes.keep_night.without).toContain('apagadas do servidor em até 24 horas')
-    expect(CONSENT_EN.purposes.keep_night.without).toContain('deleted from the server within 24 hours')
+    expect(CONSENT_PT.purposes.keep_night.off).toContain('saem do servidor em até 24 horas')
+    expect(CONSENT_EN.purposes.keep_night.off).toContain('leave the server within 24 hours')
     expect(CONSENT_PT.facts.join(' ')).not.toContain('Vale dali pra frente')
+  })
+
+  it('says the night goes up on its own with keep_night on (02/10, the Strava precedent)', () => {
+    expect(CONSENT_PT.purposes.keep_night.body).toContain('assim que termina')
+    expect(CONSENT_EN.purposes.keep_night.body).toContain('as soon as it ends')
   })
 })

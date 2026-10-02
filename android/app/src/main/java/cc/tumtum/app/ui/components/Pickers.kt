@@ -130,6 +130,8 @@ fun WheelBirthDateField(
         value?.let { EventTimes.formatDate(it) } ?: stringResource(R.string.picker_choose),
         modifier,
         onDark = onDark,
+        // "Escolher … MUDAR" with nothing chosen yet offered to change nothing (02/10).
+        hasValue = value != null,
     ) { open = true }
     if (open) {
         val today = remember { LocalDate.now() }
@@ -293,6 +295,8 @@ private fun PickerField(
     value: String,
     modifier: Modifier,
     onDark: Boolean = false,
+    /** False while the field still says "Escolher": then the control on the right is ESCOLHER, not MUDAR. */
+    hasValue: Boolean = true,
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(4.dp)
@@ -309,7 +313,11 @@ private fun PickerField(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(value, style = TTType.Body, color = text, modifier = Modifier.weight(1f))
-            Text(stringResource(R.string.picker_change), style = TTType.Meta, color = text)
+            Text(
+                stringResource(if (hasValue) R.string.picker_change else R.string.picker_pick),
+                style = TTType.Meta,
+                color = text,
+            )
         }
     }
 }

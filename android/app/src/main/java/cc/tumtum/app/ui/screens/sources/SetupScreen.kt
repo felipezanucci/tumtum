@@ -44,6 +44,7 @@ import cc.tumtum.app.data.ble.BleScanner
 import cc.tumtum.app.data.repo.SourceMeasurement
 import cc.tumtum.app.domain.OnSkinTracker
 import cc.tumtum.app.ui.components.BackArrow
+import cc.tumtum.app.ui.components.SystemBars
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.nav.Routes
@@ -104,6 +105,7 @@ fun SetupScreen(nav: NavHostController, startSearching: Boolean = false) {
     val address = state.bleAddress
     val name = state.bleName
 
+    SystemBars(lightIcons = true)
     Column(
         Modifier
             .fillMaxSize()

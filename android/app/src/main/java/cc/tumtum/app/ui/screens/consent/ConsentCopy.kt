@@ -42,16 +42,22 @@ data class PurposeCopy(
     @StringRes val body: Int,
     @StringRes val stops: Int,
     @StringRes val why: Int? = null,
+    /** Under a key that cannot be turned off here (the Terms, 02/10): how it is withdrawn. */
+    @StringRes val locked: Int? = null,
 )
 
 /**
  * The words for each consent key (26/09). The keys are [ConsentText]'s; the
- * words are strings.xml's, and any change to them is a new
- * [ConsentText.VERSION].
+ * words are `strings_consent.xml`'s — generated from
+ * `shared/consent/consent-text.json`, the one text every client shows
+ * (02/10) — and any change to them is a new [ConsentText.VERSION].
  */
 object ConsentCopy {
     fun of(purpose: String): PurposeCopy? = when (purpose) {
-        ConsentText.TERMS -> PurposeCopy(R.string.consent_terms_title, R.string.consent_terms_body, R.string.consent_terms_stops)
+        ConsentText.TERMS -> PurposeCopy(
+            R.string.consent_terms_title, R.string.consent_terms_body, R.string.consent_terms_stops,
+            locked = R.string.consent_terms_locked,
+        )
         ConsentText.READ_HEART_RATE -> PurposeCopy(R.string.consent_read_title, R.string.consent_read_body, R.string.consent_read_stops)
         ConsentText.KEEP_NIGHT -> PurposeCopy(
             R.string.consent_keep_title, R.string.consent_keep_body, R.string.consent_keep_stops,
@@ -172,6 +178,12 @@ fun ConsentRow(
     focused: Boolean = false,
     busy: Boolean = false,
     note: String? = null,
+    /**
+     * A key that stays as it is (02/10): the Terms once accepted — a contract,
+     * withdrawn by deleting the account, never by a switch. The site locked
+     * it from the first day; the app let Felipe turn it off on b232.
+     */
+    locked: Boolean = false,
 ) {
     val copy = ConsentCopy.of(purpose) ?: return
     val shape = RoundedCornerShape(10.dp)
@@ -191,8 +203,8 @@ fun ConsentRow(
             Spacer(Modifier.width(12.dp))
             Switch(
                 checked = on,
-                onCheckedChange = { if (!busy) onToggle(it) },
-                enabled = !busy,
+                onCheckedChange = { if (!busy && !locked) onToggle(it) },
+                enabled = !busy && !locked,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = TT.Ink,
                     checkedTrackColor = TT.Rose,
@@ -213,7 +225,7 @@ fun ConsentRow(
             Spacer(Modifier.height(4.dp))
             Text(stringResource(it), style = TTType.BodySmall, color = if (onDark) TT.Paper else TT.Ink)
         }
-        note?.let {
+        (note ?: copy.locked?.takeIf { locked }?.let { stringResource(it) })?.let {
             Spacer(Modifier.height(6.dp))
             Text(it, style = TTType.BodySmall, color = if (onDark) TT.Acid else TT.Ink)
         }

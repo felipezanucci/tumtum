@@ -224,14 +224,16 @@ fun SettingsScreen(nav: NavHostController) {
             // whatever the phone kept, and two accounts held @fezanu.
             val held = user?.account?.username
             if (held != null) {
-                if (handleSaved == held) {
-                    Text(stringResource(R.string.settings_handle_saved, held), style = TTType.BodySmall, color = TT.Ink)
-                    Spacer(Modifier.height(4.dp))
-                }
+                // One line (02/10): right after the save it says the @ is
+                // yours and fixed; on every later visit, only that it is fixed.
+                // Two lines saying the same thing read as a repeat.
                 Text(
-                    stringResource(R.string.settings_handle_fixed, held),
-                    style = TTType.Footnote,
-                    color = TT.Gray45,
+                    stringResource(
+                        if (handleSaved == held) R.string.settings_handle_saved else R.string.settings_handle_fixed,
+                        held,
+                    ),
+                    style = if (handleSaved == held) TTType.BodySmall else TTType.Footnote,
+                    color = if (handleSaved == held) TT.Ink else TT.Gray45,
                 )
             } else {
                 // An account from before 28/09 whose @ the server does not
@@ -577,6 +579,9 @@ private fun PrivacySection(signedIn: Boolean) {
                 onDark = false,
                 busy = busy != null,
                 note = note,
+                // The Terms are not a switch once accepted (02/10): the server
+                // refuses the revocation too, and the row says how it is done.
+                locked = purpose == ConsentText.TERMS && on,
                 onToggle = { value ->
                     busy = purpose
                     failures = failures - purpose

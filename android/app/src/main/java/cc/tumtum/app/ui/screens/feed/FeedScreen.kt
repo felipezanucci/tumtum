@@ -42,6 +42,7 @@ import cc.tumtum.app.data.api.ServerEvents
 import cc.tumtum.app.data.repo.NightRepository
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.components.AccountCorner
+import cc.tumtum.app.ui.components.SystemBars
 import cc.tumtum.app.ui.components.Wordmark
 import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.screens.eventfeed.EventFeedBody
@@ -79,12 +80,17 @@ fun FeedScreen(nav: NavHostController) {
     val user by container.prefs.state.collectAsStateWithLifecycle(initialValue = null)
     var events by remember { mutableStateOf<List<ServerEvent>?>(null) }
     var failed by remember { mutableStateOf(false) }
-    // The chip on, kept across a trip to another tab. [picked]: the person
-    // chose it, so a later look at their nights never moves them off it.
+    // The chip on. [picked]: the person chose it, so a later look at their
+    // nights never moves them off it — while they stay on the tab.
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var picked by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        // A chip the person tapped holds only while they are on this tab
+        // (02/10): back from AO VIVO or VOCÊ, the tab chooses again — with
+        // b232 it kept reopening on "Rihanna teste", a night still to come,
+        // because the tap was remembered across the trip.
+        picked = false
         // An empty list and a list that did not load are different claims,
         // and this screen has to be able to tell them apart.
         runCatching { container.api.listEvents() }
@@ -105,6 +111,8 @@ fun FeedScreen(nav: NavHostController) {
     // the main emphasis and Toxic Yellow as the second explosion: the chip of
     // the feed on screen is Pink, and a night that is on now wears a yellow
     // ROLANDO wherever it sits in the strip.
+    // The status bar's icons go light on the black head; the tab bar below stays white (02/10).
+    SystemBars(lightIcons = true, lightNavigationIcons = false)
     Column(Modifier.fillMaxSize().background(TT.Ink).statusBarsPadding()) {
         Row(
             Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 18.dp),

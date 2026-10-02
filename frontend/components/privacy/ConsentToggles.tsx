@@ -82,12 +82,15 @@ export default function ConsentToggles({
                   {text.title}
                 </p>
                 <div id={`${id}-desc`}>
-                  <p className="mt-1 text-sm leading-relaxed text-tumtum-muted">{text.description}</p>
-                  {/* What off costs, on its own line, before the person decides. */}
-                  {text.without && (
-                    <p className="mt-1 text-sm leading-relaxed text-tumtum-muted">
-                      {copy.withoutPrefix} {text.without}
-                    </p>
+                  <p className="mt-1 text-sm leading-relaxed text-tumtum-muted">{text.body}</p>
+                  {/* Why it is worth turning on, where the text gives a reason (keep_night). */}
+                  {text.why && (
+                    <p className="mt-1 text-sm leading-relaxed text-tumtum-white">{text.why}</p>
+                  )}
+                  {/* What off means, said before the person decides — the same
+                      sentence that stands under the switch once it is off. */}
+                  {!locked && !notes[purpose] && !on && (
+                    <p className="mt-1 text-sm leading-relaxed text-tumtum-muted">{text.off}</p>
                   )}
                 </div>
                 {notes[purpose] && (
@@ -95,8 +98,8 @@ export default function ConsentToggles({
                     {notes[purpose]}
                   </p>
                 )}
-                {locked && (
-                  <p className="mt-2 text-xs text-tumtum-muted">{copy.lockedNote}</p>
+                {locked && text.locked && (
+                  <p className="mt-2 text-xs text-tumtum-muted">{text.locked}</p>
                 )}
               </div>
               <button

@@ -159,7 +159,7 @@ depois das correções do dia.
 | # | Risco | Origem | Probabilidade antes | Impacto | Situação após 26/09 |
 |---|---|---|---|---|---|
 | R1 | Tratar dado de saúde **sem base legal** (sem consentimento por finalidade nem prova dele) | CR-1 | Certa | Alto | Mitigado: `consents`, sete finalidades, tela própria, histórico por versão |
-| R2 | Noite enviada ao servidor **sem ato da pessoa** | CR-2 | Certa | Alto | Mitigado: só por "Guardar minha noite" com `keep_night`; 403 `consent_required` no servidor |
+| R2 | Noite enviada ao servidor **sem base** | CR-2 | Certa | Alto | Mitigado: só com `keep_night` ativo — desde 02/10 a noite sobe sozinha ao terminar, porque o texto da chave (versão 2026-10-02.1) diz isso e a chave fica desligada de fábrica; sem ela, só pelo toque que a liga; 403 `consent_required` no servidor; "Tirar da TumTum" por noite |
 | R3 | Piloto **sem termo** e **sem descarte** | CR-3 | Certa | Alto | Mitigado no papel: `docs/pilot-consent-template.md`, `docs/pilot-data-retention.md`, `purge_event_data.py`. Depende de assinatura e execução |
 | R4 | **Menor de idade** usando o app | CR-4 | Média | Alto | Reduzido: data de nascimento pelo seletor, recusa no servidor abaixo de 18 |
 | R5 | **Token forjado** por `SECRET_KEY` padrão | CR-5 | Baixa–média | Muito alto | Guarda na inicialização. **Conferir o valor no Railway** |
@@ -209,7 +209,7 @@ depois das correções do dia.
 
 | Alternativa | Decisão | Por quê |
 |---|---|---|
-| **Nenhum servidor**: a noite vive só no celular | **Adotada como padrão**, rejeitada como único modo | Sem "guardar a noite", nada sobe (O6). Como único modo, mataria a coleção entre aparelhos, o feed do evento e a análise do servidor |
+| **Nenhum servidor**: a noite vive só no celular | **Adotada como padrão**, rejeitada como único modo | Sem "Guardar a noite" ligado, nada sobe (O6); ligado, cada noite sobe ao terminar (02/10, precedente Strava/Garmin: consentimento por finalidade, não por ato). Como único modo, mataria a coleção entre aparelhos, o feed do evento e a análise do servidor |
 | **Não guardar a série bruta no servidor**, só os momentos calculados no celular | Rejeitada por ora; **o prazo caiu para 7 dias** | O detector validado roda no servidor e a reanálise depois de um conserto precisa da série. Revisitar quando o detector do aparelho for o mesmo do servidor |
 | **Sem feed** | Rejeitada | O feed é parte da hipótese do produto (sentir junto). Mitigado: cada post é um ato, só quem tem noite medida no evento vê, apagar, denunciar, bloquear. Rever depois do piloto |
 | **A galera por N mínimo apenas** | Rejeitada | N não prova anonimato (parecer §15). Bloqueada até o teste formal |

@@ -33,6 +33,19 @@ suspend fun AppContainer.readingGranted(): Boolean? {
     return runCatching { api.getConsents().granted(ConsentText.READ_HEART_RATE) }.getOrNull() ?: cached
 }
 
+/**
+ * Whether "Guardar a noite" is on for this account (02/10): the phone's last
+ * answer when it is yes, else the server now, else the phone's last word.
+ * Null when neither can say. A night that ends with this on goes up by
+ * itself ([cc.tumtum.app.data.repo.saveEndedNight]); the server checks the
+ * consent again before taking it.
+ */
+suspend fun AppContainer.keepingGranted(): Boolean? {
+    val cached = prefs.state.first().granted(ConsentText.KEEP_NIGHT)
+    if (cached == true) return true
+    return runCatching { api.getConsents().granted(ConsentText.KEEP_NIGHT) }.getOrNull() ?: cached
+}
+
 private val stopping = Mutex()
 
 /**

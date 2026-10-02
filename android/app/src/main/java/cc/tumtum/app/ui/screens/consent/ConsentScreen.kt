@@ -28,6 +28,7 @@ import cc.tumtum.app.data.api.TumtumApi
 import cc.tumtum.app.domain.BirthDate
 import cc.tumtum.app.domain.ConsentText
 import cc.tumtum.app.ui.components.BackArrow
+import cc.tumtum.app.ui.components.SystemBars
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.components.WheelBirthDateField
@@ -218,6 +219,7 @@ fun ConsentScreen(nav: NavHostController, focus: String?, sendNightId: Long?) {
         }
     }
 
+    SystemBars(lightIcons = true)
     Column(
         Modifier
             .fillMaxSize()

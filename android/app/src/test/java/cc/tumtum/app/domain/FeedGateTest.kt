@@ -31,8 +31,16 @@ class FeedGateTest {
 
     @Test
     fun `a night not on the server, or with keeping off, needs keeping`() {
-        assertEquals(FeedGate.Closed.NotKept, closed(session = null))
         assertEquals(FeedGate.Closed.NotKept, closed(keeping = false))
+        // Keeping unknown and nothing on the server: the key is still the way.
+        assertEquals(FeedGate.Closed.NotKept, closed(session = null, keeping = null))
+    }
+
+    @Test
+    fun `with keeping on, a night not yet on the server is on its way, not unkept`() {
+        // 02/10: the key sends every night by itself, so the door says "ainda
+        // não subiu", and never offers to turn on a key that is already on.
+        assertEquals(FeedGate.Closed.NotUploaded, closed(session = null, keeping = true))
     }
 
     @Test

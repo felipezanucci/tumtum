@@ -26,9 +26,10 @@ import java.time.ZoneId
  * docs/one-app-plan.md, 2026-09-18.
  *
  * The phone stays the source of truth for the readings: a night is saved in
- * Room first, and **goes to the server only when its owner asks** (26/09):
- * the reveal's "Guardar minha noite na TumTum", with the `keep_night`
- * consent on ([requestSend]). A night nobody asked to send is never touched
+ * Room first, and goes to the server **only with the `keep_night` consent on**
+ * (26/09) — since 02/10 by itself when the night ends ([keepAutomatically]),
+ * or by the reveal's "Guardar minha noite na TumTum" for a night recorded
+ * with the key off ([requestSend]). A night neither flagged is never touched
  * here. Once asked, a failure costs nothing but a retry — on the next app
  * start, or by the button on the reveal. Success replaces the phone's top-N moments with
  * the detector's, and the night records which it holds, so the reveal never
@@ -102,6 +103,30 @@ class NightSync(
         db.nightDao().setSendRequested(nightId, true)
         if (start) uploadLater(nightId)
         return SendRequest.Started
+    }
+
+    /**
+     * "Guardar a noite" is on, so the night that just ended goes up on its
+     * own (02/10, text 2026-10-02.1: "sobe pra sua coleção assim que
+     * termina"). Felipe's call, on the Strava precedent: the consent is per
+     * purpose, given once, not per night. Flagged like a tap would flag it,
+     * so a failure is retried the same way; the server still refuses it
+     * without both consents.
+     */
+    fun keepAutomatically(nightId: Long) {
+        scope.launch {
+            db.nightDao().setSendRequested(nightId, true)
+            upload(nightId)
+        }
+    }
+
+    /**
+     * "Tirar da TumTum" (02/10): the night leaves the server and stays on the
+     * phone, with its beats and moments. Nothing retries it — the flag goes
+     * with the server's copy — and the feed's door shuts, truthfully.
+     */
+    suspend fun forgetServer(nightId: Long) {
+        db.nightDao().forgetServer(nightId)
     }
 
     /** The consent screen just recorded `keep_night` for this night's sake: flag it and send it. */

@@ -20,8 +20,11 @@ object FeedGate {
         /** Recorded under another account (#58): only that account may post it. */
         data object OtherAccount : Closed
 
-        /** Not on the server — never kept, or "Guardar a noite" is off. */
+        /** Not on the server because "Guardar a noite" is off: the way is the key (02/10). */
         data object NotKept : Closed
+
+        /** The key is on and the night has not reached the server yet: it is on its way, or a retry is. */
+        data object NotUploaded : Closed
 
         /** On the server, but its event is not: there is no feed to post to. */
         data object NoEvent : Closed
@@ -44,7 +47,9 @@ object FeedGate {
         keepingNights: Boolean?,
     ): Closed? = when {
         ownerUserId != null && viewerId != null && ownerUserId != viewerId -> Closed.OtherAccount
-        serverSessionId == null || keepingNights == false -> Closed.NotKept
+        keepingNights == false -> Closed.NotKept
+        serverSessionId == null && keepingNights == true -> Closed.NotUploaded
+        serverSessionId == null -> Closed.NotKept
         serverEventId == null -> Closed.NoEvent
         eventReadings != null && eventReadings < MIN_EVENT_READINGS -> Closed.FewReadings(eventReadings)
         else -> null

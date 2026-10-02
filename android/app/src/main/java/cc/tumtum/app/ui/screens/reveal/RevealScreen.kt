@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -38,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
+import cc.tumtum.app.ui.components.SystemBars
 import cc.tumtum.app.data.repo.NightLookup
 import cc.tumtum.app.data.repo.NightSync
 import cc.tumtum.app.domain.UploadState
@@ -71,6 +73,7 @@ import kotlinx.coroutines.flow.first
 import cc.tumtum.app.ui.components.revealWhen
 import cc.tumtum.app.ui.components.serverDeadline
 import cc.tumtum.app.domain.ConsentText
+import cc.tumtum.app.domain.GapLabel
 import cc.tumtum.app.domain.FeedGate
 import cc.tumtum.app.domain.StopReason
 import androidx.compose.ui.res.pluralStringResource
@@ -160,6 +163,7 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
 
     // Dois blocos: o de cima rola, o botão de compartilhar é fixo embaixo. No
     // ensaio de 18/09 ele ficou no segundo scroll e ninguém sabia que existia.
+    SystemBars(lightIcons = true)
     Column(
         Modifier
             .fillMaxSize()
@@ -227,19 +231,31 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
         Spacer(Modifier.height(7.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(Fmt.hour(n.startAt).uppercase(), style = TTType.MetaSmall.copy(fontSize = 10.sp), color = TT.Gray55)
-            val biggestGapMin = n.gaps.maxOfOrNull { Duration.between(it.start, it.end).toMinutes() } ?: 0
-            if (biggestGapMin >= 1) {
-                Text(
-                    stringResource(R.string.reveal_gap, biggestGapMin.toInt()),
-                    style = TTType.MetaSmall.copy(fontSize = 10.sp),
-                    color = TT.Gray70,
-                )
-            }
             // The axis ends where the night ended (25/09): the peak's time sat
             // here in yellow, at the far right, under a dot at the far left —
             // "15H19 … 15H19" read as a night that began and ended at once.
             // The peak's time is already said next to its number.
             Text(Fmt.hour(n.endAt).uppercase(), style = TTType.MetaSmall.copy(fontSize = 10.sp), color = TT.Gray55)
+        }
+        // The time nobody measured, said whole and under the gap itself
+        // (02/10): "1 MIN SEM DADO" sat mid-axis over a 93-second dropout at
+        // the far right. Every gap counts; the label sits under the biggest.
+        val gapSeconds = GapLabel.totalSeconds(n.gaps)
+        val gapAnchor = GapLabel.anchor(n.gaps, n.startAt, n.endAt)
+        if (gapSeconds >= 1 && gapAnchor != null) {
+            Box(Modifier.fillMaxWidth().padding(top = 2.dp)) {
+                Text(
+                    when (val w = GapLabel.words(gapSeconds)) {
+                        is GapLabel.Words.Minutes -> stringResource(R.string.reveal_gap_min, w.minutes)
+                        is GapLabel.Words.Seconds -> stringResource(R.string.reveal_gap_sec, w.seconds)
+                        is GapLabel.Words.MinutesSeconds -> stringResource(R.string.reveal_gap_min_sec, w.minutes, w.seconds)
+                    },
+                    style = TTType.MetaSmall.copy(fontSize = 10.sp),
+                    color = TT.Gray70,
+                    // Centred under the gap, and never past the edges.
+                    modifier = Modifier.align(BiasAlignment(horizontalBias = gapAnchor * 2f - 1f, verticalBias = 0f)),
+                )
+            }
         }
         Spacer(Modifier.height(14.dp))
         // Where the night stands with the server — the first thing under the
@@ -328,6 +344,9 @@ fun RevealScreen(nav: NavHostController, nightId: Long) {
         // "Apagar esta noite" (26/09): from this phone, and from the server
         // when it went there. Quiet, at the foot; a dialog says what goes.
         Spacer(Modifier.height(22.dp))
+        // Off the server, on the phone (02/10): the control a night that goes
+        // up by itself has to have. Then the other, which takes it from both.
+        if (n.serverSessionId != null) RemoveFromServer(n)
         DeleteNight(n, onDeleted = home)
       }
         Spacer(Modifier.height(14.dp))
@@ -545,6 +564,101 @@ private fun SyncStatus(
  * a night is gone that is still on the server. Then the phone: beats,
  * moments, the photo behind its card, its reveal alarm.
  */
+/**
+ * "Tirar da TumTum" (02/10): the server's copy of the night goes — beats,
+ * moments, cards, posts — and the phone keeps its own, which stays what the
+ * screen shows. With "Guardar a noite" sending every night by itself, this
+ * is how one night is kept out of the collection without turning the key
+ * off for all of them.
+ */
+@Composable
+private fun RemoveFromServer(n: Night) {
+    val container = appContainer()
+    val scope = rememberCoroutineScope()
+    var confirm by remember { mutableStateOf(false) }
+    var removing by remember { mutableStateOf(false) }
+    var failure by remember { mutableStateOf<String?>(null) }
+    var done by remember { mutableStateOf(false) }
+
+    Text(
+        stringResource(if (done) R.string.night_remove_server_done else R.string.night_remove_server),
+        style = TTType.Button.copy(fontSize = 14.sp),
+        color = TT.Gray55,
+        modifier = Modifier.clickable(enabled = !done) { failure = null; confirm = true }.padding(vertical = 10.dp),
+    )
+    if (!confirm) return
+    val offline = stringResource(R.string.night_delete_offline)
+    val expired = stringResource(R.string.night_delete_expired)
+    val signedOut = stringResource(R.string.night_delete_signed_out)
+    val serverFmt = stringResource(R.string.night_delete_server)
+    AlertDialog(
+        onDismissRequest = { if (!removing) confirm = false },
+        containerColor = TT.Paper,
+        title = {
+            Text(stringResource(R.string.night_remove_server_title), style = TTType.TitleSmall.copy(fontSize = 22.sp), color = TT.Ink)
+        },
+        text = {
+            Column {
+                Text(stringResource(R.string.night_remove_server_body), style = TTType.Body, color = TT.Gray70)
+                failure?.let {
+                    Spacer(Modifier.height(10.dp))
+                    Text(it, style = TTType.BodySmall, color = TT.Ink)
+                }
+            }
+        },
+        confirmButton = {
+            Text(
+                stringResource(if (removing) R.string.night_remove_server_running else R.string.night_remove_server_confirm),
+                style = TTType.Button.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
+                color = if (removing) TT.Gray45 else TT.Ink,
+                modifier = Modifier
+                    .clickable(enabled = !removing) {
+                        removing = true
+                        failure = null
+                        scope.launch {
+                            val serverId = n.serverSessionId
+                            val serverDone = if (serverId == null) {
+                                true
+                            } else if (container.prefs.state.first().session == null) {
+                                failure = signedOut
+                                false
+                            } else {
+                                try {
+                                    container.api.deleteNight(serverId)
+                                    true
+                                } catch (e: TumtumApi.ApiException) {
+                                    when (e.code) {
+                                        404 -> true // already gone
+                                        401 -> { failure = expired; false }
+                                        else -> { failure = serverFmt.format(e.detail); false }
+                                    }
+                                } catch (e: java.io.IOException) {
+                                    failure = offline
+                                    false
+                                }
+                            }
+                            if (serverDone) {
+                                container.sync.forgetServer(n.id)
+                                confirm = false
+                                done = true
+                            }
+                            removing = false
+                        }
+                    }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+        },
+        dismissButton = {
+            Text(
+                stringResource(R.string.settings_delete_cancel),
+                style = TTType.Button.copy(fontSize = 14.sp),
+                color = TT.Gray55,
+                modifier = Modifier.clickable(enabled = !removing) { confirm = false }.padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+        },
+    )
+}
+
 @Composable
 private fun DeleteNight(n: Night, onDeleted: () -> Unit) {
     val container = appContainer()
@@ -701,6 +815,7 @@ private fun DividerDark() {
  */
 @Composable
 private fun NightNotHere(title: Int, body: Int, onHome: () -> Unit) {
+    SystemBars(lightIcons = true)
     Column(
         Modifier
             .fillMaxSize()
@@ -740,6 +855,7 @@ private fun LockedNightView(
     onHome: () -> Unit,
     onExport: (() -> Unit)?,
 ) {
+    SystemBars(lightIcons = true)
     Column(
         Modifier
             .fillMaxSize()

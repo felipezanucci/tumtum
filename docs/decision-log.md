@@ -934,8 +934,9 @@ the linked documents — this file is the index and the reasoning, not a diary.
     the 28/09 entry for why it is a consent and not a default. Changes the
     ledger, the policy, the RIPD and the pilot term with it.
 89. **Two migrations of the Railway database, together with Felipe.**
-    `[PENDENTE — Felipe + assistant]` The Alembic stamp sequence to 025
-    (`backend/alembic/README-migrations.md`) and `DATABASE_URL` from the
+    `[PENDENTE — Felipe + assistant]` The Alembic stamp sequence to **027**
+    (`backend/alembic/README-migrations.md`; 026 the @, 027 the reset
+    codes) and `DATABASE_URL` from the
     public proxy to `RAILWAY_PRIVATE_DOMAIN` (egress is billed on the public
     one; `DATABASE_SSL` can then go back to false). Each with `/health` open
     and a way back.
@@ -962,6 +963,123 @@ the linked documents — this file is the index and the reasoning, not a diary.
     is turned back on the night screen would say "Guardada" again. The fix
     is a reconcile on app start — ask the server which of this account's
     sessions exist and clear the rest — one endpoint and one DAO call.
+    *(02/10: "Tirar da TumTum" clears the phone's side when the removal is
+    the person's own act; the reconcile is still needed for a removal made
+    on the site or by the 24-hour sweep.)*
+93. **The new consent text (2026-10-02.1) and the automatic keep go to the
+    lawyer** before any pilot with real fans. `[PENDENTE — jurídico]` With
+    item 30/88 (the automatic post), which stays a tap until then.
+
+---
+
+## 2026-10-02 (3) — A rodada de testes do b232: quinze achados, e a noite passa a subir sozinha
+
+**What happened.** Felipe ran the five test blocks on b227/b232 (the FEED
+tab, sharing, the @ and the name, the strap out of reach, Configurações
+and revocation), one photo per step, with the rule set at the start of the
+day: *only list what needs fixing, then fix everything at once*. Fifteen
+findings; one (a "Ligado em…" line under each switch) he refused as not a
+legal requirement, and it was dropped. What passed is as important as what
+failed: the @ end to end (site and app, the five refusals, one owner per
+name), the name saving itself, sharing to Instagram and WhatsApp with the
+card intact, the strap dropout drawn as a gap with the reconnection
+logged, every revocation sentence true to the hour, the consent export
+carrying all eight rows of the day with their version and means.
+
+**The fifteen, and what each became.**
+
+1. The FEED tab reopened on the last chip tapped, even a night still to
+   come — a tap was remembered across the trip to another tab. The choice
+   now lasts only while the tab is open.
+2. The system bars stayed pale over the black screens: the Scaffold padded
+   for the insets and painted its white behind them, and the icons were the
+   light theme's. `contentWindowInsets = 0`, every screen paints its own
+   bars, and `SystemBars()` turns the icons light on the dark screens.
+3. **The night goes up by itself** — see below. Under the shut "Feed do
+   evento" the sentence that was only a reason now carries the way: "Ligar
+   'Guardar a noite'".
+4. Two lines said the same thing after the @ was saved. One line.
+5. The site's profile said "Nenhum dispositivo conectado" over thirty strap
+   nights — nothing ever writes `wearable_connections`. It now says the
+   last night and what recorded it (`last_night_at`, `last_night_source`).
+6. "Cards recentes" on the site: dark squares in a photo; unconfirmed, not
+   touched.
+7. "Escolher … MUDAR" on an empty date: MUDAR only once there is a value.
+8. Signing in again on a wiped phone opened the whole consent screen: the
+   first sign-in on a phone always did. The gate now opens only for what
+   the account lacks — birth date, Terms, **or a yes given under words
+   that have since changed** (the text version) — and otherwise goes to
+   the feed, with the Health Connect dialog only when reading is on and
+   the phone lacks it.
+9. **Recording outside the window the consent promises.** The marked
+   event's "Começar agora" recorded 24 days early (night 8, stuck to
+   "Rihanna teste", whose feed can never open for it). The text says
+   "só na janela do evento: de 30 minutos antes…". `CaptureWindow`: the
+   button is black and says "Começa dia 26/10, 21h30" until the window
+   opens, then Pink; every start passes the same check; the operator
+   keeps a marked way around it ("OPERADOR · Gravar agora, fora da janela
+   (teste)") — Felipe's call: a black button that turns pink, and the
+   operator's shortcut kept.
+10. "1 MIN SEM DADO" mid-axis over a 93-second dropout at the far right.
+    `GapLabel`: the whole time ("1 MIN 33 S"), every gap summed, the label
+    under the biggest.
+11. Off-sentences in three shapes. Every key's starts with "Desligado."
+    and stands while the key is off.
+12. "ROLANDO AGORA" in the start sheet and "começou 14h28" on the live
+    screen, for an event 24 days away: the label now reads the event's
+    state from the clock ("COMEÇA DIA 26/10, 22H00"), and the live screen
+    says "gravando desde 14h28".
+13. Dropped (Felipe): a last-change line under each switch is not what the
+    law asks; the export already carries the full ledger.
+14. **App and site showed different sentences under the same consent
+    version** — different names ("Ler sua batida" / "Ler meus batimentos
+    nos eventos"), a different rule for A galera ("gente suficiente" /
+    "100 noites"). A row's `text_version` has to point at one text. The
+    words now live once, in `shared/consent/consent-text.json`;
+    `scripts/consent_text.py` writes them into the Android strings
+    (`strings_consent.xml`), the site (`consent-text.generated.ts`) and
+    the server (`consent_text.py`), and `test_consent_text_sync.py` fails
+    on any drift. **New version 2026-10-02.1**; `docs/consent-texts.md`
+    has the section.
+15. The app let the Terms be turned off (Felipe did, on b232); the site
+    never did. The Terms are a contract (`contract_art7`), withdrawn by
+    deleting the account: the row is locked in the app with the site's
+    sentence, and `PUT /api/consents` refuses `terms: false`.
+
+**The decision that mattered: the night goes up by itself when "Guardar a
+noite" is on.** Felipe's question, after the share test: *"Se o Strava
+opera dessa forma, existe um precedente… eu prefiro algo no estilo Strava
+do que a pessoa ter que autorizar ali toda vez."* The answer that won:
+under the LGPD and the GDPR consent is per **purpose**, not per act; a
+clear, highlighted yes to "guardar minhas noites" covers every night until
+withdrawn, which is what Strava, Garmin, Apple Health and Fitbit do. The
+26/09 audit called the automatic upload *critical* for two reasons that no
+longer hold — there was no consent for keeping at all, and the screen said
+"Nada deixa seu aparelho sem você mandar" while uploading. What Strava's
+troubles teach is a different line: **keeping** (private, the person's own
+collection) and **publishing** (the heat map, the public profiles) are two
+acts. Keeping goes automatic; publishing to the feed stays a tap, and the
+automatic post (item 30/88) stays with the lawyer. The conditions, all
+built: the text of the key says it in full ("sobe pra sua coleção assim
+que termina … Dá pra tirar qualquer noite do servidor, ou desligar esta
+chave"), so the version changed and every account is asked once more; the
+key stays **off by default**; each night keeps "Tirar da TumTum" (server
+only, the phone keeps it); only a night inside the window and with "Ler
+sua batida" on; the policy, the ROPA, the RIPD and the pilot term say the
+same; the lawyer reads the new text before a pilot with real fans (item
+81). Mechanically: `saveEndedNight` flags the night like a tap would when
+the cached or fresh consent says yes (`keepingGranted`), and the server
+still checks both consents before taking it; a night recorded with the key
+off keeps the button, which turns the key on and sends that night.
+
+**What it cost.** The day. Twelve builds (b228–b232 for the FEED, the
+share screen and the password reset; this one for the fifteen). Nothing
+here compiled Android locally beyond the harness; CI is the compiler.
+
+**Still Felipe's.** The merge; then on the next build the consent screen
+appears once (the text changed) and "Guardar a noite" must be turned on by
+hand to see a night go up by itself; items 6 (the site's cards) and 30
+(the lawyer on the automatic post and the new keep text).
 
 ---
 

@@ -5,9 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useConsentStore } from '@/lib/stores/useConsentStore'
-import { useHRStore } from '@/lib/stores/useHRStore'
 import { ApiError, users, cards, type UserProfile, type CardData } from '@/lib/api'
-import { Avatar, Button, Card, Input, Loading, Badge } from '@/components/ui'
+import { Avatar, Button, Card, Input, Loading } from '@/components/ui'
 import { Nav } from '@/components/layout'
 import { OwnerCardImage } from '@/components/cards'
 import UsernameChooser from '@/components/profile/UsernameChooser'
@@ -25,7 +24,6 @@ export default function ProfilePage() {
   const router = useRouter()
   const { logout, loadUser } = useAuthStore()
   const resetConsents = useConsentStore((s) => s.reset)
-  const { connections, loadConnections } = useHRStore()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [recentCards, setRecentCards] = useState<CardData[]>([])
@@ -39,8 +37,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadData()
-    loadConnections().catch(() => undefined)
-  }, [loadConnections])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on mount
+  }, [])
 
   async function loadData() {
     setLoading(true)
@@ -208,15 +206,24 @@ export default function ProfilePage() {
             ))}
           </div>
 
-          {/* Wearables */}
+          {/* The last night (02/10). "Dispositivos conectados — Nenhum
+              dispositivo conectado" stood over thirty strap nights: nothing
+              ever wrote that list. What is true is the last night and what
+              recorded it. */}
           <div className="mt-8">
-            <h2 className="mb-4 text-lg font-semibold text-tumtum-white">
-              Dispositivos conectados
-            </h2>
-            {connections.length === 0 ? (
-              <Card>
+            <h2 className="mb-4 text-lg font-semibold text-tumtum-white">Sua última noite</h2>
+            <Card>
+              {profile.last_night_at ? (
                 <p className="text-sm text-tumtum-muted">
-                  Nenhum dispositivo conectado.{' '}
+                  Gravada em {new Date(profile.last_night_at).toLocaleDateString('pt-BR')}
+                  {profile.last_night_source ? ` com ${profile.last_night_source}` : ''}.{' '}
+                  <Link href="/sessions" className="text-tumtum-pink hover:underline">
+                    Ver as noites
+                  </Link>
+                </p>
+              ) : (
+                <p className="text-sm text-tumtum-muted">
+                  Nenhuma noite guardada na TumTum ainda.{' '}
                   {/* The site cannot connect a watch (25/09): the app records the night. */}
                   <button
                     onClick={() => router.push('/onboarding')}
@@ -225,28 +232,8 @@ export default function ProfilePage() {
                     Como gravar uma noite
                   </button>
                 </p>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {connections.map((conn) => (
-                  <Card key={conn.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-tumtum-white capitalize">
-                        {conn.provider.replace('_', ' ')}
-                      </p>
-                      {conn.last_sync_at && (
-                        <p className="text-xs text-tumtum-muted">
-                          Última sincronia: {new Date(conn.last_sync_at).toLocaleDateString('pt-BR')}
-                        </p>
-                      )}
-                    </div>
-                    <Badge variant={conn.status === 'active' ? 'success' : 'warning'}>
-                      {conn.status === 'active' ? 'Ativo' : conn.status}
-                    </Badge>
-                  </Card>
-                ))}
-              </div>
-            )}
+              )}
+            </Card>
           </div>
 
           {/* Recent Cards */}
