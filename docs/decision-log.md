@@ -958,31 +958,31 @@ the linked documents — this file is the index and the reasoning, not a diary.
 92. **The phone never learns that a night left the server.** `[PENDENTE]`
     A night deleted on the server (`keep_night` revoked and the hourly loop
     run, or deleted from the site) keeps its `serverSessionId` on the phone:
-    the feed tab counted it as "a night here" (02/10), and if `keep_night`
+    the feed tab's default choice counts it as "a night here", and if `keep_night`
     is turned back on the night screen would say "Guardada" again. The fix
     is a reconcile on app start — ask the server which of this account's
     sessions exist and clear the rest — one endpoint and one DAO call.
 
 ---
 
-## 2026-10-02 — b227 na mão: o FEED abriu num evento do mês que vem
+## 2026-10-02 — b227 na mão: o feed de um evento do mês que vem dizia "não chegou"
 
 **Felipe, on b227,** kept the FEED tab as built (*"fica mais organizado
 mesmo"*) and sent four photos. Three passed: the strip of chips, posting
 from "Mostrar a minha", and the post signed **"felipe @fezanu"** — the @ of
-28/09 working end to end. The fourth was the defect: the tab opened on
-**"Rihanna teste", an event dated 26/10**, and its feed said *"Esse feed é
-de quem estava lá. Sua noite não chegou aqui."* — about a night that cannot
-have happened yet. Another sentence true to the server and false to the
-person.
+28/09 working end to end. The fourth showed **"Rihanna teste", an event
+dated 26/10**, whose feed said *"Esse feed é de quem estava lá. Sua noite
+não chegou aqui."* — about a night that cannot have happened yet. Another
+sentence true to the server and false to the person.
 
-**Why.** Two things together. The strip kept the server's order, newest
-date first, so any event registered for the future sat at its head. And the
-rule "the latest event this account has a night at" looked at every event,
-started or not: this phone holds a night attached to "Rihanna teste"
-(recorded with it chosen, and since gone from the server — the 403 said
-"não chegou", not "pouca batida"), so the night rule picked it before the
-"latest that has begun" fallback could.
+**A correction worth keeping.** The assistant first read the photo as the
+tab having *opened* on that event by itself, and built the fix around the
+default choice. Felipe then said he had tapped the chip before taking the
+photo. The defect is the sentence, not the choice; the ordering and the
+default below are kept because they are right anyway (a future test event
+sat at the head of the strip, the server's newest-date-first order), but
+they were not what he saw. **Ask how a screen was reached before
+diagnosing why it was reached.**
 
 **Decided.** The strip reads **on now → begun, newest first → to come,
 soonest first** (`ServerEvents.forFeedStrip`); **a night never opens an
@@ -994,8 +994,9 @@ ainda não começou. O feed abre dia 26/10, às 21h00, pra quem estiver lá."*
 clock each time it is drawn. An event with a day and no hour counts as to
 come until its day. Four tests in `ServerEventsTest`.
 
-**Not done, and noted** (item 92): a night whose server copy is gone still
-reads as sent on the phone, because nothing tells the phone.
+**Not done, and noted** (item 92): this phone holds a night attached to
+"Rihanna teste" that the server no longer has (the 403 said "não chegou",
+not "pouca batida"), and nothing tells the phone a night left the server.
 
 ---
 
