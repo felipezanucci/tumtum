@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.api.ServerEvent
+import cc.tumtum.app.data.api.ServerEvents
 import cc.tumtum.app.data.repo.NightRepository
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.components.AccountCorner
@@ -65,7 +66,11 @@ import java.time.Instant
  * With b222 in his hand Felipe chose for the tab to open straight on a feed:
  * the one rolling now, else the last one this account has a night at, else
  * the latest. The other events became a strip of chips above it, and the
- * strip is the navigation. The feed under it is [EventFeedBody], the same
+ * strip is the navigation. **Never an event still to come** (02/10): with
+ * b227 the tab opened on a test event dated a month ahead, first in the
+ * strip because it was the newest date, and its feed said "Sua noite não
+ * chegou aqui" about a night that could not have happened yet. The strip now
+ * puts what is on, then what has begun, then what is coming, at the end. The feed under it is [EventFeedBody], the same
  * body the event's own screen draws — one feed, not two copies of one.
  */
 @Composable
@@ -83,7 +88,7 @@ fun FeedScreen(nav: NavHostController) {
         // An empty list and a list that did not load are different claims,
         // and this screen has to be able to tell them apart.
         runCatching { container.api.listEvents() }
-            .onSuccess { list -> events = list.sortedByDescending { it.startAt ?: Instant.EPOCH }; failed = false }
+            .onSuccess { list -> events = ServerEvents.forFeedStrip(list, Instant.now()); failed = false }
             .onFailure { events = null; failed = true }
     }
     val viewerId = user?.session?.userId
@@ -155,6 +160,7 @@ fun FeedScreen(nav: NavHostController) {
                             eventId = shown.id,
                             eventName = shown.name,
                             embedded = true,
+                            upcoming = shown.takeIf { ServerEvents.notYet(it, now) },
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -165,10 +171,9 @@ fun FeedScreen(nav: NavHostController) {
 }
 
 /**
- * The feed the tab opens on: the event rolling now; else the latest this
- * account has a night at on this phone, sent or not; else the latest that has
- * begun, and the latest of all only when every one is still to come. [list]
- * is newest first.
+ * The feed the tab opens on ([ServerEvents.feedDefault]), with the phone
+ * asked which of the events that have begun this account has a night at.
+ * [list] is the strip, in [ServerEvents.forFeedStrip]'s order.
  */
 private suspend fun currentEvent(
     list: List<ServerEvent>,
@@ -176,11 +181,13 @@ private suspend fun currentEvent(
     nights: NightRepository,
     viewerId: String?,
 ): ServerEvent? {
-    list.firstOrNull { it.isLiveAt(now) }?.let { return it }
-    list.firstOrNull { event ->
-        nights.uploadedNightAt(event.id, viewerId) != null || nights.unsentNightAt(event.id) != null
-    }?.let { return it }
-    return list.firstOrNull { !it.isUpcomingAt(now) } ?: list.firstOrNull()
+    val withNight = list.filterNot { ServerEvents.notYet(it, now) }
+        .filter { event ->
+            nights.uploadedNightAt(event.id, viewerId) != null || nights.unsentNightAt(event.id) != null
+        }
+        .map { it.id }
+        .toSet()
+    return ServerEvents.feedDefault(list, now, hasNight = { it.id in withNight })
 }
 
 /** What the tab has instead of a strip: loading, failed, or truly none. */

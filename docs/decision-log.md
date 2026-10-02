@@ -955,6 +955,66 @@ the linked documents — this file is the index and the reasoning, not a diary.
     `GET /api/auth/username/{name}` check the app and the site call while
     typing, the name sent with the sign-up and shown in the feed — an
     Alembic migration and a few hours) or remove the field until then.
+92. **The phone never learns that a night left the server.** `[PENDENTE]`
+    A night deleted on the server (`keep_night` revoked and the hourly loop
+    run, or deleted from the site) keeps its `serverSessionId` on the phone:
+    the feed tab's default choice counts it as "a night here", and if `keep_night`
+    is turned back on the night screen would say "Guardada" again. The fix
+    is a reconcile on app start — ask the server which of this account's
+    sessions exist and clear the rest — one endpoint and one DAO call.
+
+---
+
+## 2026-10-02 — b227 na mão: o feed de um evento do mês que vem dizia "não chegou"
+
+**Felipe, on b227,** kept the FEED tab as built (*"fica mais organizado
+mesmo"*) and sent four photos. Three passed: the strip of chips, posting
+from "Mostrar a minha", and the post signed **"felipe @fezanu"** — the @ of
+28/09 working end to end. The fourth showed **"Rihanna teste", an event
+dated 26/10**, whose feed said *"Esse feed é de quem estava lá. Sua noite
+não chegou aqui."* — about a night that cannot have happened yet. Another
+sentence true to the server and false to the person.
+
+**A correction worth keeping.** The assistant first read the photo as the
+tab having *opened* on that event by itself, and built the fix around the
+default choice. Felipe then said he had tapped the chip before taking the
+photo. The defect is the sentence, not the choice; the ordering and the
+default below are kept because they are right anyway (a future test event
+sat at the head of the strip, the server's newest-date-first order), but
+they were not what he saw. **Ask how a screen was reached before
+diagnosing why it was reached.**
+
+**Decided.** The strip reads **on now → begun, newest first → to come,
+soonest first** (`ServerEvents.forFeedStrip`); **a night never opens an
+event that has not begun** (`feedDefault`: live, else a begun one with a
+night, else the latest begun, and a future one only when nothing has
+begun); and the feed of an event still to come says so — *"Esse evento
+ainda não começou. O feed abre dia 26/10, às 21h00, pra quem estiver lá."*
+(hoje / amanhã / day only when the server has no hour) — computed from the
+clock each time it is drawn. An event with a day and no hour counts as to
+come until its day. Four tests in `ServerEventsTest`.
+
+**Then test 2, the share screen** — Instagram Stories and WhatsApp both
+went out right, the card intact. Two findings. **The WhatsApp mark was a
+broken blob** on both WhatsApp and Status: simple-icons writes arc flags
+packed (`0 018.413`), which every browser reads and Android's vector parser
+does not — it takes `018.413` as one number and the rest of the path slides.
+The other four marks have no packed arcs, which is why only this one broke.
+The arcs are now written out, and the new path was checked pixel for pixel
+against the original in Chromium (0 of 20,341 inked pixels differ). **Read
+a vector on the platform that draws it, not in the browser that previewed
+it.** And the six solid white discs still read as *"um pouco grosseiro"*:
+they are now outlined dark circles, like "Copiar card" under them, with the
+marks in white (both colours the brands allow), so "Feed do evento" is the
+one loud thing on the screen. Seen in a preview, Felipe asked for one more
+thing: everything aligned to the Pink button — Instagram, TikTok and
+"Copiar card" on its left edge, Snapchat, Status and "Mais apps" on its
+right, the middle evenly between (the circles had sat centred in equal
+cells, so the outer ones were inset and the row looked pushed right).
+
+**Not done, and noted** (item 92): this phone holds a night attached to
+"Rihanna teste" that the server no longer has (the 403 said "não chegou",
+not "pouca batida"), and nothing tells the phone a night left the server.
 
 ---
 
