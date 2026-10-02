@@ -145,6 +145,52 @@ object ServerEvents {
         events.filter { it.startAt != null && !it.isPastAt(now) }
             .sortedBy { it.startAt }
             .take(limit)
+
+    /**
+     * Whether [event] is still to come at [now]: its start is ahead, or —
+     * with no hour on the server — its day is after today. An event with
+     * neither is taken as begun, so it is never the one held back.
+     */
+    fun notYet(event: ServerEvent, now: Instant, zone: ZoneId = ZoneId.systemDefault()): Boolean {
+        event.startAt?.let { return it.isAfter(now) }
+        val day = event.date ?: return false
+        return day.isAfter(now.atZone(zone).toLocalDate())
+    }
+
+    /**
+     * The FEED tab's strip (02/10): the event on now first, then the ones
+     * that have begun, newest first, and the ones still to come at the end,
+     * soonest first. Until that day the strip was the server's order, newest
+     * date first, so a test event registered for next month sat at its head
+     * and the tab could open on a feed nobody can be in yet.
+     */
+    fun forFeedStrip(events: List<ServerEvent>, now: Instant, zone: ZoneId = ZoneId.systemDefault()): List<ServerEvent> {
+        val (ahead, begun) = events.partition { notYet(it, now, zone) }
+        val live = begun.filter { it.isLiveAt(now) }
+        val rest = begun.filterNot { it.isLiveAt(now) }
+            .sortedWith(compareByDescending<ServerEvent> { it.startAt ?: it.date?.atStartOfDay(zone)?.toInstant() ?: Instant.EPOCH })
+        val soon = ahead.sortedBy { it.startAt ?: it.date?.atStartOfDay(zone)?.toInstant() }
+        return live + rest + soon
+    }
+
+    /**
+     * The feed the tab opens on, from [strip] as [forFeedStrip] ordered it:
+     * the event on now; else the latest that has begun where this account
+     * has a night ([hasNight]); else the latest that has begun; and one still
+     * to come only when every event is. **A night never opens an event that
+     * has not started** (02/10): a night attached to a future event is a
+     * test or a mistake, and its feed can only say "not here".
+     */
+    fun feedDefault(
+        strip: List<ServerEvent>,
+        now: Instant,
+        hasNight: (ServerEvent) -> Boolean,
+        zone: ZoneId = ZoneId.systemDefault(),
+    ): ServerEvent? {
+        strip.firstOrNull { it.isLiveAt(now) }?.let { return it }
+        val begun = strip.filterNot { notYet(it, now, zone) }
+        return begun.firstOrNull(hasNight) ?: begun.firstOrNull() ?: strip.firstOrNull()
+    }
 }
 
 /** The things a person can mark with one tap in the dark, and what the server calls each. */

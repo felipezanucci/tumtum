@@ -35,6 +35,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.api.ServerCrowd
+import cc.tumtum.app.data.api.ServerEvent
+import cc.tumtum.app.data.api.ServerEvents
 import cc.tumtum.app.data.api.ServerPost
 import cc.tumtum.app.data.db.NightEntity
 import cc.tumtum.app.data.repo.CrowdState
@@ -53,6 +55,7 @@ import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
 import kotlinx.coroutines.launch
+import java.time.Instant
 import cc.tumtum.app.data.repo.NightSync
 import cc.tumtum.app.data.repo.SendRequest
 import cc.tumtum.app.ui.components.revealWhen
@@ -92,6 +95,11 @@ fun EventFeedScreen(nav: NavHostController, eventId: String, eventName: String? 
  * tab already has — the yellow header with the event's name and "← FEED" —
  * and keeps everything that is the feed's own: where it is, the tour, the
  * crowd line, the night filter, and every sentence below.
+ *
+ * [upcoming] is the event when it has not begun (02/10). Nobody can be in
+ * its feed yet — attendance is beats measured inside the event — so the
+ * server's "Sua noite não chegou aqui" would be true and misleading: the
+ * night has not happened. The feed says when it opens instead.
  */
 @Composable
 fun EventFeedBody(
@@ -99,6 +107,7 @@ fun EventFeedBody(
     eventId: String,
     eventName: String? = null,
     embedded: Boolean = false,
+    upcoming: ServerEvent? = null,
     modifier: Modifier = Modifier,
 ) {
     val title = eventName
@@ -258,7 +267,10 @@ fun EventFeedBody(
                 // measured night here, and that is its own sentence.
                 is FeedState.NotThere -> {
                     val waiting = unsent
-                    if (waiting == null) {
+                    val soon = upcoming?.takeIf { ServerEvents.notYet(it, Instant.now()) }
+                    if (soon != null) {
+                        Note(notYetSentence(soon))
+                    } else if (waiting == null) {
                         // The server's sentence (28/09): "your night never got
                         // here" and "it did, with too few beats inside the
                         // event" are different, and only the server knows which.
@@ -664,4 +676,23 @@ private fun ModerationDialog(
             )
         },
     )
+}
+
+/**
+ * "Esse evento ainda não começou. O feed abre dia 26/10, às 21h00." — read
+ * from the event and the clock each time it is drawn, never stored.
+ */
+@Composable
+private fun notYetSentence(event: ServerEvent): String {
+    val start = event.startAt
+    if (start == null) {
+        val day = event.date ?: return stringResource(R.string.event_feed_not_yet_undated)
+        return stringResource(R.string.event_feed_not_yet_day, "%02d/%02d".format(day.dayOfMonth, day.monthValue))
+    }
+    val hour = Fmt.hour(start)
+    return when (Fmt.daysFrom(Instant.now(), start)) {
+        0L -> stringResource(R.string.event_feed_not_yet_today, hour)
+        1L -> stringResource(R.string.event_feed_not_yet_tomorrow, hour)
+        else -> stringResource(R.string.event_feed_not_yet_at, Fmt.daySlashMonth(start), hour)
+    }
 }

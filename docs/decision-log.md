@@ -955,6 +955,47 @@ the linked documents — this file is the index and the reasoning, not a diary.
     `GET /api/auth/username/{name}` check the app and the site call while
     typing, the name sent with the sign-up and shown in the feed — an
     Alembic migration and a few hours) or remove the field until then.
+92. **The phone never learns that a night left the server.** `[PENDENTE]`
+    A night deleted on the server (`keep_night` revoked and the hourly loop
+    run, or deleted from the site) keeps its `serverSessionId` on the phone:
+    the feed tab counted it as "a night here" (02/10), and if `keep_night`
+    is turned back on the night screen would say "Guardada" again. The fix
+    is a reconcile on app start — ask the server which of this account's
+    sessions exist and clear the rest — one endpoint and one DAO call.
+
+---
+
+## 2026-10-02 — b227 na mão: o FEED abriu num evento do mês que vem
+
+**Felipe, on b227,** kept the FEED tab as built (*"fica mais organizado
+mesmo"*) and sent four photos. Three passed: the strip of chips, posting
+from "Mostrar a minha", and the post signed **"felipe @fezanu"** — the @ of
+28/09 working end to end. The fourth was the defect: the tab opened on
+**"Rihanna teste", an event dated 26/10**, and its feed said *"Esse feed é
+de quem estava lá. Sua noite não chegou aqui."* — about a night that cannot
+have happened yet. Another sentence true to the server and false to the
+person.
+
+**Why.** Two things together. The strip kept the server's order, newest
+date first, so any event registered for the future sat at its head. And the
+rule "the latest event this account has a night at" looked at every event,
+started or not: this phone holds a night attached to "Rihanna teste"
+(recorded with it chosen, and since gone from the server — the 403 said
+"não chegou", not "pouca batida"), so the night rule picked it before the
+"latest that has begun" fallback could.
+
+**Decided.** The strip reads **on now → begun, newest first → to come,
+soonest first** (`ServerEvents.forFeedStrip`); **a night never opens an
+event that has not begun** (`feedDefault`: live, else a begun one with a
+night, else the latest begun, and a future one only when nothing has
+begun); and the feed of an event still to come says so — *"Esse evento
+ainda não começou. O feed abre dia 26/10, às 21h00, pra quem estiver lá."*
+(hoje / amanhã / day only when the server has no hour) — computed from the
+clock each time it is drawn. An event with a day and no hour counts as to
+come until its day. Four tests in `ServerEventsTest`.
+
+**Not done, and noted** (item 92): a night whose server copy is gone still
+reads as sent on the phone, because nothing tells the phone.
 
 ---
 

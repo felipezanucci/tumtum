@@ -217,6 +217,12 @@
     <string name="event_feed_loading">Carregando…</string>
     <string name="event_feed_empty">Ninguém mostrou nada ainda. Pode ser você.</string>
     <string name="event_feed_not_there">Esse feed é de quem estava lá. Sua noite não chegou aqui.</string>
+    <!-- An event still to come (02/10): nobody can be in its feed yet, so it says when it opens. -->
+    <string name="event_feed_not_yet_at">Esse evento ainda não começou. O feed abre dia %1$s, às %2$s, pra quem estiver lá.</string>
+    <string name="event_feed_not_yet_today">Esse evento ainda não começou. O feed abre hoje, às %1$s, pra quem estiver lá.</string>
+    <string name="event_feed_not_yet_tomorrow">Esse evento ainda não começou. O feed abre amanhã, às %1$s, pra quem estiver lá.</string>
+    <string name="event_feed_not_yet_day">Esse evento ainda não começou. O feed abre dia %1$s, pra quem estiver lá.</string>
+    <string name="event_feed_not_yet_undated">Esse evento ainda não começou. O feed abre quando ele começar, pra quem estiver lá.</string>
     <string name="event_feed_not_sent">Sua noite desse evento está neste celular, mas ainda não subiu. Quando subir, você entra no feed.</string>
     <string name="event_feed_send_now">Mandar minha noite agora</string>
     <string name="event_feed_sending">Mandando…</string>

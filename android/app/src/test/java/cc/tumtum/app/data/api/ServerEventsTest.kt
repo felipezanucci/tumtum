@@ -131,6 +131,70 @@ class ServerEventsTest {
         assertEquals(listOf("e5", "e6", "e7"), ServerEvents.forFan(many, now = at(2026, 10, 5, 12), limit = 3).map { it.id })
     }
 
+    private fun ev(id: String, date: String, start: String? = null, end: String? = null): ServerEvent {
+        val times = listOfNotNull(start?.let { "\"start_time\":\"$it\"" }, end?.let { "\"end_time\":\"$it\"" })
+        return ServerEvents.from(JSONObject("""{"id":"$id","name":"$id","date":"$date"${times.joinToString("") { ",$it" }}}"""), sp)
+    }
+
+    @Test
+    fun `the feed strip puts what is on first, then what began newest first, and what is coming last`() {
+        // 02/10, b227: "Rihanna teste", dated a month ahead, sat at the head
+        // of the strip because the server orders by date, newest first.
+        val now = at(2026, 10, 2, 22)
+        val strip = ServerEvents.forFeedStrip(
+            listOf(
+                ev("rihanna", "2026-10-26", "21:00:00-03:00", "23:59:00-03:00"),
+                ev("old", "2026-09-20", "20:00:00-03:00", "23:00:00-03:00"),
+                ev("next", "2026-10-10", "16:00:00-03:00", "18:00:00-03:00"),
+                ev("live", "2026-10-02", "21:00:00-03:00", "23:30:00-03:00"),
+                ev("recent", "2026-09-28", "19:00:00-03:00", "22:00:00-03:00"),
+                ev("festival", "2026-12-05"),
+            ),
+            now,
+            sp,
+        )
+        assertEquals(listOf("live", "recent", "old", "next", "rihanna", "festival"), strip.map { it.id })
+    }
+
+    @Test
+    fun `the tab never opens on an event that has not begun, even with a night attached to it`() {
+        val now = at(2026, 10, 2, 22)
+        val strip = ServerEvents.forFeedStrip(
+            listOf(
+                ev("rihanna", "2026-10-26", "21:00:00-03:00", "23:59:00-03:00"),
+                ev("teste", "2026-09-28", "19:00:00-03:00", "22:00:00-03:00"),
+                ev("older", "2026-09-20", "20:00:00-03:00", "23:00:00-03:00"),
+            ),
+            now,
+            sp,
+        )
+        // A night at the future event is ignored; the latest begun one opens.
+        assertEquals("teste", ServerEvents.feedDefault(strip, now, { it.id == "rihanna" }, sp)?.id)
+        // A night at an older one wins over the latest.
+        assertEquals("older", ServerEvents.feedDefault(strip, now, { it.id == "older" || it.id == "rihanna" }, sp)?.id)
+    }
+
+    @Test
+    fun `an event on now opens the tab, and one to come only when nothing has begun`() {
+        val now = at(2026, 10, 2, 22)
+        val live = ev("live", "2026-10-02", "21:00:00-03:00", "23:30:00-03:00")
+        val past = ev("past", "2026-09-28", "19:00:00-03:00", "22:00:00-03:00")
+        val soon = ev("soon", "2026-10-10", "16:00:00-03:00", "18:00:00-03:00")
+        val later = ev("later", "2026-10-26", "21:00:00-03:00", "23:00:00-03:00")
+
+        assertEquals("live", ServerEvents.feedDefault(ServerEvents.forFeedStrip(listOf(past, live), now, sp), now, { it.id == "past" }, sp)?.id)
+        assertEquals("soon", ServerEvents.feedDefault(ServerEvents.forFeedStrip(listOf(later, soon), now, sp), now, { false }, sp)?.id)
+        assertNull(ServerEvents.feedDefault(emptyList(), now, { true }, sp))
+    }
+
+    @Test
+    fun `an event with a day and no hour is still to come until its day`() {
+        val festival = ev("festival", "2026-12-05")
+        assertTrue(ServerEvents.notYet(festival, at(2026, 12, 4, 23), sp))
+        assertFalse(ServerEvents.notYet(festival, at(2026, 12, 5, 0, 1), sp))
+        assertFalse(ServerEvents.notYet(ServerEvent("x", "x", null, null, null, "concert"), at(2026, 12, 5, 0), sp))
+    }
+
     @Test
     fun `the line under an event's name never repeats the name`() {
         // #31, 22/09: the feed row printed "Teste - Madonna" in bold and then
