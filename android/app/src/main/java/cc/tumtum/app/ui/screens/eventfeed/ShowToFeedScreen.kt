@@ -36,6 +36,7 @@ import cc.tumtum.app.domain.Night
 import cc.tumtum.app.domain.Skin
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.BackArrow
+import cc.tumtum.app.ui.components.SystemBars
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.components.feedClosedText
@@ -74,6 +75,7 @@ fun ShowToFeedScreen(nav: NavHostController, nightId: Long, skin: Skin?) {
     }
     val n = night ?: return
 
+    SystemBars(lightIcons = true)
     Column(
         Modifier
             .fillMaxSize()

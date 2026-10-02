@@ -186,6 +186,13 @@ interface NightDao {
     @Query("UPDATE nights SET eventReadings = :eventReadings WHERE id = :id")
     suspend fun setEventReadings(id: Long, eventReadings: Int?)
 
+    /** "Tirar da TumTum" (02/10): the server's side of the night is gone; the phone's stays. */
+    @Query(
+        "UPDATE nights SET serverSessionId = NULL, sentAt = NULL, uploadState = 'PENDING', " +
+            "uploadError = NULL, sendRequested = 0, eventReadings = NULL WHERE id = :id",
+    )
+    suspend fun forgetServer(id: Long)
+
     @Query("UPDATE nights SET uploadState = :state, uploadError = :error WHERE id = :id")
     suspend fun setUploadState(id: Long, state: String, error: String?)
 

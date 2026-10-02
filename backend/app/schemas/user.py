@@ -23,6 +23,9 @@ class UserProfileResponse(BaseModel):
     total_events: int = 0
     total_cards: int = 0
     highest_bpm: int | None = None
+    # The last night kept on the server and what recorded it (02/10).
+    last_night_at: datetime | None = None
+    last_night_source: str | None = None
 
     model_config = {"from_attributes": True}
 

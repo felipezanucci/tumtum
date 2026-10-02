@@ -11,15 +11,17 @@ package cc.tumtum.app.domain
  *
  * [VERSION] names the text the person was shown. It is the same literal in
  * the backend, the web and here (the shared contract), and it travels with
- * every PUT so the server records which words were agreed to. Change the
- * words in strings.xml → change the version, in all three places.
+ * every PUT so the server records which words were agreed to.
  *
- * The keys are the server's; the sentences live in strings.xml and are
- * mapped in `ui/screens/consent/ConsentCopy.kt`, so this file stays plain
- * Kotlin that a JVM test can load.
+ * The keys are the server's; the sentences live in
+ * `shared/consent/consent-text.json` (02/10) and are generated into
+ * `res/values/strings_consent.xml` by `scripts/consent_text.py`, mapped in
+ * `ui/screens/consent/ConsentCopy.kt`. Change the words there → change the
+ * version there and here (the backend test checks both agree), so this file
+ * stays plain Kotlin that a JVM test can load.
  */
 object ConsentText {
-    const val VERSION = "2026-09-26.1"
+    const val VERSION = "2026-10-02.1"
 
     const val TERMS = "terms"
     const val READ_HEART_RATE = "read_heart_rate"

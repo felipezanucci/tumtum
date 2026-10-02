@@ -1082,6 +1082,9 @@ export interface UserProfile {
   birth_date: string | null
   /** The @ (28/09), or null for an account made before it: asked once. */
   username: string | null
+  /** The last night kept on the server and what recorded it (02/10); null with no night. */
+  last_night_at?: string | null
+  last_night_source?: string | null
 }
 
 /**

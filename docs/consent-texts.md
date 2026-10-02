@@ -5,9 +5,10 @@ consent screen. The server does not store them: every row of `consents`
 carries its `text_version` and a `proof` — the SHA-256 hex of
 `"{purpose}:{text_version}"` — and this document is where that version's
 words are kept on the record (v1.1 legal opinion, §4.2 "consent ledger").
-The same words live in the clients' string resources: on Android,
-`android/app/src/main/res/values/strings.xml` (`consent_*`), mapped per
-purpose in `ui/screens/consent/ConsentCopy.kt`.
+Since 02/10 the words live once, in `shared/consent/consent-text.json`,
+and `scripts/consent_text.py` writes them into the clients and the server
+(on Android `res/values/strings_consent.xml`, mapped per purpose in
+`ui/screens/consent/ConsentCopy.kt`).
 
 **Any change to these sentences is a new version**: a new
 `CONSENT_TEXT_VERSION` in `backend/app/services/consents.py`, a new
@@ -17,6 +18,58 @@ purpose in `ui/screens/consent/ConsentCopy.kt`.
 
 The texts are in Brazilian Portuguese as shown; they are copied verbatim from
 the strings (the title's Android `\n` line break written as a space).
+
+## Versão 2026-10-02.1
+
+**O texto passou a viver num lugar só**: `shared/consent/consent-text.json`,
+gerado por `scripts/consent_text.py` em `strings_consent.xml` (app),
+`consent-text.generated.ts` (site) e `consent_text.py` (servidor), com o
+teste `backend/tests/test_consent_text_sync.py` acusando qualquer
+diferença. Na rodada de 02/10 o app e o site mostravam frases diferentes
+sob a mesma versão — nomes diferentes para a mesma finalidade, uma regra
+diferente para "A galera" — e uma linha de `consents` precisa apontar para
+um texto só. As palavras abaixo são as do JSON, verbatim.
+
+**O que mudou de sentido** (por isso é versão nova, e todas as contas são
+perguntadas de novo uma vez):
+
+- `keep_night` — **a noite sobe sozinha** quando a chave está ligada:
+  "Toda noite que você gravar sobe pra sua coleção na TumTum assim que
+  termina: a série de batidas e os momentos. Dá pra tirar qualquer noite do
+  servidor, ou desligar esta chave, quando quiser. Sem isso, a noite fica só
+  no seu celular." (era "Guardar a noite … na sua coleção" com um toque por
+  noite — decisão de Felipe, 02/10, sobre o precedente do Strava; a chave
+  continua desligada de fábrica).
+- Toda frase de chave desligada começa com "Desligado." e diz o que para.
+- Os Termos ganharam a frase de chave travada: "Aceito. Pra retirar esse
+  aceite, apague a conta."
+- Os nomes curtos do app valem nos dois: "Ler sua batida", "Guardar a
+  noite", "Entrar na galera", "Comparar com o artista", "Melhorar o
+  detector", "Novidades por e-mail".
+- "A galera": "Só aparece quando o evento passa de 100 noites, e sempre em
+  faixas, tipo “25+”, nunca o número exato de pessoas." (o app dizia "quando
+  tem gente suficiente"; o número é o do servidor, `MIN_CROWD = 100`).
+
+### O que a tela diz antes das chaves
+
+- Batimento é dado de saúde. A lei (LGPD) trata ele como dado pessoal sensível. Por isso cada uso tem a sua chave, e nenhuma fica ligada sem você ligar.
+- A gente só lê sua batida na janela do evento: de 30 minutos antes do começo até 30 minutos depois do fim. Fora disso, nada é lido.
+- Com “Guardar a noite” ligado, a série de batidas fica no servidor por 7 dias depois do momento. Os momentos e os cards ficam enquanto sua conta existir e a chave estiver ligada.
+- A TumTum não é um dispositivo médico e não interpreta saúde. Ela mostra quando seu coração subiu, nunca o que isso quer dizer.
+- Seu dado cardíaco individual não vai para clubes, artistas, produtoras, festivais ou anunciantes. Fornecedores contratados processam dados só em nome da TumTum.
+- Dá pra desligar qualquer chave quando quiser: no app, em Configurações → Privacidade; no site, no seu perfil.
+
+### As sete chaves
+
+| chave | título | o que diz | desligada |
+|---|---|---|---|
+| `terms` | Termos e Política de Privacidade | Você leu e aceita os Termos de uso e a Política de Privacidade. Sem isso, não tem conta. | Desligado. Sem os Termos, não tem conta. *(travada: "Aceito. Pra retirar esse aceite, apague a conta.")* |
+| `read_heart_rate` | Ler sua batida | Ler a batida que seu relógio ou sensor grava, só na janela do evento, e achar seus momentos. Sem isso, não tem noite. | Desligado. Nenhuma noite nova é gravada. As que já estão aqui continuam. |
+| `keep_night` | Guardar a noite | Toda noite que você gravar sobe pra sua coleção na TumTum assim que termina: a série de batidas e os momentos. Dá pra tirar qualquer noite do servidor, ou desligar esta chave, quando quiser. Sem isso, a noite fica só no seu celular. *(por quê: Pra sua noite ficar na sua coleção, entrar no feed do evento e não sumir se você trocar de celular.)* | Desligado. Nenhuma noite nova sobe pra TumTum, e as que já subiram saem do servidor em até 24 horas. Elas continuam só no seu celular. |
+| `crowd_stats` | Entrar na galera | Sua noite, sem seu nome, entra na conta coletiva do evento (“A galera”). Só aparece quando o evento passa de 100 noites, e sempre em faixas, tipo “25+”, nunca o número exato de pessoas. | Desligado. Suas noites deixam de contar na galera dos eventos. |
+| `artist_compare` | Comparar com o artista | Quando existir: comparar sua batida com a do artista ou do atleta que topar mostrar a dele. Ainda não existe; sua escolha fica guardada. | Desligado. Sem comparação com artista ou atleta. |
+| `improve_detection` | Melhorar o detector | Usar suas noites, sem seu nome, pra melhorar o jeito como a TumTum acha os momentos. | Desligado. Suas noites não são usadas pra melhorar o detector. |
+| `marketing` | Novidades por e-mail | Receber e-mails da TumTum sobre eventos e novidades. Sem isso, você só recebe e-mail da sua conta, como códigos e senha. | Desligado. A gente para de mandar e-mail de novidade. |
 
 ## Versão 2026-09-26.1
 

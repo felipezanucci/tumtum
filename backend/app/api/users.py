@@ -71,11 +71,25 @@ async def _get_user_stats(db: AsyncSession, user_id) -> dict:
     )
     highest_bpm = max_bpm_result.scalar()
 
+    # The last night and what recorded it (02/10): the site said "Nenhum
+    # dispositivo conectado" to an account with thirty strap nights, because
+    # nothing ever writes wearable_connections. What is true is this.
+    last = (
+        await db.execute(
+            select(HRSession.start_time, HRSession.source_device)
+            .where(HRSession.user_id == user_id)
+            .order_by(HRSession.start_time.desc())
+            .limit(1)
+        )
+    ).first()
+
     return {
         "total_sessions": total_sessions,
         "total_events": total_events,
         "total_cards": total_cards,
         "highest_bpm": highest_bpm,
+        "last_night_at": last.start_time if last else None,
+        "last_night_source": last.source_device if last else None,
     }
 
 

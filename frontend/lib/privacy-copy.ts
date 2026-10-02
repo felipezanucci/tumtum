@@ -9,7 +9,7 @@
  * What it must stay true to: the Play Console data-safety form, the Health
  * Connect rationale screen in the Android app (strings.xml, `rationale_*`),
  * the waitlist line "a gente só usa seu e-mail pra te avisar dos próximos
- * eventos", the consent screen (`consent-copy.ts`, text version 2026-09-26.1)
+ * eventos", the consent screen (`consent-copy.ts`, text version 2026-10-02.1)
  * and the LGPD remediation contract of 26/09 — its retention windows, its
  * crowd thresholds and its list of operators are quoted here as promises.
  *
@@ -37,7 +37,7 @@ export const PRIVACY_PT: PrivacyCopy = {
   intro:
     'Seus batimentos são seus. Esta página diz, sem rodeio, o que a TumTum guarda, pra quê, por quanto tempo, com quem, e como você decide sobre tudo isso.',
   disclaimer: 'A TumTum não é um dispositivo médico e não interpreta saúde.',
-  updated: 'Atualizada em 26 de setembro de 2026. Texto de consentimento: versão 2026-09-26.1.',
+  updated: 'Atualizada em 2 de outubro de 2026. Texto de consentimento: versão 2026-10-02.1.',
   sections: [
     {
       heading: 'Quem cuida dos seus dados',
@@ -83,7 +83,7 @@ export const PRIVACY_PT: PrivacyCopy = {
       items: [
         'Termos e Política (necessário pra ter conta): você aceita marcando a caixa no cadastro.',
         'Ler seus batimentos (necessário pra gravar uma noite): a TumTum lê só na janela dos eventos que você ativar, do começo menos 30 minutos ao fim mais 30 minutos, e encontra seus momentos.',
-        'Guardar suas noites (opcional): a noite sobe pros servidores da TumTum e fica na sua coleção. Sem esse sim, a noite fica só no seu celular.',
+        'Guardar a noite (opcional): com esse sim ligado, toda noite que você gravar sobe pros servidores da TumTum assim que termina e fica na sua coleção. Dá pra tirar qualquer noite do servidor, ou desligar, quando quiser. Sem esse sim, a noite fica só no seu celular.',
         'Estatística da galera (opcional): sua noite entra, sem seu nome, na conta coletiva do evento.',
         'Comparar com artista ou atleta (opcional): ainda não existe. Sua escolha fica guardada pra quando existir.',
         'Melhorar o detector de momentos (opcional): sua noite, sem seu nome, ajuda a TumTum a encontrar momentos melhor.',
@@ -94,7 +94,7 @@ export const PRIVACY_PT: PrivacyCopy = {
       heading: 'Como mudar ou retirar um consentimento',
       paragraphs: [
         'No site, em Perfil → Privacidade ou em tumtum.cc/consentimento. No app, em Configurações → Privacidade.',
-        'Desligar "Guardar minhas noites": nenhuma noite nova sobe pra TumTum, e as que já subiram são apagadas do servidor em até 24 horas; elas continuam só no seu celular. Pra apagar uma noite só, use "Apagar esta noite"; pra apagar tudo, apague a conta.',
+        'Desligar "Guardar a noite": nenhuma noite nova sobe pra TumTum, e as que já subiram são apagadas do servidor em até 24 horas; elas continuam só no seu celular. Pra tirar uma noite só do servidor, use "Tirar da TumTum" na noite; pra apagar tudo, apague a conta.',
         'No Android, dá também pra retirar a permissão do Health Connect nas configurações dele. A TumTum para de ler na hora.',
         'Retirar o aceite dos Termos é o mesmo que encerrar a conta.',
       ],
@@ -104,7 +104,7 @@ export const PRIVACY_PT: PrivacyCopy = {
       paragraphs: [
         'No Android, o app da TumTum pede uma única permissão do Health Connect: ler o batimento cardíaco que seu relógio já gravou. Nada de passos, sono, peso ou qualquer outro dado.',
         'Ele lê só a janela do evento que você ativou, e só depois que você autoriza. Pra descobrir qual relógio você usa, na configuração, o app olha uma vez os últimos 60 minutos, no próprio celular, e não envia nada.',
-        'Com uma cinta cardíaca, a captura acontece no seu celular, por Bluetooth. A noite só sobe pra TumTum quando você toca em "Guardar minha noite", com "Guardar minhas noites" ligado.',
+        'Com uma cinta cardíaca, a captura acontece no seu celular, por Bluetooth. A noite só sobe pra TumTum com "Guardar a noite" ligado: aí ela sobe sozinha quando termina. Com a chave desligada, ela fica no celular, e um toque em "Guardar minha noite" liga a chave e sobe aquela noite.',
         'No site, ao importar um arquivo, você escolhe o evento primeiro, e só as leituras da janela dele (30 minutos antes do começo a 30 minutos depois do fim) saem do seu navegador. O resto do arquivo fica no seu computador.',
       ],
     },
@@ -165,7 +165,7 @@ export const PRIVACY_PT: PrivacyCopy = {
       heading: 'Por quanto tempo',
       items: [
         'Leituras de batimento (a série bruta da noite): apagadas 7 dias depois que os momentos da noite são encontrados.',
-        'Momentos, resumo da noite e cards: enquanto sua conta existir e "Guardar minhas noites" estiver ligado.',
+        'Momentos, resumo da noite e cards: enquanto sua conta existir e "Guardar a noite" estiver ligado.',
         'Imagem do card guardada pra carregar rápido: até 7 dias. Um card despublicado ou apagado deixa de ser mostrado na hora.',
         'Registros de acesso: 180 dias.',
         'Cadastro não confirmado: 24 horas.',
@@ -225,7 +225,7 @@ export const PRIVACY_EN: PrivacyCopy = {
   intro:
     'Your heartbeat is yours. This page says plainly what TumTum keeps, what for, for how long, with whom, and how you decide about all of it.',
   disclaimer: 'TumTum is not a medical device and does not interpret health.',
-  updated: 'Updated 26 September 2026. Consent text: version 2026-09-26.1.',
+  updated: 'Updated 2 October 2026. Consent text: version 2026-10-02.1.',
   sections: [
     {
       heading: 'Who looks after your data',
@@ -282,7 +282,7 @@ export const PRIVACY_EN: PrivacyCopy = {
       heading: 'How to change or withdraw a consent',
       paragraphs: [
         'On the site, under Profile → Privacidade or at tumtum.cc/consentimento. In the app, under Configurações → Privacidade.',
-        'Turning off "Keep my nights": no new night is uploaded to TumTum, and the ones already uploaded are deleted from the server within 24 hours; they stay only on your phone. To delete a single night, use "Apagar esta noite"; to delete everything, delete the account.',
+        'Turning off "Keep the night": no new night is uploaded to TumTum, and the ones already uploaded are deleted from the server within 24 hours; they stay only on your phone. To delete a single night, use "Tirar da TumTum" on the night; to delete everything, delete the account.',
         'On Android, you can also withdraw the Health Connect permission in its settings. TumTum stops reading at once.',
         'Withdrawing acceptance of the Terms is the same as closing the account.',
       ],
@@ -292,7 +292,7 @@ export const PRIVACY_EN: PrivacyCopy = {
       paragraphs: [
         'On Android, the TumTum app asks for a single Health Connect permission: to read the heart rate your watch already recorded. No steps, sleep, weight or any other data.',
         'It reads only the window of the event you activated, and only after you allow it. To find out which watch you use, during setup, the app looks once at the last 60 minutes, on the phone itself, and sends nothing.',
-        'With a chest strap, the capture happens on your phone, over Bluetooth. The night only reaches TumTum when you tap "Guardar minha noite", with "Keep my nights" on.',
+        'With a chest strap, the capture happens on your phone, over Bluetooth. The night only reaches TumTum with "Keep the night" on: then it goes up on its own when it ends. With the switch off it stays on the phone, and a tap on "Guardar minha noite" turns the switch on and uploads that night.',
         'On the site, when you import a file, you choose the event first, and only the readings in its window (30 minutes before the start to 30 minutes after the end) leave your browser. The rest of the file stays on your computer.',
       ],
     },
@@ -353,7 +353,7 @@ export const PRIVACY_EN: PrivacyCopy = {
       heading: 'For how long',
       items: [
         'Heart-rate readings (the night’s raw series): deleted 7 days after the night’s moments are found.',
-        'Moments, the night’s summary and cards: while your account exists and "Keep my nights" is on.',
+        'Moments, the night’s summary and cards: while your account exists and "Keep the night" is on.',
         'Card image kept to load quickly: up to 7 days. An unpublished or deleted card stops being shown at once.',
         'Access logs: 180 days.',
         'Unconfirmed sign-up: 24 hours.',

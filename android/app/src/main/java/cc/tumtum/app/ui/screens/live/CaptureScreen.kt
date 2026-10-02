@@ -47,6 +47,7 @@ import cc.tumtum.app.service.CaptureBus
 import cc.tumtum.app.service.CaptureService
 import cc.tumtum.app.ui.Fmt
 import cc.tumtum.app.ui.components.Badge
+import cc.tumtum.app.ui.components.SystemBars
 import cc.tumtum.app.ui.components.OutlineBadge
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
@@ -119,6 +120,7 @@ fun CaptureScreen(nav: NavHostController) {
     // is not "tocando" and nobody at one is at a "show" (22/09).
     val sports = e.eventType == "sports"
 
+    SystemBars(lightIcons = true)
     BoxWithConstraints(
         Modifier
             .fillMaxSize()

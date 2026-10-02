@@ -35,8 +35,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.consent import Consent
+from app.services import consent_text
 
-CONSENT_TEXT_VERSION = "2026-09-26.1"
+# The words live in shared/consent/consent-text.json (02/10) and are
+# generated into consent_text.py; the version comes from there.
+CONSENT_TEXT_VERSION = consent_text.CONSENT_TEXT_VERSION
 
 PURPOSES = (
     "terms",

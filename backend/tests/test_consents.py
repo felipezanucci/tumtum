@@ -24,7 +24,7 @@ from tests.conftest import add_user, grant, make_request, night_body
 
 
 def test_the_constants_are_the_contracts():
-    assert consents.CONSENT_TEXT_VERSION == "2026-09-26.1"
+    assert consents.CONSENT_TEXT_VERSION == "2026-10-02.1"
     assert consents.PURPOSES == (
         "terms",
         "read_heart_rate",
@@ -40,7 +40,7 @@ def test_the_constants_are_the_contracts():
 async def test_get_lists_all_seven_unchecked_by_default(memdb):
     user = await add_user(memdb)
     answer = await get_consents(user, memdb)
-    assert answer.text_version == "2026-09-26.1"
+    assert answer.text_version == "2026-10-02.1"
     assert [c.purpose for c in answer.consents] == list(consents.PURPOSES)
     assert not any(c.granted for c in answer.consents)
     assert all(c.granted_at is None and c.text_version is None for c in answer.consents)
@@ -301,3 +301,22 @@ async def test_consent_revoke_stops_new_collection(memdb, api):
     listed = (await client.get("/api/consents")).json()["consents"]
     entry = next(c for c in listed if c["purpose"] == "keep_night")
     assert entry["granted"] is False and entry["revoked_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_the_terms_cannot_be_turned_off_only_the_account_deleted(memdb, api):
+    """02/10: the app offered the switch (the site never did) and Felipe
+    turned it off. The Terms are a contract (contract_art7): withdrawn by
+    deleting the account, refused as a revocation."""
+    ana = await add_user(memdb, "Ana")
+    client = api(ana)
+    body = {
+        "text_version": consents.CONSENT_TEXT_VERSION,
+        "means": "tap",
+        "purposes": {"terms": True},
+    }
+    assert (await client.put("/api/consents", json=body)).status_code == 200
+    refused = await client.put("/api/consents", json={**body, "purposes": {"terms": False}})
+    assert refused.status_code == 400
+    assert "apague a conta" in refused.json()["detail"]
+    assert await consents.active(memdb, ana.id, "terms")

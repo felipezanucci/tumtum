@@ -21,12 +21,18 @@ suspend fun AppContainer.afterSignIn() {
 
 /**
  * Whether this account must pass the consent gate before anything else
- * (26/09, the shared contract): no birth date on the server, or the Terms
- * not agreed. Null when the server could not be asked — the caller then
- * lets the person in, and the server still refuses whatever needs consent.
+ * (26/09, the shared contract): no birth date on the server, the Terms not
+ * agreed — or agreed under words that have since changed (02/10): then the
+ * person is asked once more, and the new yes is recorded under the new
+ * version. Nothing else opens it: signing in again on a phone that was
+ * wiped is not a reason (b232, Felipe: "quando eu logo de novo na conta,
+ * ele deveria já considerar o que foi salvo"). Null when the server could
+ * not be asked — the caller then lets the person in, and the server still
+ * refuses whatever needs consent.
  */
 suspend fun AppContainer.consentGateNeeded(): Boolean? = runCatching {
     val me = api.me()
     val consents = api.getConsents()
-    me.birthDate == null || !consents.granted(ConsentText.TERMS)
+    val terms = consents.consents.firstOrNull { it.purpose == ConsentText.TERMS }
+    me.birthDate == null || terms?.granted != true || terms.textVersion != ConsentText.VERSION
 }.getOrNull()

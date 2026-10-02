@@ -623,9 +623,13 @@ designed against them. The values live in `detect_peaks()` in
   `terms` and `read_heart_rate` (the two the core loop needs, each with its own
   tap) and `keep_night`, `crowd_stats`, `artist_compare`, `improve_detection`,
   `marketing` (**always off until the person turns them on**). A night reaches
-  the server only when the person taps *Guardar minha noite na TumTum* with
-  `keep_night` granted — never automatically, never on a retry of something
-  they did not ask for. A night counts in *A galera* only with `crowd_stats`.
+  the server only with `keep_night` granted — **since 02/10, by itself when the
+  night ends, because that is what the key's text now says** ("sobe pra sua
+  coleção assim que termina"; Felipe's call on the Strava precedent: consent
+  is per purpose, not per night); with the key off, the tap *Guardar minha
+  noite na TumTum* turns it on and sends that night. Every night keeps *Tirar
+  da TumTum* (server only). Publishing to the feed stays a tap per night. A
+  night counts in *A galera* only with `crowd_stats`.
   Sign-up asks the birth date through the platform picker and the server
   refuses anyone under 18. Nothing personal goes to a club, an artist, an
   advertiser or any third party that is not an operator under contract
@@ -646,3 +650,18 @@ designed against them. The values live in `detect_peaks()` in
   moment and the card work without the server, and the LGPD's necessity
   principle does not allow demanding an upload the product does not need);
   it is explained at sign-up and asked again at the end of the night.
+- **One consent text, and a yes that names it.** (02/10) The sentences of
+  the consent screen live once, in `shared/consent/consent-text.json`;
+  `scripts/consent_text.py` writes them into the app, the site and the
+  server, and a backend test fails on drift. Any change to a sentence is a
+  new `version` there and in `ConsentText.VERSION`, a new section in
+  `docs/consent-texts.md` — and the app and the site ask again, once, every
+  account whose Terms were accepted under the old words. The Terms are a
+  contract, not a switch: locked once accepted, withdrawn by deleting the
+  account, refused as a revocation by the server.
+- **A night starts only inside the event's window.** (02/10) The consent
+  text promises "de 30 minutos antes do começo até 30 minutos depois do
+  fim", so `CaptureWindow` opens the fan's "Começar agora" 30 minutes before
+  the start — black and saying when until then, Pink after — and every start
+  passes the same check. The operator keeps a marked way around it, for
+  tests, that the fan never sees.

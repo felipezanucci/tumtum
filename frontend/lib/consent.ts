@@ -7,6 +7,7 @@
 import {
   CONSENT_PT,
   CONSENT_PURPOSES,
+  CONSENT_TEXT_VERSION,
   isConsentPurpose,
   type ConsentCopy,
   type ConsentPurpose,
@@ -23,6 +24,8 @@ export type ConsentChoices = Record<ConsentPurpose, boolean>
 export interface ConsentEntryLike {
   purpose: string
   granted: boolean
+  /** The text the yes was given under; the gate re-asks when it is not the current one (02/10). */
+  text_version?: string | null
 }
 
 function pad(n: number): string {
@@ -109,7 +112,11 @@ export function needsConsentGate(
   if (!user) return false
   if (!user.birth_date) return true
   if (!consents) return false
-  return !choicesFrom(consents).terms
+  if (!choicesFrom(consents).terms) return true
+  // The words changed since this person said yes (02/10): they are asked
+  // again, once, and the new yes is recorded under the new version.
+  const terms = consents.find((entry) => entry.purpose === 'terms')
+  return terms?.text_version != null && terms.text_version !== CONSENT_TEXT_VERSION
 }
 
 /** The fixed origin a `next` must resolve to — never `location`, which a page can be framed or proxied under. */
@@ -181,13 +188,14 @@ export function consentNotice(
   copy: ConsentCopy = CONSENT_PT,
 ): string {
   if (granted) return copy.grantedNotice
-  return copy.purposes[purpose].offNotice ?? copy.revokedNotice
+  return copy.purposes[purpose].off
 }
 
 /**
  * The lines under each switch: the purposes just saved say what happened, and
- * a purpose whose off state has consequences (`offNotice`) keeps saying them
- * for as long as it is off — on a fresh load too, not only after the tap.
+ * a purpose that is off keeps saying what that means (`off`) for as long as
+ * it is off — on a fresh load too, not only after the tap (02/10: every key
+ * has such a sentence, and every one starts with "Desligado.").
  */
 export function consentNotes(
   saved: ConsentChoices,
@@ -196,8 +204,7 @@ export function consentNotes(
 ): Partial<Record<ConsentPurpose, string>> {
   const notes: Partial<Record<ConsentPurpose, string>> = {}
   for (const purpose of CONSENT_PURPOSES) {
-    const standing = copy.purposes[purpose].offNotice
-    if (!saved[purpose] && standing) notes[purpose] = standing
+    if (!saved[purpose]) notes[purpose] = copy.purposes[purpose].off
     // Only what the server now holds: a change it did not keep says nothing.
     const changed = justSaved[purpose]
     if (changed !== undefined && changed === saved[purpose]) {

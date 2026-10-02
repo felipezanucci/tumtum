@@ -59,6 +59,7 @@ import cc.tumtum.app.domain.CardCopy
 import cc.tumtum.app.domain.ConsentText
 import cc.tumtum.app.domain.FeedGate
 import cc.tumtum.app.ui.components.cardTitleText
+import cc.tumtum.app.ui.components.SystemBars
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import cc.tumtum.app.data.api.ServerSeries
@@ -462,6 +463,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
         }
     }
 
+    SystemBars(lightIcons = true)
     Column(
         Modifier
             .fillMaxSize()
@@ -581,6 +583,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 looked = feedLooked,
                 toTour = feedSeries != null,
                 onFeed = openFeedPost,
+                onKeep = { nav.navigate(Routes.consent(ConsentText.KEEP_NIGHT, n.id)) },
                 onShareAgain = {
                     cameBack = false
                     choosing = true
@@ -591,6 +594,7 @@ fun CardScreen(nav: NavHostController, nightId: Long, skin: Skin) {
                 feedClosed = feedClosed,
                 feedLooked = feedLooked,
                 onFeed = openFeedPost,
+                onKeep = { nav.navigate(Routes.consent(ConsentText.KEEP_NIGHT, n.id)) },
                 hasInstagram = hasInstagram,
                 hasFacebook = hasFacebook,
                 hasSnapchat = hasSnapchat,
@@ -699,6 +703,7 @@ private fun DoneActions(
     looked: Boolean,
     toTour: Boolean,
     onFeed: () -> Unit,
+    onKeep: () -> Unit,
     onShareAgain: () -> Unit,
 ) {
     val openGallery = {
@@ -718,6 +723,14 @@ private fun DoneActions(
         if (closed != null) {
             Spacer(Modifier.height(6.dp))
             Text(feedClosedText(closed), style = TTType.BodySmall, color = TT.Gray45)
+            if (closed == FeedGate.Closed.NotKept) {
+                Text(
+                    stringResource(R.string.feed_post_keep_link),
+                    style = TTType.Button.copy(fontSize = 14.sp),
+                    color = TT.Acid,
+                    modifier = Modifier.clickable(onClick = onKeep).padding(vertical = 8.dp),
+                )
+            }
         }
         Spacer(Modifier.height(12.dp))
         TTButton(stringResource(R.string.card_done_gallery), TTButtonStyle.Rose, onClick = openGallery)
@@ -754,6 +767,8 @@ private fun ShareChoices(
     feedClosed: FeedGate.Closed?,
     feedLooked: Boolean,
     onFeed: () -> Unit,
+    /** "Ligar 'Guardar a noite'": the consent screen on that key, this night waiting to go up. */
+    onKeep: () -> Unit,
     hasInstagram: Boolean,
     hasFacebook: Boolean,
     hasSnapchat: Boolean,
@@ -779,6 +794,16 @@ private fun ShareChoices(
     if (feedLooked && feedClosed != null) {
         Spacer(Modifier.height(6.dp))
         Text(feedClosedText(feedClosed), style = TTType.BodySmall, color = TT.Gray45)
+        // The sentence was only a reason (02/10, Felipe on b227): with the
+        // key off, the way to turn it on is here, and the night goes up with it.
+        if (feedClosed == FeedGate.Closed.NotKept) {
+            Text(
+                stringResource(R.string.feed_post_keep_link),
+                style = TTType.Button.copy(fontSize = 14.sp),
+                color = TT.Acid,
+                modifier = Modifier.clickable(enabled = !busy, onClick = onKeep).padding(vertical = 8.dp),
+            )
+        }
     }
     Spacer(Modifier.height(14.dp))
     // The networks on this phone. Status comes right after WhatsApp (#63) and

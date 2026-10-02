@@ -45,6 +45,7 @@ import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.data.prefs.Account
 import cc.tumtum.app.ui.components.BackArrow
+import cc.tumtum.app.ui.components.SystemBars
 import cc.tumtum.app.data.AvatarStore
 import cc.tumtum.app.domain.PublicProfile
 import cc.tumtum.app.domain.Skin
@@ -145,7 +146,8 @@ fun PublicProfileScreen(nav: NavHostController, handle: String) {
             .verticalScroll(rememberScrollState())
             .navigationBarsPadding(),
     ) {
-        // Cabeçalho preto
+        // Cabeçalho preto: light icons on the status bar; the body stays white (02/10).
+        SystemBars(lightIcons = true, lightNavigationIcons = false)
         Column(
             Modifier
                 .fillMaxWidth()

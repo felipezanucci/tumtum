@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.tumtum.app.R
 import cc.tumtum.app.domain.ConsentText
+import cc.tumtum.app.ui.components.SystemBars
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.theme.TT
@@ -45,6 +46,7 @@ class ConsentRationaleActivity : ComponentActivity() {
         setContent {
             TumTumTheme {
                 val context = LocalContext.current
+                SystemBars(lightIcons = true)
                 Column(
                     Modifier
                         .fillMaxSize()

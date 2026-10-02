@@ -141,6 +141,12 @@ fun TumTumRoot(
 
     Scaffold(
         containerColor = androidx.compose.ui.graphics.Color.White,
+        // The screens draw under the system bars and pad themselves (every
+        // one does statusBarsPadding; the tab bar and the full screens do the
+        // navigation bar). With the default insets the Scaffold padded the
+        // content instead and painted its own white behind the bars: the
+        // pale bands over the black screens Felipe saw on b227 (02/10).
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (route in tabRoutes) {
                 TTBottomBar(
