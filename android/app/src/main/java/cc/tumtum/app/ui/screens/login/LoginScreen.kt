@@ -31,9 +31,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import cc.tumtum.app.R
 import cc.tumtum.app.ui.components.BackArrow
-import cc.tumtum.app.data.prefs.Account
-import cc.tumtum.app.data.repo.afterSignIn
-import cc.tumtum.app.data.repo.consentGateNeeded
 import cc.tumtum.app.ui.components.TTButton
 import cc.tumtum.app.ui.components.TTButtonStyle
 import cc.tumtum.app.ui.components.TTField
@@ -43,7 +40,6 @@ import cc.tumtum.app.ui.nav.appContainer
 import cc.tumtum.app.ui.screens.account.AuthErrors
 import cc.tumtum.app.ui.theme.TT
 import cc.tumtum.app.ui.theme.TTType
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -121,58 +117,7 @@ fun LoginScreen(nav: NavHostController) {
                     try {
                         val cleanEmail = email.trim()
                         container.api.login(cleanEmail, password)
-                        // The name and — since 28/09 — the @ are the server's;
-                        // the tribes and the photo are this phone's, kept only
-                        // when this phone's profile is the account signing in.
-                        // A different account starts from its own (24/09: test 7
-                        // showed Felipe's photo and @ over another account).
-                        val me = runCatching { container.api.me() }.getOrNull()
-                        val signedInEmail = me?.email ?: cleanEmail
-                        // Read after /me: it may just have claimed this phone's
-                        // pending @, or heard it refused.
-                        val existing = container.prefs.state.first().account?.takeIf { it.belongsTo(signedInEmail) }
-                        val account = Account(
-                            name = me?.name?.ifBlank { null } ?: existing?.name ?: AuthErrors.handleFrom(cleanEmail)
-                                .replaceFirstChar { it.uppercase() },
-                            // The server's @, or none: an @ made up from the
-                            // address was never reserved for anybody (28/09).
-                            // Without an answer, whatever the phone knew stands.
-                            username = if (me != null) me.username else existing?.username,
-                            email = signedInEmail,
-                            tribes = existing?.tribes ?: emptySet(),
-                            pendingUsername = existing?.pendingUsername?.takeIf { me?.username == null },
-                            pendingRefused = existing?.pendingRefused == true,
-                        )
-                        if (existing != null) {
-                            container.prefs.createAccount(account)
-                        } else {
-                            container.prefs.replaceAccount(account)
-                        }
-                        container.afterSignIn()
-                        // The consent gate (26/09): an account without a birth
-                        // date or without the Terms agreed passes it first.
-                        val gate = container.consentGateNeeded() == true
-                        // Signing back in goes straight to the feed (#57, 23/09) —
-                        // from Configurações it used to drop the person back on
-                        // Configurações, one more step from what they came for.
-                        // The back stack is cleared so "back" does not return
-                        // to the sign-in form. Only a first sign-in goes on to
-                        // the permissions.
-                        if (user?.onboarded == true && !gate) {
-                            nav.navigate(Routes.Feed) {
-                                popUpTo(nav.graph.id) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        } else if (user?.onboarded == true) {
-                            nav.navigate(Routes.consent()) {
-                                popUpTo(nav.graph.id) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        } else {
-                            // A first sign-in: the consent screen, then the
-                            // Health Connect dialog if reading was turned on.
-                            nav.navigate(Routes.consent())
-                        }
+                        completeSignIn(container, nav, onboarded = user?.onboarded == true, typedEmail = cleanEmail)
                     } catch (e: Exception) {
                         error = AuthErrors.messageFor(e, context)
                     } finally {
@@ -186,7 +131,17 @@ fun LoginScreen(nav: NavHostController) {
             Text(it, style = TTType.Body, color = TT.Rose)
         }
         Spacer(Modifier.height(16.dp))
-        Text(stringResource(R.string.login_forgot), style = TTType.Footnote, color = TT.Gray45)
+        // In the app since 02/10. Until then this line sent the person to the
+        // site to make a new password — Felipe, locked out on b227: "essa
+        // experiência é péssima". The address typed above goes along.
+        Text(
+            stringResource(R.string.login_forgot),
+            style = TTType.Button.copy(fontSize = 14.sp),
+            color = TT.Ink,
+            modifier = Modifier
+                .clickable(enabled = !saving) { nav.navigate(Routes.forgotPassword(email)) }
+                .padding(vertical = 6.dp),
+        )
         Spacer(Modifier.height(18.dp))
         // The other door. Until 18/09 this screen had only the one, so after
         // a sign-out there was no way to create a second account on the phone.

@@ -34,6 +34,7 @@ from app.schemas.auth import (
     LoginRequest,
     MessageResponse,
     ResetPasswordRequest,
+    ResetWithCodeRequest,
     SignupConfirmRequest,
     SignupStarted,
     SignupStartRequest,
@@ -619,11 +620,15 @@ async def forgot_password(
 
     if user is not None:
         token = generate_token()
+        # The app's road (02/10): six digits in the same mail, typed back in
+        # the app. Bound to the address and keyed, like the sign-up code.
+        code = codes.generate_code()
         now = datetime.now(UTC)
         db.add(
             PasswordResetToken(
                 user_id=user.id,
                 token_hash=hash_token(token),
+                code_hash=codes.hash_code(email, code, settings.secret_key),
                 expires_at=expiry_from(now),
             )
         )
@@ -637,22 +642,25 @@ async def forgot_password(
         try:
             await send_email(
                 to=user.email,
-                subject="Criar uma nova senha na TumTum",
+                subject=f"{code} é seu código pra criar uma nova senha na TumTum",
                 html=(
                     f"<p>Oi, {html.escape(name)}.</p>"
                     f"<p>Alguém pediu uma nova senha para a sua conta na TumTum. "
-                    f"Se foi você, o link abaixo vale por 30 minutos:</p>"
+                    f"Se foi você, digita este código no app:</p>"
+                    f'<p style="font-size:28px;font-weight:700;letter-spacing:6px">{code}</p>'
+                    f"<p>Ou, no computador, abre o link:</p>"
                     f'<p><a href="{link}">Criar uma nova senha</a></p>'
-                    f"<p>Se não foi você, pode ignorar esta mensagem — "
-                    f"sua senha continua a mesma.</p>"
+                    f"<p>O código e o link valem por 30 minutos. Se não foi você, "
+                    f"pode ignorar esta mensagem — sua senha continua a mesma.</p>"
                 ),
                 text=(
                     f"Oi, {name}.\n\n"
                     f"Alguém pediu uma nova senha para a sua conta na TumTum. "
-                    f"Se foi você, abra este link nos próximos 30 minutos:\n\n"
+                    f"Se foi você, digita este código no app: {code}\n\n"
+                    f"Ou, no computador, abre este link:\n\n"
                     f"{link}\n\n"
-                    f"Se não foi você, pode ignorar esta mensagem — "
-                    f"sua senha continua a mesma."
+                    f"O código e o link valem por 30 minutos. Se não foi você, "
+                    f"pode ignorar esta mensagem — sua senha continua a mesma."
                 ),
             )
         except (EmailNotConfigured, httpx.HTTPError) as error:
@@ -695,7 +703,24 @@ async def reset_password(
             detail="Esse link não vale mais. Peça um novo para criar sua senha.",
         )
 
-    user.hashed_password = hash_password(body.password)
+    return await _finish_reset(
+        db, user, reset, body.password, now, request=request, response=response
+    )
+
+
+async def _finish_reset(
+    db: AsyncSession,
+    user: User,
+    reset: PasswordResetToken,
+    password: str,
+    now: datetime,
+    *,
+    request: Request | None,
+    response: Response | None,
+) -> TokenResponse:
+    """Set the password, spend every outstanding reset, sign everything else
+    out, and sign this person in — the link's road and the code's alike."""
+    user.hashed_password = hash_password(password)
     reset.used_at = now
 
     # Every other outstanding link for this account dies with it. Someone
@@ -721,3 +746,74 @@ async def reset_password(
     # Signing them straight in: they just proved control of the mailbox and
     # chose a password. A login form here would only ask them to type it again.
     return await _signed_in(db, user.id, request=request, response=response)
+
+
+RESET_CODE_REFUSED = (
+    "Esse código não confere ou já venceu. Confere o e-mail ou pede um código novo."
+)
+
+
+@router.post(
+    "/reset-password/code",
+    response_model=TokenResponse,
+    dependencies=[
+        # Five wrong guesses kill a code; these caps stop a stranger from
+        # asking for codes and guessing across many of them.
+        Depends(limit(by_email, 10, 3600)),
+        Depends(limit(site_or_app(None, by_ip), 30, 3600)),
+    ],
+)
+async def reset_password_with_code(
+    body: ResetWithCodeRequest,
+    db: AsyncSession = Depends(get_db),
+    request: Request = None,
+    response: Response = None,
+):
+    """The app's "esqueci a senha" (02/10): the six digits from the mail and a
+    new password, and the person is signed in.
+
+    One sentence for every refusal — no account, no code asked, a wrong code,
+    a dead one — so that the answer tells nobody whether an address has an
+    account. The latest code is the only one that counts.
+    """
+    email = body.email.strip().lower()
+    code = codes.clean_code(body.code)
+    if code is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="O código tem 6 números. Confere o e-mail.",
+        )
+    refused = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail=RESET_CODE_REFUSED
+    )
+    now = datetime.now(UTC)
+
+    user = (
+        await db.execute(select(User).where(func.lower(User.email) == email))
+    ).scalar_one_or_none()
+    if user is None:
+        raise refused
+    reset = (
+        await db.execute(
+            select(PasswordResetToken)
+            .where(
+                PasswordResetToken.user_id == user.id,
+                PasswordResetToken.code_hash.is_not(None),
+            )
+            .order_by(PasswordResetToken.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if reset is None or not codes.is_open(
+        reset.expires_at, reset.used_at, reset.attempts, now
+    ):
+        raise refused
+    if not codes.matches(reset.code_hash, email, code, settings.secret_key):
+        reset.attempts += 1
+        # Kept, though the request fails: a wrong guess must count.
+        await db.commit()
+        raise refused
+
+    return await _finish_reset(
+        db, user, reset, body.password, now, request=request, response=response
+    )

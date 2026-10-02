@@ -965,6 +965,37 @@ the linked documents — this file is the index and the reasoning, not a diary.
 
 ---
 
+## 2026-10-02 (2) — "Esqueci a senha" dentro do app
+
+**Felipe, locked out of his own account on b227:** the sign-in screen said
+*"Esqueci a senha — dá para criar outra em tumtum.cc/login"* and had no
+button; the only road was a browser. *"Essa experiência é péssima."*
+
+**Decided.** The reset mail now carries **a 6-digit code as well as the
+link** (subject "123456 é seu código pra criar uma nova senha na TumTum"),
+and the app has the whole road: "Esqueci a senha" under Entrar → the address
+(already typed carries over) → the code and the new password → signed in,
+landing where any sign-in lands. The link keeps working for the computer.
+
+- `POST /api/auth/reset-password/code {email, code, password}`: the latest
+  code of the account only, a keyed hash bound to the address (the sign-up
+  code's `hash_code`), five wrong guesses and it is dead (the link in the
+  same mail is not), **one sentence for every refusal** — no account, no
+  code, wrong, dead — so the answer tells nobody whether an address has an
+  account. Rate-limited by address and by IP. Success does what the link
+  does: every other reset spent, every device signed out
+  (`tokens_valid_after`), this one signed in — one function now,
+  `_finish_reset`.
+- Migration **027** (`password_reset_tokens.code_hash`, `.attempts`), added
+  at startup by the catch-up meanwhile. 8 tests through the router.
+- The app's step two says *"Se esse e-mail tiver conta na TumTum, o código
+  acabou de sair"*, never "mandamos": the server admits nothing, and the
+  screen must not claim more than it knows. The steps after a sign-in moved
+  to one function (`completeSignIn`) shared by Entrar and the reset, so the
+  two roads cannot drift.
+
+---
+
 ## 2026-10-02 — b227 na mão: o feed de um evento do mês que vem dizia "não chegou"
 
 **Felipe, on b227,** kept the FEED tab as built (*"fica mais organizado

@@ -93,6 +93,15 @@ class ResetPasswordRequest(BaseModel):
     password: str = Field(min_length=6, max_length=128)
 
 
+class ResetWithCodeRequest(BaseModel):
+    """The app's way back in (02/10): the address, the six digits from the
+    mail, and the new password — no link, no browser."""
+
+    email: EmailStr
+    code: str = Field(max_length=20)
+    password: str = Field(min_length=6, max_length=128)
+
+
 class MessageResponse(BaseModel):
     message: str
 

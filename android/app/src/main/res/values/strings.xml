@@ -463,7 +463,17 @@
     <string name="login_subtitle">Bom te ver de novo.</string>
     <string name="login_email_label">EMAIL</string>
     <string name="login_cta">Entrar</string>
-    <string name="login_forgot">Esqueci a senha — dá para criar outra em tumtum.cc/login</string>
+    <string name="login_forgot">Esqueci a senha</string>
+    <!-- "Esqueci a senha" in the app (02/10). The code step never says the mail went: the server admits nothing about who has an account. -->
+    <string name="forgot_title">Esqueci a senha</string>
+    <string name="forgot_body">A gente manda um código de 6 números pro seu e-mail. Com ele você cria uma senha nova aqui mesmo.</string>
+    <string name="forgot_send">Mandar código</string>
+    <string name="forgot_code_body">Se %1$s tiver conta na TumTum, o código acabou de sair. Ele vale por 30 minutos.</string>
+    <string name="forgot_new_password_label">SENHA NOVA</string>
+    <string name="forgot_password_short">A senha nova precisa de pelo menos 6 caracteres.</string>
+    <string name="forgot_cta">Criar senha nova e entrar</string>
+    <string name="forgot_done">Senha nova criada. Entrando…</string>
+    <string name="forgot_resent">Código novo a caminho de %1$s. Só o mais novo vale.</string>
     <string name="login_create">Não tem conta? Criar uma</string>
     <!-- Errors the account screens can say honestly. Each names the real condition. -->
     <string name="auth_error_credentials">Email ou senha não batem.</string>

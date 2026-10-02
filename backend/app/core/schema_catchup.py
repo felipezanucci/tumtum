@@ -10,7 +10,7 @@ that table failing: `users` is loaded on every authenticated request, with
 its `hr_sessions` alongside.
 
 So this runs, after `create_all`, the *additive* part of migrations 015–017,
-023, 025 and 026, each statement idempotent (`ADD COLUMN IF NOT EXISTS`, PostgreSQL
+023 and 025–027, each statement idempotent (`ADD COLUMN IF NOT EXISTS`, PostgreSQL
 ≥ 9.6). 023 (the consent ledger) also needs its new columns filled for the
 rows already there before they can be NOT NULL; `backfills()` does that —
 each `UPDATE` touches only rows still NULL, and `SET NOT NULL` on a column
@@ -41,6 +41,8 @@ ADDITIVE_COLUMNS = (
     ("hr_sessions", "event_readings", "INTEGER"),  # 025
     ("users", "username", "VARCHAR(20)"),  # 026
     ("signup_codes", "username", "VARCHAR(20)"),  # 026
+    ("password_reset_tokens", "code_hash", "VARCHAR(64)"),  # 027
+    ("password_reset_tokens", "attempts", "INTEGER NOT NULL DEFAULT 0"),  # 027
 )
 
 # 026: one owner per @, whatever its case. `IF NOT EXISTS`, so every startup
